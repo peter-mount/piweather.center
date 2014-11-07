@@ -1,0 +1,9 @@
+MODULE = camera
+
+OBJS =  api/init.o \
+	api/start.o \
+	api/stop.o 
+#	\
+#	api/timedLoop.o
+
+include ../SubMakefile

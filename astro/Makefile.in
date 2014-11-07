@@ -1,0 +1,42 @@
+MODULE = astro
+
+# ======================================================================
+# This library is a suite of astronomical functions for calculating
+# various items like when sun rise/set or moon rise/set will occur.
+#
+# These are useful for the weather station so that you know when to
+# turn on or off sensors that are affected by day time, but it's also
+# common for some stations to show this info, especially if you are
+# astronomical based like myself
+# ======================================================================
+
+# date
+OBJS =  date/calday.o \
+	date/century.o \
+	date/julday.o \
+	date/juldayd.o \
+	date/juldaytime.o \
+	date/juldaytm.o \
+	date/julian0h.o \
+	date/mjd.o
+
+# location
+OBJS += location/init.o
+
+# math
+OBJS += math/polynomial.o \
+	math/range.o
+
+# sun
+OBJS += sun/sunpos.o \
+	sun/sunradec.o \
+	sun/sunriseset.o
+
+# time
+OBJS += time/siderial_greenwich.o
+
+# ======================================================================
+# Applications
+APPS = ephemeris
+
+include ../SubMakefile

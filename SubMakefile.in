@@ -1,0 +1,47 @@
+######################################################################
+# Common build file used by all subdirectories
+#
+# With this, the subdirectories Makefile.in should include this file
+# after defining two variables:
+#
+# MODULE    The name of the library being built
+# OBJS	    The object files to be built, relative to that directory
+######################################################################
+
+CFLAGS = -O2
+CPPFLAGS = -I.. @CPPFLAGS@
+LDFLAGS ?= @LDFLAGS@
+
+# Location of build directory
+BUILD_DIR = ../build
+
+# Library destination & directory for individual build targets
+TARGET = $(BUILD_DIR)/lib$(MODULE).a
+DIR = $(BUILD_DIR)/$(MODULE)
+
+# Add destination build dir to OBJS so it's defined in a single location
+TARGET_OBJS = $(patsubst %.o, $(DIR)/%.o, $(OBJS))
+
+# Any applications?
+BIN_DIR = ${BUILD_DIR}/bin
+TARGET_APPS = $(patsubst %, ${BIN_DIR}/%, $(APPS))
+
+all: $(TARGET)
+
+.PHONY: apps
+apps: $(TARGET_APPS)
+
+$(TARGET): $(TARGET_OBJS)
+	ar rcs $@ $^
+
+clean:
+	rm -rf $(DIR)
+	rm -f $(TARGET)
+
+$(DIR)/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) -c $< -o $@
+
+${BIN_DIR}/%: %.o
+	@mkdir -p $(@D)
+	$(CC) -o $@ $< $(LDFLAGS)

@@ -1,0 +1,7 @@
+MODULE = clouds
+
+OBJS =  cloudcoverage.o \
+	render_postinit.o \
+	renderer.o
+
+include ../SubMakefile

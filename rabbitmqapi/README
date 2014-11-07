@@ -1,0 +1,98 @@
+This module provides a logger which will submit sensor readings to a RabbitMQ
+messaging server.
+
+Purpose
+=======
+
+This is provided as it's a feature I need for maidstoneweather.com
+
+What it allows me to do is to have multiple systems receive realtime weather
+reports from multiple instances without all that messing around with polling
+every single instance on the network.
+
+Prerequisites
+=============
+
+RabbitMQ server installed somewhere on your network.
+
+On the RasPI:
+
+You cannot use the librabbitmq0 or librabbitmq-dev packages in apt but the
+latest stable sources for rabbitmq-c, in this instance 0.5.0:
+
+sudo apt-get install libpopt-dev
+wget https://github.com/alanxz/rabbitmq-c/releases/download/v0.5.0/rabbitmq-c-0.5.0.tar.gz
+tar xvzpf rabbitmq-c-0.5.0.tar.gz 
+cd rabbitmq-c-0.5.0
+mkdir build
+cd build
+cmake -DENABLE_SSL_SUPPORT=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TOOLS=ON -DBUILD_STATIC_LIBS=ON ..
+cmake --build . --config Release
+sudo cmake --build . --config Release --target install
+
+Now the above will build both static & shared libraries & the command line utilities but no SSL support.
+
+Once installed, try running amqp-consume. It should fail but if it complains
+about not being able to open librabbitmq.so.1 then do the following:
+
+sudo vi /etc/ld.so.conf.d/arm-linux-gnueabihf.conf
+
+Add the following line to the end:
+
+/usr/local/lib/arm-linux-gnueabihf
+
+Then run:
+
+sudo ldconfig
+
+In the build:
+
+Run ./configure and you should then get the new logger included in the build.
+
+Alternatively:
+
+./configure --with-rabbitmq
+
+Note: To build without rabbitMQ when the libraries are installed:
+
+./configure --without-rabbitmq
+
+Configuration
+=============
+
+Add the following, substituting parameters as necessary:
+
+[rabbitmq]
+
+# The user credentials when connecting. If not present then both are guest
+#username    guest
+#password    guest
+
+# The hostname of the RabbitMQ server
+hostname    example.com
+
+# The port RabbitMQ listens to
+#port        5672
+
+# If present the virtual host. Defaults to /
+#virtualhost    /
+
+# The exchange to submit to - defaults to amqp.topic
+#exchange    amqp.topic
+
+# If present the prefix prepended to a sensor's name when forming the routing key
+routingkey.prefix   piweather.
+
+# If present the suffix appended to a sensor's name when forming the routing key
+routingkey.suffix   .localhost
+
+
+Testing that messages are being sent
+
+On the command line, try the following:
+
+amqp-consume --url=amqp://guest:guest@mq.server -q aa.test --exchange=amq.topic -r "piweather.*" cat
+
+This should connect as the guest user to mq.server and any messages received
+should then be written to the console.
+

@@ -1,0 +1,45 @@
+# Example camera configuration file
+#
+# Any blank line or a line starting with # are ignored.
+#
+# Configuration begins with a [section] header specific to the module being
+# configured.
+#
+# Then there are one or more property lines.
+#
+# The first work is the property name, then the rest of the line is the value.
+# Whitespace between the name and value are removed.
+#
+
+[camera]
+
+# How long in seconds between image captures. Defaults to 30 seconds if not defined
+timelapse   15
+
+# The captured image sizes
+width       640
+height      480
+# The default width/height if not defined
+#width      2592
+#height     1944
+
+# jpeg quality
+#quality    85
+
+# Exposure control
+metering        matrix
+
+# Automatic, usually good for daytime
+exposure        auto
+
+# For night time these are better instead
+#exposure       sports
+#shutter-speed  1000000
+
+# Other parameters available, use sensible values here
+#sharpness              0
+#contrast               0
+#brightness             0
+#saturation             0
+#iso                    100
+#exposure-compensation   0

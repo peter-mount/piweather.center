@@ -1,0 +1,21 @@
+# Example webserver configuration
+
+[webserver]
+
+# The port to listen on. If not defined this is 8080
+#port    8080
+
+# The context path, useful if serving from behind a proxy server.
+#
+# If this is defined this forms the start of the path within the server.
+# So here, fenrir means that all url's served will start with /fenrir/.
+#
+# This also means that anyone trying to go to either / or /fenrir will be redirected
+# to /fenrir/
+#
+#context fenrir
+
+# By default we connect to IPv4 only unless one or both of the following
+# are defined. In that case we connect to just the IP port's that are enabled
+#ipv4   enabled
+ipv6    enabled

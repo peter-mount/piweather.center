@@ -1,0 +1,16 @@
+MODULE = scheduler
+
+OBJS =  core/add.o \
+	core/bits.o \
+	core/init.o \
+	core/new.o \
+	core/next.o \
+	core/parser.o \
+	core/trigger.o
+
+OBJS += filter/aboveHorizon.o \
+	filter/parser.o
+
+APPS =	test
+
+include ../SubMakefile

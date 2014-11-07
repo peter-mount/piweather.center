@@ -1,8 +1,3 @@
-piweather.center
-================
-
-Raspberry PI based Weather Station
-
 This is an experimental standalone application based on raspistill for running a
 webcam using the Raspberry PI Camera (Normal or NOIR).
 

@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="arduino">
+        <df name="arduino_cpu_temperature_sensor">
+        </df>
+        <df name="arduino_generic_slave">
+        </df>
+        <df name="arduino_weather_slave">
+        </df>
+      </df>
+      <df name="astro">
+        <df name="date">
+          <in>calday.c</in>
+          <in>century.c</in>
+          <in>julday.c</in>
+          <in>juldayd.c</in>
+          <in>juldaytime.c</in>
+          <in>juldaytm.c</in>
+          <in>julian0h.c</in>
+          <in>mjd.c</in>
+        </df>
+        <df name="location">
+          <in>init.c</in>
+        </df>
+        <df name="math">
+          <in>polynomial.c</in>
+          <in>range.c</in>
+        </df>
+        <df name="sun">
+          <in>sunpos.c</in>
+          <in>sunradec.c</in>
+          <in>sunriseset.c</in>
+        </df>
+        <df name="time">
+          <in>siderial_greenwich.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>ephemeris.c</in>
+        <in>location.h</in>
+        <in>math.h</in>
+        <in>observatory.h</in>
+        <in>sun.h</in>
+        <in>time.h</in>
+      </df>
+      <df name="autom4te.cache">
+      </df>
+      <df name="build">
+        <df name="astro">
+          <df name="date">
+          </df>
+          <df name="location">
+          </df>
+          <df name="math">
+          </df>
+          <df name="sun">
+          </df>
+          <df name="time">
+          </df>
+        </df>
+        <df name="bin">
+        </df>
+        <df name="camera">
+          <df name="api">
+          </df>
+        </df>
+        <df name="clouds">
+        </df>
+        <df name="imagefilter">
+          <df name="filter">
+          </df>
+          <df name="generic">
+          </df>
+          <df name="meta">
+          </df>
+        </df>
+        <df name="logger">
+          <df name="api">
+          </df>
+          <df name="iot">
+          </df>
+          <df name="rabbitmq">
+          </df>
+          <df name="rest">
+          </df>
+          <df name="text">
+          </df>
+        </df>
+        <df name="rabbitmqapi">
+        </df>
+        <df name="renderers">
+          <df name="api">
+          </df>
+          <df name="image">
+          </df>
+        </df>
+        <df name="scheduler">
+          <df name="core">
+          </df>
+          <df name="filter">
+          </df>
+        </df>
+        <df name="sensors">
+          <df name="adc">
+          </df>
+          <df name="api">
+          </df>
+          <df name="fan">
+          </df>
+          <df name="generic">
+          </df>
+          <df name="gpio">
+            <df name="interrupt">
+            </df>
+          </df>
+          <df name="i2c">
+          </df>
+          <df name="light">
+          </df>
+          <df name="virtual">
+          </df>
+        </df>
+        <df name="weather">
+          <df name="blockingqueue">
+          </df>
+          <df name="bytebuffer">
+          </df>
+          <df name="charbuffer">
+            <df name="curl">
+            </df>
+            <df name="json">
+            </df>
+            <df name="misc">
+            </df>
+            <df name="xml">
+            </df>
+          </df>
+          <df name="config">
+          </df>
+          <df name="file">
+          </df>
+          <df name="hashmap">
+            <df name="hash">
+            </df>
+          </df>
+          <df name="history">
+          </df>
+          <df name="list">
+          </df>
+          <df name="string">
+          </df>
+          <df name="table">
+          </df>
+          <df name="thread">
+          </df>
+          <df name="threadpool">
+          </df>
+        </df>
+        <df name="webserver">
+          <df name="core">
+          </df>
+          <df name="handlers">
+          </df>
+          <df name="response">
+          </df>
+        </df>
+      </df>
+      <df name="camera">
+        <df name="api">
+          <in>init.c</in>
+          <in>start.c</in>
+          <in>stop.c</in>
+          <in>timedLoop.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>camera.h</in>
+      </df>
+      <df name="clouds">
+        <in>Makefile.in</in>
+        <in>cloudcoverage.c</in>
+        <in>clouds.h</in>
+        <in>render_postinit.c</in>
+        <in>renderer.c</in>
+      </df>
+      <df name="etc">
+      </df>
+      <df name="examples">
+      </df>
+      <df name="imagefilter">
+        <df name="filter">
+          <in>add.c</in>
+          <in>difference.c</in>
+          <in>intersect.c</in>
+          <in>mask.c</in>
+          <in>merge.c</in>
+          <in>rb_ratio_filter.c</in>
+          <in>subtract.c</in>
+          <in>sun.c</in>
+        </df>
+        <df name="generic">
+          <in>createThumbnail.c</in>
+          <in>fread.c</in>
+          <in>fwrite.c</in>
+        </df>
+        <df name="meta">
+          <in>histogram.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>filter.h</in>
+        <in>pw_add.c</in>
+        <in>pw_app.h</in>
+        <in>pw_cloud.c</in>
+        <in>pw_difference.c</in>
+        <in>pw_intersect.c</in>
+        <in>pw_mask.c</in>
+        <in>pw_merge.c</in>
+        <in>pw_subtract.c</in>
+        <in>pw_sun.c</in>
+      </df>
+      <df name="lib">
+        <df name="blockingqueue">
+          <in>add.c</in>
+          <in>get.c</in>
+          <in>init.c</in>
+        </df>
+        <df name="bytebuffer">
+          <in>free.c</in>
+          <in>init.c</in>
+          <in>put.c</in>
+          <in>read.c</in>
+          <in>reset.c</in>
+          <in>size.c</in>
+          <in>toarray.c</in>
+          <in>write.c</in>
+        </df>
+        <df name="charbuffer">
+          <df name="curl">
+            <in>append.c</in>
+            <in>appendFormField.c</in>
+            <in>appendFormFieldF.c</in>
+            <in>write.c</in>
+          </df>
+          <df name="json">
+            <in>append.c</in>
+            <in>end.c</in>
+            <in>reset.c</in>
+          </df>
+          <df name="misc">
+            <in>appendInt.c</in>
+            <in>center.c</in>
+            <in>padleft.c</in>
+            <in>padright.c</in>
+            <in>time_hm.c</in>
+            <in>time_hms.c</in>
+          </df>
+          <df name="xml">
+            <in>append.c</in>
+            <in>end.c</in>
+            <in>reset.c</in>
+          </df>
+          <in>append.c</in>
+          <in>appendbuffer.c</in>
+          <in>free.c</in>
+          <in>init.c</in>
+          <in>printf.c</in>
+          <in>put.c</in>
+          <in>read.c</in>
+          <in>reset.c</in>
+          <in>size.c</in>
+          <in>toarray.c</in>
+          <in>tostring.c</in>
+        </df>
+        <df name="config">
+          <in>free.c</in>
+          <in>getBooleanParameter.c</in>
+          <in>getCharParameter.c</in>
+          <in>getDoubleParameter.c</in>
+          <in>getFloatParameter.c</in>
+          <in>getHexLongParameter.c</in>
+          <in>getHexParameter.c</in>
+          <in>getIntParameter.c</in>
+          <in>getLongParameter.c</in>
+          <in>getParameter.c</in>
+          <in>getSection.c</in>
+          <in>parser.c</in>
+          <in>scanParameter.c</in>
+        </df>
+        <df name="conversions">
+        </df>
+        <df name="file">
+          <in>mkdirs.c</in>
+        </df>
+        <df name="hashmap">
+          <df name="hash">
+            <in>int.c</in>
+            <in>string.c</in>
+          </df>
+          <in>calculateIndex.c</in>
+          <in>containsKey.c</in>
+          <in>countCollisions.c</in>
+          <in>create.c</in>
+          <in>createEntry.c</in>
+          <in>currentCapacity.c</in>
+          <in>equals.c</in>
+          <in>expand.c</in>
+          <in>forEach.c</in>
+          <in>free.c</in>
+          <in>get.c</in>
+          <in>hash.c</in>
+          <in>hashKey.c</in>
+          <in>hashmap-int.h</in>
+          <in>memoize.c</in>
+          <in>put.c</in>
+          <in>remove.c</in>
+          <in>size.c</in>
+        </df>
+        <df name="history">
+          <in>append.c</in>
+          <in>clear.c</in>
+          <in>expire.c</in>
+          <in>free.c</in>
+          <in>get.c</in>
+          <in>init.c</in>
+        </df>
+        <df name="list">
+          <in>addHead.c</in>
+          <in>addTail.c</in>
+          <in>enqueue.c</in>
+          <in>findNode.c</in>
+          <in>getHead.c</in>
+          <in>getNext.c</in>
+          <in>getPred.c</in>
+          <in>getTail.c</in>
+          <in>insert.c</in>
+          <in>isEmpty.c</in>
+          <in>isHead.c</in>
+          <in>isNode.c</in>
+          <in>isTail.c</in>
+          <in>list_init.c</in>
+          <in>node_alloc.c</in>
+          <in>node_free.c</in>
+          <in>node_init.c</in>
+          <in>remove.c</in>
+          <in>removeHead.c</in>
+          <in>removeTail.c</in>
+          <in>size.c</in>
+        </df>
+        <df name="matrix">
+        </df>
+        <df name="string">
+          <in>extractString.c</in>
+          <in>fatalError.c</in>
+          <in>fatalIfNull.c</in>
+          <in>find.c</in>
+          <in>findEndOfLine.c</in>
+          <in>findNextLine.c</in>
+          <in>findNonWhitespace.c</in>
+          <in>findString.c</in>
+          <in>findWhitespace.c</in>
+          <in>genUrl.c</in>
+          <in>strendswith.c</in>
+        </df>
+        <df name="table">
+          <in>append.c</in>
+          <in>destroy.c</in>
+          <in>format.c</in>
+          <in>init.c</in>
+          <in>newcell.c</in>
+          <in>newrow.c</in>
+        </df>
+        <df name="thread">
+          <in>setPriority.c</in>
+        </df>
+        <df name="threadpool">
+          <in>init.c</in>
+          <in>start.c</in>
+          <in>submit.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>blockingQueue.h</in>
+        <in>bytebuffer.h</in>
+        <in>charbuffer.h</in>
+        <in>config.h</in>
+        <in>file.h</in>
+        <in>hashmap.h</in>
+        <in>history.h</in>
+        <in>list.h</in>
+        <in>string.h</in>
+        <in>table.h</in>
+        <in>thread.h</in>
+        <in>threadpool.h</in>
+      </df>
+      <df name="logger">
+        <df name="api">
+          <in>create_entry.c</in>
+          <in>free_entry.c</in>
+          <in>init.c</in>
+          <in>log.c</in>
+          <in>registerLogger.c</in>
+          <in>start.c</in>
+          <in>stop.c</in>
+        </df>
+        <df name="iot">
+          <in>configure.c</in>
+          <in>iot.h</in>
+          <in>iot_logger.c</in>
+          <in>iot_lookup_sensorId.c</in>
+          <in>iot_update.c</in>
+        </df>
+        <df name="rabbitmq">
+          <in>register.c</in>
+        </df>
+        <df name="rest">
+          <in>json.c</in>
+          <in>register.c</in>
+          <in>rest-utils.h</in>
+          <in>rest.h</in>
+          <in>xml.c</in>
+        </df>
+        <df name="text">
+          <in>console_logger.c</in>
+          <in>file_logger.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>logger.h</in>
+      </df>
+      <df name="rabbitmqapi">
+        <in>Makefile.in</in>
+        <in>connect.c</in>
+        <in>init.c</in>
+        <in>publish.c</in>
+        <in>publish_bytebuffer.c</in>
+        <in>publish_bytes.c</in>
+        <in>publish_charbuffer.c</in>
+        <in>rabbitmq.h</in>
+      </df>
+      <df name="renderers">
+        <df name="api">
+          <in>createImage.c</in>
+          <in>createJpeg.c</in>
+          <in>freeImages.c</in>
+          <in>getImage.c</in>
+          <in>getImageResize.c</in>
+          <in>init.c</in>
+          <in>postInit.c</in>
+          <in>putImage.c</in>
+          <in>register.c</in>
+          <in>removeImage.c</in>
+          <in>render.c</in>
+          <in>start.c</in>
+          <in>stop.c</in>
+        </df>
+        <df name="image">
+          <in>image.h</in>
+          <in>init_image.c</in>
+          <in>write.c</in>
+        </df>
+        <in>FileRenderer.c</in>
+        <in>Makefile.in</in>
+        <in>annotatedRenderer.c</in>
+        <in>annotation.c</in>
+        <in>annotation.h</in>
+        <in>imagerenderer.h</in>
+        <in>rawRenderer.c</in>
+        <in>thumbnailRenderer.c</in>
+      </df>
+      <df name="scheduler">
+        <df name="core">
+          <in>add.c</in>
+          <in>bits.c</in>
+          <in>init.c</in>
+          <in>new.c</in>
+          <in>next.c</in>
+          <in>parser.c</in>
+          <in>trigger.c</in>
+        </df>
+        <df name="filter">
+          <in>aboveHorizon.c</in>
+          <in>parser.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>scheduler.h</in>
+        <in>test.c</in>
+      </df>
+      <df name="sensors">
+        <df name="adc">
+          <in>adcpi_v1.c</in>
+        </df>
+        <df name="api">
+          <in>addListener.c</in>
+          <in>configure.c</in>
+          <in>get.c</in>
+          <in>getAge.c</in>
+          <in>init.c</in>
+          <in>logger.c</in>
+          <in>nextTrigger.c</in>
+          <in>register.c</in>
+          <in>registerAll.c</in>
+        </df>
+        <df name="fan">
+          <in>fan.c</in>
+          <in>piweather.c</in>
+        </df>
+        <df name="generic">
+          <in>cpu_sensor.c</in>
+          <in>lightvalue_sensor.c</in>
+          <in>uptime.c</in>
+        </df>
+        <df name="gpio">
+          <df name="interrupt">
+            <in>init.c</in>
+            <in>interruptHandler.c</in>
+            <in>waitForInterrupt.c</in>
+          </df>
+          <in>dht_sensor.c</in>
+          <in>gpio.h</in>
+          <in>init.c</in>
+        </df>
+        <df name="i2c">
+          <in>i2c-sensor.c</in>
+          <in>i2c.h</in>
+          <in>init.c</in>
+          <in>lock.c</in>
+          <in>read.c</in>
+          <in>simple.c</in>
+          <in>slave.c</in>
+          <in>sleep.c</in>
+          <in>write.c</in>
+        </df>
+        <df name="light">
+          <in>bh1750.c</in>
+          <in>si1145.c</in>
+        </df>
+        <df name="virtual">
+          <in>cloudbase.c</in>
+          <in>dewpoint.c</in>
+          <in>heatindex.c</in>
+          <in>max.c</in>
+          <in>pressure_trend.c</in>
+          <in>register.c</in>
+          <in>windchill.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>sensors.h</in>
+      </df>
+      <df name="weatherstation">
+        <in>Makefile.in</in>
+        <in>main.h</in>
+        <in>piweather.c</in>
+        <in>weatherstation.c</in>
+        <in>weatherstation.h</in>
+      </df>
+      <df name="webserver">
+        <df name="core">
+          <in>init.c</in>
+          <in>setDefaults.c</in>
+          <in>start.c</in>
+          <in>stop.c</in>
+        </df>
+        <df name="handlers">
+          <in>addHandler.c</in>
+          <in>addResponseHandler.c</in>
+          <in>notFound.c</in>
+          <in>staticHandler.c</in>
+        </df>
+        <df name="response">
+          <in>getResponse.c</in>
+          <in>queueResponse.c</in>
+          <in>replaceResponse.c</in>
+          <in>replaceResponseArray.c</in>
+          <in>replaceResponseByteBuffer.c</in>
+          <in>replaceResponseCharBuffer.c</in>
+          <in>sendResponse.c</in>
+        </df>
+        <in>Makefile.in</in>
+        <in>webserver.h</in>
+      </df>
+      <df name="www">
+        <df name="js">
+          <df name="flot">
+          </df>
+        </df>
+        <in>cpu.html</in>
+        <in>index.html</in>
+        <in>temp.html</in>
+      </df>
+      <in>Makefile.in</in>
+      <in>SubMakefile.in</in>
+      <in>global_config.h</in>
+      <in>global_config.h.in</in>
+      <in>piweather_build.h</in>
+      <in>piweather_build.h.in</in>
+      <in>piweather_build.sh</in>
+    </df>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>pi@fenrir.retep.org:22</developmentServer>
+        <platform>2</platform>
+      </toolsSet>
+      <compile>
+        <compiledirpicklist>
+          <compiledirpicklistitem>.</compiledirpicklistitem>
+          <compiledirpicklistitem>${AUTO_FOLDER}</compiledirpicklistitem>
+        </compiledirpicklist>
+        <compiledir>${AUTO_FOLDER}</compiledir>
+        <compilecommandpicklist>
+          <compilecommandpicklistitem>${MAKE} ${ITEM_NAME}.o</compilecommandpicklistitem>
+          <compilecommandpicklistitem>${AUTO_COMPILE}</compilecommandpicklistitem>
+        </compilecommandpicklist>
+        <compilecommand>${AUTO_COMPILE}</compilecommand>
+      </compile>
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <nativedebugger version="1">
+        <engine>gdb</engine>
+      </nativedebugger>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <rundir>.</rundir>
+        <buildfirst>false</buildfirst>
+        <terminal-type>0</terminal-type>
+        <remove-instrumentation>0</remove-instrumentation>
+        <environment>
+        </environment>
+      </runprofile>
+    </conf>
+  </confs>
+</configurationDescriptor>

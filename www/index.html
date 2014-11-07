@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>PI Weather</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>
+            <img id="campicture" name="campicture" src="image.jpg" alt="Camera View"/><br />
+            <form NAME="form1"><b><font size="-1" face="Arial">AutoReload in ~ </font>
+                    <input TYPE="text" NAME="clock" SIZE="2" VALUE> <font size="-1" face="Arial">seconds.</font></b><br />
+            </form>
+            <script language="Javascript">
+                var x = 1, now;
+                function startClock() {
+                    x--;
+                    document.form1.clock.value = x;
+                    if (x <= 1)
+                        reload();
+                    timerID = setTimeout("startClock()", 1000);
+                }
+                function reload() {
+                    document.campicture.src = "image.jpg?" + new Date().getTime();
+                    x = 10;
+                    document.form1.clock.value = x;
+                }
+                startClock();
+            </script>
+        </div>
+    </body>
+</html>

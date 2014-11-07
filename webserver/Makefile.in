@@ -1,0 +1,19 @@
+MODULE = webserver
+
+OBJS =  core/init.o \
+	core/setDefaults.o \
+	core/start.o \
+	core/stop.o \
+	handlers/addHandler.o \
+	handlers/addResponseHandler.o \
+	handlers/notFound.o \
+	handlers/staticHandler.o \
+	response/getResponse.o \
+	response/queueResponse.o \
+	response/replaceResponse.o \
+	response/replaceResponseArray.o \
+	response/replaceResponseByteBuffer.o \
+	response/replaceResponseCharBuffer.o \
+	response/sendResponse.o
+
+include ../SubMakefile

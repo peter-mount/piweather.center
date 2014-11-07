@@ -1,0 +1,29 @@
+# Example configuration for annotated images
+#
+
+[annotation]
+
+# The site name, goes on the top left of the image
+site    MaidstoneWeather.com
+
+# The camera title, goes on the top centre of the image
+title   Dev RaspiCam, Living Room Window
+
+# The camera type (optional)
+# If present this can contain one of: standard, noir or biology
+camera-type     standard
+
+# The font. I find DroidSans is best and this is the full path to it on the PI
+#font       /usr/share/fonts/truetype/droid/DroidSans.ttf
+#font-size  10
+
+# Generate a shadow around text, usually a good idea in bright conditions
+font-shadow enabled
+
+# The banner colours, for the background, text and the separator line.
+#
+# These values are formatted in hex as OORRGGBB Where RGB are the colours and
+# O is the opacity, 0 for opaque, FF for transparent
+#background     40263A93
+#foreground     00FFFFFF
+#line-colour    00FF0000

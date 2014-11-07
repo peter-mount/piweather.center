@@ -1,0 +1,165 @@
+MODULE = weather
+
+# ======================================================================
+# This may seem excessive but this is how some big shared libraries
+# like libc are traditionally done.
+#
+# By having functions in their own file, or grouped together into
+# small files means that at link time only those that are referenced
+# get put into the final binary.
+#
+# So, if code is not used it's not linked, keeping the final executable
+# size to a minimum.
+#
+# For example, when we had everything in the binary it was 227K in size.
+# On the first build using this system it was 88K.
+# ======================================================================
+
+# config
+OBJS =  config/free.o \
+	config/getBooleanParameter.o \
+	config/getCharParameter.o \
+	config/getDoubleParameter.o \
+	config/getFloatParameter.o \
+	config/getHexLongParameter.o \
+	config/getHexParameter.o \
+	config/getIntParameter.o \
+	config/getLongParameter.o \
+	config/getParameter.o \
+	config/getSection.o \
+	config/parser.o \
+	config/scanParameter.o
+
+# blockingqueue
+OBJS += blockingqueue/add.o \
+	blockingqueue/get.o \
+	blockingqueue/init.o
+
+# Byte buffer
+OBJS += bytebuffer/free.o \
+	bytebuffer/init.o \
+	bytebuffer/put.o \
+	bytebuffer/read.o \
+	bytebuffer/reset.o \
+	bytebuffer/size.o \
+	bytebuffer/toarray.o \
+	bytebuffer/write.o
+
+# Char buffer
+OBJS += charbuffer/append.o \
+	charbuffer/appendbuffer.o \
+	charbuffer/free.o \
+	charbuffer/init.o \
+	charbuffer/printf.o \
+	charbuffer/put.o \
+	charbuffer/read.o \
+	charbuffer/reset.o \
+	charbuffer/size.o \
+	charbuffer/toarray.o \
+	charbuffer/tostring.o
+	
+# Char buffer extensions
+OBJS += charbuffer/json/append.o \
+	charbuffer/json/end.o \
+	charbuffer/json/reset.o \
+	charbuffer/misc/appendInt.o \
+	charbuffer/misc/center.o \
+	charbuffer/misc/padleft.o \
+	charbuffer/misc/padright.o \
+	charbuffer/misc/time_hm.o \
+	charbuffer/misc/time_hms.o \
+	charbuffer/xml/append.o \
+	charbuffer/xml/end.o \
+	charbuffer/xml/reset.o
+
+# charbuffer curl extensions - some are dependent on libcurl some are standard
+OBJS += charbuffer/curl/append.o \
+        charbuffer/curl/appendFormField.o \
+        charbuffer/curl/appendFormFieldF.o
+ifeq (@CURL@,1)
+OBJS += charbuffer/curl/write.o
+endif
+
+# Files
+OBJS += file/mkdirs.o
+
+# Hashmap
+OBJS += hashmap/calculateIndex.o \
+	hashmap/containsKey.o \
+	hashmap/countCollisions.o \
+	hashmap/create.o \
+	hashmap/createEntry.o \
+	hashmap/currentCapacity.o \
+	hashmap/equals.o \
+	hashmap/expand.o \
+	hashmap/forEach.o \
+	hashmap/free.o \
+	hashmap/get.o \
+	hashmap/hash.o \
+	hashmap/hashKey.o \
+	hashmap/memoize.o \
+	hashmap/put.o \
+	hashmap/remove.o \
+	hashmap/size.o \
+	hashmap/hash/int.o \
+	hashmap/hash/string.o \
+
+# History
+OBJS += history/append.o \
+	history/clear.o \
+	history/expire.o \
+	history/free.o \
+	history/get.o \
+	history/init.o
+
+# Linked lists
+OBJS += list/addHead.o \
+	list/addTail.o \
+	list/enqueue.o \
+	list/findNode.o \
+	list/getHead.o \
+	list/getNext.o \
+	list/getPred.o \
+	list/getTail.o \
+	list/isEmpty.o \
+	list/isHead.o \
+	list/isNode.o \
+	list/isTail.o \
+	list/insert.o \
+	list/list_init.o \
+	list/node_alloc.o \
+	list/node_free.o \
+	list/node_init.o \
+	list/remove.o \
+	list/removeHead.o \
+	list/removeTail.o \
+	list/size.o
+
+# String
+OBJS += string/extractString.o \
+	string/fatalError.o \
+	string/fatalIfNull.o \
+	string/find.o \
+	string/findEndOfLine.o \
+	string/findNextLine.o \
+	string/findNonWhitespace.o \
+	string/findString.o \
+	string/findWhitespace.o \
+	string/genUrl.o \
+	string/strendswith.o
+
+# Table
+OBJS += table/append.o \
+	table/destroy.o \
+	table/format.o \
+	table/init.o \
+	table/newcell.o \
+	table/newrow.o
+
+# Threads
+OBJS += thread/setPriority.o \
+	threadpool/init.o \
+	threadpool/start.o \
+	threadpool/submit.o
+
+include ../SubMakefile

@@ -1,0 +1,82 @@
+# =============================================================
+# Example Sensor configuration for the Pi Weather Board
+# =============================================================
+#
+# The Pi Weather Board is an I2C based daughter board which
+# contains several weather sensors and the ability to add
+# two external one wire temperature sensors.
+#
+# This file contains the config required to add those sensors
+# to the weather station.
+#
+# All you need to do is to enable these sensors by copying
+# this file into your weatherstation's configuration directory.
+# =============================================================
+
+# On board temperature sensor, this has only a degree celsius
+# resolution and as it's right next to the PI it's really the
+# station enclosure temperature, hence we call it that
+[piweather/temp/internal]
+title                   Pi Weather Board Enclosure Temperature
+frequency               30
+#annotate                enabled
+format                  Enc %dC
+sensor-type             i2c
+i2c-address             4e
+i2c-command             42
+i2c-response-type       byte
+
+# The Humidity sensor
+[piweather/humidity]
+title                   Pi Weather Board Humidity Sensor
+frequency               30
+annotate                enabled
+format                  %2d%%
+sensor-type             i2c
+i2c-address             4e
+i2c-command             43
+i2c-response-type       byte
+
+
+# Barometer
+[piweather/barometer]
+title                   Pi Weather Board Barometer
+frequency               30
+annotate                enabled
+format                  %.1fkPa
+unit                    0.1
+sensor-type             i2c
+i2c-address             4e
+i2c-command             47
+i2c-response-type       word
+
+# The external temperature sensors.
+#
+# These are optional, so enable them by uncommenting the frequency and
+# annotate properties.
+#
+# Note: These use a custom response type which is an unsigned word but bit 31
+# defines the sign (not ones-compliment) hence the custom type
+
+[piweather/temp/external/1]
+title                   Pi Weather Board External Temperature #1
+frequency               30
+#annotate                enabled
+format                  Ext1 %3.1fC
+unit                    0.1
+sensor-type             i2c
+i2c-address             4e
+i2c-command             45
+i2c-response-type       signed word bit 31
+
+[piweather/temp/external/2]
+title                   Pi Weather Board External Temperature #2
+frequency               30
+#annotate                enabled
+format                  Ext2 %3.1fC
+unit                    0.1
+sensor-type             i2c
+i2c-address             4e
+i2c-command             46
+i2c-response-type       signed word bit 31
+
