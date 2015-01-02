@@ -2,6 +2,10 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
+      <df name="3dmodels">
+        <df name="stl">
+        </df>
+      </df>
       <df name="arduino">
         <df name="arduino_cpu_temperature_sensor">
         </df>
@@ -36,135 +40,12 @@
         <df name="time">
           <in>siderial_greenwich.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>ephemeris.c</in>
         <in>location.h</in>
         <in>math.h</in>
         <in>observatory.h</in>
         <in>sun.h</in>
         <in>time.h</in>
-      </df>
-      <df name="autom4te.cache">
-      </df>
-      <df name="build">
-        <df name="astro">
-          <df name="date">
-          </df>
-          <df name="location">
-          </df>
-          <df name="math">
-          </df>
-          <df name="sun">
-          </df>
-          <df name="time">
-          </df>
-        </df>
-        <df name="bin">
-        </df>
-        <df name="camera">
-          <df name="api">
-          </df>
-        </df>
-        <df name="clouds">
-        </df>
-        <df name="imagefilter">
-          <df name="filter">
-          </df>
-          <df name="generic">
-          </df>
-          <df name="meta">
-          </df>
-        </df>
-        <df name="logger">
-          <df name="api">
-          </df>
-          <df name="iot">
-          </df>
-          <df name="rabbitmq">
-          </df>
-          <df name="rest">
-          </df>
-          <df name="text">
-          </df>
-        </df>
-        <df name="rabbitmqapi">
-        </df>
-        <df name="renderers">
-          <df name="api">
-          </df>
-          <df name="image">
-          </df>
-        </df>
-        <df name="scheduler">
-          <df name="core">
-          </df>
-          <df name="filter">
-          </df>
-        </df>
-        <df name="sensors">
-          <df name="adc">
-          </df>
-          <df name="api">
-          </df>
-          <df name="fan">
-          </df>
-          <df name="generic">
-          </df>
-          <df name="gpio">
-            <df name="interrupt">
-            </df>
-          </df>
-          <df name="i2c">
-          </df>
-          <df name="light">
-          </df>
-          <df name="virtual">
-          </df>
-        </df>
-        <df name="weather">
-          <df name="blockingqueue">
-          </df>
-          <df name="bytebuffer">
-          </df>
-          <df name="charbuffer">
-            <df name="curl">
-            </df>
-            <df name="json">
-            </df>
-            <df name="misc">
-            </df>
-            <df name="xml">
-            </df>
-          </df>
-          <df name="config">
-          </df>
-          <df name="file">
-          </df>
-          <df name="hashmap">
-            <df name="hash">
-            </df>
-          </df>
-          <df name="history">
-          </df>
-          <df name="list">
-          </df>
-          <df name="string">
-          </df>
-          <df name="table">
-          </df>
-          <df name="thread">
-          </df>
-          <df name="threadpool">
-          </df>
-        </df>
-        <df name="webserver">
-          <df name="core">
-          </df>
-          <df name="handlers">
-          </df>
-          <df name="response">
-          </df>
-        </df>
       </df>
       <df name="camera">
         <df name="api">
@@ -173,19 +54,15 @@
           <in>stop.c</in>
           <in>timedLoop.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>camera.h</in>
       </df>
       <df name="clouds">
-        <in>Makefile.in</in>
         <in>cloudcoverage.c</in>
         <in>clouds.h</in>
         <in>render_postinit.c</in>
         <in>renderer.c</in>
       </df>
       <df name="etc">
-      </df>
-      <df name="examples">
       </df>
       <df name="imagefilter">
         <df name="filter">
@@ -206,7 +83,6 @@
         <df name="meta">
           <in>histogram.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>filter.h</in>
         <in>pw_add.c</in>
         <in>pw_app.h</in>
@@ -286,8 +162,6 @@
           <in>parser.c</in>
           <in>scanParameter.c</in>
         </df>
-        <df name="conversions">
-        </df>
         <df name="file">
           <in>mkdirs.c</in>
         </df>
@@ -346,8 +220,6 @@
           <in>removeTail.c</in>
           <in>size.c</in>
         </df>
-        <df name="matrix">
-        </df>
         <df name="string">
           <in>extractString.c</in>
           <in>fatalError.c</in>
@@ -377,7 +249,6 @@
           <in>start.c</in>
           <in>submit.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>blockingQueue.h</in>
         <in>bytebuffer.h</in>
         <in>charbuffer.h</in>
@@ -422,11 +293,9 @@
           <in>console_logger.c</in>
           <in>file_logger.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>logger.h</in>
       </df>
       <df name="rabbitmqapi">
-        <in>Makefile.in</in>
         <in>connect.c</in>
         <in>init.c</in>
         <in>publish.c</in>
@@ -457,7 +326,6 @@
           <in>write.c</in>
         </df>
         <in>FileRenderer.c</in>
-        <in>Makefile.in</in>
         <in>annotatedRenderer.c</in>
         <in>annotation.c</in>
         <in>annotation.h</in>
@@ -479,7 +347,6 @@
           <in>aboveHorizon.c</in>
           <in>parser.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>scheduler.h</in>
         <in>test.c</in>
       </df>
@@ -541,11 +408,9 @@
           <in>register.c</in>
           <in>windchill.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>sensors.h</in>
       </df>
       <df name="weatherstation">
-        <in>Makefile.in</in>
         <in>main.h</in>
         <in>piweather.c</in>
         <in>weatherstation.c</in>
@@ -573,7 +438,6 @@
           <in>replaceResponseCharBuffer.c</in>
           <in>sendResponse.c</in>
         </df>
-        <in>Makefile.in</in>
         <in>webserver.h</in>
       </df>
       <df name="www">
@@ -585,11 +449,7 @@
         <in>index.html</in>
         <in>temp.html</in>
       </df>
-      <in>Makefile.in</in>
-      <in>SubMakefile.in</in>
       <in>global_config.h</in>
-      <in>global_config.h.in</in>
-      <in>piweather_build.h</in>
       <in>piweather_build.h.in</in>
       <in>piweather_build.sh</in>
     </df>
