@@ -26,6 +26,22 @@ beams=2;
 
 // Add an additional instrument at the center - 0 for no, 1 for yes
 add_center_instrument=0;
+// Add a spike on the top of the center to direct rain away
+// mutually exclusive with add_center_instrument
+add_center_spike=1;
+
+// Optional inner lug on the instrument holder
+includeInstrumentLug=0;
+
+// Original had a small lug to orient the pole, this will enable that
+includeMastLug=0;
+
+// Include text? As it doesn't work in the prototype disable for now
+includeText=0;
+
+// Various bolt sizes, 4=M4, 6=M6 etc
+instrumentBoltSize=4;
+mastBoltSize=4;
 
 /****************************************************************************
  * Do not change these settings
@@ -34,8 +50,28 @@ add_center_instrument=0;
 // 100 will still fit the instruments
 beam_length=100;
 
-
 include <TextGenerator.scad>
+
+// Fit everything together
+for(beam=[0:(beams-1)]) {
+	rotate([0,0,360*beam/beams]) union() {
+		instrument();
+
+		if(includeText) {
+			// Various bits of text on first 2 beams
+			if(beam==0) {
+				translate([18,-2,24.5]) scale([0.5,0.5,1.5]) drawtext("http://piweather.center");
+			} else if(beam==1) {
+				translate([18,-2,24.5]) scale([0.5,0.5,1.5]) drawtext("Mark II Weather Station");
+			}
+		}
+	}
+}
+
+// Enable to include an additional instrument holder at the centre
+if(add_center_instrument) instrument_holder();
+
+mast_attachment();
 
 /*
  * A spar, drawn from the center to the outer extremity.
@@ -75,25 +111,25 @@ module instrument_holder() {
 	difference() {
 		// Outer sheaf
 		union() {
-			cylinder(h=41,r1=11,r2=11);
+			cylinder(h=41,r=11);
 			cylinder(h=25-2,r1=11,r2=14);
-			translate([0,0,25-2]) cylinder(h=2,r1=14,r2=14);
+			translate([0,0,25-2]) cylinder(h=2,r=14);
 		}
-		// Inner lug which goes into the instrument
+
 		translate([0,0,25.1]) difference() {
-			cylinder(h=20,r1=9.3,r2=9.3);
-			// Inner lug
-			difference() {
-				cylinder(h=25,r1=5.25,r2=5.25);
-				cylinder(h=25,r1=2.8,r2=2.8);
-				cylinder(h=25,r1=2.8,r2=2.8);
-				for(x=[0:3]) {
-					rotate([0,0,x*(360/3)]) translate([0,4.5,0]) cylinder(h=25,r1=1.25,r2=1.25);
+			cylinder(h=20,r=9.3);
+			if(includeInstrumentLug) {
+				// Inner lug which goes into the instrument
+				difference() {
+					cylinder(h=25,r=5.25);
+					cylinder(h=25,r=2.8);
+					for(x=[0:3])
+						rotate([0,0,x*(360/3)]) translate([0,4.5,0]) cylinder(h=25,r=1.25);
 				}
 			}
 		}
 		// M4 bolt hole
-		translate([0,20,30]) rotate([90,0,0]) cylinder(h=40,r1=2,r2=2);
+		translate([0,20,30]) rotate([90,0,0]) cylinder(h=40,r=instrumentBoltSize/2);
 	}
 }
 
@@ -112,40 +148,23 @@ module mast_attachment() {
 	translate([0,0,-25]) difference() {
 		union() {
 			// Flange
-			translate([0,0,25]) cylinder(h=2,r1=15,r2=15);
+			translate([0,0,25]) cylinder(h=2,r=15);
+
 			// Main body
-			cylinder(h=25,r1=9.2,r2=9.2);
+			cylinder(h=25,r=9.2);
+
 			// Lug
-			translate([0,9.2,25-2]) cylinder(h=2,r1=2.5,r2=2.5);
+			if(includeMastLug) translate([0,9.2,25-2]) cylinder(h=2,r=2.5);
+
 			// Brace on to the body
-			translate([0,0,25+2]) cylinder(h=25-2,r1=15,r2=15);
+			translate([0,0,25+2]) cylinder(h=25-2,r=15);
+
 			// Optional cap on top
-			//translate([0,0,50]) cylinder(h=5,r1=15,r2=0);
+			if(add_center_spike) translate([0,0,50]) cylinder(h=5,r1=15,r2=0);
 		}
 		// Hole at bottom
-		translate([0,0,-5]) cylinder(h=25,r1=6,r2=6);
+		translate([0,0,-5]) cylinder(h=25,r=6);
 		// M4 Bolt hole
-		translate([0,20,12]) rotate([90,0,0]) cylinder(h=40,r1=2,r2=2);
+		translate([0,20,12]) rotate([90,0,0]) cylinder(h=40,r=mastBoltSize/2);
 	}
 }
-
-/*
- * Fit everything together
- */
-for(beam=[0:(beams-1)]) {
-	rotate([0,0,360*beam/beams]) union() {
-		instrument();
-
-		// Various bits of text on first 2 beams
-		if(beam==0) {
-			translate([18,-2,24.5]) scale([0.5,0.5,1.5]) drawtext("http://piweather.center");
-		} else if(beam==1) {
-			translate([18,-2,24.5]) scale([0.5,0.5,1.5]) drawtext("Mark II Weather Station");
-		}
-	}
-}
-
-// Enable to include an additional instrument holder at the centre
-if(add_center_instrument) {instrument_holder();}
-
-mast_attachment();

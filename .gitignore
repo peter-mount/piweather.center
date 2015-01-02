@@ -52,3 +52,4 @@ config.cache
 piweather_build.h
 
 ^examples/
+/3dmodels/stl/bracket-side.gcode
