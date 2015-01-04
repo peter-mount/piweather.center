@@ -20,17 +20,32 @@
  *
  */
 
+// Uncomment this line to render/print just the holder as-is.
+// Leave it commented out so that this file can be included in other modules
+//piCameraStandalone(50);
+
 /*
  * Measured dimensions of a PI Camera Module.
  *
- * Width & Depth are the exterior dimensions. 0.25 is to give some manovering room
- * y offset is the height from the bottom of the center of the camera lens
+ * These are based on actual measurements and those manually measured by Gert van Loo
+ * and published on Scribd:
+ *
+ *		http://www.scribd.com/doc/142718448/Raspberry-Pi-Camera-Mechanical-Data
+ *
+ * Width & Depth are the exterior dimensions, width being the edge with the ribbon.
+ *
+ * We add 1.5 to these to give some room and account for the printer as it seems
+ * to give a better fit.
+ *
+ * y offset is the height from the bottom of the center of the camera lens.
+ *
  * ribbon width is just that, if required
  */
-piCameraWidth=25.2;
-piCameraDepth=24.2;
-piCameraYOffset=9.4;
-piCameraRibbonWidth=16.5;
+piCameraWidth=25 +1.5;
+piCameraDepth=23.9 +1.5;
+piCameraRibbonWidth=16.2 +0.5;
+piCameraLensSize=8 +1.5;
+piCameraYOffset=5.1+(piCameraLensSize/2);
 
 /*
  * Module to render a PI camera mount.
@@ -50,43 +65,66 @@ piCameraRibbonWidth=16.5;
  * The mode defines how it's rendered:
  *		0	Render the front panel
  *		1	Render the back panel
+ *		2	Render a plain panel with just the mounting holes
  */
 
 module piCamera(width,mode) {
 	assign(
 		tubeRadius=width/2,
+		piCameraLensHalf=piCameraLensSize/2,
+		piCameraWHalf=piCameraWidth/2,
+		piCameraDHalf=piCameraDepth/2,
 		offset=piCameraYOffset
 	) {
 		translate([0,0,piCameraYOffset/2]) union() {
 			// Front panel
 			difference() {
-				if(mode)
+				if(mode==1)
 					translate([6,-tubeRadius,-tubeRadius-offset]) cube([6,width,width+offset]);
 				else
 					translate([0,-tubeRadius,-tubeRadius-offset]) cube([6,width,width+offset]);
 
-				// Holder for the pi camera module
-				translate([5,-piCameraWidth/2,-piCameraWidth/2])
-					cube([5,piCameraWidth,piCameraWidth]);
+				if(mode!=2) {
+					// Holder for the pi camera module
+					translate([5,-piCameraWHalf,-piCameraDHalf])
+						cube([1.1,piCameraWidth,piCameraDepth]);
 
-				// Hole for the camera lens
-				translate([-0.5,-2.5,-piCameraYOffset+2.5]) cube([6,5,5]);
+					// Holder for components on rear of module
+					translate([6,1-piCameraWHalf,1-piCameraDHalf])
+						cube([3,piCameraWidth-2,piCameraDepth-2]);
+					translate([6,-piCameraWHalf,-piCameraDHalf])
+						cube([3,piCameraWidth,9.5]);
+
+					// Hole for the camera lens
+					translate([-0.5,-piCameraLensHalf,2-piCameraLensSize])
+						cube([6,piCameraLensSize,piCameraLensSize]);
+
+					// Indent for ribbon holder on front of the module
+					translate([2.5,-piCameraLensSize*2/3,-0.5])
+						cube([3,piCameraLensSize*4/3,piCameraDHalf+1]);
 		
-				// Space for ribbon cable
-				translate([5,-piCameraRibbonWidth/2,-tubeRadius-1-offset])
-					cube([5,piCameraRibbonWidth,tubeRadius+1+offset]);
+					// Space for ribbon cable
+					translate([5,-piCameraRibbonWidth/2,-tubeRadius-1-offset])
+						cube([3,piCameraRibbonWidth,tubeRadius+1+offset]);
+				}
 
 				// M4 mounting holes
-				for(h=[0:4])
-						translate([-1,
-							(h%2) ? (-tubeRadius+5) : (tubeRadius-5),
-							(floor(h/2)) ? (-tubeRadius+5-offset) : (tubeRadius-5)
-						])
-					rotate([0,90,0])
-					cylinder(h=16,r=2);
+				piCameraHoles(width,15);
 			}
 		}
 
+	}
+}
+
+module piCameraHoles(width,h) {
+	assign(tubeRadius=width/2) {
+		for(h=[0:3])
+			translate([-1,
+				(h%2) ? (-tubeRadius+5) : (tubeRadius-5),
+				(floor(h/2)) ? (-tubeRadius+5-piCameraYOffset) : (tubeRadius-5)
+			])
+			rotate([0,90,0])
+			cylinder(h=15,r=2);
 	}
 }
 
