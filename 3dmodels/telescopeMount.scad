@@ -25,48 +25,44 @@
  */
 
 // Include the telescope mount in the model
-includeFront=0;
+includeFront=1;
 
 // Include the backplate in the model
-includeBack=0;
+includeBack=1;
 
 // The required eyepiece diameter in inches.
-// Most telescopes these days are 1.75"
-eyepiece=1.75;
+// Most telescopes these days are 1.25"
+eyepiece=1.25;
 // Some big scopes have 2" barrels
 //eyepiece=2;
 // Older ones have 0.925" barrels
 //eyepiece=0.925;
 
-
 // ======================================================================
 // Do not modify these
 
-// eyepiece diameter, adjusting for extruder diameter
-eyediam=(eyepiece*25.4)-0.5;
-eyerad=eyediam/2;
-width=max(50,eyediam+10);
-
-
-/***************************************************************************
- * Required modules
- */
 include <Common.scad>
 include <PiCameraMount.scad>
 
-if(includeFront) front();
-else if(includeBack) back();
-else {
+// eyepiece diameter, adjusting for extruder diameter
+eyediam=(eyepiece*25.4)-3;
+eyerad=eyediam/2;
+width=max(50,eyediam+10);
+
+// **********************************************************************
+if(includeFront&&includeBack) {
 	translate([6,0,0]) rotate([0,0,180]) front();
 	translate([-6,-width*3/2,0]) back();
 }
+else if(includeFront) front();
+else if(includeBack) back();
 
 // **********************************************************************
 
 module front() {
 	union() {
 		piCamera(width,0);
-		translate([-24,0,0]) rotate([0,90,0]) difference() {
+		translate([-24,0,piCameraYOffset/4]) rotate([0,90,0]) difference() {
 			cylinder( h=24,r=eyerad);
 			translate([0,0,-2]) cylinder( h=27,r=eyerad-2);
 		}
