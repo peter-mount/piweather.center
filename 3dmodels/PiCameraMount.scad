@@ -134,7 +134,7 @@ module piCameraHoles(width,h) {
 				(floor(h/2)) ? (-tubeRadius+5-piCameraYOffset) : (tubeRadius-5)
 			])
 			rotate([0,90,0])
-			cylinder(h=15,r=2.25);
+			cylinder(h=15,r=2.5);
 	}
 }
 
