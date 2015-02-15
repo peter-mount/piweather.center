@@ -26,30 +26,30 @@
 // Enable each component. When printing have just 1 of these defined
 
 // Front panel
-includeFront=1;
+includeFront=0;
 
 // The main body
-includeBody=1;
+includeBody=0;
 
 // The rear panel
-includeRear=1;
+includeRear=0;
 
 // Camera & Wide Angle Lens Mount
 includeCamera=1;
 
 // Wide Angle Lens cap - holds the lens in position
-includeCap=1;
+includeCap=0;
 
 // Stray Light shield
-includeShield=1;
+includeShield=0;
 
 // Set to 1 to include a hole for an ethernet cable, 0 if using WiFi
-includeEthernet=1;
+includeEthernet=0;
 
 // The overall height of the camera
 webCamH=125;
 webCamW=115;
-echo(webCamH);
+
 
 /***************************************************************************
  * Do not modify these
@@ -67,6 +67,7 @@ webCamCH=webCamH-webCamPSH-10;
 /***************************************************************************
  * Required modules
  */
+include <Common.scad>
 include <PiCameraMount.scad>
 
 if(includeFront) frontPanel();
@@ -93,8 +94,8 @@ module frontPanel() {
 		// Cutout where the camera will be
 		translate([-webCamPSH,-1.5,webCamCH-webCamPSH-4]) cube([webCamPS,9,webCamPS+8]);
 		// The bottom bolts
-		translate( [-webCamWH+15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=2);
-		translate( [ webCamWH-15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=2);
+		translate( [-webCamWH+15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=M4);
+		translate( [ webCamWH-15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=M4);
 	}
 
 	// The camera mount
@@ -146,8 +147,8 @@ module body() {
 	// Bottom bolts
 	difference() {
 		translate( [-webCamWH, 5,6]) cube([webCamW,6,10]);
-		translate( [-webCamWH+15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=2);
-		translate( [webCamWH-15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=2);
+		translate( [-webCamWH+15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=M6);
+		translate( [webCamWH-15, 13,10]) rotate([90,90,0]) cylinder(h=20,r=M6);
 	}
 
 	// Back panel bolts
@@ -190,21 +191,23 @@ module rear() {
 module rearBolts(y,h) {
 	translate([ webCamWH-19,y,6]) difference() {
 		cube([15,6,10]);
-		if(h) translate([7.5,25,5]) rotate([90,90,0]) cylinder(h=50,r=3);
+		if(h) translate([7.5,25,5]) rotate([90,90,0]) cylinder(h=50,r=M6);
 	}
 	translate([-webCamWH+ 6,y,6]) difference() {
 		cube([15,6,10]);
-		if(h) translate([7.5,25,5]) rotate([90,90,0]) cylinder(h=50,r=3);
+		if(h) translate([7.5,25,5]) rotate([90,90,0]) cylinder(h=50,r=M6);
 	}
 	translate([-7.5,y,webCamH-5]) difference() {
 		cube([15,6,10]);
-		if(h) translate([7.5,25,5]) rotate([90,90,0]) cylinder(h=50,r=3);
+		if(h) translate([7.5,25,5]) rotate([90,90,0]) cylinder(h=50,r=M6);
 	}
 }
 
 // The camera mounting
 module camera() {
-	translate([0,-7,webCamCH]) union() {
+	translate([0,-7,webCamCH])
+	difference() {
+		union() {
 		// Camera front plate
 		rotate([0,0,90]) piCamera(webCamPS,0);
 
@@ -214,23 +217,21 @@ module camera() {
 			cube([piCameraRibbonWidth,6,5]);
 		
 		// Pimoroni Wide Angle Lens Holder
-		rotate([90,90,0]) difference() {
-			cylinder(h=15,r=35/2);
-			translate([0,0,-.5]) cylinder(h=15,r=24.25/2);
-			translate([0,0,4.5]) cylinder(h=6.5,r1=24.25/2,r2=32.25/2);
-			translate([0,0,5+6-0.5]) cylinder(h=6.5,r=32.25/2);
-		}
+		translate([0,0,2.5]) rotate([90,90,0]) cylinder(h=13,r=37.5/2);
+	}
+	translate([0,1,2.5]) rotate([90,90,0]) cylinder(h=20,r=35.5/2);
 	}
 }
 
 // Cap that holds the wide angle lens in position
 module cameraCap() {
-	translate([0,-25,webCamCH])
+	translate([0,-30,webCamCH+2.5])
 		rotate([90,90,0])
 		difference() {
-			cylinder(h=10,r=37/2);
-			translate([0,0,-1]) cylinder(h=8,r=35/2);
-			translate([0,0,1]) cylinder(h=10,r=32/2);
+			translate([0,0,-5]) cylinder(h=15,r=44/2);
+			translate([0,0,-6]) cylinder(h=13,r=40/2);
+			translate([0,0,6.5]) cylinder(h=3,r1=33/2,r2=30/2);
+			translate([0,0,1]) cylinder(h=10,r=30/2);
 		}	
 }
 
