@@ -66,6 +66,7 @@ piCameraYOffset=5.1+(piCameraLensSize/2);
  *		0	Render the front panel
  *		1	Render the back panel
  *		2	Render a plain panel with just the mounting holes
+ *    3	As 1 but cable exit on back is internal rather than at the bottom of the plate
  */
 
 module piCamera(width,mode) {
@@ -79,15 +80,17 @@ module piCamera(width,mode) {
 		translate([0,0,piCameraYOffset/2]) union() {
 			// Front panel
 			difference() {
-				if(mode==1)
+				if(mode==1 || mode==3)
 					translate([6,-tubeRadius,-tubeRadius-offset]) cube([6,width,width+offset]);
 				else
 					translate([0,-tubeRadius,-tubeRadius-offset]) cube([6,width,width+offset]);
 
+//				translate([4,-tubeRadius-1,-tubeRadius-offset-1]) cube([2,width+2,width+offset+2]);
+
 				if(mode!=2) {
 					// Holder for the pi camera module
-					translate([5,-piCameraWHalf,-piCameraDHalf])
-						cube([1.1,piCameraWidth,piCameraDepth]);
+					translate([4.5,-piCameraWHalf,-piCameraDHalf])
+						cube([2.2,piCameraWidth,piCameraDepth]);
 
 					// Holder for components on rear of module
 					translate([6,1-piCameraWHalf,1-piCameraDHalf])
@@ -104,8 +107,15 @@ module piCamera(width,mode) {
 						cube([3,piCameraLensSize*4/3,piCameraDHalf+1]);
 		
 					// Space for ribbon cable
-					translate([5,-piCameraRibbonWidth/2,-tubeRadius-1-offset])
-						cube([3,piCameraRibbonWidth,tubeRadius+1+offset]);
+					if(mode==1)
+						translate([ 5, -piCameraRibbonWidth/2,-tubeRadius-1-offset])
+							cube([3,piCameraRibbonWidth,tubeRadius+1+offset]);
+					else if(mode==3) {
+						translate([ 5, -piCameraRibbonWidth/2,14-tubeRadius-1-offset])
+							cube([4,piCameraRibbonWidth,15]);
+						translate([ 5, -piCameraRibbonWidth/2,14-tubeRadius-1-offset])
+							cube([10,piCameraRibbonWidth,5]);
+					}
 				}
 
 				// M4 mounting holes
@@ -124,7 +134,7 @@ module piCameraHoles(width,h) {
 				(floor(h/2)) ? (-tubeRadius+5-piCameraYOffset) : (tubeRadius-5)
 			])
 			rotate([0,90,0])
-			cylinder(h=15,r=2);
+			cylinder(h=15,r=2.25);
 	}
 }
 
@@ -133,5 +143,5 @@ module piCameraHoles(width,h) {
  */
 module piCameraStandalone(radius) {
 	translate([6,0,0]) rotate([0,0,180]) piCamera(radius,0);
-	translate([-6,-radius*3/2,0]) piCamera(radius,1);
+	translate([-6,-radius*3/2,0]) piCamera(radius,3);
 }
