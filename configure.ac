@@ -240,7 +240,7 @@ done
 # Finally add lib & weatherstation, doesn't matter compilation order but
 # needs to be linked in a specific order to allow linking
 DIRS="lib astro scheduler $DIRS weatherstation"
-LDFLAGS="-lweatherstation $LDFLAGS -lscheduler -lastro -lweather"
+LDFLAGS="-lweatherstation $LDFLAGS -lscheduler -lastro -lweather -lpthread -lm"
 
 AC_SUBST([DIRECTORIES],[$DIRS])
 AC_SUBST([CPPFLAGS],[$CPPFLAGS])
