@@ -4,6 +4,10 @@
     <df root="." name="0">
       <df name="3dmodels">
         <df name="stl">
+          <df name="telescope">
+          </df>
+          <df name="webcam">
+          </df>
         </df>
       </df>
       <df name="arduino">

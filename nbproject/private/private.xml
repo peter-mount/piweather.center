@@ -23,8 +23,8 @@
         </group>
         <group name="IOT"/>
         <group name="piweather.center">
+            <file>file:/home/peter/NetBeansProjects/piweather.center/3dmodels/PiCameraMount.scad</file>
             <file>file:/home/peter/NetBeansProjects/piweather.center/3dmodels/bracket-side.scad</file>
-            <file>file:/home/peter/NetBeansProjects/piweather.center/3dmodels/stl/bracket-side.stl</file>
         </group>
     </open-files>
 </project-private>

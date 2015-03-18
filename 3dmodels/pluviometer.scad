@@ -24,6 +24,7 @@ includeTop=1;
 includeFunnel=1;
 
 includeTopPlate=1;
+includeBody=1;
 
 // **********************************************************************
 // Do not modify these
@@ -31,13 +32,14 @@ includeTopPlate=1;
 // My printer can print up to 225x145x150mm so give room for raft etc
 topRadius = 120/2;
 
-containerRadius=30;
-
+containerRadius=35;
+bodyHeight=50;
 
 // **********************************************************************
 if(includeTop) top();
 if(includeFunnel) translate([0,0,-8]) funnel();
-if(includeTopPlate) translate([0,0,-8-33]) topPlate();
+if(includeTopPlate) translate([0,0,-40]) topPlate();
+if(includeBody) translate([0,0,-40-bodyHeight]) body();
 
 // **********************************************************************
 // The top plate
@@ -79,16 +81,46 @@ module funnel() {
 			cylinder(5,r=topRadius);
 			translate([0,0,-30]) cylinder(30,r2=topRadius,r1=10);
 			translate([0,0,-45]) cylinder(25,r=15);
+			translate([0,0,-27]) cylinder(5,r=23);
 			// Supports
-			translate([0,-5,-27]) cube([containerRadius,10,30]);
+			for(r=[0:2])
+				rotate([0,0,120*r]) translate([-1,-5,-27]) cube([containerRadius-3,10,30]);
 		}
 		translate([0,0,-23]) cylinder(30,r2=topRadius,r1=10);
 		translate([0,0,-46]) cylinder(27,r=10);
+
+		// Support bolts
+		for(r=[0:2])
+			rotate([0,0,120*r]) translate([containerRadius-10,0,-30]) cylinder(8,r=2.5);
+
+		// Remove to allow bolt from plate
+		for(r=[0:2])
+			rotate([0,0,60+120*r]) translate([containerRadius-10,0,-30]) cylinder(8,r=7);
 	}
 }
 
 // **********************************************************************
 // topPlate containing the bucket etc
 module topPlate() {
-	cylinder(5,r=containerRadius);
+	difference() {
+		cylinder(5,r=containerRadius);
+		translate([0,0,-1]) cylinder(7,r=16);
+
+		// Support bolts
+		for(r=[0:5])
+			rotate([0,0,60*r]) translate([containerRadius-10,0,-2]) cylinder(8,r=2.85);
+	}
 }
+
+module body() {
+	difference() {
+		cylinder(bodyHeight,r=containerRadius);
+		translate([0,0,-1]) cylinder(bodyHeight+2,r=containerRadius-5);
+	}
+	for(r=[0:2])
+		rotate([0,0,60+120*r]) translate([containerRadius-10,0,0]) union() {
+			cylinder(bodyHeight,r=5);
+			translate([-2,-5,0]) cube([10,10,bodyHeight]);
+		}
+}
+
