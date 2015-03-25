@@ -20,10 +20,10 @@
 #define HAVE_LIBMICROHTTPD 1
 
 /* Define to 1 if you have the `rabbitmq' library (-lrabbitmq). */
-#define HAVE_LIBRABBITMQ 1
+/* #undef HAVE_LIBRABBITMQ */
 
 /* Define to 1 if you have the `sqlite3' library (-lsqlite3). */
-#define HAVE_LIBSQLITE3 1
+/* #undef HAVE_LIBSQLITE3 */
 
 /* Define to 1 if you have the `wiringPi' library (-lwiringPi). */
 /* #undef HAVE_LIBWIRINGPI */
@@ -38,10 +38,10 @@
 #define HAVE_MICROHTTPD 1
 
 /* RabbitMQ messaging server */
-#define HAVE_RABBITMQ 1
+/* #undef HAVE_RABBITMQ */
 
 /* sqlite embedded sql database */
-#define HAVE_SQLITE 1
+/* #undef HAVE_SQLITE */
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
