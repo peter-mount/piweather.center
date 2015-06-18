@@ -19,15 +19,21 @@
 
 // Set to 1 to enable, 0 to disable
 
-// The components, when printing make certain only one is enabled
-// The main body
-includeBody=0;
 // The door, usually print separate to the body
-includeDoor=1;
+includeDoor=0;
 
-// Valid only when includeBody=1
+// The base
+includeBase=0;
 includeSensor=1;
 includeAccess=1;
+
+// The side panels
+includeLeft=0;
+includeRight=0;
+includeRear=0;
+
+// The roof
+includeRoof=1;
 
 // The Base size of the screen, limited by the size of the printer
 basesize=120;
@@ -43,9 +49,6 @@ doorLockBoltSize=4;
 /**********************************************************************
  * DO NOT CHANGE ANYTHING BELOW THIS POINT
  **********************************************************************/
-
-// The roof, usually printed with the body but can be separated
-includeRoof=includeBody;
 
 basehalf=basesize/2;
 frameheight=2*basesize/3;
@@ -66,10 +69,13 @@ difference() {
 	union() {
 		difference() {
 			union() {
-				if(includeBody) {
-					body();
+				if(includeBase) {
+					base();
 					if(includeSensor) {sensor();}
 				}
+				if(includeLeft) {panel(0);}
+				if(includeRear) {panel(3);}
+				if(includeRight) {panel(2);}
 				if(includeRoof) {roof();}
 				if(includeDoor) {doorFrameInner();}
 			}
@@ -140,20 +146,24 @@ module slat(w,y) {
 }
 
 
-// Renders the main body
-module body() {
-	base();
+// Renders the sides
+// 0 = left
+// 2 = right
+// 3 = rear
+// Don't use 1, thats the front which is replaced by the door
+module panel(s) {
+	//base();
 	// The left, right & rear screens
-	for(s=[0:3]) {
-		if(s!=1)
+	//for(s=[0:3]) {
+	//	if(s!=1)
 			rotate([0,0,-90+(90*s)])
 			translate([0,-basehalf+7.2,0])
 			screen();
-	}
+	//}
 
 	// Roof mounting
-	for(s=[0:3])
-		if(s!=1)
+	//for(s=[0:3])
+	//	if(s!=1)
 			rotate([0,0,-90+(90*s)])
 			translate([0,-basehalf+7.2,0])
 			roofmounting();
