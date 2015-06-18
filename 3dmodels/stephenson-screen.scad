@@ -17,294 +17,151 @@
  *
  */
 
-// Set to 1 to enable, 0 to disable
+outdiam=120;
+height=20;
 
-// The door, usually print separate to the body
-includeDoor=0;
+// Thickness of components
+thick=5;
 
-// The base
-includeBase=0;
-includeSensor=1;
-includeAccess=1;
-
-// The side panels
-includeLeft=0;
-includeRight=0;
-includeRear=0;
-
-// The roof
-includeRoof=1;
-
-// The Base size of the screen, limited by the size of the printer
-basesize=120;
-
-// When includeAccess=1 the inner diameter of the cable access in mm
-accessDiameter=8;
-
-// Various bolt sizes, for M4 use 4, M6 6 etc
-roofBoltSize=4;
-doorHingeBoltSize=4;
-doorLockBoltSize=4;
+// The bolt size, for M6 use 3
+boltSize=3;
 
 /**********************************************************************
  * DO NOT CHANGE ANYTHING BELOW THIS POINT
  **********************************************************************/
 
-basehalf=basesize/2;
-frameheight=2*basesize/3;
-framehalf=frameheight/2;
+boltMountHeight=height*0.5;
 
-doorwidth=basesize-28;
-doorhalf=doorwidth/2;
-doorheight=frameheight+35;
+mountBoltSize=4;
 
-// By default only include roof mounting if one not both of body & roof are included
-// i.e. if printing as one unit (minus the door) then no need for the mounts
-includeRoofMounting = 0;//!(includeBody&&includeRoof) && (includeBody||includeRoof);
+// 2*thick
+thick2=thick*2;
 
-// Now render everything
+indiam=outdiam/2;
 
-//doorframe();
-difference() {
-	union() {
-		difference() {
-			union() {
-				if(includeBase) {
-					base();
-					if(includeSensor) {sensor();}
+outrad=outdiam/2;
+inrad=indiam/2;
+
+// Uncomment one of these to generate each model
+// Remember to comment out the exploded view first
+//base();
+//slat();
+//plainTop();
+
+/* Example of showing all in exploded format.
+*/
+translate([0,0,(1*6)+(height-4)*6]) plainTop();
+
+for(s=[0:5]) translate([0,0,(1*s)+(height-5)*s]) slat();
+translate([0,0,0]) slat();
+translate([0,0,-thick-1]) base();
+
+
+/*
+ * A plain top, simply ensure rail runs off.
+ *
+ * This could be used as the basis for alternate tops, i.e. solar panel, light sensor etc
+ */
+module plainTop() {
+	difference() {
+		cylinder(h=height,r1=inrad+11,r2=0);
+		translate([0,0,-1]) cylinder(h=height-5,r1=inrad+3,r2=0);
+	}
+	for(b=[0:3])
+		rotate([0,0,90*b])
+		translate([inrad+thick,0,-3])
+		cylinder(h=4,r=boltSize);
+}
+
+/*
+ * Create a slat.
+ *
+ * isTop=1 for when this is the top slat, 0 for all others below
+ */
+module slat() {
+	// The cone
+	difference() {
+		cylinder(h=height,r1=outrad,r2=inrad);
+		translate([0,0,-1]) union() {
+			cylinder(h=height+(thick/2),r1=outrad-thick,r2=inrad-thick);
+			slatMount();
+		}
+	}
+
+	boltmounts();
+}
+
+module slatMount() {
+	// The bolt holes, needed to go through the outer casing
+	for(b=[0:3])
+		rotate([0,0,90*b])
+		translate([inrad+thick,0,height-boltMountHeight])
+		cylinder(h=boltMountHeight+2,r=boltSize+0.25);
+}
+
+module boltmounts() {
+	for(b=[0:3])
+		assign(
+			bh = b%2==0 ? (boltMountHeight*2)-5 : boltMountHeight,
+			ofs = b%2==0 ? 5 : (height-boltMountHeight)
+		) {
+			rotate([0,0,90*b])
+			translate([inrad+thick,0,ofs]) {
+				difference() {
+					cylinder(h=bh,r=boltSize+3);
+					translate([0,0,-1])
+						cylinder(h=bh+2,r=boltSize+0.2);
 				}
-				if(includeLeft) {panel(0);}
-				if(includeRear) {panel(3);}
-				if(includeRight) {panel(2);}
-				if(includeRoof) {roof();}
-				if(includeDoor) {doorFrameInner();}
+				if(b%2==0)
+					translate([0,0,-3])
+					cylinder(h=6,r=boltSize);
 			}
-
-			if(includeRoof || includeBody) doorframe();
 		}
-		if(includeDoor) door();
-	}
-
-	bolts();
-
-	if(includeBody && includeAccess) {
-		access();
-	}
 }
 
+/*
+ * Base mounting plate
+ */
 module base() {
-	// Base platform
 	difference() {
 		union() {
-			translate([-basehalf,-basehalf,-5]) cube([basesize,basesize,5]);
+			cylinder(h=thick,r=outrad);
 
-			// Access lip
-			if(includeAccess)
-				translate([(2*basehalf/3)-10,35,0]) cylinder(h=5,r=(accessDiameter/2)+2);
+			// Cable access
+			translate([0,20,0]) cylinder(h=10,r=7);
 		}
 
-		// Access hole
-		if(includeAccess)
-			translate([(2*basehalf/3)-10,35,-6]) cylinder(h=12,r=accessDiameter/2);
+		// Cable access
+		translate([0,20,-1]) cylinder(h=16,r=5);
+
+		// Peg holes spaced 12mm apart and 3mm deep to allow for equipment to be
+		// mounted on the base.
+		//
+		// Note:
+		//		We don't put pegs near the shade mountings nor the cable access.
+		//		The center two are also through holes for mounting to the mast bracket
+		//
+		rotate([0,0,90])
+		for(y=[-3:3])
+			translate([12*y,-12,0])
+				union() {
+					for(h=[-2:3])
+						if( (y==0 && h>=-1 && h<=2) || (y!=0 && (y<0 || y>2 || h<0||h>1) ) )
+							assign( th =  (y==0 && (h==0 || h==1 )) ? 6:3) {
+								translate([0,6.5+(12*h),thick-th])
+								cylinder(h=16,r=mountBoltSize/2);
+							}
+				}
 	}
 
-	for(c=[0:4])
-		rotate([0,0,90*c]) translate([-basehalf,-basehalf,0]) cube([15,15,frameheight]);
-}
-
-// Renders the left, right & rear screens
-module screen() {
-	// Edges
-	translate([-basehalf+15,-7.2,0]) cube([basesize-28,19.2,10.5]);
-	translate([-basehalf+15,-7.2,frameheight-16.5]) cube([basesize-28,15,16.5]);
-	
-	translate([-basehalf+10,-7.2,0]) cube([8,19,frameheight]);
-	translate([ basehalf-15,-7.2,0]) cube([5,19.2,frameheight]);
-	
-	// center support
-	translate([ -7.5,-7.2,2.5]) cube([15,19.2,frameheight-15]);
-	
-	// interim supports
-	translate([-25.5,-7.2,2.5]) cube([3,19.2,frameheight-15]);
-	translate([ 25.5,-7.2,2.5]) cube([3,19.2,frameheight-15]);
-	
-	// Slats
-	for(y=[0:6]) {
-		slat(basesize-24.7,20+8*y);
-	}
-
-}
-
-module slat(w,y) {
-	translate([-basehalf+13,2.5,y])
-		rotate([90,0,90])
-		linear_extrude(height=w)
-		polygon(
-			points=[ [-9.5,-11.5], [0,0], [9.5,-11.5], [9.5,-9.5], [0,2], [-9.5,-9.5] ],
-			paths=[ [0,1,2,3,4,5] ]
-		);
-}
-
-
-// Renders the sides
-// 0 = left
-// 2 = right
-// 3 = rear
-// Don't use 1, thats the front which is replaced by the door
-module panel(s) {
-	//base();
-	// The left, right & rear screens
-	//for(s=[0:3]) {
-	//	if(s!=1)
-			rotate([0,0,-90+(90*s)])
-			translate([0,-basehalf+7.2,0])
-			screen();
-	//}
-
-	// Roof mounting
-	//for(s=[0:3])
-	//	if(s!=1)
-			rotate([0,0,-90+(90*s)])
-			translate([0,-basehalf+7.2,0])
-			roofmounting();
-}
-
-// Inner door frame
-module doorFrameInner() {
-	if(includeBody||includeRoof) {
-		translate([-doorhalf-2,-basehalf+5,0]) cube([10,10,doorheight]);
-		translate([doorhalf-5,-basehalf+5,0]) cube([10,10,doorheight]);
-		translate([-doorhalf-2,-basehalf+5,doorheight-15]) cube([doorwidth,10,15]);
-		translate([-doorhalf-2,-basehalf+5,0]) cube([doorwidth,10,15]);
-	}
-}
-
-// Door body
-module door() {
-	if(includeDoor) {
-		// Inner door frame which slots into the front
-		translate([-doorhalf+.5,-basehalf-1,1]) cube([10,11,doorheight-1.5]);
-		translate([doorhalf-10.5,-basehalf-1,1]) cube([10,11,doorheight-1.5]);
-		translate([-doorhalf+.5,-basehalf-1,doorheight-15.5]) cube([doorwidth-1,11,15]);
-		translate([-doorhalf+.5,-basehalf-1,1]) cube([doorwidth-1,11,14.5]);
-
-		// Outer door frame which fits over everything
-		difference() {
-			translate([-basehalf+10,-basehalf-10,-1]) cube([basesize-20,10,doorheight+2]);
-			translate([-doorhalf+10,-basehalf-11,15]) cube([doorwidth-20,12,doorheight-30]);
-		}
-
-		// Door slats
-		translate([-5,-basehalf-10,15]) cube([10,20,doorheight-30]);
-		translate([10,-basehalf-3,5]) for(y=[0:10]) {
-			slat(basesize-44.7,20+8*y);
-		}
-	}
-}
-
-// used in a difference, cuts the door out of both body & frame.
-// It also ensures holes line up
-module doorframe() {
-	// Cut out the door
-	translate([-doorhalf,-basehalf-1.5,0]) cube([doorwidth,11,doorheight]);
-}
-
-// Optional sensor frame - i.e. attach thermometer & barometer on this
-module sensor() {
-
-	// Side struts
-	for(s=[0:1]) {
-		translate([ s ? ((basehalf/3)-5) : (-basehalf/3), -2.5,-0.5])
-		union() {
-			cube([5,5,framehalf]);
-			rotate([90,0,90])
-				linear_extrude(height=5)
-				polygon(
-					points=[ [0,0], [-15,0], [0,framehalf/2], [5,framehalf/2], [20,0] ],
-					paths=[ [0,1,2,3,4] ]
-				);
-			translate([5*s,s?0:5,0])
-				rotate([90,0,s*180])
-				linear_extrude(height=5)
-				polygon(
-					points=[ [0,0], [-15,0], [0,framehalf/3] ],
-					paths=[ [0,1,2] ]
-				);
-		}
-	}
-
-	// Mounting slats
-	for(y=[0:2])
-		translate([-(basehalf/3),-2.5,framehalf-0.75-(15*y)]) cube([2*basehalf/3,5,5]);
-}
-
-// The roof mounting - only applies if roof & body are not created
-module roofmounting() {
-	if(includeRoofMounting)
-		translate([-7.5,0,frameheight-2]) union() {
-			translate([0,2.7,0]) cube([15,22.3,2]);
-			translate([0,2.7,-10]) cube([15,12,10]);
-			for(i=[0:1])
-				translate([11*i,0,0])
-				rotate([90,0,90])
-				linear_extrude(height=4)
-				polygon(
-					points=[ [14.6,0], [25,0], [14.6,-10] ],
-					paths=[ [0,1,2] ]
-				);
-		}
-}
-
-// Renders the roof
-module roof() {
-	difference() {
-		// The main roof
-		union() {
-			// Roof front
-			translate([-basehalf,-basehalf,frameheight]) cube([basesize,5,47.3]);
-
-			// Roof
-			translate([-basehalf-5,basehalf+15,frameheight])
-				rotate([160,0,0])
-				linear_extrude(height=6) polygon(
-					points=[ [0,0], [basesize+10,0], [basesize+10, basesize+30], [0,basesize+30] ],
-					paths=[ [0,1,2,3] ]
-				);
-	
-			// Roof frame
-			if(includeRoofMounting)
-				for(s=[0:3])
-					if(s!=1)
-						rotate([0,0,-90+(90*s)])
-						translate([-basehalf+5,-basehalf+5,frameheight])
-						cube([basesize-5,13,5]);
-
-			// Roof mounting
-			for(s=[0:3])
-				if(s!=1)
-					translate([0,0,frameheight*2])
-					rotate([0,0,-90+(90*s)])
-					translate([0,-basehalf+7.2,0])
-					rotate([0,-180,0])
-					roofmounting();
-
-		// Sides
-			for(s=[0:1])
-				translate([s?basehalf:(6-basehalf),-basehalf,frameheight])
-				rotate([0,-90,0])
-				linear_extrude(height=6) polygon(
-					points=[ [0,0], [0,basesize], [5,basesize], [49,0] ],
-					paths=[ [0,1,2,3] ]
-			);
-		}
-
-		// Remove cruft from above the front roof
-		translate([-basehalf-5,basehalf+15,frameheight+16.3])
-			rotate([160,0,0])
-			linear_extrude(height=15.35) polygon(
-				points=[ [0,0], [basesize+10,0], [basesize+10, basesize+30], [0,basesize+30] ],
-				paths=[ [0,1,2,3] ]
-			);
+	for(b=[0:3])
+		if(b%2==0) {
+			rotate([0,0,90*b])
+			translate([inrad+thick,0,thick])
+			difference() {
+				cylinder(h=boltMountHeight/2,r=boltSize+3);
+				cylinder(h=boltMountHeight+2,r=boltSize+0.2);
+			}
 	}
 }
 

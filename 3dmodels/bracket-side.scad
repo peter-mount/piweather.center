@@ -66,6 +66,7 @@ includeText=0;
 // Useful if you want to do a batch of brackets but not the spars.
 includeSpar=1;
 includeBracket=1;
+includeMountBlock=1;
 
 // Print legacy mounting?
 //
@@ -78,7 +79,7 @@ includeBracket=1;
 // For mounting piweather.center components this should be set to 0 as mast
 // mountable components will have support for this designed in.
 //
-legacyMounting=1;
+legacyMounting=0;
 
 // Show the components exploded (i.e. apart).
 // Set to 1 for printing.
@@ -294,6 +295,9 @@ module generateComponent() {
 			if(includeSpar)
 				main_spar_bracket();
 
+			if(includeMountBlock)
+				mountBlock();
+
 			if(includeBracket)
 				rotate([0,0,180]) translate( [componentSpacing,-10,0]) mast_bracket();
 		}
@@ -311,5 +315,21 @@ module generateComponent() {
 	if(includeText && includeSpar) {
 		rotate([90,0,0]) translate([30,4.5,6.5]) scale([1,1,3]) drawtext("Mark II Weather Station");
 		rotate([90,0,0]) translate([165,4.5,-19.75]) scale([-1,1,3]) drawtext("http://piweather.center");
+	}
+}
+
+/**
+ * Optional spacer block for non-legacy mounts used to attach items to the bracket
+ */
+module mountBlock() {
+	if(!legacyMounting) {
+		difference() {
+			translate([sparLength-19,-7.5,10]) cube([18,25,5]);
+			translate([0,-7.5,0]) union() {
+					// No cutout as we have 2 bolts between the spars
+					translate([sparLength-10.8,6.5,-0.1]) cylinder(h=16,r=mountBoltSize/2);
+					translate([sparLength-10.8,18.5,-0.1]) cylinder(h=16,r=mountBoltSize/2);
+			}
+		}
 	}
 }
