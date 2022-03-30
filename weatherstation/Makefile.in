@@ -1,7 +1,0 @@
-MODULE = weatherstation
-
-APPS = piweather
-
-#OBJS =  weatherstation.o
-
-include ../SubMakefile
