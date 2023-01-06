@@ -6,7 +6,12 @@
 # system files
 .DS_Store
 
+go.sum
+
 # IDE files
 .idea
 .vscode
 /go_build_main_go
+
+/config.yaml
+/mastodon.yml
