@@ -1,9 +1,10 @@
 package julian
 
 import (
-	"encoding/xml"
 	"fmt"
 	"github.com/peter-mount/piweather.center/astro/util"
+	"github.com/soniakeys/meeus/v3/sidereal"
+	"github.com/soniakeys/unit"
 	"math"
 	"time"
 )
@@ -109,9 +110,28 @@ func (t Day) String() string {
 	return fmt.Sprintf("%f", t.JD())
 }
 
-func (t *Day) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
-	return xml.Attr{
-		Name:  name,
-		Value: t.String(),
-	}, nil
+func (t Day) MarshalText() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
+// JDMidnight returns the Day at 0h
+func (t Day) JDMidnight() Day {
+	// Julian days start at midday hence subtract 0.5 before converting to integer then adding 0.5 back.
+	return Day(math.Floor(t.JD()-0.5) + 0.5)
+}
+
+func (t Day) Apparent() unit.Time {
+	return sidereal.Apparent(t.JD())
+}
+
+func (t Day) Apparent0UT() unit.Time {
+	return sidereal.Apparent0UT(t.JD())
+}
+
+func (t Day) Mean() unit.Time {
+	return sidereal.Mean(t.JD())
+}
+
+func (t Day) Mean0UT() unit.Time {
+	return sidereal.Mean0UT(t.JD())
 }

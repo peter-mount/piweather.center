@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"github.com/soniakeys/unit"
 	"math"
 	"strings"
 )
@@ -56,4 +57,13 @@ func DegDMSStringExt(d float64, sign bool, p, m string) string {
 		s = fmt.Sprintf("%3d:%02d:%02d", deg, min, int(math.Round(sec)))
 	}
 	return strings.TrimSpace(s)
+}
+
+func HourDMSString(t unit.Time) string {
+	return HourDMSStringExt(t.Hour())
+}
+
+func HourDMSStringExt(d float64) string {
+	deg, min, sec := DegDMS(math.Abs(d))
+	return fmt.Sprintf("%02d:%02d:%02d", deg, min, int(math.Round(sec)))
 }

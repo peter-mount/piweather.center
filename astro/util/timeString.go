@@ -17,5 +17,4 @@ func FdayToHMS(day float64) (int, int, int, int) {
 
 func HMSToFday(d, h, m, s int) float64 {
 	return float64(d) + ((float64(h) + (float64(m) / 60.0) + (float64(s) / 3600.0)) / 24.0)
-
 }
