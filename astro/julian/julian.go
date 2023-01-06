@@ -1,11 +1,19 @@
 package julian
 
 import (
+	"encoding/xml"
+	"fmt"
+	"github.com/peter-mount/piweather.center/astro/util"
 	"math"
 	"time"
 )
 
 type Day float64
+
+// JD returns the Julian Date of a day
+func (t Day) JD() float64 {
+	return float64(t)
+}
 
 // IsGregorian returns true if the date is in the Gregorian Calendar.
 // Here we take the original date of the reform so dates on or before 1582 Oct 4 is
@@ -36,6 +44,7 @@ func IsGregorian(d, m, y int) bool {
 	}
 }
 
+// FromTime returns a Day from a time.Time
 func FromTime(t time.Time) Day {
 	Y := t.Year()
 	M := int(t.Month())
@@ -56,12 +65,14 @@ func FromTime(t time.Time) Day {
 	return Day(math.Floor(365.25*float64(Y+4716)) + math.Floor(30.6001*float64(M+1)) + float64(D+B) - 1524.5 + F)
 }
 
+// FromDate returns a Day from a calendar date
 func FromDate(y, m, d, h, min, s int) Day {
 	return FromTime(time.Date(y, time.Month(m), d, h, min, s, 0, time.UTC))
 }
 
+// Time returns the time.Time of a Day
 func (t Day) Time() time.Time {
-	z, f := math.Modf(float64(t) + 0.5)
+	z, f := math.Modf(t.JD() + 0.5)
 
 	a := int(z)
 	if z >= 2299161 {
@@ -84,7 +95,23 @@ func (t Day) Time() time.Time {
 		year = int(c) - 4716
 	}
 
-	day, h, m, s := FdayToHMS(b - d - math.Floor(30.6001*e) + f)
+	day, h, m, s := util.FdayToHMS(b - d - math.Floor(30.6001*e) + f)
 
 	return time.Date(year, time.Month(int(month)), day, h, m, s, 0, time.UTC)
+}
+
+// CenturiesJ2k returns the number of Julian Centuries since J2000.0 (2000 Jan 1.5 TD)
+func (t Day) CenturiesJ2k() float64 {
+	return (t.JD() - 2451545.0) / 36525.0
+}
+
+func (t Day) String() string {
+	return fmt.Sprintf("%f", t.JD())
+}
+
+func (t *Day) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+	return xml.Attr{
+		Name:  name,
+		Value: t.String(),
+	}, nil
 }

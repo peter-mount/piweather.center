@@ -1,4 +1,4 @@
-package julian
+package util
 
 import (
 	"math"

@@ -2,6 +2,7 @@ package julian
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/astro/util"
 	"testing"
 	"time"
 )
@@ -68,7 +69,7 @@ func TestDay_Time(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%f", tt.t), func(t *testing.T) {
 			got := tt.t.Time()
-			td, th, tm, ts := FdayToHMS(tt.d)
+			td, th, tm, ts := util.FdayToHMS(tt.d)
 			if got.Year() != tt.y || got.Month() != tt.m ||
 				got.Day() != td || got.Hour() != th || got.Minute() != tm || got.Second() != ts {
 				t.Errorf("Time() = %v, want %d %d %.4f", got, tt.y, tt.m, tt.d)
