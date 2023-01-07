@@ -120,18 +120,27 @@ func (t Day) JDMidnight() Day {
 	return Day(math.Floor(t.JD()-0.5) + 0.5)
 }
 
+// Apparent returns the apparent sidereal time at Greenwich for this Day
 func (t Day) Apparent() unit.Time {
 	return sidereal.Apparent(t.JD())
 }
 
+// Apparent0UT returns the apparent sidereal time at Greenwich at 0UT on this Day
 func (t Day) Apparent0UT() unit.Time {
 	return sidereal.Apparent0UT(t.JD())
 }
 
+// Mean returns the mean sidereal time at Greenwich for this Day
 func (t Day) Mean() unit.Time {
 	return sidereal.Mean(t.JD())
 }
 
+// Mean0UT returns the mean sidereal time at Greenwich at 0UT on this Day
 func (t Day) Mean0UT() unit.Time {
 	return sidereal.Mean0UT(t.JD())
+}
+
+func (t Day) IsGregorian() bool {
+	t1 := t.Time()
+	return IsGregorian(t1.Day(), int(t1.Month()), t1.Year())
 }

@@ -77,3 +77,30 @@ func TestDay_Time(t *testing.T) {
 		})
 	}
 }
+
+func TestDay_IsGregorian(t *testing.T) {
+	type args struct {
+		t Day
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{name: "Sputnik", args: args{t: FromDate(1957, 10, 4, 19, 26, 24)}, want: true},
+		{name: "year333", args: args{t: FromDate(333, 1, 27, 12, 0, 0)}, want: false},
+		{name: "1582_early", args: args{t: FromDate(1582, 5, 20, 12, 0, 0)}, want: false},
+		{name: "1582_10_1", args: args{t: FromDate(1582, 10, 1, 12, 0, 0)}, want: false},
+		{name: "1582_10_4", args: args{t: FromDate(1582, 10, 4, 12, 0, 0)}, want: false},
+		{name: "1582_10_15", args: args{t: FromDate(1582, 10, 15, 12, 0, 0)}, want: true},
+		{name: "1582_10_31", args: args{t: FromDate(1582, 10, 31, 12, 0, 0)}, want: true},
+		{name: "1582_late", args: args{t: FromDate(1582, 12, 31, 12, 0, 0)}, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.args.t.IsGregorian(); got != tt.want {
+				t.Errorf("got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
