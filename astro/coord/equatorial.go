@@ -16,6 +16,14 @@ type Equatorial struct {
 	Dec   string     `json:"dec" xml:"dec,attr" yaml:"dec"`
 }
 
+func (e *Equatorial) Equals(b *Equatorial) bool {
+	if e == nil {
+		return b == nil
+	}
+	return int(e.Alpha.Sec()) == int(b.Alpha.Sec()) &&
+		int(e.Delta.Sec()) == int(b.Delta.Sec())
+}
+
 func New(alpha unit.RA, delta unit.Angle) Equatorial {
 	e := Equatorial{Alpha: alpha, Delta: delta}
 	e.RA = util2.HourDMSString(e.Alpha.Time())
