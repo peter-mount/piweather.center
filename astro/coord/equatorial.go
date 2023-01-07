@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"github.com/peter-mount/nre-feeds/util"
 	util2 "github.com/peter-mount/piweather.center/astro/util"
+	"github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/meeus/v3/rise"
 	"github.com/soniakeys/unit"
@@ -31,13 +32,24 @@ func New(alpha unit.RA, delta unit.Angle) Equatorial {
 	return e
 }
 
+func NewFromEq(e coord.Equatorial) Equatorial {
+	return New(e.RA, e.Dec)
+}
+
+func (e *Equatorial) Equatorial() coord.Equatorial {
+	return coord.Equatorial{
+		RA:  e.Alpha,
+		Dec: e.Delta,
+	}
+}
+
 func (e *Equatorial) RiseSet(p globe.Coord, th0 unit.Time, h0 unit.Angle) RiseSet {
-	rise, transit, set, err := rise.ApproxTimes(p, h0, th0, e.Alpha, e.Delta)
+	tRise, tTransit, tSet, err := rise.ApproxTimes(p, h0, th0, e.Alpha, e.Delta)
 	if err != nil {
 		return RiseSet{Circumpolar: true}
 	}
 
-	return RiseSet{Transit: transit, Rise: rise, Set: set}
+	return RiseSet{Transit: tTransit, Rise: tRise, Set: tSet}
 }
 
 func (e *Equatorial) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {

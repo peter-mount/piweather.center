@@ -96,6 +96,28 @@ func (r *Range) IncludeDays(a ...Day) *Range {
 	return nr
 }
 
+// AppendDuration adds a specified amount of time to the end of the Range,
+// extending it further into the future
+// This has no effect if the Range does not have any current Date(s).
+// A negative duration will have no effect on the start but may affect the end if it overlaps.
+func (r *Range) AppendDuration(duration float64) *Range {
+	if r.Valid() {
+		return r.Include(r.End().Add(duration))
+	}
+	return r
+}
+
+// PrependDuration adds a specified amount of time to the start of the Range,
+// extending it further into the past.
+// This has no effect if the Range does not have any current Date(s).
+// A negative duration will have no effect on the end but may affect the start if it overlaps.
+func (r *Range) PrependDuration(duration float64) *Range {
+	if r.Valid() {
+		return r.Include(r.Start().Add(-duration))
+	}
+	return r
+}
+
 // Iterator returns an Iterator that will iterate across the Range with a specific step size in days.
 func (r *Range) Iterator(step float64) *Iterator {
 	if !r.Valid() {
