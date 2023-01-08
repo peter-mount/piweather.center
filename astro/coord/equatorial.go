@@ -11,10 +11,11 @@ import (
 )
 
 type Equatorial struct {
-	Alpha unit.RA    `json:"alpha" xml:"alpha,attr" yaml:"alpha"`
-	Delta unit.Angle `json:"delta" xml:"delta,attr" yaml:"delta"`
-	RA    string     `json:"ra" xml:"ra,attr" yaml:"ra"`
-	Dec   string     `json:"dec" xml:"dec,attr" yaml:"dec"`
+	Alpha    unit.RA    `json:"alpha" xml:"alpha,attr" yaml:"alpha"`
+	Delta    unit.Angle `json:"delta" xml:"delta,attr" yaml:"delta"`
+	RA       string     `json:"ra" xml:"ra,attr" yaml:"ra"`
+	Dec      string     `json:"dec" xml:"dec,attr" yaml:"dec"`
+	Diameter unit.Angle `json:"diameter,omitempty" xml:"diameter,attr,omitempty" yaml:"diameter,omitempty"`
 }
 
 func (e *Equatorial) Equals(b *Equatorial) bool {
