@@ -1,25 +1,23 @@
 package ephemeris
 
 import (
+	"encoding/xml"
 	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/peter-mount/piweather.center/astro/julian"
 )
 
+// Ephemeris is a container of results where calculations for an object over a period of time are stored
 type Ephemeris struct {
-	Name    string        `xml:"name"`
-	Range   *julian.Range `xml:"range"`
-	Meta    Meta          `xml:"meta"`
-	Entries []Entry       `xml:"entries>entry"`
+	XMLName xml.Name      `xml:"https://piweather.center/xml/ephemeris ephemeris" json:"-" yaml:"-"` // XML only
+	Name    string        `xml:"name,omitempty"`                                                     // Name or title of this Ephemeris. This can be anything.
+	Range   *julian.Range `xml:"range"`                                                              // Range of dates this Ephemeris covers
+	Meta    Meta          `xml:"meta"`                                                               // Meta data
+	Entries []*Entry      `xml:"entries>entry"`                                                      // Entries within the Ephemeris
 }
 
+// Meta contains static data used by the Ephemeris
 type Meta struct {
-	LatLong coord.LatLong `xml:"location"`
-}
-
-type Entry struct {
-	Date       julian.Day        `xml:"date,attr"`
-	Equatorial *coord.Equatorial `xml:"equatorial,omitempty"`
-	RiseSet    *coord.RiseSet    `xml:"riseSet,omitempty"`
+	LatLong coord.LatLong `xml:"location"` // Location on Earth this Ephemeris applies to
 }
 
 // Include ensures that the Range includes the specific Day
@@ -67,10 +65,7 @@ func (e *Ephemeris) PrependDuration(duration float64) *Ephemeris {
 	return e
 }
 
-func (e *Ephemeris) Append(entry Entry) {
-	e.Entries = append(e.Entries, entry)
-}
-
+// IsEmpty returns true if the Ephemeris is empty
 func (e *Ephemeris) IsEmpty() bool {
 	return len(e.Entries) == 0
 }

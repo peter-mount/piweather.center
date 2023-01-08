@@ -6,7 +6,7 @@ import (
 
 type Provider interface {
 	Init(e *Ephemeris) error
-	Generate(day julian.Day) (Entry, error)
+	Generate(day julian.Day) (*Entry, error)
 }
 
 func Generate(start, end julian.Day, step float64, p Provider) (*Ephemeris, error) {
