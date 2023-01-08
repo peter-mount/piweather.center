@@ -15,16 +15,17 @@ func (s *SunProvider) Init(e *Ephemeris) error {
 	return nil
 
 }
-func (s *SunProvider) Generate(day julian.Day) (Entry, error) {
-
-	th0 := day.Apparent0UT()
+func (s *SunProvider) Generate(day julian.Day) (*Entry, error) {
 
 	eq := sun.ApparentEquatorial(day)
-	rs := eq.RiseSet(s.meta.LatLong.Coord, th0, rise.Stdh0Solar)
 
-	return Entry{
+	// Add angular diameter of the sun
+	eq.Diameter = rise.Stdh0Solar
+
+	return &Entry{
+		Name:       "Sun",
+		Ord:        1,
 		Date:       day,
 		Equatorial: &eq,
-		RiseSet:    &rs,
 	}, nil
 }

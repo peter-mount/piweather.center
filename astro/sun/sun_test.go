@@ -82,7 +82,7 @@ func TestApparentEquatorial_RiseSet(t *testing.T) {
 			if !got.Equals(&tt.Want) {
 				fmt.Println(util.String(&tt))
 				fmt.Println(util.String(&got), got.Rise.Day(), got.Transit.Day(), got.Set.Day())
-				t.Errorf("RiseSet() = %s, want %s", got.String(), tt.Want.String())
+				t.Errorf("CalculateRiseSetTimes() = %s, want %s", got.String(), tt.Want.String())
 			}
 		})
 	}
