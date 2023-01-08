@@ -99,7 +99,7 @@ func (r *Range) IncludeDays(a ...Day) *Range {
 // AppendDuration adds a specified amount of time to the end of the Range,
 // extending it further into the future
 // This has no effect if the Range does not have any current Date(s).
-// A negative duration will have no effect on the start but may affect the end if it overlaps.
+// A negative duration will have no effect on the end but may affect the start if it overlaps.
 func (r *Range) AppendDuration(duration float64) *Range {
 	if r.Valid() {
 		return r.Include(r.End().Add(duration))
@@ -110,7 +110,7 @@ func (r *Range) AppendDuration(duration float64) *Range {
 // PrependDuration adds a specified amount of time to the start of the Range,
 // extending it further into the past.
 // This has no effect if the Range does not have any current Date(s).
-// A negative duration will have no effect on the end but may affect the start if it overlaps.
+// A negative duration will have no effect on the start but may affect the end if it overlaps.
 func (r *Range) PrependDuration(duration float64) *Range {
 	if r.Valid() {
 		return r.Include(r.Start().Add(-duration))
@@ -134,9 +134,7 @@ func (r *Range) ForEach(step float64, f IteratorHandler) error { return r.Iterat
 
 // Slice will return a slice of all Day's in the range with the specified step interval.
 // It's the same as calling Iterator(step).Slice()
-func (r *Range) Slice(step float64) []Day {
-	return r.Iterator(step).Slice()
-}
+func (r *Range) Slice(step float64) []Day { return r.Iterator(step).Slice() }
 
 func (r *Range) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
 	b := util.NewXmlBuilder(encoder, start)
