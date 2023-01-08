@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/util/task"
+	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/peter-mount/piweather.center/astro/ephemeris"
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/astro/util"
@@ -14,6 +15,7 @@ import (
 type Ephemeris struct {
 	worker    task.Queue           `kernel:"worker"`
 	name      *string              `kernel:"flag,name,Name of ephemeris"`
+	site      *string              `kernel:"flag,site,simple location definition"`
 	step      *float64             `kernel:"flag,s,Step size in days,1.0"`
 	stdout    *bool                `kernel:"flag,d,Dump xml to stdout"`
 	riseSet   *bool                `kernel:"flag,rs,Include Rise/Transit/Set times in output"`
@@ -37,6 +39,14 @@ func (e *Ephemeris) Start() error {
 
 	if !e.ephemeris.Range.Valid() {
 		return errors.New("no dates provided")
+	}
+
+	if *e.site != "" {
+		ll, err := coord.Parse(*e.site)
+		if err != nil {
+			return err
+		}
+		e.ephemeris.Meta.LatLong = ll
 	}
 
 	if *e.sun {
