@@ -46,7 +46,9 @@ func IsGregorian(d, m, y int) bool {
 }
 
 // FromTime returns a Day from a time.Time
-func FromTime(t time.Time) Day {
+func FromTime(t0 time.Time) Day {
+	// Enforce the time into UTC
+	t := t0.UTC()
 	Y := t.Year()
 	M := int(t.Month())
 	D := t.Day()
