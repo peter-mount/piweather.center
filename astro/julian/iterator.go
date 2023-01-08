@@ -60,18 +60,19 @@ func (i *Iterator) HasNext() bool {
 // Next returns the next Day in the iteration.
 // If the iterator does not have another Day (e.g. HasNext() returns false) this will panic.
 func (i *Iterator) Next() Day {
-	if i != nil && i.HasNext() {
+	if i.HasNext() {
 		r := i.day
 		i.first = false
 		i.day = i.day.Add(i.step)
 		return r
 	}
 
-	// Iterator has no more so panic as HasNext() should have returned false so
-	// the iterator is being called incorrectly
+	// Iterator has no more values so panic as HasNext() should have returned false.
+	// Caused by the iterator being called incorrectly and this should prevent infinite loops.
 	panic(iteratorCompleted)
 }
 
+// iteratorCompleted is the error in the panic when Next() is called when there is no next value
 var iteratorCompleted = errors.New("iterator competed")
 
 // IteratorHandler is a Function called by ForEach
