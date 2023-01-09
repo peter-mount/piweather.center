@@ -20,13 +20,15 @@ func Parse(s string) (LatLong, error) {
 	if err != nil {
 		return ll, err
 	}
-	ll.Coord.Lon = ang
+	ll.Longitude = ang
+	ll.coord.Lon = -ang
 
 	ang, err = util.ParseAngle(a[1])
 	if err != nil {
 		return ll, err
 	}
-	ll.Coord.Lat = ang
+	ll.Latitude = ang
+	ll.coord.Lat = ang
 
 	if l > 2 {
 		ll.Altitude, err = strconv.ParseFloat(a[2], 64)

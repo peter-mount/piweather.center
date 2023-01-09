@@ -31,8 +31,8 @@ func TestParse(t *testing.T) {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.want.long != got.Coord.Lon.Deg() ||
-				tt.want.lat != got.Coord.Lat.Deg() ||
+			if tt.want.long != got.Coord().Lon.Deg() ||
+				tt.want.lat != got.Coord().Lat.Deg() ||
 				tt.want.alt != got.Altitude ||
 				tt.want.name != got.Name {
 				t.Errorf("Parse() got = %v, want %v", got, tt.want)

@@ -4,22 +4,27 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/astro/util"
-	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/meeus/v3/rise"
 	"github.com/soniakeys/unit"
+	"log"
 	"testing"
 )
 
 func TestEquatorial_RiseSet(t *testing.T) {
 	boston := &LatLong{
-		Name:  "Boston, MA",
-		Coord: globe.Coord{Lon: unit.AngleFromDeg(71.0833), Lat: unit.AngleFromDeg(42.3333)},
+		Name:      "Boston, MA",
+		Longitude: unit.AngleFromDeg(-71.0833),
+		Latitude:  unit.AngleFromDeg(42.3333),
 	}
 
+	log.Println(boston.Longitude)
+	log.Println(boston.Coord().Lon)
+	log.Println(boston.Coord().Lat)
 	london := &LatLong{
-		Name:     "London, England",
-		Coord:    globe.Coord{Lat: unit.AngleFromDeg(51.51), Lon: unit.AngleFromDeg(-0.13)},
-		Altitude: 113.13,
+		Name:      "London, England",
+		Longitude: unit.AngleFromDeg(-0.13),
+		Latitude:  unit.AngleFromDeg(51.51),
+		Altitude:  113.13,
 	}
 
 	type Args struct {
@@ -78,7 +83,7 @@ func TestEquatorial_RiseSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			got := tt.Args.Fields.RiseSet(tt.Args.Loc.Coord, tt.Args.JD.Apparent(), tt.Args.H0)
+			got := tt.Args.Fields.RiseSet(tt.Args.Loc.Coord(), tt.Args.JD.Apparent(), tt.Args.H0)
 			if !got.Equals(&tt.Want) {
 				fmt.Println(util.String(&tt))
 				fmt.Println(util.String(&got), got.Rise.Day(), got.Transit.Day(), got.Set.Day())

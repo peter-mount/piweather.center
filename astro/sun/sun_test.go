@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/astro/util"
-	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/meeus/v3/rise"
 	"github.com/soniakeys/unit"
 	"testing"
@@ -42,9 +41,10 @@ func TestApparentEquatorial(t *testing.T) {
 
 func TestApparentEquatorial_RiseSet(t *testing.T) {
 	london := &coord.LatLong{
-		Name:     "London, England",
-		Coord:    globe.Coord{Lat: unit.AngleFromDeg(51.51), Lon: unit.AngleFromDeg(-0.13)},
-		Altitude: 113.13,
+		Name:      "London, England",
+		Latitude:  unit.AngleFromDeg(51.51),
+		Longitude: unit.AngleFromDeg(-0.13),
+		Altitude:  113.13,
 	}
 
 	jd20230107 := julian.FromDate(2023, 1, 7, 0, 0, 0)
@@ -78,7 +78,7 @@ func TestApparentEquatorial_RiseSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			got := tt.Args.Fields.RiseSet(tt.Args.Loc.Coord, tt.Args.JD.Apparent(), tt.Args.H0)
+			got := tt.Args.Fields.RiseSet(tt.Args.Loc.Coord(), tt.Args.JD.Apparent(), tt.Args.H0)
 			if !got.Equals(&tt.Want) {
 				fmt.Println(util.String(&tt))
 				fmt.Println(util.String(&got), got.Rise.Day(), got.Transit.Day(), got.Set.Day())
