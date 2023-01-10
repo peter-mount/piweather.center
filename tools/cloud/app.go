@@ -1,11 +1,17 @@
 package cloud
 
 import (
+	graph "github.com/peter-mount/go-graphics"
+	"github.com/peter-mount/go-graphics/filter/cloud"
+	"github.com/peter-mount/go-graphics/graphics"
+	"github.com/peter-mount/go-graphics/text"
 	piweather_center "github.com/peter-mount/piweather.center"
 	"github.com/peter-mount/piweather.center/image/service"
 	"github.com/peter-mount/piweather.center/log"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/dir"
+	"image"
+	"image/color"
 	"io/ioutil"
 	"path"
 )
@@ -50,6 +56,36 @@ func (a *App) Start() error {
 		if err = a.ImageService.Write(src); err != nil {
 			return err
 		}
+	}
+
+	cloudFilter := cloud.New()
+	g := graphics.New(graph.DuplicateImage(src.Image))
+	g.Map(cloudFilter.Mapper)
+
+	stats := cloudFilter.Stats()
+	log.Printf("Cloud %.2f Sky %.2f Okta %v\n",
+		stats.Cloud(),
+		stats.Sky(),
+		stats.OKTA(),
+	)
+
+	g.Background(image.Black).FillRect(0, 0, g.Width(), 100)
+
+	g.Background(image.Black).
+		Foreground(color.White).
+		SetFont(text.Mono, 90).
+		DrawTextf(image.Point{X: 400, Y: 0},
+			"Cloud %.0f%% Sky %.0f%% Okta %d %v\n",
+			stats.Cloud(),
+			stats.Sky(),
+			stats.OKTA(),
+			stats.OKTA(),
+		)
+	src.Image = g.Image()
+
+	src.Filename = path.Join(baseDir, "cloud."+suffix)
+	if err = a.ImageService.Write(src); err != nil {
+		return err
 	}
 
 	if *a.Json != "" {
