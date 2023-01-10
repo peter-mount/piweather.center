@@ -22,8 +22,11 @@ func (r *RiseSet) Equals(b *RiseSet) bool {
 	if r == nil {
 		return b == nil
 	}
-	return r.Circumpolar == b.Circumpolar &&
-		int(r.Rise.Sec()) == int(b.Rise.Sec()) &&
+	if r.Circumpolar || b.Circumpolar {
+		return r.Circumpolar == b.Circumpolar
+	}
+
+	return int(r.Rise.Sec()) == int(b.Rise.Sec()) &&
 		int(r.Transit.Sec()) == int(b.Transit.Sec()) &&
 		int(r.Set.Sec()) == int(b.Set.Sec())
 }

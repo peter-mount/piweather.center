@@ -1,4 +1,4 @@
-package siderial
+package sidereal
 
 import (
 	"github.com/peter-mount/piweather.center/astro/julian"

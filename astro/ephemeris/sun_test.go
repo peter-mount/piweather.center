@@ -1,20 +1,18 @@
 package ephemeris
 
 import (
-	"fmt"
 	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/peter-mount/piweather.center/astro/julian"
-	"github.com/peter-mount/piweather.center/astro/util"
-	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/unit"
 	"testing"
 )
 
 func TestSunProvider(t *testing.T) {
 	london := coord.LatLong{
-		Name:     "London, England",
-		Coord:    globe.Coord{Lat: unit.AngleFromDeg(51.51), Lon: unit.AngleFromDeg(-0.13)},
-		Altitude: 113.13,
+		Name:      "London, England",
+		Latitude:  unit.AngleFromDeg(51.51),
+		Longitude: unit.AngleFromDeg(-0.13),
+		Altitude:  113.13,
 	}
 
 	type args struct {
@@ -45,8 +43,8 @@ func TestSunProvider(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("Error %v", err)
-			} else {
-				fmt.Println(util.String(ep))
+				//} else {
+				//	fmt.Println(util.String(ep))
 			}
 		})
 	}

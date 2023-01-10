@@ -15,5 +15,5 @@ go.sum
 
 /config.yaml
 /mastodon.yml
-/build_*
+/build*
 /tmp/
