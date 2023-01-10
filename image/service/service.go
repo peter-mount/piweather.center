@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/image"
-	"github.com/peter-mount/piweather.center/util"
 )
 
 func init() {
@@ -16,9 +15,7 @@ type Service interface {
 	Write(img *image.Image) error
 }
 
-type imageService struct {
-	Debug util.Debug `kernel:"inject"`
-}
+type imageService struct{}
 
 func (i *imageService) Start() error {
 	// Optionally register camera makenote data parsing - currently Nikon and
