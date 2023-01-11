@@ -12,7 +12,7 @@ MODULES		= astro image log util
 
 # Platforms to build.
 # This is an array of os:architecture:armVersion
-PLATFORMS	= linux:amd64: linux:arm64: linux:arm:6 linux:arm:7
+PLATFORMS	   ?= linux:amd64: linux:arm64: linux:arm:6 linux:arm:7
 
 # Where to place build artifacts
 export BUILDS 	= $(shell pwd)/builds
@@ -27,7 +27,7 @@ export TAR		= tar
 
 # Append -test.v to GO_TEST to show status of each test.
 # Without it, only shows total time per module if they pass
-export GO_TEST	= $(GO) test
+export GO_TEST	?= $(GO) test
 
 .PHONY: all build clean dist init test validate-go-version
 
