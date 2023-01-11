@@ -32,7 +32,7 @@ type App struct {
 }
 
 func (a *App) Start() error {
-	log.Println("Cloud Cover", piweather_center.Version)
+	log.Println("CloudDetect", piweather_center.Version)
 
 	baseDir, fileName := a.Directory.Split(*a.ImageName)
 
@@ -120,28 +120,6 @@ func (a *App) Start() error {
 		100,
 		90.0,
 	)
-
-	/*
-		g.Foreground(colornames.Red).DrawRectangle(g.Bounds())
-
-		g = graphics.New(annotate.Expand(g.Image(), 100, 50, 50, 50))
-
-		g.Foreground(colornames.Green).DrawRectangle(g.Bounds())
-
-		g.Background(image.Black).
-			Foreground(color.White).
-			FillRect(0, 0, g.Width(), 100).
-			FillRect(0, g.Bounds().Max.Y-100, g.Width(), masked.Bounds().Max.Y).
-			SetFont(text.Mono, 90).
-			DrawTextf(image.Point{X: 0, Y: 0}, "%s", src.Time.Format(time.RFC1123)).
-			DrawTextf(image.Point{X: 0, Y: g.Bounds().Max.Y - 90},
-				"Cloud %.0f%% Sky %.0f%% Okta %d %v",
-				stats.Cloud(),
-				stats.Sky(),
-				stats.OKTA(),
-				stats.OKTA(),
-			)
-	*/
 
 	masked.Image = g.Image()
 
