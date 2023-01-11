@@ -1,0 +1,74 @@
+# Test videogenerator configuration
+#
+# In this instance we have a set of captured frames from which we generate
+# a 4K MP4 video consisting of the raw and cloud cover images as well as
+# a keogram of the visible sky.
+#
+# An example of the output with this specific configuration can be seen
+# at https://area51.media/w/3t9ktgrsxnod8YEo1iX9WP
+#
+# The command line used to generate it was:
+#
+# videogenerator -v -c videogenerator.yaml -o /srv/ramdisk/test.mp4 -sf 24 -of 8
+#
+# where -sf means source frame rate of 24, -of means output frame rate of 8
+# This slows it down so that 3.5 hours is reduced to 9 seconds.
+
+# The video output size, 4K is recommended as it can then be scaled down easily
+outputSize:
+  # 4K resolution
+  width: 3840
+  height: 2160
+
+# List of frame sources.
+#
+# For example, we have 2 here, one for the raw data and one for the calculated
+# cloud cover
+sources:
+  - # Name of this section, currently unused
+    name: "Raw sky"
+    # directory containing the frames
+    directory: /srv/ramdisk/v1
+    # regex pattern to match the required frames in the directory
+    pattern: "src([0-9]+)-orig.jpg"
+    render:
+      # draw will draw the image at a specific location in the final frame
+      draw:
+        # top left coordinate in the final frame to draw the image
+        x: 0
+        y: 0
+        # width & height of the image which will be scaled to fit.
+        # if width but not height is set then the height is scaled accordingly.
+        # if height but not width is set then the width is scaled accordingly.
+        width: 1920
+      # keogram of cloud cover, using horizontal mode here due to test data
+      # being rotated 90 degrees
+      keogram:
+        # Y coordinate of horizontal line to sample. Normally x would be used.
+        # X overrides Y but if neither is defined then x is set to the centre
+        # of the image
+        y: 1620
+        # Height of the keogram in pixels in the rendered frame
+        height: 400
+        # Optional start and end points in the line, used to limit the keogram
+        # to the sky and exclude the ground or buildings
+        start: 783
+        end: 3392
+
+  # The second source
+  - name: "Cloud cover"
+    directory: /srv/ramdisk/v1
+    pattern: "src([0-9]+)-cloud.jpg"
+    render:
+      draw:
+        # Here we place it to the right of the raw sky image
+        x: 1920
+        y: 0
+        width: 1920
+      # keogram of cloud cover, using horizontal mode here due to test data
+      # being rotated 90 degrees
+      keogram:
+        y: 1620
+        height: 400
+        start: 783
+        end: 3392

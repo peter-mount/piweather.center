@@ -125,5 +125,5 @@ func getExifTime(x *exif.Exif) (time.Time, error) {
 			return t, nil
 		}
 	}
-	return time.Now(), nil
+	return time.Time{}, nil
 }

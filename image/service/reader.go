@@ -4,6 +4,7 @@ import (
 	"github.com/peter-mount/piweather.center/image"
 	exif2 "github.com/peter-mount/piweather.center/image/exif"
 	"github.com/peter-mount/piweather.center/log"
+	"os"
 	"time"
 )
 
@@ -15,7 +16,18 @@ func (i *imageService) ReadWithExif(fileName string) (*image.Image, error) {
 		return nil, err
 	}
 
-	return i.read(&image.Image{Filename: fileName, Exif: x, Time: x.Date})
+	img := &image.Image{Filename: fileName, Exif: x, Time: x.Date}
+
+	// No time then set it from the filesystem
+	if img.Time.IsZero() {
+		stat, err := os.Stat(fileName)
+		if err != nil {
+			return nil, err
+		}
+		img.Time = stat.ModTime()
+	}
+
+	return i.read(img)
 }
 
 func (i *imageService) ReadRaw(fileName string) (*image.Image, error) {

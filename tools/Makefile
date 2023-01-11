@@ -7,7 +7,7 @@ DIST_TAR		= $(BUILDS)/$(GOOS)_$(GOARCH)$(GOARM).tgz
 # Common GO build for a specific platform
 export GO_BUILD = CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) $(GO) build
 
-MODULES			= cloud
+MODULES			= cloud videogenerator
 all:
 	@$(MKDIR) $(BUILD)
 	@$(foreach MODULE,$(MODULES),$(MAKE) -C $(MODULE) all;)

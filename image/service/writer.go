@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/peter-mount/piweather.center/image"
 	"github.com/peter-mount/piweather.center/log"
+	"os"
 )
 
 func (i *imageService) Write(img *image.Image) error {
@@ -11,5 +12,12 @@ func (i *imageService) Write(img *image.Image) error {
 		return errors.New("no filename defined")
 	}
 	log.Println("Writing", img.Filename)
-	return img.Write()
+	err := img.Write()
+	if err == nil {
+		// If Image has a time then set the file time to it.
+		if !img.Time.IsZero() {
+			err = os.Chtimes(img.Filename, img.Time, img.Time)
+		}
+	}
+	return err
 }
