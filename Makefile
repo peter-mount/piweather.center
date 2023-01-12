@@ -111,6 +111,8 @@ platforms.md: resolve-platforms
 		echo "| ---------------- | ----------------- |"; \
 		$(foreach OS, $(shell ls $(BUILDS)), echo "| $(OS) | $(foreach ARCH,$(shell ls $(BUILDS)/$(OS)),$(ARCH)) |"; ) \
 		echo; \
+		echo "Operating Systems: $(shell ls $(BUILDS)|wc -l) CPU Architectures: $(shell ls -d $(BUILDS)/*/*| cut -f3 -d'/' | sort |uniq | wc -l)"; \
+		echo; \
 		echo "This is all non-mobile platforms supported by go version \`$(GO_MAJOR_VERSION).$(GO_MINOR_VERSION)\`" ;\
 		echo; \
 		echo "This page is automatically generated from the output of \`go tool dist list\`"; \
