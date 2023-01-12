@@ -1,6 +1,6 @@
 # Supported Platforms
 
-The following platforms are supported by virtual of how the build system works:
+The following platforms are supported by virtue of how the build system works:
 
 | Operating System | CPU Architectures |
 | ---------------- | ----------------- |
