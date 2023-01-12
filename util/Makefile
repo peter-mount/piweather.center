@@ -10,7 +10,9 @@ define \n
 
 endef
 
-.PHONY: all
+.PHONY: all dist
 
 all:
 	$(foreach MODULE,$(MODULES),@$(GO_TEST) $(PACKAGE_PREFIX)/$(MODULE)${\n})
+
+dist:

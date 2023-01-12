@@ -4,45 +4,41 @@
 # This should match the value of module in go.mod
 export PACKAGE_PREFIX = github.com/peter-mount/piweather.center
 
+# Distribution file prefix. This cannot contain any _
+export DIST_PREFIX = piweathercenter-latest
+
 # List of modules to build.
 #
-# This list does not include tools as that's entered last during the build
-# to ensure tests are run.
-MODULES		= astro image log util
+# Note: tools should be last as that generates executables and this
+# allows the other modules to perform any tests first.
+MODULES		= astro image log util tools
 
-# Platforms to build.
-#
-# This is an array of os:architecture:armVersion
-#
-# armVersion is usually "" as it's only used for the "arm" architecture and can have values: 5, 6 or 7
-#export PLATFORMS ?=
-
-export PLATFORMSold ?= \
-	linux:amd64: linux:arm64: linux:arm:6 linux:arm:7 linux:386: linux:s390x: linux:riscv64: \
-	darwin:amd64: darwin:arm64: \
-	freebsd:amd64: freebsd:arm64: freebsd:arm: \
-	netbsd:amd64: netbsd:arm64: netbsd:arm: \
-	openbsd:amd64: openbsd:arm64: openbsd:arm: \
-	windows:amd64: windows:arm64:
-
-# Where to place build artifacts
-export BUILDS 	= $(shell pwd)/builds
-export DIST		= $(shell pwd)/dist
+# Where to place build artifacts. These must be subdirectories here and not
+# a path elsewhere, otherwise it will break the build!
+export BUILDS 	= builds
+export DIST		= dist
 
 # Tool names
 export CP     	= @cp -p
 export ECHO		= echo
 export GO		= go
-export MKDIR  	= @mkdir -p
+export MKDIR  	= mkdir -p
+export PRINTF	= printf
 export TAR		= tar
 
 # Append -test.v to GO_TEST to show status of each test.
 # Without it, only shows total time per module if they pass
 export GO_TEST	?= $(GO) test
 
-.PHONY: all build clean dist init test validate-go-version resolve-platforms
+.PHONY: all build clean dist init test validate-go-version resolve-platforms platforms.md
 
-# Used to separate commands in foreach.
+# Used to separate commands in foreach in the all and dist targets.
+# Using this allows each step to fail as if we entered them individually
+# in the Makefile.
+#
+# In the foreach, we then use ${\n} to delimit the end of each command
+# in the recipe.
+#
 # NOTE this MUST have 2 empty lines between define and endef for it to work!
 define \n
 
@@ -51,13 +47,13 @@ endef
 
 all: init
 	@$(MKDIR) -pv $(BUILDS)
-	$(foreach MODULE,$(MODULES) tools,@$(MAKE) -C $(MODULE) all${\n})
+	$(foreach MODULE,$(MODULES),@$(MAKE) -C $(MODULE) all${\n})
 
 clean:
 	@$(GO) clean -testcache
 	@$(RM) -r $(BUILDS) $(DIST)
 
-dist: all
+dist: all platforms.md
 	@$(MKDIR) -pv $(DIST)
 	$(foreach MODULE,$(MODULES) tools,@$(MAKE) -C $(MODULE) dist${\n})
 
@@ -74,10 +70,10 @@ validate-go-version:
 	@if [ $(GO_MAJOR_VERSION) -gt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
 		exit 0 ;\
 	elif [ $(GO_MAJOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
-		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		$(ECHO) '$(GO_VERSION_VALIDATION_ERR_MSG)';\
 		exit 1; \
 	elif [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MINOR_VERSION) ] ; then \
-		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		$(ECHO) '$(GO_VERSION_VALIDATION_ERR_MSG)';\
 		exit 1; \
 	fi
 
@@ -102,4 +98,21 @@ ifeq ("$(PLATFORMS)","")
 	$(eval export PLATFORMS=$(DISC_PLATFORMS))
 endif
 
-#	$(eval GO_PLATFORMS=$(shell go tool dist list)) \
+# Generates platforms.md based on the local go installation.
+# This does nothing other than keep that page in sync with what is currently
+# supported by go and the build system.
+platforms.md: resolve-platforms
+	$(shell ( \
+		echo "# Supported Platforms"; \
+		echo; \
+		echo "The following platforms are supported by virtual of how the build system works:"; \
+		echo; \
+		echo "| Operating System | CPU Architectures |"; \
+		echo "| ---------------- | ----------------- |"; \
+		$(foreach OS, $(shell ls $(BUILDS)), echo "| $(OS) | $(foreach ARCH,$(shell ls $(BUILDS)/$(OS)),$(ARCH)) |"; ) \
+		echo; \
+		echo "This is all non-mobile platforms supported by go version \`$(GO_MAJOR_VERSION).$(GO_MINOR_VERSION)\`" ;\
+		echo; \
+		echo "This page is automatically generated from the output of \`go tool dist list\`"; \
+	  ) >$@ \
+	)

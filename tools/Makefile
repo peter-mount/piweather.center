@@ -1,36 +1,45 @@
 
-MODULES	= cloud ephemeris videogenerator
+MODULES	= $(shell ls -d */ | sed "s|/||")
+
+DEPS = $(foreach PLATFORM,$(PLATFORMS), \
+		$(eval GOOS=$(word 1,$(subst :, ,$(PLATFORM)))) \
+		$(eval GOARCH=$(word 2,$(subst :, ,$(PLATFORM)))) \
+		$(eval GOARM=$(word 3,$(subst :, ,$(PLATFORM)))) \
+		$(eval BUILD=../$(BUILDS)/$(GOOS)/$(GOARCH)$(GOARM)) \
+		$(foreach MODULE,$(MODULES),$(BUILD)/$(MODULE) )\
+	)
+
+DISTRIBUTIONS = $(foreach PLATFORM,$(PLATFORMS), \
+		$(eval GOOS=$(word 1,$(subst :, ,$(PLATFORM)))) \
+		$(eval GOARCH=$(word 2,$(subst :, ,$(PLATFORM)))) \
+		$(eval GOARM=$(word 3,$(subst :, ,$(PLATFORM)))) \
+		../$(DIST)/$(DIST_PREFIX)-$(GOOS)-$(GOARCH)$(GOARM).tgz)
 
 .PHONY:	all dist
 
-# Used to separate commands in foreach.
-# NOTE this MUST have 2 empty lines between define and endef for it to work!
-define \n
+all: $(DEPS)
 
+dist: $(DISTRIBUTIONS)
 
-endef
+# This builds an individual tool based on it's relative path
+../$(BUILDS)/%:
+	$(eval REL=$(subst /, ,$@))
+	$(eval GOOS=$(word 3,$(REL)))
+	$(eval GOARCH=$(word 4,$(REL)))
+	$(eval MODULE=$(word 5,$(REL)))
+	$(eval GOARM=$(shell echo -n $(filter arm%,$(GOARCH)) | sed -E -e "s/arm([567])$$/\\1/g" -e "s/arm64$$//g"))
+	$(eval GOARCH=$(shell echo -n $(GOARCH) | sed -E "s/arm([567])$$/arm/g"))
+	@$(MKDIR) $(shell dirname $@)
+	@$(PRINTF) "Compiling %s %s%s %s\n" "$(GOOS)" "$(GOARCH)" "$(GOARM)" "$(MODULE)"
+	@CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) $(GO) build -o $@ $(MODULE)/bin/main.go
 
-all:
-	$(foreach PLATFORM,$(PLATFORMS), \
-		$(eval GOOS=$(word 1,$(subst :, ,$(PLATFORM)))) \
-		$(eval GOARCH=$(word 2,$(subst :, ,$(PLATFORM)))) \
-		$(eval GOARM=$(word 3,$(subst :, ,$(PLATFORM)))) \
-		$(eval BUILD=$(BUILDS)/$(GOOS)/$(GOARCH)$(GOARM)) \
-		@(echo "Platform $(GOOS) $(GOARCH)$(GOARM)")${\n}\
-		@$(MKDIR) $(BUILD)${\n}\
-		$(foreach MODULE,$(MODULES),\
-			@printf "    Compile %s\n" $(MODULE)${\n}\
-			@CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) $(GO) build -o $(BUILD)/$(MODULE) $(MODULE)/bin/main.go${\n}\
-		)\
-	)
-
-dist:
-	$(foreach PLATFORM,$(PLATFORMS), \
-		$(eval GOOS=$(word 1,$(subst :, ,$(PLATFORM)))) \
-		$(eval GOARCH=$(word 2,$(subst :, ,$(PLATFORM)))) \
-		$(eval GOARM=$(word 3,$(subst :, ,$(PLATFORM)))) \
-		$(eval BUILD=$(BUILDS)/$(GOOS)/$(GOARCH)$(GOARM)) \
-		$(eval DIST_TAR=$(GOOS)_$(GOARCH)$(GOARM).tgz) \
-		@printf "Generating %s\n" $(DIST_TAR)${\n}\
-		@$(TAR) -P --transform "s|^$(BUILD)|piweather.center|" -czpf $(DIST)/$(DIST_TAR) $(BUILD)${\n}\
-	)
+../$(DIST)/%.tgz:
+	$(eval REL=$(subst -, ,$(basename $@)))
+	$(eval GOOS=$(word 3,$(REL)))
+	$(eval GOARCH=$(word 4,$(REL)))
+	$(eval GOARM=$(shell echo -n $(filter arm%,$(GOARCH)) | sed -E -e "s/arm([567])$$/\\1/g" -e "s/arm64$$//g"))
+	$(eval GOARCH=$(shell echo -n $(GOARCH) | sed -E "s/arm([567])$$/arm/g"))
+	$(eval BUILD=../$(BUILDS)/$(GOOS)/$(GOARCH)$(GOARM))
+	@$(MKDIR) $(shell dirname $@)
+	@$(PRINTF) "Generating %s\n" $$(basename $@)
+	@$(TAR) -P --transform "s|^$(BUILD)|piweathercenter|" -czpf $@ $(BUILD)
