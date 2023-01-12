@@ -105,7 +105,7 @@ platforms.md: resolve-platforms
 	$(shell ( \
 		echo "# Supported Platforms"; \
 		echo; \
-		echo "The following platforms are supported by virtual of how the build system works:"; \
+		echo "The following platforms are supported by virtue of how the build system works:"; \
 		echo; \
 		echo "| Operating System | CPU Architectures |"; \
 		echo "| ---------------- | ----------------- |"; \
