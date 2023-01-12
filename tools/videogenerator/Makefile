@@ -1,7 +1,7 @@
 
-all: $(BUILD)/videogenerator
+all: $(BUILD)/clouddetect
 
-$(BUILD)/videogenerator: bin/*.go */*.go *.go
+$(BUILD)/clouddetect: bin/*.go */*.go *.go
 	$(GO_BUILD) -o $@ $<
 
 clean:
