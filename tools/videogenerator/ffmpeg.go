@@ -36,7 +36,7 @@ func (v *VideoGenerator) render(frames []*Frame) error {
 		"+----------------------------------------------------+\n" +
 		"| This will appear slow due to how much rendering is |\n" +
 		"| required for each frame as it's passed to ffmpeg!  |\n" +
-		"+----------------------------------------------------+\n")
+		"+----------------------------------------------------+")
 
 	cmd := exec.Command(
 		"ffmpeg",
