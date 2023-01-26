@@ -1,4 +1,3 @@
-# Makefile for piweather.center
 #
 # By default this will build the project on every non-mobile platform
 # supported by the installed go environment.
@@ -36,10 +35,9 @@
 
 # The repository name/package prefix.
 # This should match the value of module in go.mod
-export PACKAGE_PREFIX = github.com/peter-mount/piweather.center
-
-# Distribution file prefix. This cannot contain any _
-export DIST_PREFIX = piweathercenter-latest
+export PACKAGE_PREFIX = $(shell grep ^module go.mod | cut -f2 -d' ' | head -1)
+export PACKAGE_NAME = $(shell basename $(PACKAGE_PREFIX))
+export DIST_PREFIX = $(PACKAGE_NAME)_latest
 
 # List of modules to build.
 #
