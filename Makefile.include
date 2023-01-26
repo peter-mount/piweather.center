@@ -14,7 +14,7 @@ MKDIR		= @mkdir -p $1
 REMOVE		= $(call cmd,"RM","$1");set +e;rm -rf $1
 
 TAR			= @$(eval TARFILE=$(DIST_PREFIX)-$(shell echo $1 | sed "s|/|_|g").tgz)${\n}\
-			  @$(eval BUILD=$(BUILDS)/$(PLATFORM))${\n}\
+			  @$(eval BUILD=$(BUILDS)/$1)${\n}\
 			  $(call cmd,"TAR",$(TARFILE));\
 			  mkdir -p $(DIST);\
 			  tar -P --transform "s|^$(BUILD)|$(PACKAGE_NAME)|" -czpf $(DIST)/$(TARFILE) $(BUILD)

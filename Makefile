@@ -39,15 +39,15 @@ PACKAGE_PREFIX = $(shell grep ^module go.mod | cut -f2 -d' ' | head -1)
 PACKAGE_NAME = $(shell basename $(PACKAGE_PREFIX))
 VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null | sed "s/-/./g")
 DIST_PREFIX = $(PACKAGE_NAME)_$(VERSION)
+BUILD_DATE = $(shell date)
 
 # Where to place build artifacts. These must be subdirectories here and not
 # a path elsewhere, otherwise it will break the build!
 BUILDS 	= builds
 DIST		= dist
 
-# BINDIR is the prefix before any built tools.
-# The default is "" but you can use "BINDIR=bin/ make all" then they will be
-# placed in a bin directory, useful if the distribution contains support files
+# BINDIR is the prefix before any built tools. Set to "" for none, otherwise
+# it must end with /
 BINDIR ?= bin/
 
 .PHONY: all clean init test tools dist

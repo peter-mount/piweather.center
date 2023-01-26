@@ -1,5 +1,3 @@
-package piweather_center
+package common
 
-const (
-	Version = "0.1"
-)
+var Version string

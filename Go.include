@@ -10,7 +10,11 @@ GO-ARCH-DIR	=$(call GO-OS,$1)/$(call GO-ARCH,$1)$(call GO-ARM,$1)
 # $(call GO-BUILD,platform,destination,src)
 GO-BUILD	= $(call cmd,"GO BUILD","$(subst /, ,$(call GO-ARCH-DIR,$1)) $(shell basename $2)");\
 			  mkdir -p $(shell dirname $2);\
-			  CGO_ENABLED=0 GOOS=$(call GO-OS,$1) GOARCH=$(call GO-ARCH,$1) GOARM=$(GO-ARM,$1) go build -o $2 $3
+			  CGO_ENABLED=0 GOOS=$(call GO-OS,$1) GOARCH=$(call GO-ARCH,$1) GOARM=$(GO-ARM,$1) \
+			  	go build \
+			  		-ldflags="-X '$(PACKAGE_PREFIX).Version=$(shell basename $2) ($(VERSION) $(subst /, ,$(call GO-ARCH-DIR,$1)) $(shell id -u -n) $(shell date))'" \
+			  		-o $2 \
+			  		$3
 
 GO-CLEAN	= $(call cmd,"GO CLEAN",$1);go clean $1
 GO-MOD		= $(call cmd,"GO MOD",$1);go mod $1
@@ -34,7 +38,9 @@ go-test:
 # For this to work: the main function is in tools/<toolName>/bin/main.go
 # The compiled binary will be placed in $(BUILDS)/<os>/<arch>/
 $(BUILDS)/%: tools/%/bin/main.go
-	$(foreach PLATFORM,$(PLATFORMS),$(call GO-BUILD,$(PLATFORM),$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/$(BINDIR)$(shell basename $@),$<)${\n})
+	$(foreach PLATFORM,$(PLATFORMS),\
+		$(call GO-BUILD,$(PLATFORM),$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/$(BINDIR)$(shell basename $@),$<)${\n}\
+	)
 
 # Validates the installed version of go against the version declared in go.mod
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION	= $(shell grep "^go" go.mod | cut -f2 -d' ' | cut -f1 -d'.')
