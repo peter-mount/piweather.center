@@ -1,0 +1,40 @@
+
+cmd = @set -e;printf "%-8s %s\n" $1 $2
+
+# Tool names
+CP		= @cp -p
+ECHO	= echo
+#GO		= go
+
+# $(call GO-BUILD,label,destination,src)
+GO-BUILD	= $(call cmd,"GO BUILD","$(GOOS) $(GOARCH)$(GOARM) $1");mkdir -p $(shell dirname $2);CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -o $2 $3
+
+GO-CLEAN	= $(call cmd,"GO CLEAN",$1);go clean $1
+GO-MOD		= $(call cmd,"GO MOD",$1);go mod $1
+
+# Append -test.v to GO_TEST to show status of each test.
+# Without it, only shows total time per module if they pass
+GO-TEST		= $(GO_TEST)$(call cmd,"GO TEST",$1);(cd $1;go test ./...)
+
+MAKE		= $(call cmd,"MAKE","$1 $2 $3 $4 $5");make -s $1 $2 $3 $4 $5
+MAKE-SUBDIR	= $(call cmd,"MAKE -C","$1 $2 $3 $4 $5");echo "Entering $1";make -s -C $1 $2 $3 $4 $5;echo "Exited $1"
+
+MKDIR		= @mkdir -p $1
+
+# limited to 5 entries as no way to get all args
+REMOVE		= $(call cmd,"RM","$1");set +e;rm -rf $1
+
+TAR			= @$(eval TARFILE=$(DIST_PREFIX)-$(shell echo $1 | sed "s|/|_|g").tgz)${\n}\
+			  @$(eval BUILD=$(BUILDS)/$(PLATFORM))${\n}\
+			  $(call cmd,"TAR",$(TARFILE));\
+			  mkdir -p $(DIST);\
+			  tar -P --transform "s|^$(BUILD)|$(PACKAGE_NAME)|" -czpf $(DIST)/$(TARFILE) $(BUILD)
+
+PRINTF	= printf
+
+# Used to separate commands in foreach.
+# NOTE this MUST have 2 empty lines between define and endef for it to work!
+define \n
+
+
+endef

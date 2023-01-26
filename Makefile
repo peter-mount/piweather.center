@@ -39,64 +39,57 @@ export PACKAGE_PREFIX = $(shell grep ^module go.mod | cut -f2 -d' ' | head -1)
 export PACKAGE_NAME = $(shell basename $(PACKAGE_PREFIX))
 export DIST_PREFIX = $(PACKAGE_NAME)_latest
 
-# List of modules to build.
+# List of modules to test.
 #
 # Note: tools should be last as that generates executables and this
 # allows the other modules to perform any tests first.
-MODULES		= astro image log util tools
+MODULES		= astro image log util
+
+# The tools listed under tools to compile
+TOOLS		= $(shell ls -d tools/*/ | cut -f2 -d'/')
 
 # Where to place build artifacts. These must be subdirectories here and not
 # a path elsewhere, otherwise it will break the build!
 export BUILDS 	= builds
 export DIST		= dist
 
-# Tool names
-export CP     	= @cp -p
-export ECHO		= echo
-export GO		= go
-export MKDIR  	= mkdir -p
-export PRINTF	= printf
-export TAR		= tar
+include Makefile.include
 
-# Append -test.v to GO_TEST to show status of each test.
-# Without it, only shows total time per module if they pass
-export GO_TEST	?= $(GO) test
+.PHONY: all build clean dist init test tools validate-go-version resolve-platforms platforms.md
 
-.PHONY: all build clean dist init test validate-go-version resolve-platforms platforms.md
-
-# Used to separate commands in foreach in the all and dist targets.
-# Using this allows each step to fail as if we entered them individually
-# in the Makefile.
-#
-# In the foreach, we then use ${\n} to delimit the end of each command
-# in the recipe.
-#
-# NOTE this MUST have 2 empty lines between define and endef for it to work!
-define \n
-
-
-endef
-
-all: init
-	@$(MKDIR) -pv $(BUILDS)
-	$(foreach MODULE,$(MODULES),@$(MAKE) -C $(MODULE) all${\n})
+all: init test tools
 
 clean:
-	@$(GO) clean -testcache
-	@$(RM) -r $(BUILDS) $(DIST)
-
-dist: all platforms.md
-	@$(MKDIR) -pv $(DIST)
-	$(foreach MODULE,$(MODULES) tools,@$(MAKE) -C $(MODULE) dist${\n})
+	$(call GO-CLEAN,-testcache)
+	$(call REMOVE,$(BUILDS) $(DIST))
 
 init: validate-go-version resolve-platforms
-	@$(GO) mod download
+	$(call GO-MOD,download)
+
+test:
+	$(foreach MODULE,$(MODULES),$(call GO-TEST,$(MODULE))${\n})
+
+tools:
+	$(call MKDIR,$(BUILDS))
+	$(foreach PLATFORM,$(PLATFORMS), \
+		$(eval GOOS=$(word 1,$(subst :, ,$(PLATFORM)))) \
+		$(eval GOARCH=$(word 2,$(subst :, ,$(PLATFORM)))) \
+		$(eval GOARM=$(word 3,$(subst :, ,$(PLATFORM)))) \
+		$(eval BUILD=$(BUILDS)/$(GOOS)/$(GOARCH)$(GOARM)) \
+		$(foreach TOOL,$(TOOLS), \
+			$(call GO-BUILD,$(TOOL),$(BUILD)/$(TOOL),tools/$(TOOL)/bin/main.go)${\n}\
+		)\
+	)
+
+dist: all platforms.md
+	$(MKDIR) $(DIST)
+	$(foreach PLATFORM,$(shell cd $(BUILDS);ls -d */*),$(call TAR,$(PLATFORM))${\n})
 
 # Validates the installed version of go against the version declared in go.mod
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION	= $(shell grep "^go" go.mod | cut -f2 -d' ' | cut -f1 -d'.')
 MINIMUM_SUPPORTED_GO_MINOR_VERSION	= $(shell grep "^go" go.mod | cut -f2 -d' ' | cut -f2 -d'.')
-GO_MAJOR_VERSION = $(shell $(GO) version | cut -f3 -d' ' | cut -c 3- | cut -f1 -d' ' | cut -f1 -d'.')
-GO_MINOR_VERSION = $(shell $(GO) version | cut -f3 -d' ' | cut -c 3- | cut -f1 -d' ' | cut -f2 -d'.')
+GO_MAJOR_VERSION = $(shell go version | cut -f3 -d' ' | cut -c 3- | cut -f1 -d' ' | cut -f1 -d'.')
+GO_MINOR_VERSION = $(shell go version | cut -f3 -d' ' | cut -c 3- | cut -f1 -d' ' | cut -f2 -d'.')
 GO_VERSION_VALIDATION_ERR_MSG = Golang version $(GO_MAJOR_VERSION).$(GO_MINOR_VERSION) is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 validate-go-version:
 	@if [ $(GO_MAJOR_VERSION) -gt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
@@ -115,7 +108,7 @@ validate-go-version:
 resolve-platforms:
 ifeq ("$(PLATFORMS)","")
 	$(eval DISC_PLATFORMS=)
-	$(foreach DISC_PLATFORM,$(shell $(GO) tool dist list), \
+	$(foreach DISC_PLATFORM,$(shell go tool dist list), \
 		$(eval GOOS=$(word 1,$(subst /, ,$(DISC_PLATFORM)))) \
 		$(if $(filter android,$(GOOS)),,\
 			$(if $(filter ios,$(GOOS)),,\
