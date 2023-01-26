@@ -5,9 +5,6 @@ cmd = @set -e;printf "%-8s %s\n" $1 $2
 CP		= @cp -p
 ECHO	= echo
 
-MAKE		= $(call cmd,"MAKE","$1 $2 $3 $4 $5");make -s $1 $2 $3 $4 $5
-MAKE-SUBDIR	= $(call cmd,"MAKE -C","$1 $2 $3 $4 $5");echo "Entering $1";make -s -C $1 $2 $3 $4 $5;echo "Exited $1"
-
 MKDIR		= @mkdir -p $1
 
 # limited to 5 entries as no way to get all args
