@@ -38,13 +38,21 @@ func (v *VideoGenerator) render(frames []*Frame) error {
 		"| required for each frame as it's passed to ffmpeg!  |\n" +
 		"+----------------------------------------------------+")
 
+	// Note: to ensure the frame rate is correct -framerate is before -i
+	// to set the source framerate and then -r after to set the output framerate
+	//
+	// Discovered this with another animation where, when both were set to 30
+	// the output was fixed to 25fps so with 30fps input a 60s animation ended
+	// up playing for 72s (01:12) and ran slow.
+	//
+	// see: https://stackoverflow.com/a/66466918/1994472
 	cmd := exec.Command(
 		"ffmpeg",
 		"-y",
+		"-framerate", strconv.Itoa(*v.SrcFrame),
 		"-i", "-", // pipe from stdin
-		"-r", strconv.Itoa(*v.SrcFrame),
-		"-c:v", "libx264",
 		"-r", strconv.Itoa(*v.OutFrame),
+		"-c:v", "libx264",
 		"-pix_fmt", "yuv420p",
 		*v.Output,
 	)
