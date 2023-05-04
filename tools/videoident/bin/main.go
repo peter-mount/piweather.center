@@ -2,13 +2,13 @@ package main
 
 import (
 	"github.com/peter-mount/go-kernel/v2"
-	"github.com/peter-mount/piweather.center/tools/videogenerator"
+	videointro "github.com/peter-mount/piweather.center/tools/videoident"
 	"log"
 )
 
 func main() {
 	err := kernel.Launch(
-		&videogenerator.VideoGenerator{},
+		&videointro.VideoIntro{},
 	)
 	if err != nil {
 		log.Fatal(err)

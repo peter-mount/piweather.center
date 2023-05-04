@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/image"
-	"github.com/peter-mount/piweather.center/log"
 	"os"
 )
 

@@ -5,11 +5,12 @@ import (
 	graph "github.com/peter-mount/go-graphics"
 	"github.com/peter-mount/go-graphics/filter/cloud"
 	"github.com/peter-mount/go-graphics/graphics"
+	"github.com/peter-mount/go-graphics/text"
+	"github.com/peter-mount/go-kernel/v2/log"
 	piweather_center "github.com/peter-mount/piweather.center"
 	image2 "github.com/peter-mount/piweather.center/image"
 	"github.com/peter-mount/piweather.center/image/annotate"
 	"github.com/peter-mount/piweather.center/image/service"
-	"github.com/peter-mount/piweather.center/log"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/dir"
 	"image"
@@ -29,6 +30,14 @@ type App struct {
 	Directory    dir.Directory   `kernel:"inject"`
 	SrcOutput    *string         `kernel:"flag,so,Optional output src annotated"`
 	CloudOutput  *string         `kernel:"flag,co,Output file,cloud"`
+	Crop         *string         `kernel:"flag,crop,Crop image"`
+}
+
+func Join(baseDir, fileName string) string {
+	if path.IsAbs(fileName) {
+		return fileName
+	}
+	return path.Join(baseDir, fileName)
 }
 
 func (a *App) Start() error {
@@ -36,7 +45,7 @@ func (a *App) Start() error {
 
 	baseDir, fileName := a.Directory.Split(*a.ImageName)
 
-	src, err := a.ImageService.ReadWithExif(path.Join(baseDir, *a.ImageName))
+	src, err := a.ImageService.ReadWithExif(Join(baseDir, *a.ImageName))
 	if err != nil {
 		return err
 	}
@@ -48,18 +57,32 @@ func (a *App) Start() error {
 
 	_, suffix := util.BaseName(fileName)
 
+	if *a.Crop != "" {
+		cp, err := annotate.ParseCoordinates(*a.Crop, 4)
+		if err != nil {
+			return err
+		}
+		if len(cp) != 4 {
+			return fmt.Errorf("unsupported crop %q", *a.Crop)
+		}
+		src.Image = graphics.New(graph.Imutable(src.Image)).
+			Crop(image.Rect(cp[0], cp[1], cp[2], cp[3])).
+			Image()
+	}
+
 	if *a.SrcOutput != "" {
-		g := graphics.New(graph.DuplicateImage(src.Image))
-		srcOut := src.Duplicate(
-			annotate.AnnotateTop(
-				g,
-				fmt.Sprintf("%s", src.Time.Format(time.RFC1123)),
-				"",
-				100,
-				90.0,
-			).
-				Image())
-		srcOut.Filename = path.Join(baseDir, *a.SrcOutput+"."+suffix)
+		//g := graphics.New(graph.DuplicateImage(src.Image))
+		g := graphics.New(graph.Imutable(src.Image))
+		g.Expand(100, 0, 100, 0).
+			Background(image.Black).
+			Foreground(color.White).
+			FillRect(0, 0, g.Width(), 100).
+			FillRect(0, g.Bounds().Max.Y+100, g.Width(), g.Bounds().Max.Y+200).
+			SetFont(text.Mono, 90.0).
+			DrawText(image.Point{X: 0, Y: 0}, fmt.Sprintf("%s", src.Time.Format(time.RFC1123)))
+
+		srcOut := src.Duplicate(g.Image())
+		srcOut.Filename = Join(baseDir, *a.SrcOutput+"."+suffix)
 		if err = a.ImageService.Write(srcOut); err != nil {
 			return err
 		}
@@ -70,7 +93,7 @@ func (a *App) Start() error {
 	var mask *image2.Image
 	haveImageMask := *a.ImageMask != ""
 	if haveImageMask {
-		mask, err = a.ImageService.ReadRaw(path.Join(baseDir, *a.ImageMask))
+		mask, err = a.ImageService.ReadRaw(Join(baseDir, *a.ImageMask))
 		if err != nil {
 			return err
 		}
@@ -123,7 +146,7 @@ func (a *App) Start() error {
 
 	masked.Image = g.Image()
 
-	masked.Filename = path.Join(baseDir, *a.CloudOutput+"."+suffix)
+	masked.Filename = Join(baseDir, *a.CloudOutput+"."+suffix)
 	if err = a.ImageService.Write(masked); err != nil {
 		return err
 	}
@@ -135,7 +158,7 @@ func (a *App) Start() error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(baseDir, *a.Json), b, 0644)
+		err = os.WriteFile(Join(baseDir, *a.Json), b, 0644)
 		if err != nil {
 			return err
 		}

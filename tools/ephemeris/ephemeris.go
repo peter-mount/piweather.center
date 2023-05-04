@@ -2,7 +2,6 @@ package ephemeris
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/util/task"
@@ -37,8 +36,10 @@ func (e *Ephemeris) Start() error {
 		e.ephemeris = e.ephemeris.Include(d)
 	}
 
+	// If the range is invalid, e.g. no dates provided,
+	// use the current system time
 	if !e.ephemeris.Range.Valid() {
-		return errors.New("no dates provided")
+		e.ephemeris.Include(julian.StartOfToday())
 	}
 
 	if *e.site != "" {

@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/image"
 	exif2 "github.com/peter-mount/piweather.center/image/exif"
-	"github.com/peter-mount/piweather.center/log"
 	"os"
 	"time"
 )

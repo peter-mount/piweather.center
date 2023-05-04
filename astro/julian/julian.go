@@ -45,6 +45,16 @@ func IsGregorian(d, m, y int) bool {
 	}
 }
 
+// Now returns a Day for the current time
+func Now() Day {
+	return FromTime(time.Now().UTC())
+}
+
+// StartOfToday returns a Day for the start of the current day (00:00 UTC)
+func StartOfToday() Day {
+	return FromTime(time.Now().UTC().Truncate(time.Hour * 24))
+}
+
 // FromTime returns a Day from a time.Time
 func FromTime(t0 time.Time) Day {
 	// Enforce the time into UTC
