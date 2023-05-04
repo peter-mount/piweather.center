@@ -50,9 +50,15 @@ DIST		= dist
 # it must end with /
 BINDIR ?= bin/
 
-.PHONY: all clean init test tools dist
+# ETCDIR is the prefix before any config files
+ETCDIR ?= etc/
 
-all: init test tools
+# LIBDIR is the prefix before any data/library files
+LIBDIR ?= lib/
+
+.PHONY: all clean init test tools data dist
+
+all: init test tools data
 
 include Makefile.include
 include Go.include
@@ -70,3 +76,20 @@ tools: $(subst /bin/main.go,,$(subst tools,$(BUILDS),$(shell ls tools/*/bin/main
 dist: all
 	$(MKDIR) $(DIST)
 	$(foreach PLATFORM,$(shell cd $(BUILDS);ls -d */*),$(call TAR,$(PLATFORM))${\n})
+
+#.PHONY: bsc5.bin
+#data: bsc5.bin
+#
+#bsc5.bin: data/bsc5.dat.gz
+#	$(foreach PLATFORM,$(PLATFORMS),\
+#		$(call cmd,"GENERATE","$(call GO-ARCH-DIR,$(PLATFORM))/lib/$<");\
+#		$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(call GO-ARCH-DIR,$(PLATFORM))/lib -bsc5 $<${\n}\
+#	)
+
+data: $(foreach DATAFILE,$(shell ls data/*.gz),\
+		$(foreach PLATFORM,$(PLATFORMS),$(subst .gz,,$(subst data,$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/lib,$(DATAFILE))))\
+	)
+
+$(BUILDS)/%.dat:
+	$(call cmd,"GENERATE","$@");\
+	$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(shell dirname $@) -$(shell basename $@ .dat) data/$(shell basename $@).gz${\n}\

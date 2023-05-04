@@ -2,9 +2,9 @@
 # Extract args from platform definition.
 # Here PLATFORM is os:arch:arm, usually arm is "" unless arch=="arm" when it
 # is then one of "5","6" or "7"
-GO-OS		=$(word 1,$(subst :, ,$(PLATFORM)))
-GO-ARCH		=$(word 2,$(subst :, ,$(PLATFORM)))
-GO-ARM		=$(word 3,$(subst :, ,$(PLATFORM)))
+GO-OS		=$(word 1,$(subst :, ,$1))
+GO-ARCH		=$(word 2,$(subst :, ,$1))
+GO-ARM		=$(word 3,$(subst :, ,$1))
 GO-ARCH-DIR	=$(call GO-OS,$1)/$(call GO-ARCH,$1)$(call GO-ARM,$1)
 
 # $(call GO-BUILD,platform,destination,src)
@@ -41,6 +41,9 @@ $(BUILDS)/%: tools/%/bin/main.go
 	$(foreach PLATFORM,$(PLATFORMS),\
 		$(call GO-BUILD,$(PLATFORM),$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/$(BINDIR)$(shell basename $@),$<)${\n}\
 	)
+
+# The build platform
+BUILD_PLATFORM = $(shell go version | cut -f4 -d' ' | tr / :):
 
 # Validates the installed version of go against the version declared in go.mod
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION	= $(shell grep "^go" go.mod | cut -f2 -d' ' | cut -f1 -d'.')
