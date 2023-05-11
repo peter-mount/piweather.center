@@ -44,7 +44,7 @@ BUILD_DATE = $(shell date)
 # Where to place build artifacts. These must be subdirectories here and not
 # a path elsewhere, otherwise it will break the build!
 BUILDS 	= builds
-DIST		= dist
+DIST    = dist
 
 # BINDIR is the prefix before any built tools. Set to "" for none, otherwise
 # it must end with /
@@ -77,19 +77,9 @@ dist: all
 	$(MKDIR) $(DIST)
 	$(foreach PLATFORM,$(shell cd $(BUILDS);ls -d */*),$(call TAR,$(PLATFORM))${\n})
 
-#.PHONY: bsc5.bin
-#data: bsc5.bin
-#
-#bsc5.bin: data/bsc5.dat.gz
-#	$(foreach PLATFORM,$(PLATFORMS),\
-#		$(call cmd,"GENERATE","$(call GO-ARCH-DIR,$(PLATFORM))/lib/$<");\
-#		$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(call GO-ARCH-DIR,$(PLATFORM))/lib -bsc5 $<${\n}\
-#	)
-
-data: $(foreach DATAFILE,$(shell ls data/*.gz),\
-		$(foreach PLATFORM,$(PLATFORMS),$(subst .gz,,$(subst data,$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/lib,$(DATAFILE))))\
-	)
+# run any file under data through dataencoder
+data: $(foreach PLATFORM,$(PLATFORMS), $(foreach DATAFILE,$(shell ls data/*.gz), $(subst .gz,,$(subst data,$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/lib,$(DATAFILE))) ) )
 
 $(BUILDS)/%.dat:
 	$(call cmd,"GENERATE","$@");\
-	$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(shell dirname $@) -$(shell basename $@ .dat) data/$(shell basename $@).gz${\n}\
+	$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(shell dirname $@) -$(shell basename $@ .dat) data/$(shell basename $@).gz
