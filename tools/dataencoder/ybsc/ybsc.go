@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/util"
+	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/tools/dataencoder"
 	"github.com/soniakeys/unit"
 	"path/filepath"
@@ -30,7 +31,7 @@ func (s *YbscEncoder) Start() error {
 
 func (s *YbscEncoder) encode() error {
 	var bsc catalogue.Catalog
-	if err := util.NewReader().
+	if err := io.NewReader().
 		ForEachLine(func(l string) error {
 			e, err := s.parseEntry(l)
 			if err != nil {
@@ -49,7 +50,7 @@ func (s *YbscEncoder) encode() error {
 
 	dstFile := filepath.Join(*s.Encoder.Dest, "bsc5.bin")
 
-	if err := util.NewWriter(bsc.Write).
+	if err := io.NewWriter(bsc.Write).
 		Compress().
 		CreateFile(dstFile); err != nil {
 		return err
@@ -58,7 +59,7 @@ func (s *YbscEncoder) encode() error {
 
 	// Verify we can read the catalog
 	readBsc := &catalogue.Catalog{}
-	if err := util.NewReader(readBsc.Read).
+	if err := io.NewReader(readBsc.Read).
 		Decompress().
 		Open(dstFile); err != nil {
 		return err

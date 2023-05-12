@@ -18,3 +18,4 @@ go.sum
 /build*
 /tmp/
 /dist/
+/a.png
