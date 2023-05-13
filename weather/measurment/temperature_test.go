@@ -30,7 +30,7 @@ func Test_temperature_transforms(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s %s %s", tt.from.Unit().Name(), tt.to.Unit().Name(), tt.from), func(t *testing.T) {
 
-			got, err := tt.from.Transform(tt.to.Unit())
+			got, err := tt.from.As(tt.to.Unit())
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
@@ -38,8 +38,7 @@ func Test_temperature_transforms(t *testing.T) {
 				return
 			}
 
-			eq, err := tt.to.Equals(got)
-			if err != nil {
+			if eq, err := tt.to.Equals(got); err != nil {
 				if !tt.wantErr {
 					t.Errorf("Value Equals error = %v", err)
 				}

@@ -33,7 +33,7 @@ func (e *Ephemeris) IncludePeriod(a, b julian.Day) *Ephemeris {
 }
 
 // IncludeRange will include another Range into this one.
-// If the range to be included is not Valid this Range is unchanged.
+// If the range to be included is not IsValid this Range is unchanged.
 func (e *Ephemeris) IncludeRange(b *julian.Range) *Ephemeris {
 	e.Range = e.Range.IncludeRange(b)
 	return e

@@ -35,6 +35,11 @@ func GetTransform(from, to Unit) (Transformer, error) {
 }
 
 func Transform(f float64, from Unit, to Unit) (float64, error) {
+	// No transform required
+	if from == to {
+		return f, nil
+	}
+
 	t, err := GetTransform(from, to)
 	if err != nil {
 		return 0, err

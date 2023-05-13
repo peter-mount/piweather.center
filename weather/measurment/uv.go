@@ -11,3 +11,7 @@ func init() {
 var (
 	UV value.Unit
 )
+
+func IsUV(v value.Value) bool {
+	return v.Unit() == UV
+}
