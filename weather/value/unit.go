@@ -70,6 +70,9 @@ func NewUnit(name, unit, format string) Unit {
 
 func NewBoundedUnit(name, unit, format string, min, max float64) Unit {
 	u := NewUnit(name, unit, format)
+	if min > max {
+		min, max = max, min
+	}
 	u.min = min
 	u.max = max
 	return u
