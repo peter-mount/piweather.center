@@ -26,6 +26,7 @@ GO-TEST		= $(GO_TEST)$(call cmd,"GO TEST",$1);(cd $1;go test ./...)
 # Init goInit
 .PHONY: go-init
 go-init: validate-go-version resolve-platforms
+	$(call GO-MOD,tidy)
 	$(call GO-MOD,download)
 
 # Target to run all tests, results into builds directory
