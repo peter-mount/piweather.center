@@ -9,9 +9,11 @@ func init() {
 }
 
 var (
+	// UV Unit representing UV (Ultra Violet) index
 	UV value.Unit
 )
 
+// IsUV returns true if the value is a UV index
 func IsUV(v value.Value) bool {
 	return v.Unit() == UV
 }

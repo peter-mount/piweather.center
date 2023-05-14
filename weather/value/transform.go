@@ -9,6 +9,35 @@ import (
 // This is the core of how a Unit can be transformed to another Unit.
 type Transformer func(f float64) (float64, error)
 
+// Then allows for one transformer to pass its result to another one.
+func (a Transformer) Then(b Transformer) Transformer {
+	if a == nil {
+		return b
+	}
+	if b == nil {
+		return a
+	}
+	return func(f float64) (float64, error) {
+		f1, err := a(f)
+		if err != nil {
+			return 0, err
+		}
+		return b(f1)
+	}
+}
+
+// Chain allows for a sequence of Transformer's to be chained together to form a new Transform.
+//
+// An example is value.Chain(fahrenheitCelsius, celsiusKelvin) which creates a Transform
+// that converts Fahrenheit to Kelvin by converting it to Celsius first.
+func Chain(transforms ...Transformer) Transformer {
+	var t Transformer
+	for _, e := range transforms {
+		t = t.Then(e)
+	}
+	return t
+}
+
 var transformers = make(map[string]Transformer)
 
 func transformName(from, to Unit) string {

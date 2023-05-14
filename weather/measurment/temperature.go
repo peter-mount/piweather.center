@@ -12,6 +12,13 @@ const (
 	MinKelvin      = 0.0
 )
 
+var (
+	Fahrenheit   value.Unit
+	Celsius      value.Unit
+	Kelvin       value.Unit
+	notTempError = errors.New("value not a Temperature")
+)
+
 func init() {
 	Fahrenheit = value.NewLowerBoundUnit("Fahrenheit", " °F", value.Dp1, MinFahrenheit)
 	Celsius = value.NewLowerBoundUnit("Celsius", " °C", value.Dp1, MinCelsius)
@@ -21,14 +28,8 @@ func init() {
 	value.NewTransform(Kelvin, Celsius, kelvinCelsius)
 	value.NewTransform(Fahrenheit, Celsius, fahrenheitCelsius)
 	value.NewTransform(Celsius, Fahrenheit, celsiusFahrenheit)
-	value.NewTransform(Fahrenheit, Kelvin, func(f float64) (float64, error) {
-		v, _ := fahrenheitCelsius(f)
-		return celsiusKelvin(v)
-	})
-	value.NewTransform(Kelvin, Fahrenheit, func(f float64) (float64, error) {
-		v, _ := kelvinCelsius(f)
-		return celsiusFahrenheit(v)
-	})
+	value.NewTransform(Fahrenheit, Kelvin, value.Chain(fahrenheitCelsius, celsiusKelvin))
+	value.NewTransform(Kelvin, Fahrenheit, value.Chain(kelvinCelsius, celsiusFahrenheit))
 
 }
 
@@ -40,13 +41,7 @@ func fahrenheitCelsius(f float64) (float64, error) { return (f - 32.0) * 5.0 / 9
 
 func celsiusFahrenheit(f float64) (float64, error) { return (f * 9.0 / 5.0) + 32.0, nil }
 
-var (
-	Fahrenheit   value.Unit
-	Celsius      value.Unit
-	Kelvin       value.Unit
-	notTempError = errors.New("value not a Temperature")
-)
-
+// IsTemperature returns true if the Value represents Kelvin, Celsius or Fahrenheit scales
 func IsTemperature(v value.Value) bool {
 	u := v.Unit()
 	return u == Fahrenheit || u == Celsius || u == Kelvin
@@ -61,6 +56,8 @@ func AssertTemperature(v value.Value) error {
 	return notTempError
 }
 
+// IsTemperatureErr returns true if the error is the one returned by AssertTemperature when a Value is
+// not a Temperature.
 func IsTemperatureErr(e error) bool {
 	return e == notTempError
 }
@@ -73,6 +70,8 @@ type TemperatureRelativeHumidityFunc func(temp, relHumidity value.Value) (value.
 //
 // Specifically that temp is a Temperature and relHumidity is RelativeHumidity.
 // It also takes a unit which is the temperature unit required by the underlying function.
+//
+// Examples of this function in use are DewPoint and HeatIndex values which are a function of Temperature and Relative Humidity.
 func TemperatureRelativeHumidityCalculation(temp, relHumidity value.Value, unit value.Unit, f TemperatureRelativeHumidityFunc) (value.Value, error) {
 	if err := AssertTemperature(temp); err != nil {
 		return value.Value{}, err
