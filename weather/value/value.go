@@ -71,47 +71,59 @@ func (v Value) AsGuard(to Unit) Value {
 	return n
 }
 
-// Equals returns true if both values are equal. This accounts for differing units.
+// Equals returns true if both values are Equal. This accounts for differing units.
 // Returns an error if either value is invalid or if it's not possible to transform
 // b to the same unit as v.
 //
 // Equality here is if the two values are within 1e-9 of each other to account for
 // rounding errors within float64.
-func (v Value) Equals(b Value) (bool, error) { return v.Compare(b, equal) }
+func (v Value) Equals(b Value) (bool, error) { return v.Compare(b, Equal) }
 
-func equal(a, b float64) bool { return math.Abs(a-b) <= 1e-9 }
+// Equal returns true if both values are Equal.
+//
+// Equality here is if the two values are within 1e-9 of each other to account for
+// rounding errors within float64.
+func Equal(a, b float64) bool { return math.Abs(a-b) <= 1e-9 }
 
-// NotEqual returns true if both values are equal. It's the same as !Equal() and
+// NotEqual returns true if both values are Equal. It's the same as !Equal() and
 // follows the same rules.
-func (v Value) NotEqual(b Value) (bool, error) { return v.Compare(b, notEqual) }
+func (v Value) NotEqual(b Value) (bool, error) { return v.Compare(b, NotEqual) }
 
-func notEqual(a, b float64) bool { return !equal(a, b) }
+// NotEqual returns true if both values are Equal. It's the same as !Equal() and
+// follows the same rules.
+func NotEqual(a, b float64) bool { return !Equal(a, b) }
 
 // LessThan returns true if v < b, accounting for different units.
 // It will return false if |v-b|<=1e-9 to account for rounding errors in float64.
-func (v Value) LessThan(b Value) (bool, error) { return v.Compare(b, lessThan) }
+func (v Value) LessThan(b Value) (bool, error) { return v.Compare(b, LessThan) }
 
-// a<b unless they are within 1e-9
-func lessThan(a, b float64) bool { return a < b && notEqual(a, b) }
+// LessThan returns true if a < b, accounting for different units.
+// It will return false if |a-b|<=1e-9 to account for rounding errors in float64.
+func LessThan(a, b float64) bool { return a < b && NotEqual(a, b) }
 
 // LessThanEqual returns true if v <= b, accounting for different units.
 // It will return true if |v-b|<=1e-9 to account for rounding errors in float64.
-func (v Value) LessThanEqual(b Value) (bool, error) { return v.Compare(b, lessThanEqual) }
+func (v Value) LessThanEqual(b Value) (bool, error) { return v.Compare(b, LessThanEqual) }
 
-func lessThanEqual(a, b float64) bool { return a < b || equal(a, b) }
+// LessThanEqual returns true if a <= b, accounting for different units.
+// It will return true if |a-b|<=1e-9 to account for rounding errors in float64.
+func LessThanEqual(a, b float64) bool { return a < b || Equal(a, b) }
 
 // GreaterThan returns true if v > b, accounting for different units.
 // It will return false if |v-b|<=1e-9 to account for rounding errors in float64.
-func (v Value) GreaterThan(b Value) (bool, error) { return v.Compare(b, greaterThan) }
+func (v Value) GreaterThan(b Value) (bool, error) { return v.Compare(b, GreaterThan) }
 
-// a>b unless they are within 1e-9
-func greaterThan(a, b float64) bool { return a > b && notEqual(a, b) }
+// GreaterThan returns true if a > b, accounting for different units.
+// It will return false if |a-b|<=1e-9 to account for rounding errors in float64.
+func GreaterThan(a, b float64) bool { return a > b && NotEqual(a, b) }
 
 // GreaterThanEqual returns true if v >= b, accounting for different units.
 // It will return true if |v-b|<=1e-9 to account for rounding errors in float64.
-func (v Value) GreaterThanEqual(b Value) (bool, error) { return v.Compare(b, greaterThanEqual) }
+func (v Value) GreaterThanEqual(b Value) (bool, error) { return v.Compare(b, GreaterThanEqual) }
 
-func greaterThanEqual(a, b float64) bool { return a > b || equal(a, b) }
+// GreaterThanEqual returns true if a >= b, accounting for different units.
+// It will return true if |a-b|<=1e-9 to account for rounding errors in float64.
+func GreaterThanEqual(a, b float64) bool { return a > b || Equal(a, b) }
 
 // IsZero returns true if the value is zero.
 // Specifically if |v|<1e-9 to account for rounding errors in float64.
@@ -119,7 +131,7 @@ func (v Value) IsZero() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return equal(v.Float(), 0), nil
+	return Equal(v.Float(), 0), nil
 }
 
 // IsOne returns true if the value is 1.
@@ -128,7 +140,7 @@ func (v Value) IsOne() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return equal(v.Float(), 1), nil
+	return Equal(v.Float(), 1), nil
 }
 
 // IsPositive returns true if the value is positive.
@@ -138,7 +150,7 @@ func (v Value) IsPositive() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return greaterThan(v.Float(), 0), nil
+	return GreaterThan(v.Float(), 0), nil
 }
 
 // IsNegative returns true if the value is negative.
@@ -148,7 +160,7 @@ func (v Value) IsNegative() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return lessThan(v.Float(), 1), nil
+	return LessThan(v.Float(), 1), nil
 }
 
 type Comparator func(a, b float64) bool
@@ -207,11 +219,11 @@ func (v Value) Within(b, c Value) (bool, error) {
 
 func within(a, b, c float64) bool {
 	// Ensure b < c
-	if greaterThan(b, c) {
+	if GreaterThan(b, c) {
 		b, c = c, b
 	}
 
-	return greaterThanEqual(a, b) && lessThanEqual(a, c)
+	return GreaterThanEqual(a, b) && LessThanEqual(a, c)
 }
 
 // Add returns the sum of two values. The result is the same unit as v.

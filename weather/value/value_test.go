@@ -24,7 +24,7 @@ func runComparatorTest(t *testing.T, f Comparator, tests []comparatorTest) {
 
 func Test_equal(t *testing.T) {
 	runComparatorTest(t,
-		equal,
+		Equal,
 		[]comparatorTest{
 			{-math.MaxFloat64, 18.1, false},
 			{math.MaxFloat64, 18.1, false},
@@ -41,7 +41,7 @@ func Test_equal(t *testing.T) {
 
 func Test_notEqual(t *testing.T) {
 	runComparatorTest(t,
-		notEqual,
+		NotEqual,
 		[]comparatorTest{
 			{-math.MaxFloat64, 18.1, true},
 			{math.MaxFloat64, 18.1, true},
@@ -58,7 +58,7 @@ func Test_notEqual(t *testing.T) {
 
 func Test_lessThan(t *testing.T) {
 	runComparatorTest(t,
-		lessThan,
+		LessThan,
 		[]comparatorTest{
 			{-math.MaxFloat64, 18.1, true},
 			{math.MaxFloat64, 18.1, false},
@@ -77,7 +77,7 @@ func Test_lessThan(t *testing.T) {
 
 func Test_lessThanEqual(t *testing.T) {
 	runComparatorTest(t,
-		lessThanEqual,
+		LessThanEqual,
 		[]comparatorTest{
 			{-math.MaxFloat64, 18.1, true},
 			{math.MaxFloat64, 18.1, false},
@@ -96,7 +96,7 @@ func Test_lessThanEqual(t *testing.T) {
 
 func Test_greaterThan(t *testing.T) {
 	runComparatorTest(t,
-		greaterThan,
+		GreaterThan,
 		[]comparatorTest{
 			{-math.MaxFloat64, 18.1, false},
 			{math.MaxFloat64, 18.1, true},
@@ -115,7 +115,7 @@ func Test_greaterThan(t *testing.T) {
 
 func Test_greaterThanEqual(t *testing.T) {
 	runComparatorTest(t,
-		greaterThanEqual,
+		GreaterThanEqual,
 		[]comparatorTest{
 			{-math.MaxFloat64, 18.1, false},
 			{math.MaxFloat64, 18.1, true},
