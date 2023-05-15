@@ -1,11 +1,9 @@
 package value
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 )
 
 // Unit represents a unit of some kind.
@@ -85,14 +83,6 @@ func (u Unit) BoundsError(f float64) error {
 func (u Unit) Value(v float64) Value {
 	return Value{v: v, u: u}
 }
-
-var (
-	nan   = errors.New("NaN")
-	pInf  = errors.New("+Inf")
-	nInf  = errors.New("-Inf")
-	mutex sync.Mutex
-	units = make(map[string]Unit)
-)
 
 // NewUnit creates a new Unit, registering it with the system.
 func NewUnit(name, unit, format string) Unit {

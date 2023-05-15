@@ -28,9 +28,8 @@ func init() {
 	value.NewTransform(Kelvin, Celsius, kelvinCelsius)
 	value.NewTransform(Fahrenheit, Celsius, fahrenheitCelsius)
 	value.NewTransform(Celsius, Fahrenheit, celsiusFahrenheit)
-	value.NewTransform(Fahrenheit, Kelvin, value.Chain(fahrenheitCelsius, celsiusKelvin))
-	value.NewTransform(Kelvin, Fahrenheit, value.Chain(kelvinCelsius, celsiusFahrenheit))
-
+	value.NewTransform(Fahrenheit, Kelvin, value.Of(fahrenheitCelsius, celsiusKelvin))
+	value.NewTransform(Kelvin, Fahrenheit, value.Of(kelvinCelsius, celsiusFahrenheit))
 }
 
 func celsiusKelvin(f float64) (float64, error) { return f + Celsius0Kelvin, nil }

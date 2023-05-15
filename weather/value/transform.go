@@ -1,6 +1,7 @@
 package value
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -26,11 +27,11 @@ func (a Transformer) Then(b Transformer) Transformer {
 	}
 }
 
-// Chain allows for a sequence of Transformer's to be chained together to form a new Transform.
+// Of allows for a sequence of Transformer's to be chained together to form a new Transform.
 //
-// An example is value.Chain(fahrenheitCelsius, celsiusKelvin) which creates a Transform
+// An example is value.Of(fahrenheitCelsius, celsiusKelvin) which creates a Transform
 // that converts Fahrenheit to Kelvin by converting it to Celsius first.
-func Chain(transforms ...Transformer) Transformer {
+func Of(transforms ...Transformer) Transformer {
 	var t Transformer
 	for _, e := range transforms {
 		t = t.Then(e)
@@ -38,10 +39,8 @@ func Chain(transforms ...Transformer) Transformer {
 	return t
 }
 
-var transformers = make(map[string]Transformer)
-
 func transformName(from, to Unit) string {
-	return strings.ToLower(from.name + "->" + to.name)
+	return strings.ToLower(from.Name() + "->" + to.Name())
 }
 
 // NewTransform registers a Transformer that will handle transforming from one Unit to Another.
@@ -60,6 +59,50 @@ func NewTransform(from, to Unit, t Transformer) {
 		panic(fmt.Errorf("transform %q already defined", n))
 	}
 	transformers[n] = t
+}
+
+// NewTransformations generates transformations to convert between two or more Unit's
+// Using a base Unit as the intermediary. It will create every possible transform based on the list of units.
+//
+// e.g. for speed you can convert KilometersPerHour to FeetPerSecond by converting to MetersPerSecond first.
+//
+// If an error occurs this will panic. This is either units has less than 2 entries, or there is no
+// defined Transform of a unit to or from the baseUnit.
+//
+// If the baseUnit is present in the unit list it will also panic because that transform will already be registered.
+// Similarly, if a transform already exists then this will Panic.
+func NewTransformations(baseUnit Unit, units ...Unit) {
+	if len(units) < 2 {
+		panic(errors.New("must supply 2 or more Unit's"))
+	}
+
+	for _, src := range units {
+		if src.Equals(baseUnit) {
+			panic(fmt.Errorf("base unit %q included in list of units", baseUnit.Name()))
+		}
+
+		srcToBase, err := GetTransform(src, baseUnit)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, dest := range units {
+			if !src.Equals(dest) {
+				baseToDest, err := GetTransform(baseUnit, dest)
+				if err != nil {
+					panic(err)
+				}
+
+				NewTransform(src, dest, srcToBase.Then(baseToDest))
+			}
+		}
+	}
+}
+
+// NewBiTransform registers two transforms, one for u1->u2 and one for u2->u1
+func NewBiTransform(u1, u2 Unit, u1ToU2, u2ToU1 Transformer) {
+	NewTransform(u1, u2, u1ToU2)
+	NewTransform(u2, u1, u2ToU1)
 }
 
 // GetTransform returns the Transformer that will transform between two units.
@@ -88,4 +131,36 @@ func Transform(f float64, from Unit, to Unit) (float64, error) {
 		return 0, err
 	}
 	return t(f)
+}
+
+// BasicTransform returns a Transformer that multiplies a value with a constant
+// conversion factor.
+//
+// This is used for transforms like meters per second to kilometers per hour
+func BasicTransform(factor float64) Transformer {
+	return func(f float64) (float64, error) {
+		return f * factor, nil
+	}
+}
+
+// BasicInverseTransform returns a Transformer that divides a value with
+// a constant conversion factor.
+//
+// This is the same as BasicTransform(1.0/factor)
+func BasicInverseTransform(factor float64) Transformer {
+	return func(f float64) (float64, error) {
+		return f / factor, nil
+	}
+}
+
+// NewBasicTransform is the same as NewTransform(from, to, BasicTransform(factor))
+func NewBasicTransform(from, to Unit, factor float64) {
+	NewTransform(from, to, BasicTransform(factor))
+}
+
+// NewBasicBiTransform registers two transforms using a constant conversion factor.
+// This allows for conversions between two units.
+func NewBasicBiTransform(u1, u2 Unit, factor float64) {
+	NewTransform(u1, u2, BasicTransform(factor))
+	NewTransform(u2, u1, BasicInverseTransform(factor))
 }
