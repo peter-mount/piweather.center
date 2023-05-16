@@ -28,7 +28,7 @@ func (v Value) String() string {
 	return v.u.String(v.v)
 }
 
-// IsValid returns true if the Value is valid, specifically if it's within
+// IsValid returns true if the Value is valid, specifically if it's Within
 // the bounds of the Unit.
 //
 // If the value is NaN or either Infinity then this returns false.
@@ -42,8 +42,9 @@ func (v Value) BoundsError() error {
 }
 
 // As converts this Value to another Unit.
-// This will return an error if this value is invalid, or if there is no
-// available transform from this Value's Unit to the requested one.
+// This will return an error if this value is invalid,
+// if there is no available transform from this Value's Unit to the requested one,
+// or if the result is invalid.
 func (v Value) As(to Unit) (Value, error) {
 	// Source value is invalid
 	if !v.IsValid() {
@@ -61,7 +62,7 @@ func (v Value) As(to Unit) (Value, error) {
 }
 
 // AsGuard is the same as the As function except that if an error would be returned then
-// a panic is issued. This function is normally used within tests
+// a panic is issued. This function is normally used Within tests
 func (v Value) AsGuard(to Unit) Value {
 	n, err := v.As(to)
 	if err != nil {
@@ -75,14 +76,14 @@ func (v Value) AsGuard(to Unit) Value {
 // Returns an error if either value is invalid or if it's not possible to transform
 // b to the same unit as v.
 //
-// Equality here is if the two values are within 1e-9 of each other to account for
-// rounding errors within float64.
+// Equality here is if the two values are Within 1e-9 of each other to account for
+// rounding errors Within float64.
 func (v Value) Equals(b Value) (bool, error) { return v.Compare(b, Equal) }
 
 // Equal returns true if both values are Equal.
 //
-// Equality here is if the two values are within 1e-9 of each other to account for
-// rounding errors within float64.
+// Equality here is if the two values are Within 1e-9 of each other to account for
+// rounding errors Within float64.
 func Equal(a, b float64) bool { return math.Abs(a-b) <= 1e-9 }
 
 // NotEqual returns true if both values are Equal. It's the same as !Equal() and
@@ -163,6 +164,8 @@ func (v Value) IsNegative() (bool, error) {
 	return LessThan(v.Float(), 1), nil
 }
 
+// Comparator is a function that can be passed to Compare two Values.
+// It is guaranteed that the values supplied to it will be of the same Unit.
 type Comparator func(a, b float64) bool
 
 // Compare will return the result of a Comparator when it's passed values from v and b.
@@ -191,7 +194,7 @@ func (v Value) Compare(b Value, f Comparator) (bool, error) {
 }
 
 // CompareGuard is the same as Compare except that if the comparison fails it will panic.
-// This is normally used within tests.
+// This is normally used Within tests.
 func (v Value) CompareGuard(b Value, f Comparator) bool {
 	r, err := v.Compare(b, f)
 	if err != nil {
@@ -214,10 +217,11 @@ func (v Value) Within(b, c Value) (bool, error) {
 		return false, err
 	}
 
-	return within(v.Float(), b1.Float(), c1.Float()), nil
+	return Within(v.Float(), b1.Float(), c1.Float()), nil
 }
 
-func within(a, b, c float64) bool {
+// Within returns true if b >= a <= c
+func Within(a, b, c float64) bool {
 	// Ensure b < c
 	if GreaterThan(b, c) {
 		b, c = c, b
@@ -230,21 +234,21 @@ func within(a, b, c float64) bool {
 // An error is returned if either value is invalid,
 // b could not be transformed into the same unit as v
 // or if the result is itself invalid.
-func (v Value) Add(b Value) (Value, error) { return v.calculate(b, add) }
+func (v Value) Add(b Value) (Value, error) { return v.Calculate(b, add) }
 func add(a, b float64) float64             { return a + b }
 
 // Subtract subtracts b from this value. The result is the same unit as v.
 // An error is returned if either value is invalid,
 // b could not be transformed into the same unit as v
 // or if the result is itself invalid.
-func (v Value) Subtract(b Value) (Value, error) { return v.calculate(b, subtract) }
+func (v Value) Subtract(b Value) (Value, error) { return v.Calculate(b, subtract) }
 func subtract(a, b float64) float64             { return a - b }
 
 // Multiply returns the product of two values. The result is the same unit as v.
 // An error is returned if either value is invalid,
 // b could not be transformed into the same unit as v
 // or if the result is itself invalid.
-func (v Value) Multiply(b Value) (Value, error) { return v.calculate(b, multiply) }
+func (v Value) Multiply(b Value) (Value, error) { return v.Calculate(b, multiply) }
 func multiply(a, b float64) float64             { return a * b }
 
 // Divide divides this value with b. The result is the same unit as v.
@@ -252,10 +256,18 @@ func multiply(a, b float64) float64             { return a * b }
 // b could not be transformed into the same unit as v
 // or if the result is itself invalid.
 // If the transformed value of b is zero then a normal divide
-func (v Value) Divide(b Value) (Value, error) { return v.calculate(b, divide) }
+func (v Value) Divide(b Value) (Value, error) { return v.Calculate(b, divide) }
 func divide(a, b float64) float64             { return a / b }
 
-func (v Value) calculate(b Value, f func(float64, float64) float64) (Value, error) {
+// Calculation is a function that applies some mathematical calculation against
+// two values. It is guaranteed that both values passed are in the same Unit.
+type Calculation func(float64, float64) float64
+
+// Calculate applies a Calculation against v and b returning a new Value
+// or an error if either v or b are invalid,
+// if b cannot be transformed into v's unit,
+// or if the result is itself invalid.
+func (v Value) Calculate(b Value, f Calculation) (Value, error) {
 	c, err := b.As(v.Unit())
 	if err != nil {
 		return Value{}, err

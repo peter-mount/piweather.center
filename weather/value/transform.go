@@ -6,11 +6,13 @@ import (
 	"strings"
 )
 
-// Transformer is an operation that will transform a float64.
+// Transformer is an operation that will transform a float64 between Unit's.
 // This is the core of how a Unit can be transformed to another Unit.
 type Transformer func(f float64) (float64, error)
 
-// Then allows for one transformer to pass its result to another one.
+// Then allows for one Transformer to pass its result to another one.
+// This is used for transforming between two Units with an intermediate one.
+// e.g. Fahrenheit to Kelvin is actually Fahrenheit -> Celsius -> Kelvin
 func (a Transformer) Then(b Transformer) Transformer {
 	if a == nil {
 		return b
@@ -87,6 +89,10 @@ func NewTransformations(baseUnit Unit, units ...Unit) {
 		}
 
 		for _, dest := range units {
+			if dest.Equals(baseUnit) {
+				panic(fmt.Errorf("base unit %q included in list of units", baseUnit.Name()))
+			}
+
 			if !src.Equals(dest) {
 				baseToDest, err := GetTransform(baseUnit, dest)
 				if err != nil {

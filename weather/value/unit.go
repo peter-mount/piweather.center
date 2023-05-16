@@ -42,13 +42,13 @@ func (u Unit) Equals(b Unit) bool {
 	return strings.ToLower(u.name) == strings.ToLower(b.name)
 }
 
-// Valid returns true if f is within the bounds of this unit.
+// Valid returns true if f is Within the bounds of this unit.
 // e.g. For Kelvin f must be >=0 as negative values would be invalid as you cannot have
 // temperatures below Absolute Zero.
 //
 // If the value is NaN or either Infinity then this returns false.
 func (u Unit) Valid(f float64) bool {
-	return !math.IsNaN(f) && !math.IsInf(f, 0) && within(f, u.min, u.max)
+	return !math.IsNaN(f) && !math.IsInf(f, 0) && Within(f, u.min, u.max)
 }
 
 // BoundsError returns an error if the unit is outside its bounds, NaN or Infinity
@@ -129,15 +129,21 @@ func GetUnit(name string) (Unit, bool) {
 }
 
 const (
+	// Dp0 format for Unit's that have 0 decimal places
 	Dp0 = "%.0f%s"
+	// Dp1 format for Unit's that have 1 decimal places
 	Dp1 = "%.1f%s"
+	// Dp2 format for Unit's that have 2 decimal places
 	Dp2 = "%.2f%s"
+	// Dp3 format for Unit's that have 3 decimal places
 	Dp3 = "%.3f%s"
 )
 
 var (
 	// Integer is effectively an integer value with no unit.
 	Integer = NewUnit("Integer", "", Dp0)
+	// Float is a value with no unit
+	Float = NewUnit("Float", "", Dp3)
 	// Percent is a Unit bounded by 0..100 and has no decimal places
 	Percent = NewBoundedUnit("Percent", "%", Dp0, 0, 100)
 )
