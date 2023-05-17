@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/util/template"
+	"github.com/peter-mount/piweather.center/weather/store"
 	"os/exec"
 	"strings"
 	"sync"
@@ -15,6 +16,7 @@ import (
 type Home struct {
 	Rest       *rest.Server      `kernel:"inject"`
 	Templates  *template.Manager `kernel:"inject"`
+	Store      *store.Store      `kernel:"inject"`
 	meta       *Meta
 	lastUpdate time.Time
 	mutex      sync.Mutex
@@ -53,7 +55,7 @@ func (s *Home) Start() error {
 
 	s.Rest.Do("/", s.showHome).Methods("GET")
 	s.Rest.Do("/status", s.showStatus).Methods("GET")
-	s.Rest.Do("/status/system", s.showStatus).Methods("GET")
+	s.Rest.Do("/status/system", s.showSystem).Methods("GET")
 
 	return nil
 }
@@ -87,6 +89,14 @@ func (s *Home) showHome(ctx context.Context) error {
 func (s *Home) showStatus(ctx context.Context) error {
 	s.uptime()
 	return s.Templates.Render(ctx, "info/status.html", map[string]interface{}{
+		"navSection": "Status",
+		"navLink":    "Status",
+	})
+}
+
+func (s *Home) showSystem(ctx context.Context) error {
+	s.uptime()
+	return s.Templates.Render(ctx, "info/system.html", map[string]interface{}{
 		"meta":       s.meta,
 		"navSection": "Status",
 		"navLink":    "Status",

@@ -1,18 +1,29 @@
 {{- template "layout/default-start.html" $ -}}
 
-<h1>Status</h1>
+<h1>Station Status</h1>
 
-<table class="table">
+<table class="table unitTable">
+    <thead>
+    </thead>
     <tbody>
-    <tr class="heading"><td>Status</td></tr>
-    <tr><td>Current Time</td><td>{{rfc3339 $.now}}</td></tr>
-    <tr><td>UTC</td><td>{{utc $.now | rfc3339}}</td></tr>
-    <tr><td>Uptime</td><td>{{$.meta.Uptime}}</td></tr>
-    <tr class="heading"><td>Software</td></tr>
-    <tr><td>Running</td><td>{{$.version}}</td></tr>
-    <tr><td>OS</td><td>{{$.meta.OSName}}</td></tr>
-    <tr><td>Version</td><td>{{$.meta.OSVersion}}</td></tr>
-    <tr><td>Uptime</td><td>{{$.meta.OSUptime}}</td></tr>
+    <tr class="heading">
+        <td class="alignLeft" colspan="4">Status</td>
+    </tr>
+    <tr>
+        <th class="alignLeft">Reading</th>
+        <th class="alignCenter">Value</th>
+        <th class="alignLeft"></th>
+        <th class="alignCenter">Time</th>
+    </tr>
+    {{- range $reading := getReadingKeys -}}
+    {{- $reading := getReading $reading -}}
+    <tr>
+        <td class="alignLeft">{{$reading.Name}}</td>
+        <td class="alignDecimal">{{$reading.Value.PlainString}}</td>
+        <td class="alignLeft">{{trim $reading.Value.Unit.Unit}}</td>
+        <td class="alignLeft">{{utc $reading.Time | rfc3339}}</td>
+    </tr>
+    {{- end -}}
     </tbody>
 </table>
 

@@ -1,14 +1,11 @@
 package station
 
-// Config is the root and consists of one or more Station's
-type Config struct {
-	// Stations one or more Weather Stations supported by this instance
-	Stations map[string]*Station `json:"stations" xml:"stations" yaml:"stations"`
-}
+import "context"
 
 // Station defines a Weather Station at a specific location.
-// It consists of one or more Sensor's
+// It consists of one or more Reading's
 type Station struct {
+	ID string `json:"-" xml:"-" yaml:"-"`
 	// Name of the station
 	Name string `json:"name" xml:"name,attr" yaml:"name"`
 	// Location of the station
@@ -17,10 +14,28 @@ type Station struct {
 	Sensors map[string]*Sensors `json:"sensors" xml:"sensors" yaml:"sensors"`
 }
 
-// Sensors define a Sensor collection within the Station.
-// A Sensor collection is
+func (s *Station) Init(ctx context.Context) error {
+	return s.call(ctx, func(sensors *Sensors, ctx context.Context) error {
+		return sensors.init(ctx)
+	})
+}
+
+func (s *Station) call(ctx context.Context, f func(*Sensors, context.Context) error) error {
+	child := context.WithValue(ctx, "Station", s)
+	for id, sensors := range s.Sensors {
+		child1 := context.WithValue(child, "SensorId", id)
+		if err := f(sensors, child1); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Sensors define a Reading collection within the Station.
+// A Reading collection is
 type Sensors struct {
-	// Name of the Sensors collection
+	ID string `json:"-" xml:"-" yaml:"-"`
+	// Name of the Readings collection
 	Name string `json:"name" xml:"name,attr" yaml:"name"`
 	// Source of data for this collection
 	Source Source `json:"source" xml:"source" yaml:"source"`
@@ -28,6 +43,31 @@ type Sensors struct {
 	Format string
 	// Timestamp Path to timestamp, "" for none
 	Timestamp string
-	// Sensor's provided by this collection
-	Sensors map[string]Sensor `json:"sensors" xml:"sensors" yaml:"sensors"`
+	// Reading's provided by this collection
+	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
+}
+
+func (s *Sensors) init(ctx context.Context) error {
+	station := ctx.Value("Station").(*Station)
+	s.ID = station.ID + "." + ctx.Value("SensorId").(string)
+	return s.call(ctx, func(sensor *Reading, ctx context.Context) error {
+		return sensor.init(ctx)
+	})
+}
+
+func (s *Sensors) Process(ctx context.Context) error {
+	return s.call(ctx, func(sensor *Reading, ctx context.Context) error {
+		return sensor.process(ctx)
+	})
+}
+
+func (s *Sensors) call(ctx context.Context, f func(*Reading, context.Context) error) error {
+	child := context.WithValue(ctx, "Sensors", s)
+	for id, sensor := range s.Readings {
+		child2 := context.WithValue(child, "ReadingId", id)
+		if err := f(sensor, child2); err != nil {
+			return err
+		}
+	}
+	return nil
 }

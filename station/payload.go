@@ -1,6 +1,7 @@
 package station
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -15,6 +16,14 @@ type Payload struct {
 	time time.Time
 	msg  []byte
 	data map[string]interface{}
+}
+
+func GetPayload(ctx context.Context) *Payload {
+	return ctx.Value("payload.key").(*Payload)
+}
+
+func (p *Payload) AddContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, "payload.key", p)
 }
 
 func (p *Payload) Time() time.Time {

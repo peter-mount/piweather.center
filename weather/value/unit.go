@@ -46,6 +46,10 @@ func (u *Unit) String(f float64) string {
 	return fmt.Sprintf(u.format, f, u.unit)
 }
 
+func (u *Unit) PlainString(f float64) string {
+	return fmt.Sprintf(u.format, f, "")
+}
+
 // Equals returns true if the unit's names are identical.
 // This is case-insensitive.
 func (u *Unit) Equals(b *Unit) bool {

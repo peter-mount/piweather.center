@@ -10,6 +10,7 @@ import (
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/util/mq"
 	"github.com/peter-mount/piweather.center/util/template"
+	"github.com/peter-mount/piweather.center/weather/store"
 	"path/filepath"
 	"time"
 )
@@ -20,9 +21,19 @@ type Server struct {
 	Amqp      mq.Pool                     `kernel:"inject"`
 	Config    *map[string]station.Station `kernel:"config,stations"`
 	Templates *template.Manager           `kernel:"inject"`
+	Store     *store.Store                `kernel:"inject"`
 }
 
 func (s *Server) Start() error {
+	for id, stationConfig := range *s.Config {
+		stationConfig.ID = id
+		ctx := context.WithValue(context.Background(), "Station", stationConfig)
+		ctx = context.WithValue(ctx, "Store", s.Store)
+		if err := stationConfig.Init(ctx); err != nil {
+			return err
+		}
+	}
+
 	rootDir := filepath.Dir(s.Templates.GetRootDir())
 	staticDir := filepath.Join(rootDir, "static")
 	log.Printf("Static content: %s", staticDir)
@@ -54,7 +65,8 @@ func (s *Server) startBrokers() error {
 					}
 
 					log.Println(p.Time().Format(time.RFC3339))
-					return nil
+
+					return sensor.Process(p.AddContext(s.Store.AddContext(context.Background())))
 				}); err != nil {
 					return err
 				}

@@ -1,0 +1,19 @@
+{{- template "layout/default-start.html" $ -}}
+
+<h1>System Status</h1>
+
+<table class="table">
+    <tbody>
+    <tr class="heading"><td>Status</td></tr>
+    <tr><td>Current Time</td><td>{{rfc3339 $.now}}</td></tr>
+    <tr><td>UTC</td><td>{{utc $.now | rfc3339}}</td></tr>
+    <tr><td>Uptime</td><td>{{$.meta.Uptime}}</td></tr>
+    <tr class="heading"><td>Software</td></tr>
+    <tr><td>Running</td><td>{{$.version}}</td></tr>
+    <tr><td>OS</td><td>{{$.meta.OSName}}</td></tr>
+    <tr><td>Version</td><td>{{$.meta.OSVersion}}</td></tr>
+    <tr><td>Uptime</td><td>{{$.meta.OSUptime}}</td></tr>
+    </tbody>
+</table>
+
+{{- template "layout/default-end.html" $ -}}

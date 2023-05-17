@@ -41,7 +41,7 @@ func TestPayload_Get(t *testing.T) {
 				Source:    Source{},
 				Format:    "",
 				Timestamp: tt.path,
-				Sensors:   nil,
+				Readings:  nil,
 			}
 
 			p, err := s1.FromBytes([]byte(tt.json))

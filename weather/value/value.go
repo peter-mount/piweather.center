@@ -28,6 +28,10 @@ func (v Value) String() string {
 	return v.u.String(v.v)
 }
 
+func (v Value) PlainString() string {
+	return v.u.PlainString(v.v)
+}
+
 // IsValid returns true if the Value is valid, specifically if it's Within
 // the bounds of the Unit.
 //

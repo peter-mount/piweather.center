@@ -12,6 +12,7 @@ require (
 	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/soniakeys/unit v1.0.0
 	golang.org/x/image v0.1.0
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -21,6 +22,5 @@ require (
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5 // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	golang.org/x/text v0.4.0 // indirect
 )
