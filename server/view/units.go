@@ -45,7 +45,7 @@ func (s *Units) Start() error {
 
 func (s *Units) showUnits(ctx context.Context) error {
 	return s.Templates.Render(ctx, "info/units.html", map[string]interface{}{
-		"navSection": "Information",
+		"navSection": "Status",
 		"navLink":    "Units",
 		"cats":       s.categories,
 		"units":      s.units,

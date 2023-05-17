@@ -150,7 +150,8 @@ body {
 .alignRight {
     text-align: right
 }
-.alignDecimal{
+
+.alignDecimal {
     text-align: center;
     transform: translateX(calc(0.5ch + var(--offset)));
 }

@@ -3,6 +3,7 @@ package template
 import (
 	"html/template"
 	"strings"
+	"time"
 )
 
 func (m *Manager) PostInit() error {
@@ -12,9 +13,11 @@ func (m *Manager) PostInit() error {
 		"lower":      strings.ToLower,
 		"upper":      strings.ToUpper,
 		"replaceAll": strings.ReplaceAll,
+		"rfc3339":    rfc3339,
 		"split":      split,
 		"trim":       strings.TrimSpace,
 		"trimPrefix": trimPrefix,
+		"utc":        utc,
 	}
 	return nil
 }
@@ -22,6 +25,14 @@ func (m *Manager) PostInit() error {
 func (m *Manager) AddFunction(name string, handler interface{}) *Manager {
 	m.funcMap[name] = handler
 	return m
+}
+
+func rfc3339(t time.Time) string {
+	return t.Format(time.RFC3339)
+}
+
+func utc(t time.Time) time.Time {
+	return t.UTC()
 }
 
 func html(s string) template.HTML {
