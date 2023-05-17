@@ -1,28 +1,33 @@
+{{- define "statusUnitsLegend" -}}
+<tr class="heading">
+    <td class="alignLeft" colspan="2"><strong>{{.}}</strong></td>
+</tr>
+<tr>
+    <th class="alignLeft">ID</th>
+    <th class="alignLeft">Name</th>
+    <th class="alignLeft">Unit</th>
+    <th class="alignCenter">Min</th>
+    <th class="alignCenter">Max</th>
+</tr>
+{{- end -}}
+
 {{- template "layout/default-start.html" $ -}}
 
 <h1>Available Units</h1>
 
-<table class="table">
+<table class="table unitTable">
     <thead>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Unit</th>
-        <th>Min</th>
-        <th>Max</th>
-    </tr>
     </thead>
     <tbody>
     {{- range $cat := $.cats -}}
-    {{- $units := index $.units $cat -}}
-    <tr><td colspan="2"><strong>{{$cat}}</strong></td></tr>
-    {{- range $unit := $units -}}
+    {{- template "statusUnitsLegend" $cat -}}
+    {{- range $unit := index $.units $cat -}}
     <tr>
-        <td>{{$unit.ID}}</td>
-        <td>{{$unit.Name}}</td>
-        <td>{{$unit.Unit}}</td>
-        <td>{{if $unit.HasMin}}{{$unit.Min}}{{end}}</td>
-        <td>{{if $unit.HasMax}}{{$unit.Max}}{{end}}</td>
+        <td class="alignLeft">{{$unit.ID}}</td>
+        <td class="alignLeft">{{$unit.Name}}</td>
+        <td class="alignLeft">{{$unit.Unit}}</td>
+        <td class="alignDecimal">{{if $unit.HasMin}}{{$unit.Min}}{{else}}-∞{{end}}</td>
+        <td class="alignDecimal">{{if $unit.HasMax}}{{$unit.Max}}{{else}}∞{{end}}</td>
     </tr>
     {{- end -}}
     {{- end -}}

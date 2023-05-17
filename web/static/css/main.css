@@ -4,6 +4,7 @@ body {
     padding: 0;
     background: #eeeeee;
     color: black;
+    --offset: 0ch;
 }
 
 .float-left {
@@ -124,3 +125,33 @@ body {
 #menu ul li {
     list-style: none;
 }
+
+.table {
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+}
+
+.table tr.heading {
+    color: green;
+}
+
+.table tr.heading td {
+    padding-top: 1em;
+}
+
+.alignLeft {
+    text-align: left
+}
+
+.alignCenter {
+    text-align: center
+}
+
+.alignRight {
+    text-align: right
+}
+.alignDecimal{
+    text-align: center;
+    transform: translateX(calc(0.5ch + var(--offset)));
+}
+
