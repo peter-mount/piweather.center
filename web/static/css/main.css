@@ -156,3 +156,6 @@ body {
     transform: translateX(calc(0.5ch + var(--offset)));
 }
 
+.csv > span:not(:last-child)::after {
+    content: ", ";
+}

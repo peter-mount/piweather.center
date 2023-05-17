@@ -14,6 +14,7 @@ type Units struct {
 	Templates  *template.Manager `kernel:"inject"`
 	categories []string
 	units      map[string][]*value.Unit
+	transforms map[string][]string
 }
 
 func (s *Units) Start() error {
@@ -38,7 +39,19 @@ func (s *Units) Start() error {
 		})
 	}
 
+	// Build transform index
+	s.transforms = make(map[string][]string)
+	for _, def := range value.GetTransforms() {
+		s.transforms[def.From] = append(s.transforms[def.From], def.To)
+	}
+	for _, v := range s.transforms {
+		sort.SliceStable(v, func(i, j int) bool {
+			return v[i] < v[j]
+		})
+	}
+
 	s.Rest.Do("/info/units", s.showUnits).Methods("GET")
+	s.Rest.Do("/info/transforms", s.showTransforms).Methods("GET")
 
 	return nil
 }
@@ -49,5 +62,15 @@ func (s *Units) showUnits(ctx context.Context) error {
 		"navLink":    "Units",
 		"cats":       s.categories,
 		"units":      s.units,
+	})
+}
+
+func (s *Units) showTransforms(ctx context.Context) error {
+	return s.Templates.Render(ctx, "info/transforms.html", map[string]interface{}{
+		"navSection": "Status",
+		"navLink":    "Transforms",
+		"cats":       s.categories,
+		"units":      s.units,
+		"transforms": s.transforms,
 	})
 }

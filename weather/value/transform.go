@@ -42,7 +42,7 @@ func Of(transforms ...Transformer) Transformer {
 }
 
 func transformName(from, to *Unit) string {
-	return strings.ToLower(from.Name() + "->" + to.Name())
+	return strings.ToLower(from.ID() + "->" + to.ID())
 }
 
 // NewTransform registers a Transformer that will handle transforming from one Unit to Another.
@@ -169,4 +169,26 @@ func NewBasicTransform(from, to *Unit, factor float64) {
 func NewBasicBiTransform(u1, u2 *Unit, factor float64) {
 	NewTransform(u1, u2, BasicTransform(factor))
 	NewTransform(u2, u1, BasicInverseTransform(factor))
+}
+
+type TransformDef struct {
+	From string
+	To   string
+}
+
+func GetTransforms() []TransformDef {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	var defs []TransformDef
+	for k, _ := range transformers {
+		s := strings.Split(k, "->")
+		if len(s) == 2 {
+			defs = append(defs, TransformDef{
+				From: s[0],
+				To:   s[1],
+			})
+		}
+	}
+	return defs
 }

@@ -1,0 +1,37 @@
+{{- define "statusTransformsLegend" -}}
+<tr class="heading">
+    <td class="alignLeft" colspan="2"><strong>{{.}}</strong></td>
+</tr>
+<tr>
+    <th class="alignLeft">From</th>
+    <th class="alignLeft">To</th>
+</tr>
+{{- end -}}
+
+{{- template "layout/default-start.html" $ -}}
+
+<h1>Available Unit Transforms</h1>
+
+<p>
+    The following table lists which units you can convert between:
+</p>
+
+<table class="table unitTable">
+    <thead>
+    </thead>
+    <tbody>
+    {{- range $cat := $.cats -}}
+    {{- template "statusTransformsLegend" $cat -}}
+    {{- range $unit := index $.units $cat -}}
+    <tr>
+        <td class="alignLeft">{{$unit.ID}}</td>
+        {{- range index $.transforms $unit.ID }}
+        <td>{{.}}</td>
+        {{- end}}
+    </tr>
+    {{- end -}}
+    {{- end -}}
+    </tbody>
+</table>
+
+{{- template "layout/default-end.html" $ -}}

@@ -13,3 +13,6 @@ entries:
       - section: "Units"
         label: "Units"
         link: "/info/units"
+      - section: "Transforms"
+        label: "Transforms"
+        link: "/info/transforms"
