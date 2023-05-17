@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/util/mq"
+	"time"
 )
 
 // Server represents the primary service running the weather station.
@@ -31,6 +32,14 @@ func (s *Server) Start() error {
 				if err := broker.ConsumeTask(amqp, "tag", func(ctx context.Context) error {
 					msg := mq.Delivery(ctx)
 					log.Println(string(msg.Body))
+
+					p, err := sensor.FromAMQP(msg)
+					if err != nil {
+						log.Println(err)
+						return err
+					}
+
+					log.Println(p.Time().Format(time.RFC3339))
 					return nil
 				}); err != nil {
 					return err
