@@ -21,27 +21,27 @@ func Message(ctx context.Context) []byte {
 	return Delivery(ctx).Body
 }
 
-func (m *MQ) ConsumeTask(queue *Queue, tag string, f task.Task) error {
-	return m.Consume(queue, tag,
+func (s *MQ) ConsumeTask(queue *Queue, tag string, f task.Task) error {
+	return s.Consume(queue, tag,
 		true,
 		func(msg amqp.Delivery) error {
-			m.worker.AddTask(f.WithValue(DeliveryKey, msg))
+			s.worker.AddTask(f.WithValue(DeliveryKey, msg))
 			return nil
 		})
 }
 
-func (m *MQ) ConsumePriorityTask(queue *Queue, tag string, priority int, f task.Task) error {
-	return m.Consume(queue, tag,
+func (s *MQ) ConsumePriorityTask(queue *Queue, tag string, priority int, f task.Task) error {
+	return s.Consume(queue, tag,
 		true,
 		func(msg amqp.Delivery) error {
-			m.worker.AddPriorityTask(priority, f.WithValue(DeliveryKey, msg))
+			s.worker.AddPriorityTask(priority, f.WithValue(DeliveryKey, msg))
 			return nil
 		})
 }
 
-func (m *MQ) AddPriorityTask(priority int, f task.Task) Task {
+func (s *MQ) AddPriorityTask(priority int, f task.Task) Task {
 	return func(msg amqp.Delivery) error {
-		m.worker.AddPriorityTask(priority, f.WithValue(DeliveryKey, msg))
+		s.worker.AddPriorityTask(priority, f.WithValue(DeliveryKey, msg))
 		return nil
 	}
 }
