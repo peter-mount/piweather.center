@@ -3,21 +3,21 @@
         {{- range $menu := getMenu -}}
         {{- if eq $.navSection $menu.Section -}}
         <li class="current">
-            <a href="{{$menu.Link}}">{{$menu.Section}}</a>
+            <a href="{{$menu.Link}}">{{$menu.Label}}</a>
             {{- if len $menu.Entries -}}
             <ul class="submenu">
                 {{- range $subMenu := $menu.Entries -}}
                 {{- if eq $.navLink $subMenu.Section -}}
-                <li class="current"><a href="{{$subMenu.Link}}">{{$subMenu.Section}}</a></li>
+                <li class="current"><a href="{{$subMenu.Link}}">{{$subMenu.Label}}</a></li>
                 {{- else -}}
-                <li><a href="{{$subMenu.Link}}">{{$subMenu.Section}}</a></li>
+                <li><a href="{{$subMenu.Link}}">{{$subMenu.Label}}</a></li>
                 {{- end -}}
                 {{- end -}}
             </ul>
             {{- end -}}
         </li>
         {{- else -}}
-        <li><a href="{{$menu.Link}}">{{$menu.Section}}</a></li>
+        <li><a href="{{$menu.Link}}">{{$menu.Label}}</a></li>
         {{- end -}}
         {{- end -}}
     </ul>

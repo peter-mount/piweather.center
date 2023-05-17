@@ -4,7 +4,7 @@ entries:
     label: "Home"
     link: "/"
   - section: "Status"
-    label: "Status"
+    label: "Statusx"
     link: "/status"
     entries:
       - section: "System"
@@ -14,7 +14,9 @@ entries:
     label: "Information"
     entries:
       - section: "dummy"
+        label: "dummy1"
       - section: "Units"
         label: "Units"
         link: "/info/units"
       - section: "dummy"
+        label: "dummy2"
