@@ -10,7 +10,7 @@ import (
 // a specific conversion.
 type Value struct {
 	v float64
-	u Unit
+	u *Unit
 }
 
 // Float returns the float64 in the Value's Unit
@@ -19,7 +19,7 @@ func (v Value) Float() float64 {
 }
 
 // Unit returns the Unit for this Value
-func (v Value) Unit() Unit {
+func (v Value) Unit() *Unit {
 	return v.u
 }
 
@@ -45,7 +45,7 @@ func (v Value) BoundsError() error {
 // This will return an error if this value is invalid,
 // if there is no available transform from this Value's Unit to the requested one,
 // or if the result is invalid.
-func (v Value) As(to Unit) (Value, error) {
+func (v Value) As(to *Unit) (Value, error) {
 	// Source value is invalid
 	if !v.IsValid() {
 		return Value{}, v.BoundsError()
@@ -63,7 +63,7 @@ func (v Value) As(to Unit) (Value, error) {
 
 // AsGuard is the same as the As function except that if an error would be returned then
 // a panic is issued. This function is normally used Within tests
-func (v Value) AsGuard(to Unit) Value {
+func (v Value) AsGuard(to *Unit) Value {
 	n, err := v.As(to)
 	if err != nil {
 		fmt.Println(err)

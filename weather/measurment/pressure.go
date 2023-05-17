@@ -3,14 +3,14 @@ package measurment
 import "github.com/peter-mount/piweather.center/weather/value"
 
 func init() {
-	PressurePA = value.NewLowerBoundUnit("Pressure Pascals", " Pa", value.Dp1, 0)
-	PressureHPA = value.NewLowerBoundUnit("Pressure HPascals", " hPa", value.Dp1, 0)
-	PressurePSI = value.NewLowerBoundUnit("Pressure Pounds per Square Inch", " psi", value.Dp1, 0)
-	PressureInHg = value.NewLowerBoundUnit("Pressure Inches Mercury", " inHg", value.Dp1, 0)
-	PressureMmHg = value.NewLowerBoundUnit("Pressure mm Mercury", " mmHg", value.Dp1, 0)
-	PressureBar = value.NewLowerBoundUnit("Pressure Bar", " bar", value.Dp1, 0)
-	PressureCBar = value.NewLowerBoundUnit("Pressure CentiBar", " cbar", value.Dp1, 0)
-	PressureMBar = value.NewLowerBoundUnit("Pressure MilliBar", " mbar", value.Dp1, 0)
+	PressurePA = value.NewLowerBoundUnit("PressurePA", "Pressure", "Pressure Pascals", " Pa", value.Dp1, 0)
+	PressureHPA = value.NewLowerBoundUnit("PressureHPA", "Pressure", "Pressure HPascals", " hPa", value.Dp1, 0)
+	PressurePSI = value.NewLowerBoundUnit("PressurePSI", "Pressure", "Pressure Pounds per Square Inch", " psi", value.Dp1, 0)
+	PressureInHg = value.NewLowerBoundUnit("PressureInHg", "Pressure", "Pressure Inches Mercury", " inHg", value.Dp1, 0)
+	PressureMmHg = value.NewLowerBoundUnit("PressureMmHg", "Pressure", "Pressure mm Mercury", " mmHg", value.Dp1, 0)
+	PressureBar = value.NewLowerBoundUnit("PressureBar", "Pressure", "Pressure Bar", " bar", value.Dp1, 0)
+	PressureCBar = value.NewLowerBoundUnit("PressureCBar", "Pressure", "Pressure CentiBar", " cbar", value.Dp1, 0)
+	PressureMBar = value.NewLowerBoundUnit("PressureMBar", "Pressure", "Pressure MilliBar", " mbar", value.Dp1, 0)
 
 	// Transforms from base unit PressurePA
 	value.NewBasicBiTransform(PressurePA, PressureHPA, 1.0/1000.0)
@@ -26,12 +26,12 @@ func init() {
 }
 
 var (
-	PressurePA   value.Unit
-	PressureHPA  value.Unit
-	PressurePSI  value.Unit
-	PressureInHg value.Unit
-	PressureMmHg value.Unit
-	PressureBar  value.Unit
-	PressureCBar value.Unit
-	PressureMBar value.Unit
+	PressurePA   *value.Unit
+	PressureHPA  *value.Unit
+	PressurePSI  *value.Unit
+	PressureInHg *value.Unit
+	PressureMmHg *value.Unit
+	PressureBar  *value.Unit
+	PressureCBar *value.Unit
+	PressureMBar *value.Unit
 )

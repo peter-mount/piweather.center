@@ -6,15 +6,15 @@ import (
 )
 
 func init() {
-	Humidity = value.NewBoundedUnit("Humidity", "%", value.Dp0, 0, 100)
-	RelativeHumidity = value.NewBoundedUnit("Relative Humidity", "%", value.Dp0, 0, 100)
+	Humidity = value.NewBoundedUnit("Humidity", "Humidity", "Humidity", "%", value.Dp0, 0, 100)
+	RelativeHumidity = value.NewBoundedUnit("RelativeHumidity", "Humidity", "Relative Humidity", "%", value.Dp0, 0, 100)
 }
 
 var (
 	// Humidity generic humidity unit
-	Humidity value.Unit
+	Humidity *value.Unit
 	// RelativeHumidity unit
-	RelativeHumidity         value.Unit
+	RelativeHumidity         *value.Unit
 	notHumidityError         = errors.New("value not Humidity")
 	notRelativeHumidityError = errors.New("value not RelativeHumidity")
 )

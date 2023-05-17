@@ -6,18 +6,33 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/station/view"
 	"github.com/peter-mount/piweather.center/util/mq"
+	"github.com/peter-mount/piweather.center/util/template"
+	"path/filepath"
 	"time"
 )
 
 // Server represents the primary service running the weather station.
 type Server struct {
-	Rest   *rest.Server                `kernel:"inject"`
-	Amqp   mq.Pool                     `kernel:"inject"`
-	Config *map[string]station.Station `kernel:"config,stations"`
+	Rest      *rest.Server                `kernel:"inject"`
+	Amqp      mq.Pool                     `kernel:"inject"`
+	Config    *map[string]station.Station `kernel:"config,stations"`
+	Templates *template.Manager           `kernel:"inject"`
+	_         *view.Units                 `kernel:"inject"`
+	_         *view.Home                  `kernel:"inject"`
 }
 
 func (s *Server) Start() error {
+	rootDir := filepath.Dir(s.Templates.GetRootDir())
+	staticDir := filepath.Join(rootDir, "static")
+	log.Printf("Static content: %s", staticDir)
+	s.Rest.Static("/static", staticDir)
+
+	return s.startBrokers()
+}
+
+func (s *Server) startBrokers() error {
 	if s.Config == nil || len(*s.Config) == 0 {
 		return fmt.Errorf("no configuration provided")
 	}

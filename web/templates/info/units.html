@@ -1,0 +1,32 @@
+{{- template "layout/default-start.html" $ -}}
+
+<h1>Available Units</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Unit</th>
+        <th>Min</th>
+        <th>Max</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{- range $cat := $.cats -}}
+    {{- $units := index $.units $cat -}}
+    <tr><td colspan="2"><strong>{{$cat}}</strong></td></tr>
+    {{- range $unit := $units -}}
+    <tr>
+        <td>{{$unit.ID}}</td>
+        <td>{{$unit.Name}}</td>
+        <td>{{$unit.Unit}}</td>
+        <td>{{if $unit.HasMin}}{{$unit.Min}}{{end}}</td>
+        <td>{{if $unit.HasMax}}{{$unit.Max}}{{end}}</td>
+    </tr>
+    {{- end -}}
+    {{- end -}}
+    </tbody>
+</table>
+
+{{- template "layout/default-end.html" $ -}}

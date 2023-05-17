@@ -6,12 +6,12 @@ import (
 )
 
 func init() {
-	HeatIndex = value.NewBoundedUnit("HeatIndex", "%", value.Dp0, 0, 100)
+	HeatIndex = value.NewBoundedUnit("HeatIndex", "Indices", "HeatIndex", "%", value.Dp0, 0, 100)
 }
 
 var (
 	// HeatIndex unit
-	HeatIndex value.Unit
+	HeatIndex *value.Unit
 )
 
 // IsHeatIndex returns true if the Value is a HeatIndex value.

@@ -1,0 +1,11 @@
+<div id="menu">
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li{{if eq $.navSection "Information"}} class="current"{{end}}>
+            <a href="/info/">Information</a>
+            <ul class="submenu">
+                <li{{if eq $.navLink "Units"}} class="current"{{end}}><a href="/info/units">Units</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>

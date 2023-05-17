@@ -13,16 +13,16 @@ const (
 )
 
 var (
-	Fahrenheit   value.Unit
-	Celsius      value.Unit
-	Kelvin       value.Unit
+	Fahrenheit   *value.Unit
+	Celsius      *value.Unit
+	Kelvin       *value.Unit
 	notTempError = errors.New("value not a Temperature")
 )
 
 func init() {
-	Fahrenheit = value.NewLowerBoundUnit("Fahrenheit", " °F", value.Dp1, MinFahrenheit)
-	Celsius = value.NewLowerBoundUnit("Celsius", " °C", value.Dp1, MinCelsius)
-	Kelvin = value.NewLowerBoundUnit("Kelvin", " K", value.Dp1, MinKelvin)
+	Fahrenheit = value.NewLowerBoundUnit("Fahrenheit", "Temperature", "Fahrenheit", " °F", value.Dp1, MinFahrenheit)
+	Celsius = value.NewLowerBoundUnit("Celsius", "Temperature", "Celsius", " °C", value.Dp1, MinCelsius)
+	Kelvin = value.NewLowerBoundUnit("Kelvin", "Temperature", "Kelvin", " K", value.Dp1, MinKelvin)
 
 	value.NewTransform(Celsius, Kelvin, celsiusKelvin)
 	value.NewTransform(Kelvin, Celsius, kelvinCelsius)
@@ -71,7 +71,7 @@ type TemperatureRelativeHumidityFunc func(temp, relHumidity value.Value) (value.
 // It also takes a unit which is the temperature unit required by the underlying function.
 //
 // Examples of this function in use are DewPoint and HeatIndex values which are a function of Temperature and Relative Humidity.
-func TemperatureRelativeHumidityCalculation(temp, relHumidity value.Value, unit value.Unit, f TemperatureRelativeHumidityFunc) (value.Value, error) {
+func TemperatureRelativeHumidityCalculation(temp, relHumidity value.Value, unit *value.Unit, f TemperatureRelativeHumidityFunc) (value.Value, error) {
 	if err := AssertTemperature(temp); err != nil {
 		return value.Value{}, err
 	}

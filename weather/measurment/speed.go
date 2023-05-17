@@ -5,12 +5,12 @@ import (
 )
 
 func init() {
-	MetersPerSecond = value.NewLowerBoundUnit("Meters Per Second", " m/s", value.Dp1, 0)
-	KilometersPerHour = value.NewLowerBoundUnit("Kilometers Per Hour", " km/h", value.Dp1, 0)
-	MilesPerHour = value.NewLowerBoundUnit("Miles Per Hour", " mph", value.Dp1, 0)
-	FeetPerSecond = value.NewLowerBoundUnit("Feet Per Second", " ft/s", value.Dp1, 0)
-	Knots = value.NewLowerBoundUnit("Knots", " kn", value.Dp1, 0)
-	BeaufortScale = value.NewBoundedUnit("Beaufort Scale", "", value.Dp0, 0, 12)
+	MetersPerSecond = value.NewLowerBoundUnit("MetersPerSecond", "Speed", "Meters Per Second", " m/s", value.Dp1, 0)
+	KilometersPerHour = value.NewLowerBoundUnit("KilometersPerHour", "Speed", "Kilometers Per Hour", " km/h", value.Dp1, 0)
+	MilesPerHour = value.NewLowerBoundUnit("MilesPerHour", "Speed", "Miles Per Hour", " mph", value.Dp1, 0)
+	FeetPerSecond = value.NewLowerBoundUnit("FeetPerSecond", "Speed", "Feet Per Second", " ft/s", value.Dp1, 0)
+	Knots = value.NewLowerBoundUnit("Knots", "Speed", "Knots", " kn", value.Dp1, 0)
+	BeaufortScale = value.NewBoundedUnit("BeaufortScale", "Speed", "Beaufort Scale", "", value.Dp0, 0, 12)
 
 	// Transforms between mps and each unit - this registers both directions
 	value.NewBasicBiTransform(MetersPerSecond, KilometersPerHour, mpsToKph)
@@ -25,14 +25,14 @@ func init() {
 }
 
 var (
-	FeetPerSecond     value.Unit
-	KilometersPerHour value.Unit
-	Knots             value.Unit
-	MetersPerSecond   value.Unit
-	MilesPerHour      value.Unit
+	FeetPerSecond     *value.Unit
+	KilometersPerHour *value.Unit
+	Knots             *value.Unit
+	MetersPerSecond   *value.Unit
+	MilesPerHour      *value.Unit
 
 	// BeaufortScale Beaufort wind force scale https://www.metoffice.gov.uk/weather/guides/coast-and-sea/beaufort-scale
-	BeaufortScale value.Unit
+	BeaufortScale *value.Unit
 
 	// Max wind speed in m/s for each beaufort scale 0..11. 12 is not included as it's unbounded
 	beaufortMaxSpeed = []float64{1, 2, 4, 6, 9, 11, 14, 17, 21, 25, 29, 33}

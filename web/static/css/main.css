@@ -1,0 +1,119 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #eeeeee;
+    color: black;
+}
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+
+#body {
+    margin: 0.5em;
+}
+
+#topbar, #menu, #footer {
+    background: cadetblue;
+}
+
+#topbar {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 8px 5px 5px;
+    font-family: "Lucida Sans", sans-serif;
+    white-space: nowrap;
+    vertical-align: top;
+    text-shadow: 3px 3px 2px #333;
+    color: white;
+}
+
+#topbar-left {
+    width: 11em;
+}
+
+#topbar-left, #footer-left {
+    float: left;
+}
+
+#topbar-right, #footer-right {
+    float: right;
+}
+
+#footer {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 5px 10px 15px;
+    font-size: x-small;
+}
+
+#body-inner {
+    display: flow-root;
+    background: cadetblue;
+}
+
+#body-content {
+    position: sticky;
+    top: 0;
+    margin-left: 11em;
+    background: white;
+    border-right: 1px solid cadetblue;
+    z-index: 0;
+    min-height: 41em;
+}
+
+/* This aligns the content top correctly */
+#body-content > h1:first-of-type {
+    margin: 0;
+}
+
+#menu {
+    float: left;
+    position: sticky;
+    top: 0;
+    width: 11em;
+    clear: both;
+    overflow: auto;
+    z-index: 2;
+    font-weight: bold;
+    padding: 0.25em 0.25em 0.25em 0.1em;
+}
+
+#menu ul, #menu li, #menu a {
+    padding: 0;
+}
+
+#menu a, #menu a:hover, #menu a:visited {
+    display: block;
+    color: black;
+    text-decoration: none;
+}
+
+#menu a:hover,
+#menu .current a {
+    color: white;
+    background: #cb0e2e;
+}
+
+#menu ul {
+    display: block;
+    padding-left: 0;
+    margin: 0;
+}
+
+#menu ul.submenu {
+    padding-top: 2px;
+}
+
+#menu ul.submenu a {
+    padding-left: 2em;
+}
+
+#menu ul li {
+    list-style: none;
+}

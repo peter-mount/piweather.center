@@ -10,6 +10,6 @@ var (
 	pInf         = errors.New("+Inf")
 	nInf         = errors.New("-Inf")
 	mutex        sync.Mutex
-	units        = make(map[string]Unit)
+	units        = make(map[string]*Unit)
 	transformers = make(map[string]Transformer)
 )

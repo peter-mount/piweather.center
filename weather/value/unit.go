@@ -13,32 +13,45 @@ import (
 // NewTransform. If no transform is registered for two units then they cannot
 // be transformed.
 type Unit struct {
-	name   string  // Name of Unit, e.g. "Celsius"
-	unit   string  // Short name of Unit e.g. "°C"
-	format string  // Format for Sprintf
-	min    float64 // min valid value
-	max    float64 // max valid value
+	id       string  // Unique ID, case insensitive
+	category string  // Category of Unit
+	name     string  // Name of Unit, e.g. "Celsius"
+	unit     string  // Short name of Unit e.g. "°C"
+	format   string  // Format for Sprintf
+	min      float64 // min valid value
+	max      float64 // max valid value
 }
+
+func (u *Unit) ID() string { return u.id }
+
+func (u *Unit) Category() string { return u.category }
 
 // Name of the Unit. e.g. "Celsius"
-func (u Unit) Name() string {
-	return u.name
-}
+func (u *Unit) Name() string { return u.name }
 
 // Unit for strings, e.g. "°C"
-func (u Unit) Unit() string {
-	return u.unit
-}
+func (u *Unit) Unit() string { return u.unit }
+
+func (u *Unit) HasMax() bool { return u.max < math.MaxFloat64 }
+
+func (u *Unit) Max() float64 { return u.max }
+
+func (u *Unit) HasMin() bool { return u.min > -math.MaxFloat64 }
+
+func (u *Unit) Min() float64 { return u.min }
 
 // String returns a float64 in it's supported format for this unit.
 // This will be the value with the string from Unit() appended to it.
-func (u Unit) String(f float64) string {
+func (u *Unit) String(f float64) string {
 	return fmt.Sprintf(u.format, f, u.unit)
 }
 
 // Equals returns true if the unit's names are identical.
 // This is case-insensitive.
-func (u Unit) Equals(b Unit) bool {
+func (u *Unit) Equals(b *Unit) bool {
+	if u == nil || b == nil {
+		return false
+	}
 	return strings.ToLower(u.name) == strings.ToLower(b.name)
 }
 
@@ -47,12 +60,12 @@ func (u Unit) Equals(b Unit) bool {
 // temperatures below Absolute Zero.
 //
 // If the value is NaN or either Infinity then this returns false.
-func (u Unit) Valid(f float64) bool {
-	return !math.IsNaN(f) && !math.IsInf(f, 0) && Within(f, u.min, u.max)
+func (u *Unit) Valid(f float64) bool {
+	return u != nil && !math.IsNaN(f) && !math.IsInf(f, 0) && Within(f, u.min, u.max)
 }
 
 // BoundsError returns an error if the unit is outside its bounds, NaN or Infinity
-func (u Unit) BoundsError(f float64) error {
+func (u *Unit) BoundsError(f float64) error {
 	if u.Valid(f) {
 		return nil
 	}
@@ -80,26 +93,26 @@ func (u Unit) BoundsError(f float64) error {
 
 // Value returns a Value with this Unit.
 // This is the only method to create a Value.
-func (u Unit) Value(v float64) Value {
+func (u *Unit) Value(v float64) Value {
 	return Value{v: v, u: u}
 }
 
 // NewUnit creates a new Unit, registering it with the system.
-func NewUnit(name, unit, format string) Unit {
+func NewUnit(id, category, name, unit, format string) *Unit {
 	mutex.Lock()
 	defer mutex.Unlock()
-	n := strings.ToLower(name)
+	n := strings.ToLower(id)
 	if _, exists := units[n]; exists {
-		panic(fmt.Errorf("unit %q already exists", name))
+		panic(fmt.Errorf("unit %q already exists", id))
 	}
-	u := Unit{name: name, unit: unit, format: format, min: -math.MaxFloat64, max: math.MaxFloat64}
+	u := &Unit{id: n, category: category, name: name, unit: unit, format: format, min: -math.MaxFloat64, max: math.MaxFloat64}
 	units[n] = u
 	return u
 }
 
 // NewBoundedUnit creates a new Unit which has both min and max values.
-func NewBoundedUnit(name, unit, format string, min, max float64) Unit {
-	u := NewUnit(name, unit, format)
+func NewBoundedUnit(id, category, name, unit, format string, min, max float64) *Unit {
+	u := NewUnit(id, category, name, unit, format)
 	if min > max {
 		min, max = max, min
 	}
@@ -109,23 +122,33 @@ func NewBoundedUnit(name, unit, format string, min, max float64) Unit {
 }
 
 // NewLowerBoundUnit creates a new Unit which has a lower limit on it's permitted values.
-func NewLowerBoundUnit(name, unit, format string, min float64) Unit {
-	return NewBoundedUnit(name, unit, format, min, math.MaxFloat64)
+func NewLowerBoundUnit(id, category, name, unit, format string, min float64) *Unit {
+	return NewBoundedUnit(id, category, name, unit, format, min, math.MaxFloat64)
 }
 
 // NewUpperBoundUnit creates a new Unit which has an upper limit on it's permitted values.
-func NewUpperBoundUnit(name, unit, format string, max float64) Unit {
-	return NewBoundedUnit(name, unit, format, -math.MaxFloat64, max)
+func NewUpperBoundUnit(id, category, name, unit, format string, max float64) *Unit {
+	return NewBoundedUnit(id, category, name, unit, format, -math.MaxFloat64, max)
 }
 
 // GetUnit returns a registered Unit based on its name.
 // If the unit is not registered then this returns (nil,false).
 // Names are case insensitive.
-func GetUnit(name string) (Unit, bool) {
+func GetUnit(id string) (*Unit, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	u, e := units[strings.ToLower(name)]
+	u, e := units[strings.ToLower(id)]
 	return u, e
+}
+
+func GetUnits() []*Unit {
+	var r []*Unit
+	mutex.Lock()
+	defer mutex.Unlock()
+	for _, e := range units {
+		r = append(r, e)
+	}
+	return r
 }
 
 const (
@@ -141,9 +164,9 @@ const (
 
 var (
 	// Integer is effectively an integer value with no unit.
-	Integer = NewUnit("Integer", "", Dp0)
+	Integer = NewUnit("Integer", "Misc", "Integer", "", Dp0)
 	// Float is a value with no unit
-	Float = NewUnit("Float", "", Dp3)
+	Float = NewUnit("Float", "Misc", "Float", "", Dp3)
 	// Percent is a Unit bounded by 0..100 and has no decimal places
-	Percent = NewBoundedUnit("Percent", "%", Dp0, 0, 100)
+	Percent = NewBoundedUnit("Percent", "Misc", "Percent", "%", Dp0, 0, 100)
 )

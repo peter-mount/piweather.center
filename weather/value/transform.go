@@ -41,14 +41,14 @@ func Of(transforms ...Transformer) Transformer {
 	return t
 }
 
-func transformName(from, to Unit) string {
+func transformName(from, to *Unit) string {
 	return strings.ToLower(from.Name() + "->" + to.Name())
 }
 
 // NewTransform registers a Transformer that will handle transforming from one Unit to Another.
 // If a specific transform has already been registered or if both from and to represent the same Unit
 // then this will panic.
-func NewTransform(from, to Unit, t Transformer) {
+func NewTransform(from, to *Unit, t Transformer) {
 	// Guard to ensure from and to are different units
 	if from.Equals(to) {
 		panic(fmt.Errorf("transform units cannot be the same %q", from.Name()))
@@ -73,7 +73,7 @@ func NewTransform(from, to Unit, t Transformer) {
 //
 // If the baseUnit is present in the unit list it will also panic because that transform will already be registered.
 // Similarly, if a transform already exists then this will Panic.
-func NewTransformations(baseUnit Unit, units ...Unit) {
+func NewTransformations(baseUnit *Unit, units ...*Unit) {
 	if len(units) < 2 {
 		panic(errors.New("must supply 2 or more Unit's"))
 	}
@@ -106,14 +106,14 @@ func NewTransformations(baseUnit Unit, units ...Unit) {
 }
 
 // NewBiTransform registers two transforms, one for u1->u2 and one for u2->u1
-func NewBiTransform(u1, u2 Unit, u1ToU2, u2ToU1 Transformer) {
+func NewBiTransform(u1, u2 *Unit, u1ToU2, u2ToU1 Transformer) {
 	NewTransform(u1, u2, u1ToU2)
 	NewTransform(u2, u1, u2ToU1)
 }
 
 // GetTransform returns the Transformer that will transform between two units.
 // An error is returned if the requested transform has not been defined.
-func GetTransform(from, to Unit) (Transformer, error) {
+func GetTransform(from, to *Unit) (Transformer, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	n := transformName(from, to)
@@ -126,7 +126,7 @@ func GetTransform(from, to Unit) (Transformer, error) {
 
 // Transform will transform a float64 between two units.
 // An error is returned if the requested transform has not been defined.
-func Transform(f float64, from Unit, to Unit) (float64, error) {
+func Transform(f float64, from, to *Unit) (float64, error) {
 	// No transform required
 	if from == to {
 		return f, nil
@@ -160,13 +160,13 @@ func BasicInverseTransform(factor float64) Transformer {
 }
 
 // NewBasicTransform is the same as NewTransform(from, to, BasicTransform(factor))
-func NewBasicTransform(from, to Unit, factor float64) {
+func NewBasicTransform(from, to *Unit, factor float64) {
 	NewTransform(from, to, BasicTransform(factor))
 }
 
 // NewBasicBiTransform registers two transforms using a constant conversion factor.
 // This allows for conversions between two units.
-func NewBasicBiTransform(u1, u2 Unit, factor float64) {
+func NewBasicBiTransform(u1, u2 *Unit, factor float64) {
 	NewTransform(u1, u2, BasicTransform(factor))
 	NewTransform(u2, u1, BasicInverseTransform(factor))
 }
