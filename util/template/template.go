@@ -1,6 +1,7 @@
 package template
 
 import (
+	"bytes"
 	"context"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
@@ -44,8 +45,12 @@ func (m *Manager) ExecuteTemplate(r *rest.Rest, n string, d interface{}) error {
 		r.SetDate("last-modified", v.(time.Time).Unix())
 	}
 
-	log.Println(m1)
-	return m.rootTemplate.ExecuteTemplate(r.HTML().Writer(), n, m1)
+	var buf bytes.Buffer
+	if err := m.rootTemplate.ExecuteTemplate(&buf, n, m1); err != nil {
+		return err
+	}
+	r.HTML().Value(buf.Bytes())
+	return nil
 }
 
 // Render executes the named template. Similar to ExecuteTemplate but runs against a context
