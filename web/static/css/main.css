@@ -81,23 +81,28 @@ body {
     overflow: auto;
     z-index: 2;
     font-weight: bold;
-    padding: 0.25em 0.25em 0.25em 0.1em;
-}
-
-#menu ul, #menu li, #menu a {
-    padding: 0;
 }
 
 #menu a, #menu a:hover, #menu a:visited {
     display: block;
     color: black;
     text-decoration: none;
+    padding: 0;
+    margin: 0;
 }
 
 #menu a:hover,
-#menu .current a {
+#menu .current > a {
     color: white;
-    background: #cb0e2e;
+}
+
+#menu .current > ul > li {
+    color: black;
+    background: cadetblue;
+}
+
+#menu .current {
+    background: #cb0e2e !important;
 }
 
 #menu ul {
@@ -110,7 +115,11 @@ body {
     padding-top: 2px;
 }
 
-#menu ul.submenu a {
+#menu > ul > li > a {
+    padding-left: 0.1em;
+}
+
+#menu > ul > li > ul > li > a {
     padding-left: 2em;
 }
 

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	_ "github.com/peter-mount/piweather.center/server/menu"
+	_ "github.com/peter-mount/piweather.center/server/view"
 	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/station/view"
 	"github.com/peter-mount/piweather.center/util/mq"
 	"github.com/peter-mount/piweather.center/util/template"
 	"path/filepath"
@@ -19,8 +20,6 @@ type Server struct {
 	Amqp      mq.Pool                     `kernel:"inject"`
 	Config    *map[string]station.Station `kernel:"config,stations"`
 	Templates *template.Manager           `kernel:"inject"`
-	_         *view.Units                 `kernel:"inject"`
-	_         *view.Home                  `kernel:"inject"`
 }
 
 func (s *Server) Start() error {

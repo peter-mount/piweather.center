@@ -1,11 +1,24 @@
 <div id="menu">
     <ul>
-        <li><a href="/">Home</a></li>
-        <li{{if eq $.navSection "Information"}} class="current"{{end}}>
-            <a href="/info/">Information</a>
+        {{- range $menu := getMenu -}}
+        {{- if eq $.navSection $menu.Section -}}
+        <li class="current">
+            <a href="{{$menu.Link}}">{{$menu.Section}}</a>
+            {{- if len $menu.Entries -}}
             <ul class="submenu">
-                <li{{if eq $.navLink "Units"}} class="current"{{end}}><a href="/info/units">Units</a></li>
+                {{- range $subMenu := $menu.Entries -}}
+                {{- if eq $.navLink $subMenu.Section -}}
+                <li class="current"><a href="{{$subMenu.Link}}">{{$subMenu.Section}}</a></li>
+                {{- else -}}
+                <li><a href="{{$subMenu.Link}}">{{$subMenu.Section}}</a></li>
+                {{- end -}}
+                {{- end -}}
             </ul>
+            {{- end -}}
         </li>
+        {{- else -}}
+        <li><a href="{{$menu.Link}}">{{$menu.Section}}</a></li>
+        {{- end -}}
+        {{- end -}}
     </ul>
 </div>

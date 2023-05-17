@@ -2,7 +2,7 @@
 {{- template "layout/head-common.html" -}}
 </head><body>
 <div id="body">
-    <div id="body-top">{{- template "layout/topbar.html" -}}</div>
+    <div id="body-top">{{- template "layout/topbar.html" $ -}}</div>
     <div id="body-inner">
-        {{- template "layout/nav.html" -}}
+        {{- template "layout/nav.html" $ -}}
         <div id="body-content">

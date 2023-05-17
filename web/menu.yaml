@@ -1,0 +1,20 @@
+
+entries:
+  - section: "Home"
+    label: "Home"
+    link: "/"
+  - section: "Status"
+    label: "Status"
+    link: "/status"
+    entries:
+      - section: "System"
+        label: "System"
+        link: "/status/system"
+  - section: "Information"
+    label: "Information"
+    entries:
+      - section: "dummy"
+      - section: "Units"
+        label: "Units"
+        link: "/info/units"
+      - section: "dummy"
