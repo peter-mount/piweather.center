@@ -4,16 +4,12 @@
 
 {{- $keys := getReadingKeys -}}
 
-{{- /* Calculate leftPad and width to align decimals */ -}}
-{{- $leftPad := 0 }}
-{{- $rightPad := 0 }}
+{{- /* Calculate decimalAlign for the value column */ -}}
+{{- $valPad := decimalAlign -}}
 {{- range $reading := $keys -}}
 {{- $reading := getReading $reading -}}
-{{- $leftPad = max $leftPad (valLeftPad $reading.Value.Float) -}}
-{{- $rightPad = max $rightPad $reading.Value.Unit.Precision -}}
+{{- $valPad.Add $reading.Value.Float $reading.Value.Unit.Precision -}}
 {{- end -}}
-{{- $rightPad = subtract $rightPad 1 -}}
-{{- $width := decimalWidthMax $leftPad $rightPad -}}
 
 <table class="table unitTable">
     <thead>
@@ -24,7 +20,7 @@
     </tr>
     <tr>
         <th class="alignLeft">Reading</th>
-        <th class="alignCenter" style="width: {{decimalWidth $width}};">Value</th>
+        <th class="alignCenter" style="width: {{$valPad.Width}};">Value</th>
         <th class="alignLeft"></th>
         <th class="alignCenter">Time</th>
         <th class="alignCenter">Unit</th>
@@ -34,7 +30,7 @@
     {{- $reading := getReading $reading -}}
     <tr>
         <td class="alignLeft">{{$reading.Name}}</td>
-        <td style="--pad: {{decimalPad $leftPad $reading.Value.Float}};" class="alignDecimal">{{$reading.Value.PlainString}}</td>
+        <td style="--pad: {{$valPad.Pad $reading.Value.Float}};" class="alignDecimal">{{$reading.Value.PlainString}}</td>
         <td class="alignLeft">{{trim $reading.Value.Unit.Unit}}</td>
         <td class="alignLeft">{{utc $reading.Time | rfc3339}}</td>
         <td class="alignLeft">{{$reading.Value.Unit.Name}}</td>
