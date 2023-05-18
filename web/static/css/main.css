@@ -4,7 +4,9 @@ body {
     padding: 0;
     background: #eeeeee;
     color: black;
-    --offset: 0ch;
+    --pad: 0ch;
+    font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
+    font-size: 14px;
 }
 
 .float-left {
@@ -152,8 +154,12 @@ body {
 }
 
 .alignDecimal {
-    text-align: center;
-    transform: translateX(calc(0.5ch + var(--offset)));
+    text-align: left;
+    transform: translateX(calc(var(--pad, 0) * 1ch));
+}
+
+.unitTable {
+    font-family: "Courier New", Courier, monospace;
 }
 
 .csv > span:not(:last-child)::after {

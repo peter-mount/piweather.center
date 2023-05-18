@@ -1,13 +1,38 @@
+
+{{- /* Calculate leftPad and width to align decimals - here for the min and max value fields */ -}}
+{{- $leftMin := 2 }}
+{{- $rightMin := 0 }}
+{{- $leftMax := 2 }}
+{{- $rightMax := 0 }}
+{{- range $cat := $.cats -}}
+{{- range $unit := index $.units $cat -}}
+
+{{- if $unit.HasMin}}
+{{- $leftMin = max $leftMin (valLeftPad $unit.Min) -}}
+{{- $rightMin = max $rightMin $unit.Precision -}}
+{{- end -}}
+
+{{- if $unit.HasMax}}
+{{- $leftMax = max $leftMax (valLeftPad $unit.Max) -}}
+{{- $rightMax = max $rightMax $unit.Precision -}}
+{{- end -}}
+
+{{- end -}}
+{{- end -}}
+
+{{- $widthMin := add 1 (add $leftMin (subtract $rightMin 1)) -}}
+{{- $widthMax := add 1 (add $leftMax (subtract $rightMax 1)) -}}
+
 {{- define "statusUnitsLegend" -}}
 <tr class="heading">
-    <td class="alignLeft" colspan="2"><strong>{{.}}</strong></td>
+    <td class="alignLeft" colspan="2"><strong>{{.cat}}</strong></td>
 </tr>
 <tr>
     <th class="alignLeft">ID</th>
     <th class="alignLeft">Name</th>
     <th class="alignLeft">Unit</th>
-    <th class="alignCenter">Min</th>
-    <th class="alignCenter">Max</th>
+    <th class="alignCenter" style="width: {{.widthMin}}ch;">Min</th>
+    <th class="alignCenter" style="width: {{.widthMax}}ch;">Max</th>
 </tr>
 {{- end -}}
 
@@ -24,15 +49,24 @@
     </thead>
     <tbody>
     {{- range $cat := $.cats -}}
-    {{- template "statusUnitsLegend" $cat -}}
+    {{- template "statusUnitsLegend" (dict "cat" $cat "widthMin" $widthMin "widthMax" $widthMax) -}}
     {{- range $unit := index $.units $cat -}}
     <tr>
         <td class="alignLeft">{{$unit.ID}}</td>
         <td class="alignLeft">{{$unit.Name}}</td>
         <td class="alignLeft">{{$unit.Unit}}</td>
-        <td class="alignDecimal">{{if $unit.HasMin}}{{$unit.Min}}{{else}}-∞{{end}}</td>
-        <td class="alignDecimal">{{if $unit.HasMax}}{{$unit.Max}}{{else}}∞{{end}}</td>
+        {{if $unit.HasMin -}}
+        <td class="alignDecimal" style="--pad: {{subtract $leftMin (valLeftPad $unit.Min)}};">{{$unit.Min}}</td>
+        {{- else -}}
+        <td class="alignDecimal" style="--pad: {{subtract $leftMin 2}};">-∞</td>
+        {{- end}}
+        {{if $unit.HasMax -}}
+        <td class="alignDecimal" style="--pad: {{subtract $leftMax (valLeftPad $unit.Max)}};">{{$unit.Max}}</td>
+        {{- else -}}
+        <td class="alignDecimal" style="--pad: {{subtract $leftMax 1}};">∞</td>
+        {{- end}}
     </tr>
+
     {{- end -}}
     {{- end -}}
     </tbody>

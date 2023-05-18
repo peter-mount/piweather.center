@@ -99,6 +99,6 @@ func (s *Home) showSystem(ctx context.Context) error {
 	return s.Templates.Render(ctx, "info/system.html", map[string]interface{}{
 		"meta":       s.meta,
 		"navSection": "Status",
-		"navLink":    "Status",
+		"navLink":    "System",
 	})
 }

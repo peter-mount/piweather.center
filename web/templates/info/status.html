@@ -2,6 +2,19 @@
 
 <h1>Station Status</h1>
 
+{{- $keys := getReadingKeys -}}
+
+{{- /* Calculate leftPad and width to align decimals */ -}}
+{{- $leftPad := 0 }}
+{{- $rightPad := 0 }}
+{{- range $reading := $keys -}}
+{{- $reading := getReading $reading -}}
+{{- $leftPad = max $leftPad (valLeftPad $reading.Value.Float) -}}
+{{- $rightPad = max $rightPad $reading.Value.Unit.Precision -}}
+{{- end -}}
+{{- $rightPad = subtract $rightPad 1 -}}
+{{- $width := add 1 (add $leftPad $rightPad) -}}
+
 <table class="table unitTable">
     <thead>
     </thead>
@@ -11,17 +24,20 @@
     </tr>
     <tr>
         <th class="alignLeft">Reading</th>
-        <th class="alignCenter">Value</th>
+        <th class="alignCenter" style="width: {{$width}}ch;">Value</th>
         <th class="alignLeft"></th>
         <th class="alignCenter">Time</th>
+        <th class="alignCenter">Unit</th>
     </tr>
-    {{- range $reading := getReadingKeys -}}
+
+    {{- range $reading := $keys -}}
     {{- $reading := getReading $reading -}}
     <tr>
         <td class="alignLeft">{{$reading.Name}}</td>
-        <td class="alignDecimal">{{$reading.Value.PlainString}}</td>
+        <td style="--pad: {{subtract $leftPad (valLeftPad $reading.Value.Float)}};" class="alignDecimal">{{$reading.Value.PlainString}}</td>
         <td class="alignLeft">{{trim $reading.Value.Unit.Unit}}</td>
         <td class="alignLeft">{{utc $reading.Time | rfc3339}}</td>
+        <td class="alignLeft">{{$reading.Value.Unit.Name}}</td>
     </tr>
     {{- end -}}
     </tbody>
