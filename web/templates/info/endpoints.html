@@ -1,0 +1,20 @@
+{{- template "layout/default-start.html" $ -}}
+
+<h1>Endpoints</h1>
+
+<table class="table unitTable">
+    <tbody>
+    <tr><th>Sensor</th><th>Name</th><th>Endpoint</th><th>Method</th><th>Protocol</th></tr>
+    {{- range $entry := $.endpoints -}}
+    <tr>
+        <td>{{$entry.Id}}</td>
+        <td>{{$entry.Name}}</td>
+        <td>{{$entry.Endpoint}}</td>
+        <td>{{$entry.Method}}</td>
+        <td>{{$entry.Protocol}}</td>
+    </tr>
+    {{- end -}}
+    </tbody>
+</table>
+
+{{- template "layout/default-end.html" $ -}}

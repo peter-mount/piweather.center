@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/server/archiver"
+	"github.com/peter-mount/piweather.center/server/ecowitt"
 	_ "github.com/peter-mount/piweather.center/server/menu"
 	_ "github.com/peter-mount/piweather.center/server/view"
 	"github.com/peter-mount/piweather.center/station"
@@ -13,6 +14,7 @@ import (
 	"github.com/peter-mount/piweather.center/util/mq"
 	"github.com/peter-mount/piweather.center/util/template"
 	"github.com/peter-mount/piweather.center/weather/store"
+	"io"
 	"path/filepath"
 )
 
@@ -21,6 +23,7 @@ type Server struct {
 	Rest       *rest.Server                `kernel:"inject"`
 	Archiver   *archiver.Archiver          `kernel:"inject"`
 	Amqp       mq.Pool                     `kernel:"inject"`
+	Ecowitt    *ecowitt.Server             `kernel:"inject"`
 	Config     *map[string]station.Station `kernel:"config,stations"`
 	Templates  *template.Manager           `kernel:"inject"`
 	Store      *store.Store                `kernel:"inject"`
@@ -53,28 +56,50 @@ func (s *Server) startBrokers() error {
 	}
 
 	for _, stationConfig := range *s.Config {
-		for sensorName, sensor := range stationConfig.Sensors {
-			if amqp := sensor.Source.Amqp; amqp != nil {
-				if err := s.startAMQP(sensorName, sensor, amqp); err != nil {
-					return err
-				}
+		for _, sensor := range stationConfig.Sensors {
+			var err error
+			switch {
+			case sensor.Source.Amqp != nil:
+				err = s.startAMQP(sensor)
+
+			case sensor.Source.EcoWitt != nil:
+				err = s.startEcowitt(sensor)
+			}
+			if err != nil {
+				return err
 			}
 		}
 	}
-	log.Printf("Config: %v", s.Config)
 	return nil
 }
 
-func (s *Server) startAMQP(sensorName string, sensor *station.Sensors, amqp *mq.Queue) error {
+func (s *Server) startAMQP(sensor *station.Sensors) error {
+	amqp := sensor.Source.Amqp
+
 	broker := s.Amqp.GetMQ(amqp.Broker)
 	if broker == nil {
-		return fmt.Errorf("no broker %q defined for %s:%s", amqp.Broker, sensor.ID, sensorName)
+		return fmt.Errorf("no broker %q defined for %s:%s", amqp.Broker, sensor.ID)
 	}
+
 	return broker.ConsumeTask(amqp, "tag", func(ctx context.Context) error {
 		msg := mq.Delivery(ctx)
-		log.Println(string(msg.Body))
 
 		p, err := payload.FromAMQP(sensor.ID, sensor.Format, sensor.Timestamp, msg)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		return sensor.Process(p.AddContext(s.subContext))
+	})
+}
+
+func (s *Server) startEcowitt(sensor *station.Sensors) error {
+	return s.Ecowitt.RegisterEndpoint(sensor, func(ctx context.Context) error {
+		r := rest.GetRest(ctx)
+		body, _ := io.ReadAll(r.Request().Body)
+
+		p, err := payload.FromBytes(sensor.ID, sensor.Format, sensor.Timestamp, body)
 		if err != nil {
 			log.Println(err)
 			return err

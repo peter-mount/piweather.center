@@ -94,15 +94,18 @@ func FromBytes(id, format, timestamp string, msg []byte) (*Payload, error) {
 	copy(p.msg, msg)
 
 	var err error
-	switch format {
-	case "json", "JSON", "":
+	switch strings.ToLower(format) {
+	case "json", "":
 		err = json.Unmarshal(p.msg, &p.data)
 
-	case "xml", "XML":
+	case "xml":
 		err = xml.Unmarshal(p.msg, &p.data)
 
-	case "yaml", "yml", "YAML", "YML":
+	case "yaml", "yml":
 		err = yaml.Unmarshal(p.msg, &p.data)
+
+	case "post", "query", "querystring", "form":
+		err = UnmarshalPost(p.msg, &p.data)
 
 	default:
 		err = fmt.Errorf("unsupported format %q", format)
