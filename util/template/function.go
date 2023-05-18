@@ -2,7 +2,6 @@ package template
 
 import (
 	"errors"
-	"fmt"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
@@ -13,24 +12,27 @@ import (
 
 func (m *Manager) PostInit() error {
 	m.funcMap = template.FuncMap{
-		"hhmm":       hhmm,
-		"html":       html,
-		"lower":      strings.ToLower,
-		"upper":      strings.ToUpper,
-		"replaceAll": strings.ReplaceAll,
-		"rfc3339":    rfc3339,
-		"split":      split,
-		"trim":       strings.TrimSpace,
-		"trimPrefix": trimPrefix,
-		"utc":        utc,
-		"valLeftPad": valLeftPad,
-		"min":        genCalc(math.Min),
-		"max":        genCalc(math.Max),
-		"add":        genCalc(value.Add),
-		"subtract":   genCalc(value.Subtract),
-		"multiply":   genCalc(value.Multiply),
-		"divide":     genCalc(value.Divide),
-		"dict":       dict,
+		"hhmm":            hhmm,
+		"html":            html,
+		"lower":           strings.ToLower,
+		"upper":           strings.ToUpper,
+		"replaceAll":      strings.ReplaceAll,
+		"rfc3339":         rfc3339,
+		"split":           split,
+		"trim":            strings.TrimSpace,
+		"trimPrefix":      trimPrefix,
+		"utc":             utc,
+		"valLeftPad":      valLeftPad,
+		"min":             genCalc(math.Min),
+		"max":             genCalc(math.Max),
+		"add":             genCalc(value.Add),
+		"subtract":        genCalc(value.Subtract),
+		"multiply":        genCalc(value.Multiply),
+		"divide":          genCalc(value.Divide),
+		"dict":            dict,
+		"decimalPad":      decimalPad,
+		"decimalWidth":    decimalWidth,
+		"decimalWidthMax": genCalc(decimalWidthMax),
 	}
 	return nil
 }
@@ -38,12 +40,6 @@ func (m *Manager) PostInit() error {
 func (m *Manager) AddFunction(name string, handler interface{}) *Manager {
 	m.funcMap[name] = handler
 	return m
-}
-
-func valLeftPad(v interface{}) float64 {
-	f, _ := util.ToFloat64(v)
-	lp := len(fmt.Sprintf("%.0f", f))
-	return float64(lp)
 }
 
 func genCalc(f func(float64, float64) float64) func(a, b interface{}) float64 {
