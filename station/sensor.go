@@ -10,18 +10,33 @@ import (
 
 // Reading defines a sensor available within a collection
 type Reading struct {
-	ID     string `json:"-" xml:"-" yaml:"-"`
-	Source string `json:"source" xml:"source,attr" yaml:"source"`
-	Type   string `json:"type,omitempty" xml:"type,attr,omitempty" yaml:"type,omitempty"`
-	unit   *value.Unit
+	ID      string `json:"-" xml:"-" yaml:"-"`
+	Source  string `json:"source" xml:"source,attr" yaml:"source"`
+	Type    string `json:"type,omitempty" xml:"type,attr,omitempty" yaml:"type,omitempty"`
+	Use     string `json:"use,omitempty" xml:"use,attr,omitempty" yaml:"use,omitempty"`
+	unit    *value.Unit
+	useUnit *value.Unit
 }
 
 func (s *Reading) init(ctx context.Context) error {
 	parent := ctx.Value("Sensors").(*Sensors)
 	s.ID = parent.ID + "." + ctx.Value("ReadingId").(string)
+
+	// If not ok then we will ignore the reading
 	if u, ok := value.GetUnit(s.Type); ok {
 		s.unit = u
-		store.FromContext(ctx).DeclareReading(s.ID, s.unit)
+
+		// Use the same unit, unless we declare an alternate
+		s.useUnit = u
+		if s.Use != "" {
+			// TODO if the unit is not ok or there's no transform then this will fail over to use the src unit
+			if u, ok := value.GetUnit(s.Type); ok && value.TransformAvailable(s.useUnit, u) {
+				s.useUnit = u
+			}
+		}
+
+		// Register the reading with the final unit
+		store.FromContext(ctx).DeclareReading(s.ID, s.useUnit)
 	}
 	return nil
 }
@@ -29,6 +44,7 @@ func (s *Reading) init(ctx context.Context) error {
 func (s *Reading) process(ctx context.Context) error {
 	if s.unit != nil {
 		p := payload.GetPayload(ctx)
+
 		str, ok := p.Get(s.Source)
 		if !ok {
 			// FIXME warn/fail if not found?
@@ -36,7 +52,15 @@ func (s *Reading) process(ctx context.Context) error {
 		}
 
 		if f, ok := util.ToFloat64(str); ok {
-			store.FromContext(ctx).Record(s.ID, s.unit.Value(f), p.Time())
+			// Convert to Type unit then transform to Use unit
+			v, err := s.unit.Value(f).As(s.useUnit)
+			if err != nil {
+				// Ignore, should only happen if the result is
+				// invalid as we checked the transform previously
+				return nil
+			}
+
+			store.FromContext(ctx).Record(s.ID, v, p.Time())
 		}
 	}
 	return nil

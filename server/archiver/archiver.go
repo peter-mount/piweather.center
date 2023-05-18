@@ -32,7 +32,7 @@ func (s *Archiver) Start() error {
 	if *s.storeDir == "" {
 		log.Println("Store:persistence of readings disabled unless -store-dir is set")
 	} else {
-		log.Println("Store:persisting to %s", *s.storeDir)
+		log.Printf("Store:persisting to %s", *s.storeDir)
 	}
 
 	return nil

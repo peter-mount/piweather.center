@@ -56,10 +56,12 @@ func (u *Unit) PlainString(f float64) string {
 // Equals returns true if the unit's names are identical.
 // This is case-insensitive.
 func (u *Unit) Equals(b *Unit) bool {
+	// nil Unit's do not equal anything
 	if u == nil || b == nil {
 		return false
 	}
-	return strings.ToLower(u.name) == strings.ToLower(b.name)
+	// Either they are the same instance or their ID's are the same
+	return u == b || strings.ToLower(u.id) == strings.ToLower(b.id)
 }
 
 // Valid returns true if f is Within the bounds of this unit.

@@ -124,11 +124,20 @@ func GetTransform(from, to *Unit) (Transformer, error) {
 	return nil, fmt.Errorf("transform %q not defined", n)
 }
 
+// TransformAvailable returns true if it's possible to transfrom between two units.
+func TransformAvailable(from, to *Unit) bool {
+	mutex.Lock()
+	defer mutex.Unlock()
+	n := transformName(from, to)
+	_, exists := transformers[n]
+	return exists
+}
+
 // Transform will transform a float64 between two units.
 // An error is returned if the requested transform has not been defined.
 func Transform(f float64, from, to *Unit) (float64, error) {
 	// No transform required
-	if from == to {
+	if from.Equals(to) {
 		return f, nil
 	}
 
@@ -191,4 +200,9 @@ func GetTransforms() []TransformDef {
 		}
 	}
 	return defs
+}
+
+// NopTransformer does nothing.
+func NopTransformer(f float64) (float64, error) {
+	return f, nil
 }

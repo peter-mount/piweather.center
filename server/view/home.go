@@ -30,7 +30,7 @@ type Meta struct {
 }
 
 func (m *Meta) Uptime() time.Duration {
-	return m.StartTime.Sub(time.Now())
+	return time.Now().Sub(m.StartTime)
 }
 
 func (s *Home) Start() error {

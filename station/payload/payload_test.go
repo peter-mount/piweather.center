@@ -1,7 +1,6 @@
 package payload
 
 import (
-	"github.com/peter-mount/piweather.center/station"
 	"testing"
 	"time"
 )
@@ -37,15 +36,7 @@ func TestPayload_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
-			s1 := station.Sensors{
-				Name:      "",
-				Source:    station.Source{},
-				Format:    "",
-				Timestamp: tt.path,
-				Readings:  nil,
-			}
-
-			p, err := s1.FromBytes([]byte(tt.json))
+			p, err := FromBytes("", "", tt.path, []byte(tt.json))
 			if err != nil {
 				t.Errorf("FromBytes failed %v", err)
 				return
