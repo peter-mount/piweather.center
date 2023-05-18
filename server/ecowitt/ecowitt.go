@@ -1,80 +1,47 @@
 package ecowitt
 
 import (
-	"context"
-	"encoding/json"
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/util/graphite"
-	"github.com/peter-mount/piweather.center/util/mq"
-	"strings"
-	"time"
+	"github.com/peter-mount/go-kernel/v2/rest"
+	"github.com/peter-mount/go-kernel/v2/util/task"
+	"github.com/peter-mount/piweather.center/station"
+	"path"
 )
 
 type Server struct {
-	MQ       *mq.MQ            `kernel:"inject"`
-	Queue    *mq.Queue         `kernel:"config,ecowitt2mqttQueue"`
-	Graphite graphite.Graphite `kernel:"inject"`
+	Rest      *rest.Server `kernel:"inject"`
+	endPoints []*Endpoint
 }
 
-func (s *Server) Start() error {
-
-	err := s.MQ.ConsumeTask(s.Queue, "graphite", mq.Guard(s.consume))
-	if err != nil {
-		return err
-	}
-
-	return nil
+type Endpoint struct {
+	Path    string
+	Sensors *station.Sensors // Sensor collection for the endpoint
+	Task    task.Task
 }
 
-func (s *Server) consume(ctx context.Context) error {
-	body := mq.Delivery(ctx)
-
-	data := make(map[string]interface{})
-	err := json.Unmarshal(body.Body, &data)
-	if err != nil {
-		log.Println(err)
-		return err
+func (s *Server) RegisterEndpoint(sp *station.Sensors, t task.Task) error {
+	p := path.Clean(sp.Source.EcoWitt.Path)
+	if p == "." || p == "/" {
+		return fmt.Errorf("ecowitt path invalid")
 	}
 
-	// Timestamp in UTC of message
-	ts, ok := data["dateutc"].(string)
-	if !ok {
-		return nil
-	}
-	// The old format was "YYYY-MM-DD HH:MM:SS" whilst the new format is correct
-	// So convert the old to new format for timestamp
-	ts = strings.ReplaceAll(ts, " ", "T")
-	if !strings.HasSuffix(ts, "Z") {
-		ts = ts + "Z"
+	e := &Endpoint{
+		Path:    path.Join("/api/ecowitt", p),
+		Sensors: sp,
+		Task:    t,
 	}
 
-	t, err := time.Parse("2006-01-02T15:04:05Z", ts)
-	if err != nil {
-		return err
-	}
-
-	return s.submitReadings(t, body.RoutingKey, data)
-}
-
-func (s *Server) submitReadings(t time.Time, routingKey string, data map[string]interface{}) error {
-	for k, v := range data {
-		err := s.submitReading(t, routingKey, k, v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *Server) submitReading(t time.Time, routingKey, k string, v interface{}) error {
-	// Convert a bool type to a 1 or 0 numeric type
-	if b, ok := v.(bool); ok {
-		if b {
-			v = 1
-		} else {
-			v = 0
+	for _, ep := range s.endPoints {
+		if e.Path == ep.Path {
+			return fmt.Errorf("ecowitt path %q already in use", e.Path)
 		}
 	}
 
-	return s.Graphite.Publish(t, routingKey+"."+k, v)
+	s.endPoints = append(s.endPoints, e)
+
+	log.Printf("ecowitt:registering %q", e.Path)
+	s.Rest.Do(e.Path, e.Task).Methods("POST")
+
+	return nil
 }

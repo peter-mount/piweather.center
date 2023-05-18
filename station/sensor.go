@@ -30,7 +30,7 @@ func (s *Reading) init(ctx context.Context) error {
 		s.useUnit = u
 		if s.Use != "" {
 			// TODO if the unit is not ok or there's no transform then this will fail over to use the src unit
-			if u, ok := value.GetUnit(s.Type); ok && value.TransformAvailable(s.useUnit, u) {
+			if u, ok := value.GetUnit(s.Use); ok && value.TransformAvailable(s.useUnit, u) {
 				s.useUnit = u
 			}
 		}
