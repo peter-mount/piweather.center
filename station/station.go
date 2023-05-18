@@ -1,6 +1,10 @@
 package station
 
-import "context"
+import (
+	"context"
+	archiver "github.com/peter-mount/piweather.center/server/archiver"
+	"github.com/peter-mount/piweather.center/station/payload"
+)
 
 // Station defines a Weather Station at a specific location.
 // It consists of one or more Reading's
@@ -48,14 +52,28 @@ type Sensors struct {
 }
 
 func (s *Sensors) init(ctx context.Context) error {
+	// Set the Station.ID
 	station := ctx.Value("Station").(*Station)
 	s.ID = station.ID + "." + ctx.Value("SensorId").(string)
-	return s.call(ctx, func(sensor *Reading, ctx context.Context) error {
+
+	if err := s.call(ctx, func(sensor *Reading, ctx context.Context) error {
 		return sensor.init(ctx)
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Preload from logs
+	_ = archiver.FromContext(ctx).Preload(ctx, s.ID, s.process)
+
+	return nil
 }
 
 func (s *Sensors) Process(ctx context.Context) error {
+	archiver.FromContext(ctx).Archive(payload.GetPayload(ctx))
+	return s.process(ctx)
+}
+
+func (s *Sensors) process(ctx context.Context) error {
 	return s.call(ctx, func(sensor *Reading, ctx context.Context) error {
 		return sensor.process(ctx)
 	})

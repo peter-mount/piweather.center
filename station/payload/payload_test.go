@@ -1,6 +1,7 @@
-package station
+package payload
 
 import (
+	"github.com/peter-mount/piweather.center/station"
 	"testing"
 	"time"
 )
@@ -36,9 +37,9 @@ func TestPayload_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
-			s1 := Sensors{
+			s1 := station.Sensors{
 				Name:      "",
-				Source:    Source{},
+				Source:    station.Source{},
 				Format:    "",
 				Timestamp: tt.path,
 				Readings:  nil,

@@ -2,6 +2,7 @@ package station
 
 import (
 	"context"
+	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/store"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -20,14 +21,14 @@ func (s *Reading) init(ctx context.Context) error {
 	s.ID = parent.ID + "." + ctx.Value("ReadingId").(string)
 	if u, ok := value.GetUnit(s.Type); ok {
 		s.unit = u
-		ctx.Value("Store").(*store.Store).DeclareReading(s.ID, s.unit)
+		store.FromContext(ctx).DeclareReading(s.ID, s.unit)
 	}
 	return nil
 }
 
 func (s *Reading) process(ctx context.Context) error {
 	if s.unit != nil {
-		p := GetPayload(ctx)
+		p := payload.GetPayload(ctx)
 		str, ok := p.Get(s.Source)
 		if !ok {
 			// FIXME warn/fail if not found?
