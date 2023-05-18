@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	HeatIndex = value.NewBoundedUnit("HeatIndex", "Indices", "HeatIndex", "%", value.Dp0, 0, 100)
+	HeatIndex = value.NewBoundedUnit("HeatIndex", "Indices", "HeatIndex", "%", 0, 0, 100)
 }
 
 var (

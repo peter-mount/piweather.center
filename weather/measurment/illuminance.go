@@ -3,11 +3,11 @@ package measurment
 import "github.com/peter-mount/piweather.center/weather/value"
 
 func init() {
-	Lux = value.NewLowerBoundUnit("Lux", "Illuminance", "Lux", " lx", value.Dp1, 0)
-	FootCandles = value.NewLowerBoundUnit("FootCandles", "Illuminance", "Foot Candles", " fc", value.Dp1, 0)
-	KiloFootCandles = value.NewLowerBoundUnit("KiloFootCandles", "Illuminance", "Kilo Foot Candles", " kfc", value.Dp1, 0)
-	KiloLux = value.NewLowerBoundUnit("KiloLux", "Illuminance", "KiloLux", " klx", value.Dp1, 0)
-	WattsPerSquareMeter = value.NewLowerBoundUnit("WattsPerSquareMeter", "Illuminance", "Watts Per Square Meter", " W/m²", value.Dp1, 0)
+	Lux = value.NewLowerBoundUnit("Lux", "Illuminance", "Lux", " lx", 1, 0)
+	FootCandles = value.NewLowerBoundUnit("FootCandles", "Illuminance", "Foot Candles", " fc", 1, 0)
+	KiloFootCandles = value.NewLowerBoundUnit("KiloFootCandles", "Illuminance", "Kilo Foot Candles", " kfc", 1, 0)
+	KiloLux = value.NewLowerBoundUnit("KiloLux", "Illuminance", "KiloLux", " klx", 1, 0)
+	WattsPerSquareMeter = value.NewLowerBoundUnit("WattsPerSquareMeter", "Illuminance", "Watts Per Square Meter", " W/m²", 1, 0)
 
 	// Transforms from base unit Lux
 	value.NewBasicBiTransform(Lux, FootCandles, 1.0/fcToLux)

@@ -20,9 +20,9 @@ var (
 )
 
 func init() {
-	Fahrenheit = value.NewLowerBoundUnit("Fahrenheit", "Temperature", "Fahrenheit", " °F", value.Dp1, MinFahrenheit)
-	Celsius = value.NewLowerBoundUnit("Celsius", "Temperature", "Celsius", " °C", value.Dp1, MinCelsius)
-	Kelvin = value.NewLowerBoundUnit("Kelvin", "Temperature", "Kelvin", " K", value.Dp1, MinKelvin)
+	Fahrenheit = value.NewLowerBoundUnit("Fahrenheit", "Temperature", "Fahrenheit", " °F", 1, MinFahrenheit)
+	Celsius = value.NewLowerBoundUnit("Celsius", "Temperature", "Celsius", " °C", 1, MinCelsius)
+	Kelvin = value.NewLowerBoundUnit("Kelvin", "Temperature", "Kelvin", " K", 1, MinKelvin)
 
 	value.NewTransform(Celsius, Kelvin, celsiusKelvin)
 	value.NewTransform(Kelvin, Celsius, kelvinCelsius)

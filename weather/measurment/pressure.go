@@ -3,14 +3,14 @@ package measurment
 import "github.com/peter-mount/piweather.center/weather/value"
 
 func init() {
-	PressurePA = value.NewLowerBoundUnit("PressurePA", "Pressure", "Pressure Pascals", " Pa", value.Dp1, 0)
-	PressureHPA = value.NewLowerBoundUnit("PressureHPA", "Pressure", "Pressure HPascals", " hPa", value.Dp1, 0)
-	PressurePSI = value.NewLowerBoundUnit("PressurePSI", "Pressure", "Pressure Pounds per Square Inch", " psi", value.Dp1, 0)
-	PressureInHg = value.NewLowerBoundUnit("PressureInHg", "Pressure", "Pressure Inches Mercury", " inHg", value.Dp1, 0)
-	PressureMmHg = value.NewLowerBoundUnit("PressureMmHg", "Pressure", "Pressure mm Mercury", " mmHg", value.Dp1, 0)
-	PressureBar = value.NewLowerBoundUnit("PressureBar", "Pressure", "Pressure Bar", " bar", value.Dp1, 0)
-	PressureCBar = value.NewLowerBoundUnit("PressureCBar", "Pressure", "Pressure CentiBar", " cbar", value.Dp1, 0)
-	PressureMBar = value.NewLowerBoundUnit("PressureMBar", "Pressure", "Pressure MilliBar", " mbar", value.Dp1, 0)
+	PressurePA = value.NewLowerBoundUnit("PressurePA", "Pressure", "Pressure Pascals", " Pa", 1, 0)
+	PressureHPA = value.NewLowerBoundUnit("PressureHPA", "Pressure", "Pressure HPascals", " hPa", 1, 0)
+	PressurePSI = value.NewLowerBoundUnit("PressurePSI", "Pressure", "Pressure Pounds per Square Inch", " psi", 1, 0)
+	PressureInHg = value.NewLowerBoundUnit("PressureInHg", "Pressure", "Pressure Inches Mercury", " inHg", 1, 0)
+	PressureMmHg = value.NewLowerBoundUnit("PressureMmHg", "Pressure", "Pressure mm Mercury", " mmHg", 1, 0)
+	PressureBar = value.NewLowerBoundUnit("PressureBar", "Pressure", "Pressure Bar", " bar", 1, 0)
+	PressureCBar = value.NewLowerBoundUnit("PressureCBar", "Pressure", "Pressure CentiBar", " cbar", 1, 0)
+	PressureMBar = value.NewLowerBoundUnit("PressureMBar", "Pressure", "Pressure MilliBar", " mbar", 1, 0)
 
 	// Transforms from base unit PressurePA
 	value.NewBasicBiTransform(PressurePA, PressureHPA, 1.0/1000.0)

@@ -6,8 +6,8 @@ import (
 )
 
 func init() {
-	Humidity = value.NewBoundedUnit("Humidity", "Humidity", "Humidity", "%", value.Dp0, 0, 100)
-	RelativeHumidity = value.NewBoundedUnit("RelativeHumidity", "Humidity", "Relative Humidity", "%", value.Dp0, 0, 100)
+	Humidity = value.NewBoundedUnit("Humidity", "Humidity", "Humidity", "%", 0, 0, 100)
+	RelativeHumidity = value.NewBoundedUnit("RelativeHumidity", "Humidity", "Relative Humidity", "%", 0, 0, 100)
 }
 
 var (

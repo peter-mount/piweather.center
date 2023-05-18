@@ -6,8 +6,8 @@ import (
 
 func init() {
 	// Miscellaneous units which are not part of a family
-	UV = value.NewLowerBoundUnit("UV", "Indices", "UV", " UV index", value.Dp0, 0)
-	Strike = value.NewLowerBoundUnit("Strikes", "Lightning", "Lightning Strikes", " strikes", value.Dp0, 0)
+	UV = value.NewLowerBoundUnit("UV", "Indices", "UV", " UV index", 0, 0)
+	Strike = value.NewLowerBoundUnit("Strikes", "Lightning", "Lightning Strikes", " strikes", 0, 0)
 }
 
 var (
