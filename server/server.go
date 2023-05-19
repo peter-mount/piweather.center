@@ -78,7 +78,7 @@ func (s *Server) startAMQP(sensor *station.Sensors) error {
 
 	broker := s.Amqp.GetMQ(amqp.Broker)
 	if broker == nil {
-		return fmt.Errorf("no broker %q defined for %s:%s", amqp.Broker, sensor.ID)
+		return fmt.Errorf("no broker %q defined for %s", amqp.Broker, sensor.ID)
 	}
 
 	return broker.ConsumeTask(amqp, "tag", func(ctx context.Context) error {
