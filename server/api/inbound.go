@@ -135,6 +135,6 @@ func (s *Inbound) showEndpoints(ctx context.Context) error {
 	return s.Templates.Render(ctx, "info/endpoints.html", map[string]interface{}{
 		"endpoints":  s.getEndpoints(),
 		"navSection": "Status",
-		"navLink":    "System",
+		"navLink":    "Endpoints",
 	})
 }
