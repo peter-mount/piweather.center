@@ -90,18 +90,30 @@ func (s *Server) startAMQP(ctx context.Context) error {
 		return fmt.Errorf("no broker %q defined for %s", amqp.Broker, sensor.ID)
 	}
 
-	return broker.ConsumeTask(amqp, "tag", func(ctx context.Context) error {
-		msg := mq.Delivery(ctx)
+	task, err := s.ApiInbound.RegisterEndpoint(
+		"amqp",
+		amqp.Broker+":"+amqp.Name,
+		sensor.ID,
+		sensor.Name,
+		"AMQP",
+		sensor.Format,
+		func(ctx context.Context) error {
+			msg := mq.Delivery(ctx)
 
-		p, err := payload.FromAMQP(sensor.ID, sensor.Format, sensor.Timestamp, msg)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
+			p, err := payload.FromAMQP(sensor.ID, sensor.Format, sensor.Timestamp, msg)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
 
-		return s.processVisitor.WithContext(p.AddContext(s.subContext)).
-			VisitSensors(sensor)
-	})
+			return s.processVisitor.WithContext(p.AddContext(s.subContext)).
+				VisitSensors(sensor)
+		})
+
+	if err == nil {
+		err = broker.ConsumeTask(amqp, sensor.ID, task)
+	}
+	return err
 }
 
 func (s *Server) startEcowitt(ctx context.Context) error {
@@ -110,7 +122,7 @@ func (s *Server) startEcowitt(ctx context.Context) error {
 		return nil
 	}
 
-	return s.ApiInbound.RegisterEndpoint(
+	return s.ApiInbound.RegisterHttpEndpoint(
 		"inbound",
 		sensor.Source.EcoWitt.Path,
 		sensor.ID,

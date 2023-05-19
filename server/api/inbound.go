@@ -69,17 +69,35 @@ func (s *Inbound) Start() error {
 	return nil
 }
 
-// RegisterEndpoint registers a new endpoint under /api/inbound which will be sent to a task
-func (s *Inbound) RegisterEndpoint(category, pathName, id, name, method, protocol string, t task.Task) error {
-	// Sanitize category and pathName
-	category = strings.ToLower(strings.TrimSpace(category))
+// RegisterHttpEndpoint registers a new endpoint under /api/inbound which will be sent to a task.
+func (s *Inbound) RegisterHttpEndpoint(category, pathName, id, name, method, protocol string, t task.Task) error {
 
+	// Sanitize pathName
 	pathName = path.Clean(pathName)
 	if pathName == "." || pathName == "/" {
 		return fmt.Errorf("ecowitt path invalid")
 	}
 
 	pathName = path.Join("/api", category, pathName)
+	e, _, err := s.registerEndpoint(category, pathName, id, name, method, protocol, t)
+	if err == nil {
+		s.Rest.Do(e.endpoint.Endpoint, e.invoke).Methods(e.endpoint.Method)
+	}
+	return err
+}
+
+// RegisterEndpoint registers a new endpoint will be sent to a task.
+// This doesn't do much other than count the number of times the task is run and show it
+// on the status page.
+// This is usually used for mqtt and amqp queues
+func (s *Inbound) RegisterEndpoint(category, pathName, id, name, method, protocol string, t task.Task) (task.Task, error) {
+	_, rt, err := s.registerEndpoint(category, pathName, id, name, method, protocol, t)
+	return rt, err
+}
+
+func (s *Inbound) registerEndpoint(category, pathName, id, name, method, protocol string, t task.Task) (*endpoint, task.Task, error) {
+	// Sanitize category and pathName
+	category = strings.ToLower(strings.TrimSpace(category))
 
 	e := &endpoint{
 		task: t,
@@ -94,12 +112,10 @@ func (s *Inbound) RegisterEndpoint(category, pathName, id, name, method, protoco
 	}
 
 	if err := s.addEndpoint(e); err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	s.Rest.Do(e.endpoint.Endpoint, e.invoke).Methods(e.endpoint.Method)
-
-	return nil
+	return e, e.invoke, nil
 }
 
 func (s *Inbound) addEndpoint(e *endpoint) error {

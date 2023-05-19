@@ -4,12 +4,12 @@
 </tr>
 <tr>
     <th>ID</th>
-    <th>Name</th>
-    <th>Endpoint</th>
     <th>Method</th>
+    <th>Endpoint</th>
     <th>Protocol</th>
     <th class="alignCenter" style="width: {{.num.Width}};">Calls</th>
     <th>Last Call</th>
+    <th>Name</th>
 </tr>
 {{- end -}}
 
@@ -32,12 +32,12 @@
     {{- range $entry := $category.Endpoints -}}
     <tr>
         <td>{{$entry.Id}}</td>
-        <td>{{$entry.Name}}</td>
-        <td>{{$entry.Endpoint}}</td>
         <td>{{$entry.Method}}</td>
+        <td>{{$entry.Endpoint}}</td>
         <td>{{$entry.Protocol}}</td>
         <td style="--pad: {{$numPad.Pad $entry.NumCalls}};" class="alignDecimal">{{$entry.NumCalls}}</td>
         <td>{{if not $entry.LastCall.IsZero}}{{utc $entry.LastCall | rfc3339}}{{end}}</td>
+        <td>{{$entry.Name}}</td>
     </tr>
     {{- end -}}
     {{- end -}}
