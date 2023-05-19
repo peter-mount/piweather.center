@@ -71,6 +71,13 @@ type TemperatureRelativeHumidityFunc func(temp, relHumidity value.Value) (value.
 // It also takes a unit which is the temperature unit required by the underlying function.
 //
 // Examples of this function in use are DewPoint and HeatIndex values which are a function of Temperature and Relative Humidity.
+//
+// This will return an error if:
+//   - temp, relHumidity or unit are not of the appropriate Units
+//   - the values of temp or relHumidity are invalid
+//   - the temperature to be passed to the function when transformed to unit is invalid
+//   - the function returns an error
+//   - the final result is invalid
 func TemperatureRelativeHumidityCalculation(temp, relHumidity value.Value, unit *value.Unit, f TemperatureRelativeHumidityFunc) (value.Value, error) {
 	if err := AssertTemperature(temp); err != nil {
 		return value.Value{}, err
@@ -84,6 +91,13 @@ func TemperatureRelativeHumidityCalculation(temp, relHumidity value.Value, unit 
 	if err != nil {
 		return value.Value{}, err
 	}
+	if !t1.IsValid() {
+		return value.Value{}, t1.BoundsError()
+	}
 
-	return f(t1, relHumidity)
+	r, err := f(t1, relHumidity)
+	if err != nil {
+		return value.Value{}, err
+	}
+	return r, r.BoundsError()
 }
