@@ -1,7 +1,6 @@
 package store
 
 import (
-	"github.com/peter-mount/piweather.center/server/archiver"
 	"github.com/peter-mount/piweather.center/util/template"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
@@ -13,8 +12,7 @@ import (
 )
 
 type Store struct {
-	Templates *template.Manager  `kernel:"inject"`
-	Archiver  *archiver.Archiver `kernel:"inject"`
+	Templates *template.Manager `kernel:"inject"`
 	mutex     sync.Mutex
 	data      map[string]*Reading
 	history   map[string][]*Reading

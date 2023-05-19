@@ -55,7 +55,7 @@ func (a Reader) Open(filename string) error {
 		return nil
 	}
 
-	log.Printf("Reading %s", filename)
+	log.Printf("VisitReading %s", filename)
 	f, err := os.Open(filename)
 	if err != nil {
 		return err

@@ -24,7 +24,7 @@ func (s *Units) Start() error {
 		s.units[u.Category()] = append(s.units[u.Category()], u)
 	}
 
-	// Build category list
+	// WithContext category list
 	for c, _ := range s.units {
 		s.categories = append(s.categories, c)
 	}
@@ -39,7 +39,7 @@ func (s *Units) Start() error {
 		})
 	}
 
-	// Build transform index
+	// WithContext transform index
 	s.transforms = make(map[string][]string)
 	for _, def := range value.GetTransforms() {
 		s.transforms[def.From] = append(s.transforms[def.From], def.To)

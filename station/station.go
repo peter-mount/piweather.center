@@ -2,9 +2,14 @@ package station
 
 import (
 	"context"
-	archiver "github.com/peter-mount/piweather.center/server/archiver"
-	"github.com/peter-mount/piweather.center/station/payload"
 )
+
+// Stations  Map of all defined Station's
+type Stations map[string]Station
+
+func (s *Stations) Accept(v Visitor) error {
+	return v.VisitStations(s)
+}
 
 // Station defines a Weather Station at a specific location.
 // It consists of one or more Reading's
@@ -18,20 +23,13 @@ type Station struct {
 	Sensors map[string]*Sensors `json:"sensors" xml:"sensors" yaml:"sensors"`
 }
 
-func (s *Station) Init(ctx context.Context) error {
-	return s.call(ctx, func(sensors *Sensors, ctx context.Context) error {
-		return sensors.init(ctx)
-	})
+func (s *Station) Accept(v Visitor) error {
+	return v.VisitStation(s)
 }
 
-func (s *Station) call(ctx context.Context, f func(*Sensors, context.Context) error) error {
-	child := context.WithValue(ctx, "Station", s)
-	for id, sensors := range s.Sensors {
-		child1 := context.WithValue(child, "SensorId", id)
-		if err := f(sensors, child1); err != nil {
-			return err
-		}
-	}
+func InitStation(ctx context.Context) error {
+	s := StationFromContext(ctx)
+	s.ID = ctx.Value("StationId").(string)
 	return nil
 }
 
@@ -51,41 +49,16 @@ type Sensors struct {
 	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
 }
 
-func (s *Sensors) init(ctx context.Context) error {
-	// Set the Station.ID
-	station := ctx.Value("Station").(*Station)
-	s.ID = station.ID + "." + ctx.Value("SensorId").(string)
-
-	if err := s.call(ctx, func(sensor *Reading, ctx context.Context) error {
-		return sensor.init(ctx)
-	}); err != nil {
-		return err
-	}
-
-	// Preload from logs
-	_ = archiver.FromContext(ctx).Preload(ctx, s.ID, s.process)
-
-	return nil
+func (s *Sensors) Accept(v Visitor) error {
+	return v.VisitSensors(s)
 }
 
-func (s *Sensors) Process(ctx context.Context) error {
-	archiver.FromContext(ctx).Archive(payload.GetPayload(ctx))
-	return s.process(ctx)
-}
+func InitSensors(ctx context.Context) error {
+	s := SensorsFromContext(ctx)
 
-func (s *Sensors) process(ctx context.Context) error {
-	return s.call(ctx, func(sensor *Reading, ctx context.Context) error {
-		return sensor.process(ctx)
-	})
-}
+	// Set the VisitStation.ID
+	stationConfig := StationFromContext(ctx)
+	s.ID = stationConfig.ID + "." + ctx.Value("SensorId").(string)
 
-func (s *Sensors) call(ctx context.Context, f func(*Reading, context.Context) error) error {
-	child := context.WithValue(ctx, "Sensors", s)
-	for id, sensor := range s.Readings {
-		child2 := context.WithValue(child, "ReadingId", id)
-		if err := f(sensor, child2); err != nil {
-			return err
-		}
-	}
 	return nil
 }

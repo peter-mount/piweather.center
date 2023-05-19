@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/io"
+	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"os"
 	"path/filepath"
@@ -42,12 +43,14 @@ func (s *Archiver) archiveFileName(name string, t time.Time) string {
 	return filepath.Join(*s.storeDir, p, t.UTC().Format("2006/01/02")+".log")
 }
 
-func (s *Archiver) Archive(rec *payload.Payload) {
+func (s *Archiver) Archive(ctx context.Context) error {
+	rec := payload.GetPayload(ctx)
 	if *s.storeDir != "" {
 		s.worker.AddTask(task.Of(s.archiveReadingDisk).WithValue("record", rec))
 	} else {
 		log.Printf("Store:ignore %v", rec)
 	}
+	return nil
 }
 
 func (s *Archiver) archiveReadingDisk(ctx context.Context) error {
@@ -82,10 +85,16 @@ func (s *Archiver) appendReading(fileName string, rec *payload.Payload) error {
 	return nil
 }
 
-func (s *Archiver) Preload(ctx context.Context, id string, t task.Task) error {
-	log.Printf("Archiver:Preloading %s", id)
+func (s *Archiver) Preload(ctx context.Context) error {
+	sensors := station.SensorsFromContext(ctx)
 
-	fileName := s.archiveFileName(id, time.Now().UTC())
+	log.Printf("Archiver:Preloading %s", sensors.ID)
+
+	fileName := s.archiveFileName(sensors.ID, time.Now().UTC())
+
+	// Visitor to process the reading into memory cache
+	visitor := station.NewVisitor().
+		Reading(station.ProcessReading)
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -96,7 +105,9 @@ func (s *Archiver) Preload(ctx context.Context, id string, t task.Task) error {
 			p, err := payload.FromLog(line)
 			if p != nil && err == nil {
 				lc++
-				_ = t.Do(p.AddContext(ctx))
+				_ = visitor.
+					WithContext(p.AddContext(ctx)).
+					VisitSensors(sensors)
 			}
 			return nil
 		}).
@@ -107,6 +118,6 @@ func (s *Archiver) Preload(ctx context.Context, id string, t task.Task) error {
 		return nil
 	}
 
-	log.Printf("Archiver:Preloaded %d from %s", lc, id)
+	log.Printf("Archiver:Preloaded %d from %s", lc, sensors.ID)
 	return err
 }

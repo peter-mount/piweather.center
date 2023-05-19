@@ -2,9 +2,9 @@ package station
 
 import (
 	"context"
+	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/weather/store"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -18,8 +18,13 @@ type Reading struct {
 	useUnit *value.Unit
 }
 
-func (s *Reading) init(ctx context.Context) error {
-	parent := ctx.Value("Sensors").(*Sensors)
+func (s *Reading) Accept(v Visitor) error {
+	return v.VisitReading(s)
+}
+
+func InitReading(ctx context.Context) error {
+	parent := SensorsFromContext(ctx)
+	s := ReadingFromContext(ctx)
 	s.ID = parent.ID + "." + ctx.Value("ReadingId").(string)
 
 	// If not ok then we will ignore the reading
@@ -41,7 +46,8 @@ func (s *Reading) init(ctx context.Context) error {
 	return nil
 }
 
-func (s *Reading) process(ctx context.Context) error {
+func ProcessReading(ctx context.Context) error {
+	s := ReadingFromContext(ctx)
 	if s.unit != nil {
 		p := payload.GetPayload(ctx)
 
