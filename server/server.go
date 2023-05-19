@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/archiver"
-	"github.com/peter-mount/piweather.center/server/ecowitt"
 	_ "github.com/peter-mount/piweather.center/server/menu"
 	"github.com/peter-mount/piweather.center/server/store"
 	_ "github.com/peter-mount/piweather.center/server/view"
@@ -15,19 +15,21 @@ import (
 	"github.com/peter-mount/piweather.center/util/mq"
 	"github.com/peter-mount/piweather.center/util/template"
 	"io"
+	"net/http"
 	"path/filepath"
 )
 
 // Server represents the primary service running the weather station.
 type Server struct {
-	Rest       *rest.Server       `kernel:"inject"`
-	Archiver   *archiver.Archiver `kernel:"inject"`
-	Amqp       mq.Pool            `kernel:"inject"`
-	Ecowitt    *ecowitt.Server    `kernel:"inject"`
-	Config     *station.Stations  `kernel:"config,stations"`
-	Templates  *template.Manager  `kernel:"inject"`
-	Store      *store.Store       `kernel:"inject"`
-	subContext context.Context    // Common Context
+	Rest           *rest.Server           `kernel:"inject"`
+	Archiver       *archiver.Archiver     `kernel:"inject"`
+	Amqp           mq.Pool                `kernel:"inject"`
+	ApiInbound     *api.Inbound           `kernel:"inject"`
+	Config         *station.Stations      `kernel:"config,stations"`
+	Templates      *template.Manager      `kernel:"inject"`
+	Store          *store.Store           `kernel:"inject"`
+	subContext     context.Context        // Common Context
+	processVisitor station.VisitorBuilder // Common visitor used by all sources to process data
 }
 
 func (s *Server) Start() error {
@@ -57,7 +59,7 @@ func (s *Server) Start() error {
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
 	// build it as needed.
-	processVisitor := station.NewVisitor().
+	s.processVisitor = station.NewVisitor().
 		Sensors(s.Archiver.Archive).
 		Reading(station.ProcessReading)
 
@@ -67,7 +69,7 @@ func (s *Server) Start() error {
 		Sensors(s.Archiver.Preload).
 		Sensors(s.startAMQP).
 		Sensors(s.startEcowitt).
-		WithContext(context.WithValue(s.subContext, "processVisitor", processVisitor)).
+		WithContext(s.subContext).
 		VisitStations(s.Config); err != nil {
 		return err
 	}
@@ -88,8 +90,6 @@ func (s *Server) startAMQP(ctx context.Context) error {
 		return fmt.Errorf("no broker %q defined for %s", amqp.Broker, sensor.ID)
 	}
 
-	processVisitor := ctx.Value("processVisitor").(station.VisitorBuilder)
-
 	return broker.ConsumeTask(amqp, "tag", func(ctx context.Context) error {
 		msg := mq.Delivery(ctx)
 
@@ -99,7 +99,7 @@ func (s *Server) startAMQP(ctx context.Context) error {
 			return err
 		}
 
-		return processVisitor.WithContext(p.AddContext(s.subContext)).
+		return s.processVisitor.WithContext(p.AddContext(s.subContext)).
 			VisitSensors(sensor)
 	})
 }
@@ -109,19 +109,25 @@ func (s *Server) startEcowitt(ctx context.Context) error {
 	if sensor.Source.EcoWitt == nil {
 		return nil
 	}
-	processVisitor := ctx.Value("processVisitor").(station.VisitorBuilder)
 
-	return s.Ecowitt.RegisterEndpoint(sensor, func(ctx context.Context) error {
-		r := rest.GetRest(ctx)
-		body, _ := io.ReadAll(r.Request().Body)
+	return s.ApiInbound.RegisterEndpoint(
+		"inbound",
+		sensor.Source.EcoWitt.Path,
+		sensor.ID,
+		sensor.Name,
+		http.MethodPost,
+		"ecowitt",
+		func(ctx context.Context) error {
+			r := rest.GetRest(ctx)
+			body, _ := io.ReadAll(r.Request().Body)
 
-		p, err := payload.FromBytes(sensor.ID, sensor.Format, sensor.Timestamp, body)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
+			p, err := payload.FromBytes(sensor.ID, sensor.Format, sensor.Timestamp, body)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
 
-		return processVisitor.WithContext(p.AddContext(s.subContext)).
-			VisitSensors(sensor)
-	})
+			return s.processVisitor.WithContext(p.AddContext(s.subContext)).
+				VisitSensors(sensor)
+		})
 }

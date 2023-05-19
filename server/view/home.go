@@ -5,9 +5,8 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/io"
-	"github.com/peter-mount/piweather.center/server/ecowitt"
+	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/store"
-	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/template"
 	"os/exec"
 	"strings"
@@ -19,7 +18,7 @@ type Home struct {
 	Rest       *rest.Server      `kernel:"inject"`
 	Templates  *template.Manager `kernel:"inject"`
 	Store      *store.Store      `kernel:"inject"`
-	Ecowitt    *ecowitt.Server   `kernel:"inject"`
+	ApiInbound *api.Inbound      `kernel:"inject"`
 	meta       *Meta
 	lastUpdate time.Time
 	mutex      sync.Mutex
@@ -58,7 +57,6 @@ func (s *Home) Start() error {
 
 	s.Rest.Do("/", s.showHome).Methods("GET")
 	s.Rest.Do("/status", s.showStatus).Methods("GET")
-	s.Rest.Do("/status/endpoints", s.showEndpoints).Methods("GET")
 	s.Rest.Do("/status/system", s.showSystem).Methods("GET")
 
 	return nil
@@ -81,17 +79,6 @@ func (s *Home) uptime() {
 	}
 
 	s.lastUpdate = time.Now()
-}
-
-func (s *Home) showEndpoints(ctx context.Context) error {
-	ep := &util.Endpoints{}
-	s.Ecowitt.GetEndpoints(ep)
-
-	return s.Templates.Render(ctx, "info/endpoints.html", map[string]interface{}{
-		"endpoints":  ep.Get(),
-		"navSection": "Status",
-		"navLink":    "System",
-	})
 }
 
 func (s *Home) showHome(ctx context.Context) error {
