@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Inbound presents an api under /api/inbound which will accept data from an
@@ -30,6 +31,12 @@ type endpoint struct {
 	task     task.Task
 }
 
+func (e *endpoint) invoke(ctx context.Context) error {
+	e.endpoint.LastCall = time.Now()
+	e.endpoint.NumCalls++
+	return e.task.Do(ctx)
+}
+
 type Endpoints struct {
 	Category  string
 	Endpoints []EndpointEntry
@@ -43,6 +50,8 @@ type EndpointEntry struct {
 	Endpoint string
 	Method   string
 	Protocol string
+	LastCall time.Time
+	NumCalls int64
 }
 
 // Identical returns true of both entries have the same Endpoint and Method
@@ -88,7 +97,7 @@ func (s *Inbound) RegisterEndpoint(category, pathName, id, name, method, protoco
 		return err
 	}
 
-	s.Rest.Do(e.endpoint.Endpoint, e.task).Methods(e.endpoint.Method)
+	s.Rest.Do(e.endpoint.Endpoint, e.invoke).Methods(e.endpoint.Method)
 
 	return nil
 }

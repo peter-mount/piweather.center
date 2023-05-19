@@ -162,6 +162,11 @@ body {
     font-family: "Courier New", Courier, monospace;
 }
 
+.unitTable th {
+    text-align: left;
+    white-space: nowrap;
+}
+
 .csv > span:not(:last-child)::after {
     content: ", ";
 }

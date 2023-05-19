@@ -1,18 +1,34 @@
 {{- define "statusEndpointsHeader" -}}
 <tr class="heading">
-    <td class="alignLeft" colspan="2"><strong>{{.}}</strong></td>
+    <td class="alignLeft" colspan="2"><strong>{{.cat}}</strong></td>
 </tr>
-<tr><th>ID</th><th>Name</th><th>Endpoint</th><th>Method</th><th>Protocol</th></tr>
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Endpoint</th>
+    <th>Method</th>
+    <th>Protocol</th>
+    <th class="alignCenter" style="width: {{.num.Width}};">Calls</th>
+    <th>Last Call</th>
+</tr>
 {{- end -}}
 
 {{- template "layout/default-start.html" $ -}}
 
 <h1>Endpoints</h1>
 
+{{- /* align Num column */ -}}
+{{- $numPad := decimalAlign -}}
+{{- range $category := $.endpoints -}}
+{{- range $entry := $category.Endpoints -}}
+{{- $numPad.Add $entry.NumCalls 0 -}}
+{{- end -}}
+{{- end -}}
+
 <table class="table unitTable">
     <tbody>
     {{- range $category := $.endpoints -}}
-    {{- template "statusEndpointsHeader" $category.Category -}}
+    {{- template "statusEndpointsHeader" (dict "cat" $category.Category "num" $numPad) -}}
     {{- range $entry := $category.Endpoints -}}
     <tr>
         <td>{{$entry.Id}}</td>
@@ -20,6 +36,8 @@
         <td>{{$entry.Endpoint}}</td>
         <td>{{$entry.Method}}</td>
         <td>{{$entry.Protocol}}</td>
+        <td style="--pad: {{$numPad.Pad $entry.NumCalls}};" class="alignDecimal">{{$entry.NumCalls}}</td>
+        <td>{{if not $entry.LastCall.IsZero}}{{utc $entry.LastCall | rfc3339}}{{end}}</td>
     </tr>
     {{- end -}}
     {{- end -}}
