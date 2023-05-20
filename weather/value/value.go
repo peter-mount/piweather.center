@@ -55,6 +55,11 @@ func (v Value) As(to *Unit) (Value, error) {
 		return Value{}, v.BoundsError()
 	}
 
+	// If to is the same unit as Value return the value unchanged
+	if v.u.Equals(to) {
+		return v, nil
+	}
+
 	t, err := Transform(v.v, v.u, to)
 	if err != nil {
 		return Value{}, err
