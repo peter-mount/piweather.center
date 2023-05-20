@@ -18,6 +18,10 @@ type Store struct {
 	history   map[string][]*Reading
 }
 
+const (
+	storeMaxAge = time.Hour * 24 // Max time to keep readings
+)
+
 func FromContext(ctx context.Context) *Store {
 	return ctx.Value("local.store").(*Store)
 }
@@ -57,6 +61,8 @@ func (s *Store) DeclareReading(name string, unit *value.Unit) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	name = strings.ToLower(name)
+
 	if _, exists := s.data[name]; !exists {
 		rec := &Reading{Name: name, Value: unit.Value(0)}
 		s.data[name] = rec
@@ -64,35 +70,41 @@ func (s *Store) DeclareReading(name string, unit *value.Unit) {
 	}
 }
 
-func (s *Store) Record(name string, value value.Value, time time.Time) {
+func (s *Store) Record(name string, value value.Value, recTime time.Time) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+
+	name = strings.ToLower(name)
 
 	rec := &Reading{
 		Name:  name,
 		Value: value,
-		Time:  time,
+		Time:  recTime,
 	}
 
 	// Prepend to history, keeping only last 60 entries
 	hist := s.history[name]
 	hist = append(hist, rec)
 	sort.SliceStable(hist, func(i, j int) bool {
-		return hist[i].Time.After(hist[j].Time)
+		return hist[i].Time.Before(hist[j].Time)
 	})
-	if len(hist) > 60 {
-		hist = hist[:60]
+
+	cutoff := time.Now().Add(-storeMaxAge)
+
+	for len(hist) > 0 && hist[0].Time.Before(cutoff) {
+		hist = hist[1:]
 	}
 	s.history[name] = hist
 
-	// Cache latest value which is at front
-	s.data[name] = hist[0]
+	// Cache latest value which is at end
+	s.data[name] = hist[len(hist)-1]
 }
 
 func (s *Store) GetReading(name string) *Reading {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	name = strings.ToLower(name)
 	return s.data[name]
 }
 
@@ -100,6 +112,7 @@ func (s *Store) GetHistory(name string) []*Reading {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	name = strings.ToLower(name)
 	return s.history[name]
 }
 

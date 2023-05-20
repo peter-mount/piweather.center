@@ -3,6 +3,7 @@ module github.com/peter-mount/piweather.center
 go 1.19
 
 require (
+	github.com/ajstarks/svgo v0.0.0-20180226025133-644b8db467af
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230124175314-cffb95a03dd0
