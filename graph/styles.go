@@ -2,8 +2,7 @@ package graph
 
 import (
 	"fmt"
-	svg "github.com/ajstarks/svgo/float"
-	"io"
+	svg2 "github.com/peter-mount/piweather.center/graph/svg"
 	"strings"
 )
 
@@ -41,6 +40,6 @@ text{font-family:sans-serif;}
 )
 
 // CSS writes the default stylesheet to the SVG
-func CSS(canvas *svg.SVG) {
-	_, _ = io.WriteString(canvas.Writer, css)
+func CSS(s svg2.SVG) {
+	s.WriteString(css)
 }

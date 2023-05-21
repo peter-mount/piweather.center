@@ -1,30 +1,22 @@
 package graph
 
 import (
-	svg "github.com/ajstarks/svgo/float"
+	"fmt"
+	"github.com/peter-mount/piweather.center/graph/svg"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
-func CalculateStep(min, max float64) float64 {
-	if max < min {
-		min, max = max, min
+func DrawYAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64, styles ...string) {
+	if len(styles) > 0 {
+		s.Group(func(s svg.SVG) {
+			drawYAxisGrid(s, proj, stepFactor)
+		}, styles...)
+	} else {
+		drawYAxisGrid(s, proj, stepFactor)
 	}
-
-	vRange := max - min
-	e := 1.0
-	for i := 1; i < 10; i++ {
-		if vRange < e {
-			// return previous e value
-			return e / 10
-		}
-		e = e * 10.0
-	}
-	// range is >= 1e10 so default to 1e10
-	return e
 }
 
-func DrawYAxisGrid(canvas *svg.SVG, proj *Projection, stepFactor float64, styles ...string) {
-
+func drawYAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64) {
 	minY, maxY, stepY := proj.YAxisTicks()
 
 	// Apply stepFactor
@@ -32,20 +24,12 @@ func DrawYAxisGrid(canvas *svg.SVG, proj *Projection, stepFactor float64, styles
 		stepY = stepY * stepFactor
 	}
 
-	if len(styles) > 0 {
-		canvas.Group(styles...)
-	}
-
-	p := &Path{}
+	p := &svg.Path{}
 	for i := minY; i <= maxY; i += stepY {
 		_, y := proj.Project(0, i)
 		p.Line(proj.X0(), y, proj.X1(), y)
 	}
-	p.Draw(canvas)
-
-	if len(styles) > 0 {
-		canvas.Gend()
-	}
+	s.Draw(p)
 }
 
 func GetLabelFormat(step float64) string {
@@ -61,32 +45,39 @@ func GetLabelFormat(step float64) string {
 	}
 }
 
-func DrawYAxisLegend(title, subTitle string, canvas *svg.SVG, proj *Projection, styles ...string) {
+func DrawYAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string, styles ...string) {
+	if len(styles) > 0 {
+		s.Group(func(s svg.SVG) {
+			drawYAxisLegend(s, proj, title, subTitle)
+		}, styles...)
+	} else {
+		drawYAxisLegend(s, proj, title, subTitle)
+	}
+}
+
+func drawYAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string) {
 	minY, maxY, stepY := proj.YAxisTicks()
 
 	x0, yc := proj.X0(), proj.Yc()
 
-	canvas.Group(styles...)
-	canvas.Gend()
-
 	x := x0 - LabelSize
 
 	f := GetLabelFormat(stepY)
-	p := &Path{}
+	p := &svg.Path{}
 	for i := minY; i <= maxY; i += stepY {
 		_, y := proj.Project(0, i)
-		p.MoveTo(x, y).LineTo(x0, y)
-		Text(canvas, x, y, -90, "labelY", f, i)
+		p.Line(x, y, x0, y)
+		s.Text(x, y, -90, fmt.Sprintf(f, i), "class=\"labelY\"")
 	}
-	p.Draw(canvas, StrokeBlack, StrokeWidth1)
+	s.Draw(p, StrokeBlack, StrokeWidth1)
 
 	if subTitle != "" {
 		x = x - SubTitleSize
-		Text(canvas, x, yc, -90, "subTitleY", subTitle)
+		s.Text(x, yc, -90, svg.CData(subTitle), "class=\"subTitleY\"")
 	}
 
 	if title != "" {
 		x = x - TitleSize
-		Text(canvas, x, yc, -90, "titleY", title)
+		s.Text(x, yc, -90, svg.CData(title), "class= \"titleY\"")
 	}
 }

@@ -1,6 +1,8 @@
-package graph
+package svg
 
-import "math"
+import (
+	"math"
+)
 
 type Projection struct {
 	x0, y0, x1, y1 float64 // Dimensions of area
@@ -119,4 +121,22 @@ func (p *Projection) YAxisTicks() (float64, float64, float64) {
 	stepY := CalculateStep(p.minY, p.maxY)
 	minY, maxY := Nearest(p.minY, p.maxY, stepY)
 	return minY, maxY, stepY
+}
+
+func CalculateStep(min, max float64) float64 {
+	if max < min {
+		min, max = max, min
+	}
+
+	vRange := max - min
+	e := 1.0
+	for i := 1; i < 10; i++ {
+		if vRange < e {
+			// return previous e value
+			return e / 10
+		}
+		e = e * 10.0
+	}
+	// range is >= 1e10 so default to 1e10
+	return e
 }
