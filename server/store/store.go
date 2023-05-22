@@ -19,7 +19,7 @@ type Store struct {
 }
 
 const (
-	storeMaxAge = time.Hour * 24 // Max time to keep readings
+	storeMaxAge = time.Hour * 26 // Max time to keep readings
 )
 
 func FromContext(ctx context.Context) *Store {
@@ -96,8 +96,10 @@ func (s *Store) Record(name string, value value.Value, recTime time.Time) {
 	}
 	s.history[name] = hist
 
-	// Cache latest value which is at end
-	s.data[name] = hist[len(hist)-1]
+	// Cache latest value which is at end, but only if we have data
+	if len(hist) > 0 {
+		s.data[name] = hist[len(hist)-1]
+	}
 }
 
 func (s *Store) GetReading(name string) *Reading {

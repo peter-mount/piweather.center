@@ -86,11 +86,19 @@ func (s *Archiver) appendReading(fileName string, rec *payload.Payload) error {
 }
 
 func (s *Archiver) Preload(ctx context.Context) error {
+
+	// Load yesterday
+	if err := s.preload(ctx, time.Now().Add(-24*time.Hour)); err != nil {
+		return err
+	}
+
+	// Load today
+	return s.preload(ctx, time.Now())
+}
+
+func (s *Archiver) preload(ctx context.Context, t time.Time) error {
 	sensors := station.SensorsFromContext(ctx)
-
-	log.Printf("Archiver:Preloading %s", sensors.ID)
-
-	fileName := s.archiveFileName(sensors.ID, time.Now().UTC())
+	fileName := s.archiveFileName(sensors.ID, t)
 
 	// Visitor to process the reading into memory cache
 	visitor := station.NewVisitor().
@@ -118,6 +126,5 @@ func (s *Archiver) Preload(ctx context.Context) error {
 		return nil
 	}
 
-	log.Printf("Archiver:Preloaded %d from %s", lc, sensors.ID)
 	return err
 }
