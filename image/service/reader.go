@@ -9,7 +9,7 @@ import (
 )
 
 func (i *imageService) ReadWithExif(fileName string) (*image.Image, error) {
-	log.Println("VisitReading", fileName)
+	log.Println("Reading", fileName)
 
 	x, err := exif2.ReadExif(fileName)
 	if err != nil {
@@ -31,7 +31,7 @@ func (i *imageService) ReadWithExif(fileName string) (*image.Image, error) {
 }
 
 func (i *imageService) ReadRaw(fileName string) (*image.Image, error) {
-	log.Println("VisitReading", fileName)
+	log.Println("Reading", fileName)
 	return i.read(&image.Image{Filename: fileName, Time: time.Now()})
 }
 
