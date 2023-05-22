@@ -72,7 +72,7 @@ func NewTransform(from, to *Unit, t Transformer) {
 // defined Transform of a unit to or from the baseUnit.
 //
 // If the baseUnit is present in the unit list it will also panic because that transform will already be registered.
-// Similarly, if a transform already exists then this will Panic.
+// If no transform exists between two units, then a transform will be created converting via the baseUnit.
 func NewTransformations(baseUnit *Unit, units ...*Unit) {
 	if len(units) < 2 {
 		panic(errors.New("must supply 2 or more Unit's"))
@@ -99,7 +99,9 @@ func NewTransformations(baseUnit *Unit, units ...*Unit) {
 					panic(err)
 				}
 
-				NewTransform(src, dest, srcToBase.Then(baseToDest))
+				if !TransformAvailable(src, dest) {
+					NewTransform(src, dest, srcToBase.Then(baseToDest))
+				}
 			}
 		}
 	}
