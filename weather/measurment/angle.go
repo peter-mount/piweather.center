@@ -18,10 +18,18 @@ func init() {
 	value.NewBasicBiTransform(Turn, Degree, 360)
 	value.NewBasicBiTransform(Turn, Radian, 2.0*math.Pi)
 	value.NewBasicBiTransform(Turn, ArcMinute, 360*60)
-	value.NewBasicBiTransform(Turn, ArcSecond, 362*3600)
+	value.NewBasicBiTransform(Turn, ArcSecond, 360*3600)
 	value.NewBasicBiTransform(Turn, Gradian, 400)
 	value.NewBasicBiTransform(Turn, HourAngle, 24)
 
+	// Common transforms to save on going via Turn
+	value.NewBasicBiTransform(Degree, Radian, math.Pi/180.0)
+	value.NewBasicBiTransform(Degree, ArcMinute, 60.0)
+	value.NewBasicBiTransform(ArcMinute, ArcSecond, 60.0)
+	value.NewBasicBiTransform(Degree, ArcSecond, 3600.0)
+	value.NewBasicBiTransform(HourAngle, Degree, 15.0)
+
+	// Ensure all others exist
 	value.NewTransformations(Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle)
 }
 
