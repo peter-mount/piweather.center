@@ -29,13 +29,18 @@ text{font-family:sans-serif;}
 .t20{font-size:20px;}
 .leftVert{transform:"rotate(-90)";}
 .graphId{font-size:16px;fill:black;fill-opacity:0.5;}
-.titleY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
-.subTitleY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
-.labelY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
+.titleX,.titleY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
+.subTitleX,.subTitleY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
+.labelX,.labelY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
+.grid0{stroke:grey;stroke-width:1px}
+.grid1{stroke:lightgrey;stroke-width:1px}
+.date{font-size:%dpx;fill:black;fill-opacity:0.5;}
+.txt{fill:black}
 ]]></style>`,
-		TitleSize,
-		SubTitleSize,
-		LabelSize,
+		TitleSize,    // .titleX,.titleY
+		SubTitleSize, // .subTitleX,.subTitleY
+		LabelSize,    // .labelX,.labelY
+		LabelSize,    // .date
 	), "\n", "")
 )
 

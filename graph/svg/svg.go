@@ -17,6 +17,7 @@ type SVG interface {
 	// Group wraps operations in a <g> element
 	Group(Handler, ...string) SVG
 
+	ClipPath(Handler, ...string) SVG
 	Rect(x0, y0, x1, y1 float64, attrs ...string) SVG
 
 	Text(x, y, rot float64, text string, attrs ...string) SVG
@@ -120,6 +121,10 @@ func (s *svg) Rect(x0, y0, x1, y1 float64, attrs ...string) SVG {
 
 func (s *svg) Group(h Handler, attrs ...string) SVG {
 	return s.Tag("g", h, attrs...)
+}
+
+func (s *svg) ClipPath(h Handler, attrs ...string) SVG {
+	return s.Tag("clipPath", h, attrs...)
 }
 
 func (s *svg) Text(x, y, rot float64, text string, attrs ...string) SVG {

@@ -66,7 +66,7 @@ func drawYAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string) {
 	p := &svg.Path{}
 	for i := minY; i <= maxY; i += stepY {
 		_, y := proj.Project(0, i)
-		p.Line(x, y, x0, y)
+		p.Line(x+3, y, x0, y)
 		s.Text(x, y, -90, fmt.Sprintf(f, i), "class=\"labelY\"")
 	}
 	s.Draw(p, StrokeBlack, StrokeWidth1)
@@ -79,5 +79,67 @@ func drawYAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string) {
 	if title != "" {
 		x = x - TitleSize
 		s.Text(x, yc, -90, svg.CData(title), "class= \"titleY\"")
+	}
+}
+
+func DrawXAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64, styles ...string) {
+	if len(styles) > 0 {
+		s.Group(func(s svg.SVG) {
+			drawXAxisGrid(s, proj, stepFactor)
+		}, styles...)
+	} else {
+		drawXAxisGrid(s, proj, stepFactor)
+	}
+}
+
+func drawXAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64) {
+	minX, maxX, stepX := proj.XAxisTicks()
+
+	// Apply stepFactor
+	if value.NotEqual(stepFactor, 0.0) && value.NotEqual(stepFactor, 1.0) {
+		stepX = stepX * stepFactor
+	}
+
+	p := &svg.Path{}
+	for i := minX; i <= maxX; i += stepX {
+		x, _ := proj.Project(i, 0)
+		p.Line(x, proj.Y0(), x, proj.Y1())
+	}
+	s.Draw(p)
+}
+
+func DrawXAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string, f func(float64) string, styles ...string) {
+	if len(styles) > 0 {
+		s.Group(func(s svg.SVG) {
+			drawXAxisLegend(s, proj, title, subTitle, f)
+		}, styles...)
+	} else {
+		drawXAxisLegend(s, proj, title, subTitle, f)
+	}
+}
+
+func drawXAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string, f func(float64) string) {
+	minX, maxX, stepX := proj.XAxisTicks()
+
+	y1, xc := proj.Y1(), proj.Xc()
+
+	y := y1 + LabelSize
+
+	p := &svg.Path{}
+	for i := minX; i <= maxX; i += stepX {
+		x, _ := proj.Project(i, 0)
+		p.Line(x, y-3, x, y1)
+		s.Text(x, y, 0, f(i), "class=\"labelX\"")
+	}
+	s.Draw(p, StrokeBlack, StrokeWidth1)
+
+	if subTitle != "" {
+		y = y + SubTitleSize
+		s.Text(xc, y, 0, svg.CData(subTitle), "class=\"subTitleX\"")
+	}
+
+	if title != "" {
+		y = y + TitleSize
+		s.Text(xc, y, 0, svg.CData(title), "class= \"titleX\"")
 	}
 }

@@ -110,7 +110,7 @@ func (p *Projection) YScale() float64 { return p.yScale }
 func (p *Projection) YOrigin() float64 { return p.yOrigin }
 
 func (p *Projection) Project(x, y float64) (float64, float64) {
-	return p.x0 + (p.xScale * float64(x)),
+	return p.x0 + (p.xScale * (x - p.minX)),
 		p.y1 - ((y - p.minY) * p.yScale)
 }
 
@@ -118,9 +118,28 @@ func (p *Projection) InsideX(x float64) bool { return x >= p.x0 && x <= p.x1 }
 
 // YAxisTicks returns minY, maxY values and stepSize for plotting ticks on the Y-axis
 func (p *Projection) YAxisTicks() (float64, float64, float64) {
-	stepY := CalculateStep(p.minY, p.maxY)
-	minY, maxY := Nearest(p.minY, p.maxY, stepY)
-	return minY, maxY, stepY
+	return xyTicks(p.minY, p.maxY)
+}
+
+// XAxisTicks returns minX, maxX values and stepSize for plotting ticks on the X-axis
+func (p *Projection) XAxisTicks() (float64, float64, float64) {
+	return xyTicks(p.minX, p.maxX)
+}
+
+func xyTicks(min, max float64) (float64, float64, float64) {
+	step := CalculateStep(min, max)
+
+	d := max - min
+	switch {
+	// 1 hour
+	case d <= 60:
+		step = 10
+	// 1 day in minutes
+	case d <= 1440:
+		step = 60
+	}
+	minV, maxV := Nearest(min, max, step)
+	return minV, maxV, step
 }
 
 func CalculateStep(min, max float64) float64 {

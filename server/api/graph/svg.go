@@ -3,6 +3,7 @@ package graph
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/graph"
@@ -46,14 +47,25 @@ func (s *SVG) serveHour(ctx context.Context) error {
 }
 
 func (s *SVG) serveDay(ctx context.Context) error {
-	now := time.Now()
-	start := now.Add(-24 * time.Hour)
-	return s.serve(start, now, ctx)
+	// End is end of current hour
+	end := time.Now().Truncate(time.Hour).Add(time.Hour)
+	start := end.Add(-24 * time.Hour)
+	return s.serve(start, end, ctx)
 }
 
 func (s *SVG) serveToday(ctx context.Context) error {
 	now := time.Now()
-	start := now.Truncate(time.Hour * 24)
+	// Start at beginning of the current local day
+	//
+	// Note: truncate to hour then subtract hours to get the start.
+	// It might look weird when you could truncate to day, but that truncate
+	// seems to set it to 0h UTC, so if we are in BST (UTC+1) then the day
+	// starts at 0100 and not 0000 midnight.
+	//
+	// TODO check this works for other timezones
+	start := now.Truncate(time.Hour)
+	start = start.Add(time.Hour * time.Duration(-start.Hour()))
+
 	end := start.Add(time.Hour * 24)
 	return s.serve(start, end, ctx)
 }
@@ -73,7 +85,7 @@ func (s *SVG) serve(start, end time.Time, ctx context.Context) error {
 	}
 
 	var buf bytes.Buffer
-	s.draw(&buf, id, readings)
+	s.draw(&buf, id, readings, start, end)
 
 	r.Status(http.StatusOK).
 		ContentType("image/svg+xml").
@@ -82,10 +94,10 @@ func (s *SVG) serve(start, end time.Time, ctx context.Context) error {
 	return nil
 }
 
-func (s *SVG) draw(buf *bytes.Buffer, id string, readings chart.DataSource) {
+func (s *SVG) draw(buf *bytes.Buffer, id string, readings chart.DataSource, start, end time.Time) {
 
 	// Get min/max
-	start, end := readings.GetXRange()
+	//start, end := readings.GetXRange()
 	minVal, maxVal := readings.GetYRange()
 
 	// Nearest 10 min or 1 hour?
@@ -94,7 +106,7 @@ func (s *SVG) draw(buf *bytes.Buffer, id string, readings chart.DataSource) {
 		xStep = 10.0
 	}
 
-	proj := svg2.NewProjection(svgWidth-960-1, 1, 960, svgHeight-10).
+	proj := svg2.NewProjection(svgWidth-960-1, 10, svgWidth-1-10, svgHeight-50).
 		SetXRange(0, end.Sub(start).Minutes()).
 		SetYRange(minVal.Float(), maxVal.Float()).
 		ZeroY().
@@ -106,15 +118,30 @@ func (s *SVG) draw(buf *bytes.Buffer, id string, readings chart.DataSource) {
 		//s.Defs()
 		graph.CSS(s)
 
-		s.Rect(proj.X0(), proj.Y0(), proj.Width()-1, proj.Height()-1, graph.StrokeBlack, graph.StrokeWidth1, graph.FillWhite)
-
-		s.Text(proj.X0()+5, proj.Y0()+15, 0, id, "class=\"graphId\"")
-
 		unit := readings.GetUnit()
 
-		graph.DrawYAxisLegend(s, proj, unit.Name(), unit.Unit(), graph.StrokeBlack)
-		graph.DrawYAxisGrid(s, proj, 0.2, graph.StrokeLightGrey, graph.StrokeWidth1)
-		graph.DrawYAxisGrid(s, proj, 1.0, graph.StrokeGrey, graph.StrokeWidth1)
+		s.Group(func(svg svg2.SVG) {
+			graph.DrawYAxisGrid(s, proj, 0.2)
+			graph.DrawXAxisGrid(s, proj, 0.25)
+		}, "class=\"grid1\"")
+
+		s.Group(func(svg svg2.SVG) {
+			graph.DrawYAxisGrid(s, proj, 1.0)
+			graph.DrawXAxisGrid(s, proj, 1.0)
+		}, "class=\"grid0\"")
+
+		s.Group(func(svg svg2.SVG) {
+			graph.DrawYAxisLegend(s, proj, unit.Name(), unit.Unit())
+			graph.DrawXAxisLegend(s, proj,
+				"",
+				fmt.Sprintf("Time %s", util.TimeZone(start)),
+				func(f float64) string {
+					t := start.Add(time.Minute * time.Duration(f))
+					return fmt.Sprintf("%d", t.Hour())
+				})
+		}, "class=\"txt\"")
+
+		s.Text(proj.X0()+5, proj.Y0()+15, 0, id, "class=\"graphId\"")
 
 		p := &svg2.Path{}
 		readings.ForEach(func(i int, t time.Time, value value.Value) {
@@ -123,6 +150,8 @@ func (s *SVG) draw(buf *bytes.Buffer, id string, readings chart.DataSource) {
 			}
 		})
 		s.Draw(p, graph.StrokeRed, graph.StrokeWidth1, graph.FillNone)
+
+		s.Rect(proj.X0(), proj.Y0(), proj.X1()-1, proj.Y1(), graph.StrokeBlack, graph.StrokeWidth1, graph.FillNone)
 
 	})
 }
