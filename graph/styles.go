@@ -19,6 +19,7 @@ const (
 	TitleSize       = 16 // Y-axis main title size
 	SubTitleSize    = 12 // Y-axis sub title size
 	LabelSize       = 8  // X & Y axis tick label size
+	DateSize        = 10 // Date size vertical on x-axis
 )
 
 var (
@@ -32,15 +33,15 @@ text{font-family:sans-serif;}
 .titleX,.titleY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
 .subTitleX,.subTitleY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
 .labelX,.labelY{font-size:%dpx;text-anchor:middle;dominant-baseline:central;}
+.labelDate{font-size:%dpx;fill:grey;}
 .grid0{stroke:grey;stroke-width:1px}
 .grid1{stroke:lightgrey;stroke-width:1px}
-.date{font-size:%dpx;fill:black;fill-opacity:0.5;}
 .txt{fill:black}
 ]]></style>`,
 		TitleSize,    // .titleX,.titleY
 		SubTitleSize, // .subTitleX,.subTitleY
 		LabelSize,    // .labelX,.labelY
-		LabelSize,    // .date
+		DateSize,     // .labelDate
 	), "\n", "")
 )
 

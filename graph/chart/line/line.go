@@ -84,6 +84,7 @@ func (l *Line) draw(s svg.SVG) {
 	s.Group(func(_ svg.SVG) {
 		graph.DrawYAxisLegend(s, proj, unit.Name(), unit.Unit())
 		graph.DrawXAxisLegend(s, proj,
+			period.Start(),
 			"",
 			fmt.Sprintf("Time %s", time2.Zone(period.Start())),
 			func(f float64) string {

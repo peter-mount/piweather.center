@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/graph/svg"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"time"
 )
 
 func DrawYAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64, styles ...string) {
@@ -112,17 +113,17 @@ func drawXAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64) {
 	s.Draw(p)
 }
 
-func DrawXAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string, f func(float64) string, styles ...string) {
+func DrawXAxisLegend(s svg.SVG, proj *svg.Projection, start time.Time, title, subTitle string, f func(float64) string, styles ...string) {
 	if len(styles) > 0 {
 		s.Group(func(s svg.SVG) {
-			drawXAxisLegend(s, proj, title, subTitle, f)
+			drawXAxisLegend(s, proj, start, title, subTitle, f)
 		}, styles...)
 	} else {
-		drawXAxisLegend(s, proj, title, subTitle, f)
+		drawXAxisLegend(s, proj, start, title, subTitle, f)
 	}
 }
 
-func drawXAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string, f func(float64) string) {
+func drawXAxisLegend(s svg.SVG, proj *svg.Projection, start time.Time, title, subTitle string, f func(float64) string) {
 	minX, maxX, stepX := proj.XAxisTicks()
 
 	y1, xc := proj.Y1(), proj.Xc()
@@ -133,7 +134,12 @@ func drawXAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string, f 
 	for i := minX; i <= maxX; i += stepX {
 		x, _ := proj.Project(i, 0)
 		p.Line(x, y-3, x, y1)
-		s.Text(x, y, 0, f(i), "class=\"labelX\"")
+		label := f(i)
+		s.Text(x, y, 0, label, "class=\"labelX\"")
+		if label == "0" {
+			t := start.Add(time.Minute * time.Duration(i))
+			s.Text(x+1+LabelSize, y1-2, -90, t.Format("2006-01-02"), "class=\"labelDate\"")
+		}
 	}
 	s.Draw(p, StrokeBlack, StrokeWidth1)
 
