@@ -27,7 +27,9 @@ func drawYAxisGrid(s svg.SVG, proj *svg.Projection, stepFactor float64) {
 	p := &svg.Path{}
 	for i := minY; i <= maxY; i += stepY {
 		_, y := proj.Project(0, i)
-		p.Line(proj.X0(), y, proj.X1(), y)
+		if proj.InsideY(y) {
+			p.Line(proj.X0(), y, proj.X1(), y)
+		}
 	}
 	s.Draw(p)
 }
@@ -66,8 +68,10 @@ func drawYAxisLegend(s svg.SVG, proj *svg.Projection, title, subTitle string) {
 	p := &svg.Path{}
 	for i := minY; i <= maxY; i += stepY {
 		_, y := proj.Project(0, i)
-		p.Line(x+3, y, x0, y)
-		s.Text(x, y, -90, fmt.Sprintf(f, i), "class=\"labelY\"")
+		if proj.InsideY(y) {
+			p.Line(x+3, y, x0, y)
+			s.Text(x, y, -90, fmt.Sprintf(f, i), "class=\"labelY\"")
+		}
 	}
 	s.Draw(p, StrokeBlack, StrokeWidth1)
 
