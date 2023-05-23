@@ -1,6 +1,8 @@
 package svg
 
 import (
+	"github.com/peter-mount/piweather.center/util/time"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )
 
@@ -32,12 +34,20 @@ func NewProjection(x0, y0, x1, y1 float64) *Projection {
 	}
 }
 
+func (p *Projection) SetPeriod(period time.Period) *Projection {
+	return p.SetXRange(0, period.DurationMinutes())
+}
+
 func (p *Projection) SetXRange(min, max float64) *Projection {
 	p.minX, p.maxX = min, max
 	return p
 }
 
 func (p *Projection) GetXRange() (float64, float64) { return p.minX, p.maxX }
+
+func (p *Projection) SetValueRange(r *value.Range) *Projection {
+	return p.SetYRange(r.Min().Float(), r.Max().Float())
+}
 
 func (p *Projection) SetYRange(min, max float64) *Projection {
 	p.minY, p.maxY = min, max

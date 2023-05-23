@@ -3,15 +3,14 @@ package graph
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/graph"
 	"github.com/peter-mount/piweather.center/graph/chart"
-	svg2 "github.com/peter-mount/piweather.center/graph/svg"
+	"github.com/peter-mount/piweather.center/graph/chart/line"
+	"github.com/peter-mount/piweather.center/graph/svg"
 	"github.com/peter-mount/piweather.center/server/store"
-	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/weather/value"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"net/http"
 	"strings"
 	"time"
@@ -85,73 +84,20 @@ func (s *SVG) serve(start, end time.Time, ctx context.Context) error {
 	}
 
 	var buf bytes.Buffer
-	s.draw(&buf, id, readings, start, end)
+
+	l := line.New()
+	l.Add(chart.NewUnitSource(id, readings)).
+		SetPeriod(time2.PeriodOf(start, end)).
+		SetBounds(svg.NewRect(0, 0, svgWidth, svgHeight))
+
+	svg.New(&buf, svgWidth, svgHeight, func(s svg.SVG) {
+		graph.CSS(s)
+		s.Draw(l)
+	})
 
 	r.Status(http.StatusOK).
 		ContentType("image/svg+xml").
 		Value(buf.Bytes())
 
 	return nil
-}
-
-func (s *SVG) draw(buf *bytes.Buffer, id string, readings chart.DataSource, start, end time.Time) {
-
-	// Get min/max
-	//start, end := readings.GetXRange()
-	minVal, maxVal := readings.GetYRange()
-
-	// Nearest 10 min or 1 hour?
-	xStep := 60.0
-	if end.Sub(start) < time.Hour {
-		xStep = 10.0
-	}
-
-	proj := svg2.NewProjection(svgWidth-960-1, 10, svgWidth-1-10, svgHeight-50).
-		SetXRange(0, end.Sub(start).Minutes()).
-		SetYRange(minVal.Float(), maxVal.Float()).
-		ZeroY().
-		NearestY(10.0).
-		NearestX(xStep).
-		Build()
-
-	svg2.New(buf, svgWidth, svgHeight, func(s svg2.SVG) {
-		//s.Defs()
-		graph.CSS(s)
-
-		unit := readings.GetUnit()
-
-		s.Group(func(svg svg2.SVG) {
-			graph.DrawYAxisGrid(s, proj, 0.2)
-			graph.DrawXAxisGrid(s, proj, 0.25)
-		}, "class=\"grid1\"")
-
-		s.Group(func(svg svg2.SVG) {
-			graph.DrawYAxisGrid(s, proj, 1.0)
-			graph.DrawXAxisGrid(s, proj, 1.0)
-		}, "class=\"grid0\"")
-
-		s.Group(func(svg svg2.SVG) {
-			graph.DrawYAxisLegend(s, proj, unit.Name(), unit.Unit())
-			graph.DrawXAxisLegend(s, proj,
-				"",
-				fmt.Sprintf("Time %s", util.TimeZone(start)),
-				func(f float64) string {
-					t := start.Add(time.Minute * time.Duration(f))
-					return fmt.Sprintf("%d", t.Hour())
-				})
-		}, "class=\"txt\"")
-
-		s.Text(proj.X0()+5, proj.Y0()+15, 0, id, "class=\"graphId\"")
-
-		p := &svg2.Path{}
-		readings.ForEach(func(i int, t time.Time, value value.Value) {
-			if util.TimeBetween(t, start, end) {
-				p.AddProjectX(t.Sub(start).Minutes(), value.Float(), proj)
-			}
-		})
-		s.Draw(p, graph.StrokeRed, graph.StrokeWidth1, graph.FillNone)
-
-		s.Rect(proj.X0(), proj.Y0(), proj.X1()-1, proj.Y1(), graph.StrokeBlack, graph.StrokeWidth1, graph.FillNone)
-
-	})
 }

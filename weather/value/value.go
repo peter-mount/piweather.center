@@ -141,7 +141,13 @@ func (v Value) IsZero() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return Equal(v.Float(), 0), nil
+	return IsZero(v.Float()), nil
+}
+
+// IsZero returns true if the value is zero.
+// Specifically if |v|<1e-9 to account for rounding errors in float64.
+func IsZero(f float64) bool {
+	return Equal(f, 0)
 }
 
 // IsOne returns true if the value is 1.
@@ -151,6 +157,12 @@ func (v Value) IsOne() (bool, error) {
 		return false, v.BoundsError()
 	}
 	return Equal(v.Float(), 1), nil
+}
+
+// IsOne returns true if the value is 1.
+// Specifically if |v-1|<1e-9 to account for rounding errors in float64.
+func IsOne(f float64) bool {
+	return Equal(f, 1)
 }
 
 // IsPositive returns true if the value is positive.

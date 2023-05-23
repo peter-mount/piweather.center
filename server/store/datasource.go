@@ -2,20 +2,19 @@ package store
 
 import (
 	"github.com/peter-mount/piweather.center/graph/chart"
-	"github.com/peter-mount/piweather.center/util"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"math"
 	"time"
 )
 
 type dataSource []*Reading
 
 func (s *Store) GetHistoryBetween(name string, start, end time.Time) chart.DataSource {
-	start, end = util.NormalizeTime(start, end)
+	start, end = time2.NormalizeTime(start, end)
 
 	var r dataSource
 	for _, e := range s.GetHistory(name) {
-		if util.TimeBetween(e.Time, start, end) {
+		if time2.Between(e.Time, start, end) {
 			r = append(r, e)
 		}
 	}
@@ -31,19 +30,16 @@ func (s *dataSource) Get(i int) (time.Time, value.Value) {
 	return e.Time, e.Value
 }
 
-func (s *dataSource) GetXRange() (time.Time, time.Time) {
-	return (*s)[0].Time, (*s)[len(*s)-1].Time
+func (s *dataSource) Period() time2.Period {
+	return time2.PeriodOf((*s)[0].Time, (*s)[len(*s)-1].Time)
 }
 
-func (s *dataSource) GetYRange() (value.Value, value.Value) {
-	minVal, maxVal := math.MaxFloat64, -math.MaxFloat64
+func (s *dataSource) GetYRange() *value.Range {
+	r := value.NewRange(s.GetUnit())
 	for _, reading := range *s {
-		v := reading.Value.Float()
-		minVal, maxVal = math.Min(minVal, v), math.Max(maxVal, v)
+		_ = r.Add(reading.Value)
 	}
-
-	unit := s.GetUnit()
-	return unit.Value(minVal), unit.Value(maxVal)
+	return r
 }
 
 func (s *dataSource) GetUnit() *value.Unit {
