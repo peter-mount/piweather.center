@@ -19,6 +19,9 @@ type SVG interface {
 
 	ClipPath(Handler, ...string) SVG
 	Rect(x0, y0, x1, y1 float64, attrs ...string) SVG
+	Circle(cx, cy, r float64, attrs ...string) SVG
+	Ellipse(cx, cy, rx, ry float64, attrs ...string) SVG
+	Line(x0, y0, x1, y1 float64, attrs ...string) SVG
 
 	Text(x, y, rot float64, text string, attrs ...string) SVG
 
@@ -115,6 +118,36 @@ func (s *svg) Rect(x0, y0, x1, y1 float64, attrs ...string) SVG {
 		AttrMerge(attrs,
 			AttrN("x", x0), AttrN("y", y0),
 			AttrN("width", x1-x0), AttrN("height", y1-y0),
+		)...,
+	)
+}
+
+func (s *svg) Circle(cx, cy, r float64, attrs ...string) SVG {
+	return s.emptyTag(
+		"circle",
+		AttrMerge(attrs,
+			AttrN("cx", cx), AttrN("cy", cy),
+			AttrN("r", r),
+		)...,
+	)
+}
+
+func (s *svg) Ellipse(cx, cy, rx, ry float64, attrs ...string) SVG {
+	return s.emptyTag(
+		"ellipse",
+		AttrMerge(attrs,
+			AttrN("cx", cx), AttrN("cy", cy),
+			AttrN("rx", rx), AttrN("ry", ry),
+		)...,
+	)
+}
+
+func (s *svg) Line(x1, y1, x2, y2 float64, attrs ...string) SVG {
+	return s.emptyTag(
+		"line",
+		AttrMerge(attrs,
+			AttrN("x1", x1), AttrN("y1", y1),
+			AttrN("x2", x2), AttrN("y2", y2),
 		)...,
 	)
 }

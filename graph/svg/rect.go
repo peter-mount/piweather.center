@@ -32,6 +32,10 @@ func (r Rect) Width() float64 { return r.x1 - r.x0 }
 
 func (r Rect) Height() float64 { return r.y1 - r.y0 }
 
+func (r Rect) CX() float64 { return r.x0 + (r.Width() / 2.0) }
+
+func (r Rect) CY() float64 { return r.y0 + (r.Height() / 2.0) }
+
 func (r Rect) Add(x, y float64) Rect {
 	return r.include(x, y, x, y)
 }

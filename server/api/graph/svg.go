@@ -22,7 +22,7 @@ func init() {
 
 const (
 	svgWidth  = 1024
-	svgHeight = 200
+	svgHeight = 132
 )
 
 // SVG provides the /api/svg endpoint which displays svg graphs for a metric
@@ -35,6 +35,38 @@ func (s *SVG) Start() error {
 	s.Rest.Do("/api/svg/{stationId}/{sensorId}/{readingId}/hour.svg", s.serveHour).Methods(http.MethodGet)
 	s.Rest.Do("/api/svg/{stationId}/{sensorId}/{readingId}/day.svg", s.serveDay).Methods(http.MethodGet)
 	s.Rest.Do("/api/svg/{stationId}/{sensorId}/{readingId}/today.svg", s.serveToday).Methods(http.MethodGet)
+
+	s.Rest.Do("/api/svg/{stationId}/{sensorId}/day", s.serveSensorDay).Methods(http.MethodGet)
+	s.Rest.Do("/api/svg/{stationId}/{sensorId}/today", s.serveSensorToday).Methods(http.MethodGet)
+	return nil
+}
+
+func (s *SVG) serveSensorDay(ctx context.Context) error {
+	return s.serveSensor(ctx, "day.svg")
+}
+
+func (s *SVG) serveSensorToday(ctx context.Context) error {
+	return s.serveSensor(ctx, "today.svg")
+}
+
+func (s *SVG) serveSensor(ctx context.Context, img string) error {
+	r := rest.GetRest(ctx)
+	prefix := r.Var("stationId") + "." + r.Var("sensorId") + "."
+
+	var buf bytes.Buffer
+
+	buf.WriteString("<html><body>")
+	for _, k := range s.Store.GetKeys() {
+		if strings.HasPrefix(k, prefix) {
+			buf.WriteString("<img src=\"/api/svg/" + strings.ReplaceAll(k, ".", "/") + "/" + img + "\"/>")
+		}
+	}
+	buf.WriteString("</body></html>")
+
+	r.Status(http.StatusOK).
+		HTML().
+		Value(buf.Bytes())
+
 	return nil
 }
 
