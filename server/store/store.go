@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/piweather.center/util/template"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
@@ -13,6 +14,7 @@ import (
 
 type Store struct {
 	Templates *template.Manager `kernel:"inject"`
+	Cron      *cron.CronService `kernel:"inject"`
 	mutex     sync.Mutex
 	data      map[string]*Reading
 	history   map[string][]*Reading
@@ -54,7 +56,11 @@ func (s *Store) PostInit() error {
 func (s *Store) Start() error {
 	s.data = make(map[string]*Reading)
 	s.history = make(map[string][]*Reading)
-	return nil
+
+	// Every 10 minutes clear down history
+	_, err := s.Cron.AddTask("0/10 * * * ?", s.pruneTask)
+
+	return err
 }
 
 func (s *Store) DeclareReading(name string, unit *value.Unit) {
@@ -89,11 +95,8 @@ func (s *Store) Record(name string, value value.Value, recTime time.Time) {
 		return hist[i].Time.Before(hist[j].Time)
 	})
 
-	cutoff := time.Now().Add(-storeMaxAge)
-
-	for len(hist) > 0 && hist[0].Time.Before(cutoff) {
-		hist = hist[1:]
-	}
+	// Prune the history as we add an entry
+	hist = s.pruneHistory(hist)
 	s.history[name] = hist
 
 	// Cache latest value which is at end, but only if we have data
@@ -132,4 +135,33 @@ func (s *Store) GetKeys() []string {
 	})
 
 	return keys
+}
+
+func (s *Store) pruneTask(_ context.Context) error {
+	keys := s.GetKeys()
+	for _, k := range keys {
+		s.prune(k)
+	}
+	return nil
+}
+
+func (s *Store) prune(key string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if hist, exists := s.history[key]; exists {
+		s.history[key] = s.pruneHistory(hist)
+	}
+}
+
+func (s *Store) pruneHistory(hist []*Reading) []*Reading {
+	cutoff := time.Now().Add(-storeMaxAge)
+
+	// >2 so we keep the last 2 entries regardless of how old
+	// they are - so on status page we have a last received time
+	// if a sensor is offline.
+	for len(hist) > 1 && hist[0].Time.Before(cutoff) {
+		hist = hist[1:]
+	}
+
+	return hist
 }
