@@ -24,7 +24,7 @@ type Server struct {
 	Rest           *rest.Server           `kernel:"inject"`
 	Archiver       *archiver.Archiver     `kernel:"inject"`
 	Amqp           mq.Pool                `kernel:"inject"`
-	ApiInbound     *api.Inbound           `kernel:"inject"`
+	ApiInbound     *api.EndpointManager   `kernel:"inject"`
 	Config         *station.Stations      `kernel:"config,stations"`
 	Templates      *template.Manager      `kernel:"inject"`
 	Store          *store.Store           `kernel:"inject"`

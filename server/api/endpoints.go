@@ -12,13 +12,10 @@ import (
 	"time"
 )
 
-// Inbound presents an api under /api/inbound which will accept data from an
-// HTTP request and pass it onto a Task.
-//
-// Examples of this are:
-//   - Stations submitting data in the Ecowitt protocol
-//   - Stations submitting data in the Weather Underground protocol
-type Inbound struct {
+// EndpointManager acts as a frontend to the Rest server and provides a common
+// interface for both inbound feeds (using http or message brokers) as well as
+// for svg and image sources.
+type EndpointManager struct {
 	Rest      *rest.Server      `kernel:"inject"`
 	Templates *template.Manager `kernel:"inject"`
 	endPoints map[string][]*endpoint
@@ -58,18 +55,18 @@ func (a EndpointEntry) Identical(b EndpointEntry) bool {
 	return a.Endpoint == b.Endpoint && strings.ToUpper(a.Method) == strings.ToUpper(b.Method)
 }
 
-func (s *Inbound) PostInit() error {
+func (s *EndpointManager) PostInit() error {
 	s.endPoints = make(map[string][]*endpoint)
 	return nil
 }
 
-func (s *Inbound) Start() error {
+func (s *EndpointManager) Start() error {
 	s.Rest.Do("/status/endpoints", s.showEndpoints).Methods("GET")
 	return nil
 }
 
 // RegisterHttpEndpoint registers a new endpoint with the system webserver which will be sent to a task.
-func (s *Inbound) RegisterHttpEndpoint(category, pathName, id, name, method, protocol string, t task.Task) error {
+func (s *EndpointManager) RegisterHttpEndpoint(category, pathName, id, name, method, protocol string, t task.Task) error {
 	e, _, err := s.registerEndpoint(category, pathName, id, name, method, protocol, t)
 	if err == nil {
 		s.Rest.Do(e.endpoint.Endpoint, e.invoke).Methods(e.endpoint.Method)
@@ -81,12 +78,12 @@ func (s *Inbound) RegisterHttpEndpoint(category, pathName, id, name, method, pro
 // This doesn't do much other than count the number of times the task is run and show it
 // on the status page.
 // This is usually used for mqtt and amqp queues
-func (s *Inbound) RegisterEndpoint(category, pathName, id, name, method, protocol string, t task.Task) (task.Task, error) {
+func (s *EndpointManager) RegisterEndpoint(category, pathName, id, name, method, protocol string, t task.Task) (task.Task, error) {
 	_, rt, err := s.registerEndpoint(category, pathName, id, name, method, protocol, t)
 	return rt, err
 }
 
-func (s *Inbound) registerEndpoint(category, pathName, id, name, method, protocol string, t task.Task) (*endpoint, task.Task, error) {
+func (s *EndpointManager) registerEndpoint(category, pathName, id, name, method, protocol string, t task.Task) (*endpoint, task.Task, error) {
 	// Sanitize category and pathName
 	category = strings.ToLower(strings.TrimSpace(category))
 
@@ -109,7 +106,7 @@ func (s *Inbound) registerEndpoint(category, pathName, id, name, method, protoco
 	return e, e.invoke, nil
 }
 
-func (s *Inbound) addEndpoint(e *endpoint) error {
+func (s *EndpointManager) addEndpoint(e *endpoint) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -127,7 +124,7 @@ func (s *Inbound) addEndpoint(e *endpoint) error {
 	return nil
 }
 
-func (s *Inbound) getEndpointSlice() []Endpoints {
+func (s *EndpointManager) getEndpointSlice() []Endpoints {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	var r []Endpoints
@@ -141,7 +138,7 @@ func (s *Inbound) getEndpointSlice() []Endpoints {
 	return r
 }
 
-func (s *Inbound) getEndpoints() []Endpoints {
+func (s *EndpointManager) getEndpoints() []Endpoints {
 	r := s.getEndpointSlice()
 
 	// Sort by category
@@ -170,7 +167,7 @@ func (s *Inbound) getEndpoints() []Endpoints {
 	return r
 }
 
-func (s *Inbound) showEndpoints(ctx context.Context) error {
+func (s *EndpointManager) showEndpoints(ctx context.Context) error {
 	return s.Templates.Render(ctx, "info/endpoints.html", map[string]interface{}{
 		"endpoints":  s.getEndpoints(),
 		"navSection": "Status",

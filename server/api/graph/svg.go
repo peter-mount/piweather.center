@@ -33,10 +33,10 @@ const (
 
 // SVG provides the /api/svg endpoint which displays svg graphs for a metric
 type SVG struct {
-	Inbound *api.Inbound      `kernel:"inject"`
-	Store   *store.Store      `kernel:"inject"`
-	Config  *station.Stations `kernel:"config,stations"`
-	_       *server.Server    `kernel:"inject"`
+	Inbound *api.EndpointManager `kernel:"inject"`
+	Store   *store.Store         `kernel:"inject"`
+	Config  *station.Stations    `kernel:"config,stations"`
+	_       *server.Server       `kernel:"inject"`
 }
 
 func (s *SVG) Start() error {

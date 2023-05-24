@@ -15,10 +15,10 @@ import (
 )
 
 type Home struct {
-	Rest       *rest.Server      `kernel:"inject"`
-	Templates  *template.Manager `kernel:"inject"`
-	Store      *store.Store      `kernel:"inject"`
-	ApiInbound *api.Inbound      `kernel:"inject"`
+	Rest       *rest.Server         `kernel:"inject"`
+	Templates  *template.Manager    `kernel:"inject"`
+	Store      *store.Store         `kernel:"inject"`
+	ApiInbound *api.EndpointManager `kernel:"inject"`
 	meta       *Meta
 	lastUpdate time.Time
 	mutex      sync.Mutex
