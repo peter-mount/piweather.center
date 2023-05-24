@@ -1,7 +1,6 @@
 package svg
 
 import (
-	"fmt"
 	common "github.com/peter-mount/piweather.center"
 	"io"
 	"strings"
@@ -25,8 +24,8 @@ type SVG interface {
 
 	Text(x, y, rot float64, text string, attrs ...string) SVG
 
-	WriteString(string, ...interface{}) SVG
-	WriteCData(string, ...interface{}) SVG
+	WriteString(string) SVG
+	WriteCData(string) SVG
 	Tag(t string, h Handler, args ...string) SVG
 }
 
@@ -53,27 +52,25 @@ func New(w io.Writer, width, height float64, h Handler) {
 	)
 }
 
-func (s *svg) WriteString(f string, a ...interface{}) SVG {
-	_, _ = io.WriteString(s.w, fmt.Sprintf(f, a...))
+func (s *svg) WriteString(f string) SVG {
+	_, _ = io.WriteString(s.w, f)
 	return s
 }
 
-func (s *svg) WriteCData(f string, a ...interface{}) SVG {
-	return s.WriteString("<![CDATA["+f+"]]>", a...)
+func (s *svg) WriteCData(f string) SVG {
+	return s.WriteString("<![CDATA[" + f + "]]>")
 }
 
-func (s *svg) start(t string, args ...string) { s.startTag(false, t, args) }
-
-func (s *svg) emptyTag(t string, args ...string) SVG {
+func (s *svg) startEmptyTag(t string, args ...string) SVG {
 	s.startTag(true, t, args)
 	return s
 }
 
 func (s *svg) startTag(empty bool, t string, args []string) {
 	if len(args) == 0 {
-		s.WriteString("<%s", t)
+		s.WriteString("<" + t)
 	} else {
-		s.WriteString("<%s %s", t, strings.Join(args, " "))
+		s.WriteString("<" + t + " " + strings.Join(args, " "))
 	}
 	if empty {
 		s.WriteString("/>")
@@ -82,22 +79,26 @@ func (s *svg) startTag(empty bool, t string, args []string) {
 	}
 }
 
-func (s *svg) end(t string) {
-	s.WriteString("</%s>", t)
+func (s *svg) endTag(t string) {
+	s.WriteString("</" + t + ">")
 }
 
 func (s *svg) Tag(t string, h Handler, args ...string) SVG {
 	s.startTag(h == nil, t, args)
 	if h != nil {
 		h(s)
-		s.end(t)
+		s.endTag(t)
 	}
 	return s
 }
 
 func (s *svg) Defs(h Handler) SVG { return s.Tag("defs", h) }
 
-func (s *svg) Style(styles string) SVG { return s.WriteString("<style><![CDATA[%s]]></style>", styles) }
+func (s *svg) Style(styles string) SVG {
+	return s.Tag("style", func(s SVG) {
+		s.WriteCData(styles)
+	})
+}
 
 func (s *svg) Draw(h Drawable, a ...string) SVG {
 	if h != nil {
@@ -113,7 +114,7 @@ func (s *svg) Rect(x0, y0, x1, y1 float64, attrs ...string) SVG {
 	if y0 > y1 {
 		y0, y1 = y1, y0
 	}
-	return s.emptyTag(
+	return s.startEmptyTag(
 		"rect",
 		AttrMerge(attrs,
 			AttrN("x", x0), AttrN("y", y0),
@@ -123,7 +124,7 @@ func (s *svg) Rect(x0, y0, x1, y1 float64, attrs ...string) SVG {
 }
 
 func (s *svg) Circle(cx, cy, r float64, attrs ...string) SVG {
-	return s.emptyTag(
+	return s.startEmptyTag(
 		"circle",
 		AttrMerge(attrs,
 			AttrN("cx", cx), AttrN("cy", cy),
@@ -133,7 +134,7 @@ func (s *svg) Circle(cx, cy, r float64, attrs ...string) SVG {
 }
 
 func (s *svg) Ellipse(cx, cy, rx, ry float64, attrs ...string) SVG {
-	return s.emptyTag(
+	return s.startEmptyTag(
 		"ellipse",
 		AttrMerge(attrs,
 			AttrN("cx", cx), AttrN("cy", cy),
@@ -143,7 +144,7 @@ func (s *svg) Ellipse(cx, cy, rx, ry float64, attrs ...string) SVG {
 }
 
 func (s *svg) Line(x1, y1, x2, y2 float64, attrs ...string) SVG {
-	return s.emptyTag(
+	return s.startEmptyTag(
 		"line",
 		AttrMerge(attrs,
 			AttrN("x1", x1), AttrN("y1", y1),
@@ -164,15 +165,16 @@ func (s *svg) Text(x, y, rot float64, text string, attrs ...string) SVG {
 	text = strings.TrimSpace(text)
 
 	if text != "" && text != "<![CDATA[]]>" {
-		s.start("text",
+		s.startTag(false,
+			"text",
 			AttrMerge(attrs,
 				AttrN("x", x),
 				AttrN("y", y),
 				Transform().Rotate(rot, x, y).Attr(),
-			)...,
+			),
 		)
 		s.WriteString(text)
-		s.end("text")
+		s.endTag("text")
 	}
 
 	return s

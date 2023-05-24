@@ -42,9 +42,6 @@ func Number(f float64) string {
 	}
 }
 
-func CData(f string, a ...interface{}) string {
-	if len(a) > 0 {
-		f = fmt.Sprintf(f, a...)
-	}
+func CData(f string) string {
 	return "<![CDATA[" + f + "]]>"
 }
