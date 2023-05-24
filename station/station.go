@@ -7,6 +7,14 @@ import (
 // Stations  Map of all defined Station's
 type Stations map[string]Station
 
+func StationsFromContext(ctx context.Context) *Stations {
+	return ctx.Value("Stations").(*Stations)
+}
+
+func (s *Stations) WithContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, "Stations", s)
+}
+
 func (s *Stations) Accept(v Visitor) error {
 	return v.VisitStations(s)
 }
@@ -21,6 +29,14 @@ type Station struct {
 	Location Location `json:"location" xml:"location,omitempty" yaml:"location,omitempty"`
 	// One or more Sensors collection
 	Sensors map[string]*Sensors `json:"sensors" xml:"sensors" yaml:"sensors"`
+}
+
+func StationFromContext(ctx context.Context) *Station {
+	return ctx.Value("Station").(*Station)
+}
+
+func (s *Station) WithContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, "Station", s)
 }
 
 func (s *Station) Accept(v Visitor) error {
@@ -47,6 +63,14 @@ type Sensors struct {
 	Timestamp string
 	// Reading's provided by this collection
 	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
+}
+
+func SensorsFromContext(ctx context.Context) *Sensors {
+	return ctx.Value("Sensors").(*Sensors)
+}
+
+func (s *Sensors) WithContext(ctx context.Context) (context.Context, error) {
+	return context.WithValue(ctx, "Sensors", s), nil
 }
 
 func (s *Sensors) Accept(v Visitor) error {

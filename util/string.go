@@ -47,3 +47,17 @@ func ToFloat64(v interface{}) (float64, bool) {
 	}
 	return 0, false
 }
+
+func StringDefault(a, b string) string {
+	if a == "" {
+		return b
+	}
+	return a
+}
+
+func FloatDefault(a *float64, b float64) float64 {
+	if a != nil {
+		return *a
+	}
+	return b
+}

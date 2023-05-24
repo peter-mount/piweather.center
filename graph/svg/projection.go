@@ -50,6 +50,9 @@ func (p *Projection) SetValueRange(r *value.Range) *Projection {
 }
 
 func (p *Projection) SetYRange(min, max float64) *Projection {
+	if min > max {
+		min, max = max, min
+	}
 	p.minY, p.maxY = min, max
 	return p
 }

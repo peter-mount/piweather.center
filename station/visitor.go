@@ -10,6 +10,7 @@ type Visitor interface {
 	VisitStation(s *Station) error
 	VisitSensors(s *Sensors) error
 	VisitReading(s *Reading) error
+	VisitGraph(s *Graph) error
 }
 
 type Visitable interface {
@@ -22,15 +23,12 @@ type visitor struct {
 	station  task.Task
 	sensors  task.Task
 	reading  task.Task
-}
-
-func StationsFromContext(ctx context.Context) *Stations {
-	return ctx.Value("Stations").(*Stations)
+	graph    task.Task
 }
 
 func (v *visitor) VisitStations(s *Stations) error {
 	oldCtx := v.ctx
-	newCtx := context.WithValue(v.ctx, "Stations", s)
+	newCtx := s.WithContext(v.ctx)
 	v.ctx = newCtx
 	defer func() {
 		v.ctx = oldCtx
@@ -50,13 +48,9 @@ func (v *visitor) VisitStations(s *Stations) error {
 	return nil
 }
 
-func StationFromContext(ctx context.Context) *Station {
-	return ctx.Value("Station").(*Station)
-}
-
 func (v *visitor) VisitStation(s *Station) error {
 	oldCtx := v.ctx
-	newCtx := context.WithValue(v.ctx, "Station", s)
+	newCtx := s.WithContext(v.ctx)
 	v.ctx = newCtx
 	defer func() {
 		v.ctx = oldCtx
@@ -76,13 +70,9 @@ func (v *visitor) VisitStation(s *Station) error {
 	return nil
 }
 
-func SensorsFromContext(ctx context.Context) *Sensors {
-	return ctx.Value("Sensors").(*Sensors)
-}
-
 func (v *visitor) VisitSensors(s *Sensors) error {
 	oldCtx := v.ctx
-	newCtx := context.WithValue(v.ctx, "Sensors", s)
+	newCtx, _ := s.WithContext(v.ctx)
 	v.ctx = newCtx
 	defer func() {
 		v.ctx = oldCtx
@@ -102,18 +92,34 @@ func (v *visitor) VisitSensors(s *Sensors) error {
 	return nil
 }
 
-func ReadingFromContext(ctx context.Context) *Reading {
-	return ctx.Value("Reading").(*Reading)
-}
-
 func (v *visitor) VisitReading(s *Reading) error {
 	oldCtx := v.ctx
-	v.ctx = context.WithValue(v.ctx, "Reading", s)
+	v.ctx, _ = s.WithContext(v.ctx)
 	defer func() {
 		v.ctx = oldCtx
 	}()
 
-	return v.reading.Do(v.ctx)
+	if err := v.reading.Do(v.ctx); err != nil {
+		return err
+	}
+
+	for _, g := range s.Graph {
+		if err := g.Accept(v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (v *visitor) VisitGraph(s *Graph) error {
+	oldCtx := v.ctx
+	v.ctx, _ = s.WithContext(v.ctx)
+	defer func() {
+		v.ctx = oldCtx
+	}()
+
+	return v.graph.Do(v.ctx)
 }
 
 type VisitorBuilder interface {
@@ -121,6 +127,7 @@ type VisitorBuilder interface {
 	Station(t task.Task) VisitorBuilder
 	Sensors(t task.Task) VisitorBuilder
 	Reading(t task.Task) VisitorBuilder
+	Graph(t task.Task) VisitorBuilder
 	WithContext(context.Context) Visitor
 }
 
@@ -129,6 +136,7 @@ type visitorBuilder struct {
 	station  task.Task
 	sensors  task.Task
 	reading  task.Task
+	graph    task.Task
 }
 
 func NewVisitor() VisitorBuilder {
@@ -141,6 +149,7 @@ func (b *visitorBuilder) WithContext(ctx context.Context) Visitor {
 		station:  b.station,
 		sensors:  b.sensors,
 		reading:  b.reading,
+		graph:    b.graph,
 	}
 	v.ctx = context.WithValue(ctx, "Visitor", v)
 	return v
@@ -167,5 +176,10 @@ func (b *visitorBuilder) Sensors(t task.Task) VisitorBuilder {
 
 func (b *visitorBuilder) Reading(t task.Task) VisitorBuilder {
 	b.reading = b.reading.Then(t)
+	return b
+}
+
+func (b *visitorBuilder) Graph(t task.Task) VisitorBuilder {
+	b.graph = b.graph.Then(t)
 	return b
 }

@@ -23,4 +23,5 @@ require (
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5 // indirect
 	golang.org/x/text v0.4.0 // indirect
+	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
 )

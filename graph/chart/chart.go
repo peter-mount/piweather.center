@@ -3,6 +3,7 @@ package chart
 import (
 	"errors"
 	"github.com/peter-mount/piweather.center/graph/svg"
+	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
@@ -21,14 +22,17 @@ type Chart interface {
 	SetBounds(svg.Rect) Chart
 	// Draw the Chart
 	Draw(svg.SVG, ...string)
+	SetDefinition(*station.Graph) Chart
+	Definition() *station.Graph
 }
 
 // AbstractChart is an implementation of Chart which other implementations
 // can use
 type AbstractChart struct {
-	sources []Source
-	period  time.Period
-	bounds  svg.Rect
+	sources    []Source
+	period     time.Period
+	bounds     svg.Rect
+	definition *station.Graph
 }
 
 func (c *AbstractChart) Sources() []Source { return c.sources }
@@ -66,6 +70,13 @@ func (c *AbstractChart) SetBounds(r svg.Rect) Chart {
 	c.bounds = r
 	return c
 }
+
+func (c *AbstractChart) SetDefinition(definition *station.Graph) Chart {
+	c.definition = definition
+	return c
+}
+
+func (c *AbstractChart) Definition() *station.Graph { return c.definition }
 
 // Draw from svg.Drawable.
 // This panics nothing as it's down to Chart implementors to implement.

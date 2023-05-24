@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/piweather.center/graph"
 	"github.com/peter-mount/piweather.center/graph/chart"
 	"github.com/peter-mount/piweather.center/graph/svg"
+	"github.com/peter-mount/piweather.center/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
@@ -29,16 +30,12 @@ func (l *Line) Draw(s svg.SVG, styles ...string) {
 }
 
 func (l *Line) draw(s svg.SVG) {
+	definition := l.Definition()
+
 	period := l.Period()
 
-	// Nearest 10min or 1hour?
-	xStep := 60.0
-	if period.Duration() <= time.Hour {
-		xStep = 10.0
-	}
-
 	yRange, _ := l.GetYRange()
-	unit := yRange.Unit()
+	//unit := yRange.Unit()
 
 	bounds := l.Bounds()
 
@@ -46,13 +43,25 @@ func (l *Line) draw(s svg.SVG) {
 	src := l.Sources()
 	src1 := l.Sources()[0]
 	src1unit := src1.DataSource().GetUnit()
+
+	// Reduce left & bottom to allow for grid labels
 	plotArea := bounds.Reduce(10+graph.LabelSize, 10, 10, 10+graph.LabelSize)
-	if src1unit.Name() != "" {
+
+	// Account for top title
+	if definition.Title != "" {
+		plotArea = plotArea.Reduce(0, graph.TitleSize, 0, 0)
+	}
+
+	// y-axis title
+	if definition.Line.YTitle != "" {
 		plotArea = plotArea.Reduce(graph.TitleSize, 0, 0, 0)
 	}
-	if src1unit.Unit() != "" {
+
+	// y-axis subtitle
+	if util.StringDefault(definition.Line.YSubTitle, src1unit.Unit()) != "" {
 		plotArea = plotArea.Reduce(graph.SubTitleSize, 0, 0, 0)
 	}
+
 	// TODO decide on how to set x-axis title, for now presume it's always there
 	//if src1.SubTitle() != "" {
 	plotArea = plotArea.Reduce(0, 0, 0, graph.SubTitleSize)
@@ -66,23 +75,61 @@ func (l *Line) draw(s svg.SVG) {
 	proj := plotArea.Projection().
 		SetPeriod(period).
 		SetValueRange(yRange).
-		ZeroY().
-		NearestY(10.0).
-		NearestX(xStep).
-		Build()
+		NearestY(util.FloatDefault(definition.Line.YStep, 10.0))
+
+	if definition.Line.Min != nil || definition.Line.Max != nil {
+		min, max := proj.GetYRange()
+		proj.SetYRange(
+			util.FloatDefault(definition.Line.Min, min),
+			util.FloatDefault(definition.Line.Max, max),
+		)
+	}
+	if definition.Line.ZeroY {
+		proj.ZeroY()
+	}
+
+	if definition.Line.XStep != nil {
+		proj.NearestX(*definition.Line.XStep)
+	} else {
+		switch {
+		// Every 10 minutes if under an hour
+		case period.Duration() <= time.Hour:
+			proj.NearestX(10.0)
+
+		// Every day if over 1 day
+		case period.Duration() > (24 * time.Hour):
+			proj.NearestX(1440.0)
+
+		// Default every hour
+		default:
+			proj.NearestX(60.0)
+		}
+	}
+
+	proj.Build()
+
+	// Minor grid lines if defined
+	if definition.Line.XSubStep != nil || definition.Line.YSubStep != nil {
+		s.Group(func(_ svg.SVG) {
+			if definition.Line.XSubStep != nil {
+				graph.DrawXAxisGrid(s, proj, *definition.Line.XSubStep)
+			}
+			if definition.Line.YSubStep != nil {
+				graph.DrawYAxisGrid(s, proj, *definition.Line.YSubStep)
+			}
+		}, "class=\"grid1\"")
+	}
 
 	s.Group(func(_ svg.SVG) {
-		graph.DrawYAxisGrid(s, proj, 0.2)
-		graph.DrawXAxisGrid(s, proj, 0.25)
-	}, "class=\"grid1\"")
-
-	s.Group(func(_ svg.SVG) {
-		graph.DrawYAxisGrid(s, proj, 1.0)
-		graph.DrawXAxisGrid(s, proj, 1.0)
+		graph.DrawYAxisGrid(s, proj, util.FloatDefault(definition.Line.YStep, 1.0))
+		graph.DrawXAxisGrid(s, proj, util.FloatDefault(definition.Line.XStep, 1.0))
 	}, "class=\"grid0\"")
 
 	s.Group(func(_ svg.SVG) {
-		graph.DrawYAxisLegend(s, proj, unit.Name(), unit.Unit())
+		graph.DrawYAxisLegend(s, proj,
+			definition.Line.YTitle,
+			util.StringDefault(definition.Line.YSubTitle, src1unit.Unit()))
+
 		graph.DrawXAxisLegend(s, proj,
 			period.Start(),
 			"",

@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/peter-mount/piweather.center/graph/chart"
+	"github.com/peter-mount/piweather.center/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
@@ -9,7 +9,7 @@ import (
 
 type dataSource []*Reading
 
-func (s *Store) GetHistoryBetween(name string, start, end time.Time) chart.DataSource {
+func (s *Store) GetHistoryBetween(name string, start, end time.Time) util.DataSource {
 	start, end = time2.NormalizeTime(start, end)
 
 	var r dataSource

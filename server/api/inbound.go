@@ -6,7 +6,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/util/template"
-	"path"
 	"sort"
 	"strings"
 	"sync"
@@ -69,16 +68,8 @@ func (s *Inbound) Start() error {
 	return nil
 }
 
-// RegisterHttpEndpoint registers a new endpoint under /api/inbound which will be sent to a task.
+// RegisterHttpEndpoint registers a new endpoint with the system webserver which will be sent to a task.
 func (s *Inbound) RegisterHttpEndpoint(category, pathName, id, name, method, protocol string, t task.Task) error {
-
-	// Sanitize pathName
-	pathName = path.Clean(pathName)
-	if pathName == "." || pathName == "/" {
-		return fmt.Errorf("ecowitt path invalid")
-	}
-
-	pathName = path.Join("/api", category, pathName)
 	e, _, err := s.registerEndpoint(category, pathName, id, name, method, protocol, t)
 	if err == nil {
 		s.Rest.Do(e.endpoint.Endpoint, e.invoke).Methods(e.endpoint.Method)
@@ -136,7 +127,7 @@ func (s *Inbound) addEndpoint(e *endpoint) error {
 	return nil
 }
 
-func (s *Inbound) getEndpoints() []Endpoints {
+func (s *Inbound) getEndpointSlice() []Endpoints {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	var r []Endpoints
@@ -145,14 +136,37 @@ func (s *Inbound) getEndpoints() []Endpoints {
 		for _, e := range ep {
 			l.Endpoints = append(l.Endpoints, e.endpoint)
 		}
-		sort.SliceStable(l.Endpoints, func(i, j int) bool {
-			return l.Endpoints[i].Endpoint < l.Endpoints[j].Endpoint
-		})
 		r = append(r, l)
 	}
+	return r
+}
+
+func (s *Inbound) getEndpoints() []Endpoints {
+	r := s.getEndpointSlice()
+
+	// Sort by category
 	sort.SliceStable(r, func(i, j int) bool {
 		return r[i].Category < r[j].Category
 	})
+
+	// Sort each category by ID, then by endpoint length then endpoint
+	for _, cat := range r {
+		sort.SliceStable(cat.Endpoints, func(i, j int) bool {
+			a, b := cat.Endpoints[i], cat.Endpoints[j]
+			if a.Id != b.Id {
+				return a.Id < b.Id
+			}
+			as := strings.Split(a.Endpoint, "/")
+			bs := strings.Split(b.Endpoint, "/")
+
+			if len(as) != len(bs) {
+				return len(as) < len(bs)
+			}
+
+			return a.Endpoint < b.Endpoint
+		})
+	}
+
 	return r
 }
 

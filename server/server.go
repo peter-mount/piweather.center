@@ -124,7 +124,7 @@ func (s *Server) startEcowitt(ctx context.Context) error {
 
 	return s.ApiInbound.RegisterHttpEndpoint(
 		"inbound",
-		sensor.Source.EcoWitt.Path,
+		"/api/inbound/"+sensor.Source.EcoWitt.Path,
 		sensor.ID,
 		sensor.Name,
 		http.MethodPost,
