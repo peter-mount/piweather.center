@@ -2,6 +2,9 @@ package store
 
 import (
 	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/template"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
@@ -15,6 +18,7 @@ import (
 type Store struct {
 	Templates *template.Manager `kernel:"inject"`
 	Cron      *cron.CronService `kernel:"inject"`
+	Config    station.Config    `kernel:"inject"`
 	mutex     sync.Mutex
 	data      map[string]*Reading
 	history   map[string][]*Reading
@@ -57,23 +61,60 @@ func (s *Store) Start() error {
 	s.data = make(map[string]*Reading)
 	s.history = make(map[string][]*Reading)
 
-	// Every 10 minutes clear down history
-	_, err := s.Cron.AddTask("0/10 * * * ?", s.pruneTask)
+	// Register every reading in the store so we have an entry for them
+	err := s.Config.Accept(station.NewVisitor().
+		Reading(s.registerReading).
+		WithContext(context.Background()))
+
+	if err == nil {
+		// Every 10 minutes clear down history
+		_, err = s.Cron.AddTask("0/10 * * * ?", s.pruneTask)
+	}
 
 	return err
 }
 
-func (s *Store) DeclareReading(name string, unit *value.Unit) {
+func (s *Store) registerReading(ctx context.Context) error {
+	r := station.ReadingFromContext(ctx)
+
+	name := strings.ToLower(r.ID)
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	name = strings.ToLower(name)
-
 	if _, exists := s.data[name]; !exists {
-		rec := &Reading{Name: name, Value: unit.Value(0)}
+		rec := &Reading{Name: name, Value: r.Unit().Value(0)}
 		s.data[name] = rec
 		s.history[name] = []*Reading{rec}
 	}
+
+	return nil
+}
+
+func (s *Store) ProcessReading(ctx context.Context) error {
+	r := station.ReadingFromContext(ctx)
+	if r.Unit() != nil {
+		p := payload.GetPayload(ctx)
+
+		str, ok := p.Get(r.Source)
+		if !ok {
+			// FIXME warn/fail if not found?
+			return nil
+		}
+
+		if f, ok := util.ToFloat64(str); ok {
+			// Convert to Type unit then transform to Use unit
+			v, err := r.Value(f)
+			if err != nil {
+				// Ignore, should only happen if the result is
+				// invalid as we checked the transform previously
+				return nil
+			}
+
+			s.Record(r.ID, v, p.Time())
+		}
+	}
+	return nil
 }
 
 func (s *Store) Record(name string, value value.Value, recTime time.Time) {

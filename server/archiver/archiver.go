@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/io"
+	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"os"
@@ -15,9 +16,10 @@ import (
 )
 
 type Archiver struct {
-	storeDir    *string    `kernel:"flag,archive-dir,Archive directory"`
-	logMessages *bool      `kernel:"flag,archive-log,Dump messages to stdout"`
-	worker      task.Queue `kernel:"worker"`
+	Store       *store.Store `kernel:"inject"`
+	storeDir    *string      `kernel:"flag,archive-dir,Archive directory"`
+	logMessages *bool        `kernel:"flag,archive-log,Dump messages to stdout"`
+	worker      task.Queue   `kernel:"worker"`
 	mutex       sync.Mutex
 }
 
@@ -102,7 +104,7 @@ func (s *Archiver) preload(ctx context.Context, t time.Time) error {
 
 	// Visitor to process the reading into memory cache
 	visitor := station.NewVisitor().
-		Reading(station.ProcessReading)
+		Reading(s.Store.ProcessReading)
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()

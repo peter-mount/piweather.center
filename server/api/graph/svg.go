@@ -10,7 +10,6 @@ import (
 	"github.com/peter-mount/piweather.center/graph/chart"
 	"github.com/peter-mount/piweather.center/graph/chart/line"
 	"github.com/peter-mount/piweather.center/graph/svg"
-	"github.com/peter-mount/piweather.center/server"
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station"
@@ -35,16 +34,14 @@ const (
 type SVG struct {
 	Inbound *api.EndpointManager `kernel:"inject"`
 	Store   *store.Store         `kernel:"inject"`
-	Config  *station.Stations    `kernel:"config,stations"`
-	_       *server.Server       `kernel:"inject"`
+	Config  station.Config       `kernel:"inject"`
 }
 
 func (s *SVG) Start() error {
-	return station.NewVisitor().
+	return s.Config.Accept(station.NewVisitor().
 		Sensors(s.registerSensors).
 		Graph(s.registerGraph).
-		WithContext(context.Background()).
-		VisitStations(s.Config)
+		WithContext(context.Background()))
 }
 
 // registerSensors adds endpoints for a Sensors object

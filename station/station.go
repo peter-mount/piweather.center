@@ -43,12 +43,6 @@ func (s *Station) Accept(v Visitor) error {
 	return v.VisitStation(s)
 }
 
-func InitStation(ctx context.Context) error {
-	s := StationFromContext(ctx)
-	s.ID = ctx.Value("StationId").(string)
-	return nil
-}
-
 // Sensors define a Reading collection within the Station.
 // A Reading collection is
 type Sensors struct {
@@ -75,14 +69,4 @@ func (s *Sensors) WithContext(ctx context.Context) (context.Context, error) {
 
 func (s *Sensors) Accept(v Visitor) error {
 	return v.VisitSensors(s)
-}
-
-func InitSensors(ctx context.Context) error {
-	s := SensorsFromContext(ctx)
-
-	// Set the VisitStation.ID
-	stationConfig := StationFromContext(ctx)
-	s.ID = stationConfig.ID + "." + ctx.Value("SensorId").(string)
-
-	return nil
 }

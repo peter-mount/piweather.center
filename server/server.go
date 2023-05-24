@@ -25,7 +25,7 @@ type Server struct {
 	Archiver       *archiver.Archiver     `kernel:"inject"`
 	Amqp           mq.Pool                `kernel:"inject"`
 	ApiInbound     *api.EndpointManager   `kernel:"inject"`
-	Config         *station.Stations      `kernel:"config,stations"`
+	Config         station.Config         `kernel:"inject"`
 	Templates      *template.Manager      `kernel:"inject"`
 	Store          *store.Store           `kernel:"inject"`
 	subContext     context.Context        // Common Context
@@ -33,10 +33,6 @@ type Server struct {
 }
 
 func (s *Server) Start() error {
-	if s.Config == nil || len(*s.Config) == 0 {
-		return fmt.Errorf("no configuration provided")
-	}
-
 	// Static content to the webserver
 	rootDir := filepath.Dir(s.Templates.GetRootDir())
 	staticDir := filepath.Join(rootDir, "static")
@@ -46,31 +42,20 @@ func (s *Server) Start() error {
 	// Common context for processing
 	s.subContext = s.Archiver.AddContext(s.Store.AddContext(context.Background()))
 
-	// Initialise the station config so ID's etc. are correct
-	if err := station.NewVisitor().
-		Station(station.InitStation).
-		Sensors(station.InitSensors).
-		Reading(station.InitReading).
-		WithContext(s.subContext).
-		VisitStations(s.Config); err != nil {
-		return err
-	}
-
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
 	// build it as needed.
 	s.processVisitor = station.NewVisitor().
 		Sensors(s.Archiver.Archive).
-		Reading(station.ProcessReading)
+		Reading(s.Store.ProcessReading)
 
 	// Now we preload data from storage to give us some recent
 	// history, then we start each data source, so we can get fresh data sent to us.
-	if err := station.NewVisitor().
+	if err := s.Config.Accept(station.NewVisitor().
 		Sensors(s.Archiver.Preload).
 		Sensors(s.startAMQP).
 		Sensors(s.startEcowitt).
-		WithContext(s.subContext).
-		VisitStations(s.Config); err != nil {
+		WithContext(s.subContext)); err != nil {
 		return err
 	}
 

@@ -2,9 +2,6 @@ package station
 
 import (
 	"context"
-	"github.com/peter-mount/piweather.center/server/store"
-	"github.com/peter-mount/piweather.center/station/payload"
-	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -43,52 +40,11 @@ func (s *Reading) Accept(v Visitor) error {
 	return v.VisitReading(s)
 }
 
-func InitReading(ctx context.Context) error {
-	parent := SensorsFromContext(ctx)
-	s := ReadingFromContext(ctx)
-	s.ID = parent.ID + "." + ctx.Value("ReadingId").(string)
-
-	// If not ok then we will ignore the reading
-	if u, ok := value.GetUnit(s.Type); ok {
-		s.unit = u
-
-		// Use the same unit, unless we declare an alternate
-		s.useUnit = u
-		if s.Use != "" {
-			// TODO if the unit is not ok or there's no transform then this will fail over to use the src unit
-			if u, ok := value.GetUnit(s.Use); ok && value.TransformAvailable(s.useUnit, u) {
-				s.useUnit = u
-			}
-		}
-
-		// Register the reading with the final unit
-		store.FromContext(ctx).DeclareReading(s.ID, s.useUnit)
-	}
-	return nil
+// Value returns f in the Type unit and returns the Value in the Use unit.
+func (s *Reading) Value(f float64) (value.Value, error) {
+	return s.unit.Value(f).As(s.useUnit)
 }
 
-func ProcessReading(ctx context.Context) error {
-	s := ReadingFromContext(ctx)
-	if s.unit != nil {
-		p := payload.GetPayload(ctx)
-
-		str, ok := p.Get(s.Source)
-		if !ok {
-			// FIXME warn/fail if not found?
-			return nil
-		}
-
-		if f, ok := util.ToFloat64(str); ok {
-			// Convert to Type unit then transform to Use unit
-			v, err := s.unit.Value(f).As(s.useUnit)
-			if err != nil {
-				// Ignore, should only happen if the result is
-				// invalid as we checked the transform previously
-				return nil
-			}
-
-			store.FromContext(ctx).Record(s.ID, v, p.Time())
-		}
-	}
-	return nil
+func (s *Reading) Unit() *value.Unit {
+	return s.useUnit
 }
