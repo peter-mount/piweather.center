@@ -171,7 +171,8 @@ func (s *SVG) serveSensor(ctx context.Context, img string) error {
 		r := sensors.Readings[k]
 		for _, g := range r.Graph {
 			if g.Path != "" {
-				buf.WriteString("<img src=\"" + g.Path + "/" + img + "\"/>")
+				//buf.WriteString("<img src=\"" + g.Path + "/" + img + "\"/>")
+				buf.WriteString("<object type=\"image/svg+xml\" data=\"" + g.Path + "/" + img + "\"></object>")
 			}
 		}
 	}
