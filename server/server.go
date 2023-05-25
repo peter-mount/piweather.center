@@ -14,6 +14,7 @@ import (
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/util/mq"
 	"github.com/peter-mount/piweather.center/util/template"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -40,18 +41,21 @@ func (s *Server) Start() error {
 	s.Rest.Static("/static", staticDir)
 
 	// Common context for processing
-	s.subContext = s.Archiver.AddContext(s.Store.AddContext(context.Background()))
+	s.subContext = s.Archiver.AddContext(s.Store.AddContext(value.WithMap(context.Background())))
 
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
 	// build it as needed.
 	s.processVisitor = station.NewVisitor().
+		Sensors(value.ResetMap).
 		Sensors(s.Archiver.Archive).
-		Reading(s.Store.ProcessReading)
+		Reading(s.Store.ProcessReading).
+		CalculatedValue(s.Store.Calculate)
 
 	// Now we preload data from storage to give us some recent
 	// history, then we start each data source, so we can get fresh data sent to us.
 	if err := s.Config.Accept(station.NewVisitor().
+		Sensors(value.ResetMap).
 		Sensors(s.Archiver.Preload).
 		Sensors(s.startAMQP).
 		Sensors(s.startEcowitt).

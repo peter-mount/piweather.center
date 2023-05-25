@@ -57,6 +57,8 @@ type Sensors struct {
 	Timestamp string
 	// Reading's provided by this collection
 	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
+	// CalculatedValue's to calculate with this calculation
+	Calculations map[string]*CalculatedValue `json:"calculations,omitempty" xml:"calculations,omitempty" yaml:"calculations,omitempty"`
 }
 
 func SensorsFromContext(ctx context.Context) *Sensors {
@@ -69,4 +71,39 @@ func (s *Sensors) WithContext(ctx context.Context) (context.Context, error) {
 
 func (s *Sensors) Accept(v Visitor) error {
 	return v.VisitSensors(s)
+}
+
+// ReadingsKeys returns a slice containing the keys for each Reading
+func (s *Sensors) ReadingsKeys() []string {
+	var keys []string
+	for k, _ := range s.Readings {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// CalculationsKeys returns a slice containing the keys for each Calculations entry
+func (s *Sensors) CalculationsKeys() []string {
+	var keys []string
+	for k, _ := range s.Calculations {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetGraph returns the Graph slice for a specified key.
+// It first looks at Readings and if not found then Calculations.
+// Returns nil if the key is not found
+func (s *Sensors) GetGraph(k string) []*Graph {
+	r := s.Readings[k]
+	if r != nil {
+		return r.Graph
+	}
+
+	c := s.Calculations[k]
+	if c != nil {
+		return c.Graph
+	}
+
+	return nil
 }

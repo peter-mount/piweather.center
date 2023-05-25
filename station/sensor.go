@@ -29,7 +29,11 @@ type Reading struct {
 }
 
 func ReadingFromContext(ctx context.Context) *Reading {
-	return ctx.Value("Reading").(*Reading)
+	r := ctx.Value("Reading")
+	if r == nil {
+		return nil
+	}
+	return r.(*Reading)
 }
 
 func (s *Reading) WithContext(ctx context.Context) (context.Context, error) {

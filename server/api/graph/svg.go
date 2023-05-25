@@ -98,21 +98,30 @@ func (s *SVG) registerSensors(ctx context.Context) error {
 func (s *SVG) registerGraph(ctx context.Context) error {
 	sensors := station.SensorsFromContext(ctx)
 	reading := station.ReadingFromContext(ctx)
+	calc := station.CalculatedValueFromContext(ctx)
 	g := station.GraphFromContext(ctx)
 
-	g.Path = path.Join("/svg", path.Join(strings.Split(reading.ID, ".")...))
+	id := ""
+	if reading != nil {
+		id = reading.ID
+	} else if calc != nil {
+		id = calc.ID
+	}
+	g.Path = path.Join("/svg", path.Join(strings.Split(id, ".")...))
 
 	switch {
 	case g.Line != nil:
 		err := s.Inbound.RegisterHttpEndpoint(
 			"svg "+sensors.Name,
 			path.Join(g.Path, "day.svg"),
-			reading.ID,
+			id,
 			"Line graph for last 24 hours",
 			http.MethodGet,
 			"svg",
 			task.Of(s.serveDay).
-				Using(reading.WithContext).
+				WithValue("id", id).
+				//Using(reading.WithContext).
+				//Using(calc.WithContext).
 				Using(g.WithContext),
 		)
 		if err != nil {
@@ -122,12 +131,14 @@ func (s *SVG) registerGraph(ctx context.Context) error {
 		err = s.Inbound.RegisterHttpEndpoint(
 			"svg "+sensors.Name,
 			path.Join(g.Path, "today.svg"),
-			reading.ID,
+			id,
 			"Line graph since midnight",
 			http.MethodGet,
 			"svg",
 			task.Of(s.serveToday).
-				Using(reading.WithContext).
+				WithValue("id", id).
+				//Using(reading.WithContext).
+				//Using(calc.WithContext).
 				Using(g.WithContext),
 		)
 		if err != nil {
@@ -155,10 +166,7 @@ func (s *SVG) serveSensor(ctx context.Context, img string) error {
 	sensors := station.SensorsFromContext(ctx)
 
 	// Sort keys so we have some sort of order with the results
-	var keys []string
-	for k, _ := range sensors.Readings {
-		keys = append(keys, k)
-	}
+	keys := append(sensors.ReadingsKeys(), sensors.CalculationsKeys()...)
 	sort.SliceStable(keys, func(i, j int) bool {
 		return strings.ToLower(keys[i]) < strings.ToLower(keys[j])
 	})
@@ -168,11 +176,12 @@ func (s *SVG) serveSensor(ctx context.Context, img string) error {
 	// Only include Graph with a path defined
 	buf.WriteString("<html><body>")
 	for _, k := range keys {
-		r := sensors.Readings[k]
-		for _, g := range r.Graph {
-			if g.Path != "" {
-				//buf.WriteString("<img src=\"" + g.Path + "/" + img + "\"/>")
-				buf.WriteString("<object type=\"image/svg+xml\" data=\"" + g.Path + "/" + img + "\"></object>")
+		graphs := sensors.GetGraph(k)
+		if graphs != nil {
+			for _, g := range graphs {
+				if g.Path != "" {
+					buf.WriteString("<object type=\"image/svg+xml\" data=\"" + g.Path + "/" + img + "\"></object>")
+				}
 			}
 		}
 	}
@@ -219,8 +228,9 @@ func (s *SVG) serveToday(ctx context.Context) error {
 func (s *SVG) serve(start, end time.Time, ctx context.Context) error {
 	r := rest.GetRest(ctx)
 
-	reading := station.ReadingFromContext(ctx)
-	id := reading.ID
+	id := ctx.Value("id").(string)
+	//reading := station.ReadingFromContext(ctx)
+	//id := reading.ID
 
 	readings := s.Store.GetHistoryBetween(id, start, end)
 	if readings == nil {

@@ -5,6 +5,11 @@ import (
 	"math"
 )
 
+func init() {
+	// Register the Calculator which enforces
+	value.NewCalculator("dewPoint", TemperatureRelativeHumidityCalculator(GetDewPoint))
+}
+
 // GetDewPoint returns a Value representing the Dewpoint based on Temperature and RelativeHumidity.
 // The returned value is in Celsius.
 func GetDewPoint(temp value.Value, relHumidity value.Value) (value.Value, error) {

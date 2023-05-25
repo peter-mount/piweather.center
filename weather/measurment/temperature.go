@@ -101,3 +101,13 @@ func TemperatureRelativeHumidityCalculation(temp, relHumidity value.Value, unit 
 	}
 	return r, r.BoundsError()
 }
+
+// TemperatureRelativeHumidityCalculator returns a Calculator that expects 2 parameters,
+// Temperature and RelativeHumidity
+func TemperatureRelativeHumidityCalculator(f TemperatureRelativeHumidityFunc) value.Calculator {
+	return value.AssertCalculator(func(v ...value.Value) (value.Value, error) {
+		return f(v[0], v[1])
+	},
+		AssertTemperature,
+		AssertRelativeHumidity)
+}

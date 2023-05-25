@@ -8,6 +8,7 @@ import (
 	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,7 +105,9 @@ func (s *Archiver) preload(ctx context.Context, t time.Time) error {
 
 	// Visitor to process the reading into memory cache
 	visitor := station.NewVisitor().
-		Reading(s.Store.ProcessReading)
+		Sensors(value.ResetMap).
+		Reading(s.Store.ProcessReading).
+		CalculatedValue(s.Store.Calculate)
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()

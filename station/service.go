@@ -39,6 +39,7 @@ func (c *config) Start() error {
 		Station(c.initStation).
 		Sensors(c.initSensors).
 		Reading(c.initReading).
+		CalculatedValue(c.initCalculatedValue).
 		WithContext(context.Background()).
 		VisitStations(c.Config)
 }
@@ -77,5 +78,35 @@ func (c *config) initReading(ctx context.Context) error {
 			}
 		}
 	}
+	return nil
+}
+
+func (c *config) initCalculatedValue(ctx context.Context) error {
+	parent := SensorsFromContext(ctx)
+	s := CalculatedValueFromContext(ctx)
+
+	// Ensure ID is set and the Source entries have the same prefix
+	prefix := parent.ID + "."
+	s.ID = prefix + ctx.Value("ReadingId").(string)
+
+	for i, src := range s.Source {
+		s.Source[i] = prefix + src
+	}
+
+	// Lookup the Calculator to use
+	calc, err := value.GetCalculator(s.Type)
+	if err != nil {
+		return err
+	}
+	s.calculator = calc
+
+	// If we have Use set then try to convert to that unit
+	if s.Use != "" {
+		to, ok := value.GetUnit(s.Use)
+		if ok {
+			s.calculator = s.calculator.As(to)
+		}
+	}
+
 	return nil
 }

@@ -93,6 +93,7 @@ func (s *Store) registerReading(ctx context.Context) error {
 
 func (s *Store) ProcessReading(ctx context.Context) error {
 	r := station.ReadingFromContext(ctx)
+	values := value.MapFromContext(ctx)
 	if r.Unit() != nil {
 		p := payload.GetPayload(ctx)
 
@@ -111,9 +112,27 @@ func (s *Store) ProcessReading(ctx context.Context) error {
 				return nil
 			}
 
+			values.Put(r.ID, v)
+
 			s.Record(r.ID, v, p.Time())
 		}
 	}
+	return nil
+}
+
+func (s *Store) Calculate(ctx context.Context) error {
+	calc := station.CalculatedValueFromContext(ctx)
+	p := payload.GetPayload(ctx)
+	values := value.MapFromContext(ctx)
+	args := values.GetAll(calc.Source...)
+
+	result, err := calc.Calculate(args...)
+	if err != nil {
+		return err
+	}
+
+	s.Record(calc.ID, result, p.Time())
+
 	return nil
 }
 

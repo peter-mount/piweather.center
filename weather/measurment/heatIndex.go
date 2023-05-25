@@ -7,6 +7,8 @@ import (
 
 func init() {
 	HeatIndex = value.NewBoundedUnit("HeatIndex", "Indices", "HeatIndex", "%", 0, 0, 100)
+
+	value.NewCalculator("heatIndex", TemperatureRelativeHumidityCalculator(GetHeatIndex))
 }
 
 var (
