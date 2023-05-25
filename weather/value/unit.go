@@ -60,7 +60,7 @@ func (u *Unit) Equals(b *Unit) bool {
 	if u == nil || b == nil {
 		return false
 	}
-	// Either they are the same instance or their ID's are the same
+	// Either they are the same instance or their IDs are the same
 	return u == b || strings.ToLower(u.id) == strings.ToLower(b.id)
 }
 
@@ -83,6 +83,8 @@ func (u *Unit) BoundsError(f float64) error {
 	// of float64. As such we don't have to care about accuracy here
 	lb, ub := u.min > -math.MaxFloat64, u.max < math.MaxFloat64
 	switch {
+	case u == nil:
+		return nilErr
 	case math.IsNaN(f):
 		return nan
 	case math.IsInf(f, 1):
@@ -96,7 +98,7 @@ func (u *Unit) BoundsError(f float64) error {
 	case ub:
 		return fmt.Errorf("%s "+u.format+" out of bounds ..."+u.format, u.name, f, u.unit, u.max, u.unit)
 	default:
-		return fmt.Errorf("%s "+u.format+" out of bounds", u.name, f, u.unit)
+		return fmt.Errorf("%s "+u.format+" out of bounds?", u.name, f, u.unit)
 	}
 }
 

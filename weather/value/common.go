@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	nilErr       = errors.New("nil Value")
 	nan          = errors.New("NaN")
 	pInf         = errors.New("+Inf")
 	nInf         = errors.New("-Inf")
