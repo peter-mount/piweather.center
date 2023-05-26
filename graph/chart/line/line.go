@@ -145,15 +145,21 @@ func (l *Line) draw(s svg.SVG) {
 		s.Text(proj.X0()+5, proj.Y0()+15, 0, src1.Name(), "class=\"graphId\"")
 	}
 
-	for _, src := range src {
-		p := &svg.Path{}
-		src.DataSource().ForEach(func(i int, t time.Time, v value.Value) {
-			if period.Contains(t) {
-				p.AddProjectX(period.MinutesFromStart(t), v.Float(), proj)
+	s.Clip(
+		func(s svg.SVG) {
+			s.Draw(plotArea)
+		},
+		func(s svg.SVG) {
+			for _, src := range src {
+				p := &svg.Path{}
+				src.DataSource().ForEach(func(i int, t time.Time, v value.Value) {
+					if period.Contains(t) {
+						p.AddProjectX(period.MinutesFromStart(t), v.Float(), proj)
+					}
+				})
+				s.Draw(p, graph.StrokeRed, graph.StrokeWidth1, graph.FillNone)
 			}
 		})
-		s.Draw(p, graph.StrokeRed, graph.StrokeWidth1, graph.FillNone)
-	}
 
 	s.Draw(plotArea, graph.StrokeBlack, graph.StrokeWidth1, graph.FillNone)
 }

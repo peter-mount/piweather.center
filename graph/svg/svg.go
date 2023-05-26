@@ -1,6 +1,8 @@
 package svg
 
 import (
+	"encoding/hex"
+	uuid "github.com/peter-mount/go.uuid"
 	common "github.com/peter-mount/piweather.center"
 	"io"
 	"strings"
@@ -17,6 +19,8 @@ type SVG interface {
 	Group(Handler, ...string) SVG
 
 	ClipPath(Handler, ...string) SVG
+	Clip(clip, draw Handler) SVG
+
 	Rect(x0, y0, x1, y1 float64, attrs ...string) SVG
 	Circle(cx, cy, r float64, attrs ...string) SVG
 	Ellipse(cx, cy, rx, ry float64, attrs ...string) SVG
@@ -159,6 +163,14 @@ func (s *svg) Group(h Handler, attrs ...string) SVG {
 
 func (s *svg) ClipPath(h Handler, attrs ...string) SVG {
 	return s.Tag("clipPath", h, attrs...)
+}
+
+func (s *svg) Clip(clip, draw Handler) SVG {
+	uuid, _ := uuid.NewV4()
+	id := "clip" + hex.EncodeToString(uuid.Bytes())
+	s.ClipPath(clip, Attr("id", id))
+	s.Group(draw, Attr("clip-path", "url(#"+id+")"))
+	return s
 }
 
 func (s *svg) Text(x, y, rot float64, text string, attrs ...string) SVG {
