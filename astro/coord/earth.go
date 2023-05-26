@@ -4,8 +4,10 @@ import (
 	"encoding/xml"
 	"github.com/peter-mount/nre-feeds/util"
 	util2 "github.com/peter-mount/piweather.center/astro/util"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/unit"
+	"time"
 )
 
 // LatLong represents a location on the Earth's surface.
@@ -22,16 +24,21 @@ type LatLong struct {
 	coord     globe.Coord
 }
 
-func (r LatLong) String() string {
+func (r *LatLong) String() string {
 	return util2.String(r)
 }
 
-func (r LatLong) Coord() globe.Coord {
+// Coord returns a globe.Coord from the meeus library.
+//
+// Note: in the meeus library (& book) it uses West positive for longitudes
+// whereas we use East positive, so this function is the best way to get
+// the coordinates correct.
+func (r *LatLong) Coord() *globe.Coord {
 	if r.coord.Lat == 0 && r.coord.Lon == 0 {
 		r.coord.Lon = -r.Longitude
 		r.coord.Lat = r.Latitude
 	}
-	return r.coord
+	return &r.coord
 }
 
 func (r *LatLong) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
@@ -47,4 +54,8 @@ func (r *LatLong) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error
 				return nil
 			}).
 		Build()
+}
+
+func (r *LatLong) Time(t time.Time) value.Time {
+	return value.BasicTime(t, r.Coord(), r.Altitude)
 }
