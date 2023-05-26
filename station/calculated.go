@@ -27,6 +27,7 @@ type CalculatedValue struct {
 	Graph []*Graph `json:"graph,omitempty" xml:"graph,omitempty" yaml:"graph,omitempty"`
 	// calculator to use
 	calculator value.Calculator
+	sensors    *Sensors
 }
 
 func CalculatedValueFromContext(ctx context.Context) *CalculatedValue {
@@ -48,3 +49,20 @@ func (s *CalculatedValue) Accept(v Visitor) error {
 func (s *CalculatedValue) Calculate(t value.Time, v ...value.Value) (value.Value, error) {
 	return s.calculator(t, v...)
 }
+
+func (s *CalculatedValue) Calculator() value.Calculator { return s.calculator }
+
+// IsPseudo returns true if this is a Pseudo calculation.
+//
+// A Pseudo calculation is where the calculation takes no values, just the value.Time.
+//
+// Examples of this are calculating the altitude of an astronomical object like the sun
+// in the sky, whose result is based on time and location but not any reading of any kind.
+//
+// If a pseudo calculation requires the Use field to be set to the unit it outputs, or the
+// unit required in the output.
+func (s *CalculatedValue) IsPseudo() bool {
+	return s == nil || len(s.Source) == 0
+}
+
+func (s *CalculatedValue) Sensors() *Sensors { return s.sensors }

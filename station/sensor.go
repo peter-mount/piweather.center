@@ -26,6 +26,7 @@ type Reading struct {
 	unit *value.Unit
 	// useUnit either unit from Type or resolved from Use if defined.
 	useUnit *value.Unit
+	sensors *Sensors
 }
 
 func ReadingFromContext(ctx context.Context) *Reading {
@@ -52,3 +53,5 @@ func (s *Reading) Value(f float64) (value.Value, error) {
 func (s *Reading) Unit() *value.Unit {
 	return s.useUnit
 }
+
+func (s *Reading) Sensors() *Sensors { return s.sensors }

@@ -42,6 +42,7 @@ func (c *config) Start() error {
 		Sensors(c.initSensors).
 		Reading(c.initReading).
 		CalculatedValue(c.initCalculatedValue).
+		Graph(c.initGraph).
 		WithContext(context.Background()).
 		VisitStations(c.Config)
 }
@@ -87,6 +88,7 @@ func (c *config) initReading(ctx context.Context) error {
 	parent := SensorsFromContext(ctx)
 	s := ReadingFromContext(ctx)
 	s.ID = parent.ID + "." + ctx.Value("ReadingId").(string)
+	s.sensors = parent
 
 	// If not ok then we will ignore the reading
 	if u, ok := value.GetUnit(s.Type); ok {
@@ -112,6 +114,8 @@ func (c *config) initCalculatedValue(ctx context.Context) error {
 	prefix := parent.ID + "."
 	s.ID = prefix + ctx.Value("ReadingId").(string)
 
+	s.sensors = parent
+
 	for i, src := range s.Source {
 		s.Source[i] = prefix + src
 	}
@@ -131,5 +135,12 @@ func (c *config) initCalculatedValue(ctx context.Context) error {
 		}
 	}
 
+	return nil
+}
+
+func (c *config) initGraph(ctx context.Context) error {
+	g := GraphFromContext(ctx)
+	g.reading = ReadingFromContext(ctx)
+	g.calculatedValue = CalculatedValueFromContext(ctx)
 	return nil
 }

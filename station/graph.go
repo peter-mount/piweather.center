@@ -6,9 +6,11 @@ import "context"
 // or a custom one combining multiple Reading's.
 type Graph struct {
 	// Title on top of graph (optional)
-	Title string `json:"title,omitempty" xml:"title,attr,omitempty" yaml:"title,omitempty"`
-	Line  *Line  `json:"line,omitempty" xml:"line,attr,omitempty" yaml:"line,omitempty"`
-	Path  string `json:"-" xml:"-" yaml:"-"`
+	Title           string `json:"title,omitempty" xml:"title,attr,omitempty" yaml:"title,omitempty"`
+	Line            *Line  `json:"line,omitempty" xml:"line,attr,omitempty" yaml:"line,omitempty"`
+	Path            string `json:"-" xml:"-" yaml:"-"`
+	reading         *Reading
+	calculatedValue *CalculatedValue
 }
 
 func GraphFromContext(ctx context.Context) *Graph {
@@ -22,3 +24,13 @@ func (g *Graph) WithContext(ctx context.Context) (context.Context, error) {
 func (g *Graph) Accept(v Visitor) error {
 	return v.VisitGraph(g)
 }
+
+func (g *Graph) GetMinMax() (*float64, *float64) {
+	if g.Line != nil {
+		return g.Line.Min, g.Line.Max
+	}
+	return nil, nil
+}
+
+func (g *Graph) GetReading() *Reading                 { return g.reading }
+func (g *Graph) GetCalculatedValue() *CalculatedValue { return g.calculatedValue }

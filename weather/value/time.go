@@ -15,6 +15,8 @@ type Time interface {
 	Location() *globe.Coord
 	// Altitude at Location()
 	Altitude() float64
+	// Clone this Time.
+	Clone() Time
 }
 
 // PlainTime is a Time with no positional component
@@ -40,3 +42,20 @@ func (b *basicTime) SetTime(t time.Time) { b.t = t }
 func (b *basicTime) Location() *globe.Coord { return b.loc }
 
 func (b *basicTime) Altitude() float64 { return b.alt }
+
+func (b *basicTime) Clone() Time { return &timeWrapper{t: b.t, p: b} }
+
+type timeWrapper struct {
+	t time.Time
+	p Time
+}
+
+func (b *timeWrapper) Time() time.Time { return b.t }
+
+func (b *timeWrapper) SetTime(t time.Time) { b.t = t }
+
+func (b *timeWrapper) Location() *globe.Coord { return b.p.Location() }
+
+func (b *timeWrapper) Altitude() float64 { return b.p.Altitude() }
+
+func (b *timeWrapper) Clone() Time { return b.p.Clone() }
