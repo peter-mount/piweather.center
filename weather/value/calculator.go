@@ -10,14 +10,15 @@ var (
 	calculators = make(map[string]Calculator)
 )
 
-// Calculator performs a calculation to generate a Value
-type Calculator func(...Value) (Value, error)
+// Calculator performs a calculation to generate a Value.
+// It takes a time.Time to represent when this calculation represents
+type Calculator func(Time, ...Value) (Value, error)
 
 // As returns a Calculator which will attempt to transform the returned
 // value from the wrapped Calculator to the required Unit
 func (c Calculator) As(to *Unit) Calculator {
-	return func(args ...Value) (Value, error) {
-		v, err := c(args...)
+	return func(t Time, args ...Value) (Value, error) {
+		v, err := c(t, args...)
 		if err == nil {
 			v, err = v.As(to)
 		}

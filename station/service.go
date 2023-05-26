@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
+	"github.com/peter-mount/piweather.center/astro/coord"
+	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -47,6 +49,25 @@ func (c *config) Start() error {
 func (c *config) initStation(ctx context.Context) error {
 	s := StationFromContext(ctx)
 	s.ID = ctx.Value("StationId").(string)
+
+	lat, err := util.ParseAngle(s.Location.Latitude)
+	if err != nil {
+		return err
+	}
+
+	lon, err := util.ParseAngle(s.Location.Longitude)
+	if err != nil {
+		return err
+	}
+
+	s.latLong = &coord.LatLong{
+		Longitude: lon,
+		Latitude:  lat,
+		Altitude:  s.Location.Altitude,
+		Name:      s.Location.Name,
+		Notes:     s.Location.Notes,
+	}
+
 	return nil
 }
 
@@ -56,6 +77,8 @@ func (c *config) initSensors(ctx context.Context) error {
 	// Set the VisitStation.ID
 	stationConfig := StationFromContext(ctx)
 	s.ID = stationConfig.ID + "." + ctx.Value("SensorId").(string)
+
+	s.station = StationFromContext(ctx)
 
 	return nil
 }

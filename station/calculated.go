@@ -45,6 +45,6 @@ func (s *CalculatedValue) Accept(v Visitor) error {
 	return v.VisitCalculatedValue(s)
 }
 
-func (s *CalculatedValue) Calculate(v ...value.Value) (value.Value, error) {
-	return s.calculator(v...)
+func (s *CalculatedValue) Calculate(t value.Time, v ...value.Value) (value.Value, error) {
+	return s.calculator(t, v...)
 }

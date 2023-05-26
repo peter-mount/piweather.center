@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	_ "github.com/peter-mount/piweather.center/astro/calculator"
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/archiver"
 	_ "github.com/peter-mount/piweather.center/server/menu"
@@ -52,11 +53,16 @@ func (s *Server) Start() error {
 		Reading(s.Store.ProcessReading).
 		CalculatedValue(s.Store.Calculate)
 
-	// Now we preload data from storage to give us some recent
-	// history, then we start each data source, so we can get fresh data sent to us.
+	// Now we preload data from storage to give us some recent history
 	if err := s.Config.Accept(station.NewVisitor().
 		Sensors(value.ResetMap).
 		Sensors(s.Archiver.Preload).
+		WithContext(s.subContext)); err != nil {
+		return err
+	}
+
+	// Now start the sources
+	if err := s.Config.Accept(station.NewVisitor().
 		Sensors(s.startAMQP).
 		Sensors(s.startEcowitt).
 		WithContext(s.subContext)); err != nil {
@@ -95,7 +101,8 @@ func (s *Server) startAMQP(ctx context.Context) error {
 				return err
 			}
 
-			return s.processVisitor.WithContext(p.AddContext(s.subContext)).
+			return s.processVisitor.
+				WithContext(p.AddContext(s.subContext)).
 				VisitSensors(sensor)
 		})
 

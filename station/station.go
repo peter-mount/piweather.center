@@ -2,10 +2,11 @@ package station
 
 import (
 	"context"
+	"github.com/peter-mount/piweather.center/astro/coord"
 )
 
 // Stations  Map of all defined Station's
-type Stations map[string]Station
+type Stations map[string]*Station
 
 func StationsFromContext(ctx context.Context) *Stations {
 	return ctx.Value("Stations").(*Stations)
@@ -29,6 +30,11 @@ type Station struct {
 	Location Location `json:"location" xml:"location,omitempty" yaml:"location,omitempty"`
 	// One or more Sensors collection
 	Sensors map[string]*Sensors `json:"sensors" xml:"sensors" yaml:"sensors"`
+	latLong *coord.LatLong
+}
+
+func (s *Station) LatLong() *coord.LatLong {
+	return s.latLong
 }
 
 func StationFromContext(ctx context.Context) *Station {
@@ -59,6 +65,8 @@ type Sensors struct {
 	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
 	// CalculatedValue's to calculate with this calculation
 	Calculations map[string]*CalculatedValue `json:"calculations,omitempty" xml:"calculations,omitempty" yaml:"calculations,omitempty"`
+	// The station containing this sensor
+	station *Station
 }
 
 func SensorsFromContext(ctx context.Context) *Sensors {
@@ -67,6 +75,10 @@ func SensorsFromContext(ctx context.Context) *Sensors {
 
 func (s *Sensors) WithContext(ctx context.Context) (context.Context, error) {
 	return context.WithValue(ctx, "Sensors", s), nil
+}
+
+func (s *Sensors) Station() *Station {
+	return s.station
 }
 
 func (s *Sensors) Accept(v Visitor) error {

@@ -22,7 +22,7 @@ func AssertEntry(_ Value) error {
 // If the type of value is not required to be enforced, just that it exists
 // then use AssertEntry or AssertValid.
 func AssertCalculator(c Calculator, a ...Assertion) Calculator {
-	return func(v ...Value) (Value, error) {
+	return func(t Time, v ...Value) (Value, error) {
 		if len(v) != len(a) {
 			return Value{}, fmt.Errorf("Calculator requires %d arguments, got %d", len(a), len(v))
 		}
@@ -31,6 +31,6 @@ func AssertCalculator(c Calculator, a ...Assertion) Calculator {
 				return Value{}, err
 			}
 		}
-		return c(v...)
+		return c(t, v...)
 	}
 }

@@ -121,12 +121,17 @@ func (s *Store) ProcessReading(ctx context.Context) error {
 }
 
 func (s *Store) Calculate(ctx context.Context) error {
-	calc := station.CalculatedValueFromContext(ctx)
+	// Get value.Time from Station and Payload
+	sensors := station.SensorsFromContext(ctx)
 	p := payload.GetPayload(ctx)
+	t := sensors.Station().LatLong().Time(p.Time())
+
+	calc := station.CalculatedValueFromContext(ctx)
+
 	values := value.MapFromContext(ctx)
 	args := values.GetAll(calc.Source...)
 
-	result, err := calc.Calculate(args...)
+	result, err := calc.Calculate(t, args...)
 	if err != nil {
 		return err
 	}
