@@ -70,7 +70,7 @@ func (e *Ephemeris) CalculateRiseSetTimes() error {
 	return e.ForEachFiltered(func(entry *Entry) error {
 		th0 := entry.Date.Apparent0UT()
 		eq := entry.Equatorial
-		rs := eq.RiseSet(*e.Meta.LatLong.Coord(), th0, eq.Diameter)
+		rs := eq.RiseSet(e.Meta.LatLong.Coord(), th0, eq.Diameter)
 		entry.RiseSet = &rs
 		return nil
 	}, func(entry *Entry) bool {

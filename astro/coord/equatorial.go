@@ -44,8 +44,8 @@ func (e *Equatorial) Equatorial() coord.Equatorial {
 	}
 }
 
-func (e *Equatorial) RiseSet(p globe.Coord, th0 unit.Time, h0 unit.Angle) RiseSet {
-	tRise, tTransit, tSet, err := rise.ApproxTimes(p, h0, th0, e.Alpha, e.Delta)
+func (e *Equatorial) RiseSet(p *globe.Coord, th0 unit.Time, h0 unit.Angle) RiseSet {
+	tRise, tTransit, tSet, err := rise.ApproxTimes(*p, h0, th0, e.Alpha, e.Delta)
 	if err != nil {
 		return RiseSet{Circumpolar: true}
 	}
