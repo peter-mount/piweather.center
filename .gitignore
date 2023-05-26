@@ -19,3 +19,4 @@ go.sum
 /tmp/
 /dist/
 /a.png
+/Makefile.gen

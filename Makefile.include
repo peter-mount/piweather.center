@@ -1,5 +1,5 @@
 
-cmd = @set -e;printf "%-8s %s\n" $1 $2
+cmd = @printf "%-8s %s\n" $1 $2
 
 # Tool names
 CP		= @cp -p

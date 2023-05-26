@@ -8,6 +8,7 @@ import (
 
 func main() {
 	err := kernel.Launch(
+		&dataencoder.Build{},
 		&dataencoder.Vsop87Encoder{},
 		&dataencoder.YbscEncoder{},
 		&dataencoder.WebEncoder{},
