@@ -78,8 +78,23 @@ dist: all
 	$(foreach PLATFORM,$(shell cd $(BUILDS);ls -d */*),$(call TAR,$(PLATFORM))${\n})
 
 # run any file under data through dataencoder
-data: $(foreach PLATFORM,$(PLATFORMS), $(foreach DATAFILE,$(shell ls data/*.gz), $(subst .gz,,$(subst data,$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/lib,$(DATAFILE))) ) )
+data: $(foreach PLATFORM,$(PLATFORMS), $(foreach DATAFILE, \
+	$(shell ls data/*.dat.gz), $(subst .gz,,$(subst data,$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/lib,$(DATAFILE))) \
+	$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/lib/vsop87b \
+	$(BUILDS)/$(call GO-ARCH-DIR,$(PLATFORM))/web \
+	) )
 
+# Build .dat files
 $(BUILDS)/%.dat:
 	$(call cmd,"GENERATE","$@");\
 	$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(shell dirname $@) -$(shell basename $@ .dat) data/$(shell basename $@).gz
+
+# Install uncompressed vsop87b files
+$(BUILDS)/%/vsop87b:
+	$(call cmd,"GENERATE","$@");\
+	$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(shell dirname $@)/vsop87b -vsop87 data
+
+# Install web content
+$(BUILDS)/%/web:
+	$(call cmd,"GENERATE","$@");\
+	$(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/$(BINDIR)dataencoder -d $(shell dirname $@)/web -web web

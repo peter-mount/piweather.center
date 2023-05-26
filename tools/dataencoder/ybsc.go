@@ -1,4 +1,4 @@
-package ybsc
+package dataencoder
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/io"
-	"github.com/peter-mount/piweather.center/tools/dataencoder"
 	"github.com/soniakeys/unit"
 	"path/filepath"
 	"strconv"
@@ -18,8 +17,8 @@ import (
 // You can download bsc5.dat.gz from Harvard University
 // http://tdc-www.harvard.edu/catalogs/bsc5.html
 type YbscEncoder struct {
-	Encoder *dataencoder.Encoder `kernel:"inject"`
-	Source  *string              `kernel:"flag,bsc5,Encode bsc5.dat"`
+	Encoder *Encoder `kernel:"inject"`
+	Source  *string  `kernel:"flag,bsc5,Encode bsc5.dat"`
 }
 
 func (s *YbscEncoder) Start() error {
