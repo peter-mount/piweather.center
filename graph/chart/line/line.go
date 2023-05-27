@@ -17,7 +17,7 @@ type Line struct {
 	proj                *svg.Projection // Projection of the plot
 }
 
-func New() *Line {
+func New() chart.Chart {
 	return &Line{}
 }
 

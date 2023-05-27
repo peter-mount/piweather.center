@@ -8,6 +8,10 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
+type ChartFactory func() Chart
+
+func Factory(c ChartFactory) ChartFactory { return c }
+
 type Chart interface {
 	// Add a Source to the Chart
 	Add(Source) Chart

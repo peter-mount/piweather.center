@@ -11,6 +11,17 @@ type Generator func(start, end time.Time, ctx context.Context) error
 
 type GeneratorFactory func(path string, g Generator) (string, string, task.Task)
 
+func ServeLatest(p string, g Generator) (string, string, task.Task) {
+	return path.Join(p, "latest.svg"),
+		" latest",
+		func(ctx context.Context) error {
+			now := time.Now()
+			start := now.Truncate(time.Hour)
+			end := start.Add(time.Hour)
+			return g(start, end, ctx)
+		}
+}
+
 // ServeHour returns a Task that will call a Generator with the start, end times
 // being the start and end of the current hour.
 func ServeHour(p string, g Generator) (string, string, task.Task) {

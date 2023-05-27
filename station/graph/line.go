@@ -1,17 +1,14 @@
-package station
+package graph
 
 // Line graph of one or more properties
 type Line struct {
+	Common `yaml:",inline"`
 	// YTitle of Y axis, default "" means none
 	YTitle string `yaml:"YTitle,omitempty"`
 	// YSubTitle subtitle of Y axis. default "" means the unit of the first reading.
 	// If the value matches a registered Unit then it's Unit will be used.
 	// Otherwise, text used on Y axis but the unit as the default will be used for the chart.
 	YSubTitle string `yaml:"subtitle,omitempty"`
-	// Min value for Y axis, default is based on data
-	Min *float64 `yaml:"min,omitempty"`
-	// Max value for Y axis, default is based on data
-	Max *float64 `yaml:"max,omitempty"`
 	// XStep if defined sets the number of minutes for the major markings on the x-axis
 	XStep *float64 `yaml:"xstep,omitempty"`
 	// XSubStep if defined sets the fraction of XStep for minor markings on the x-axis

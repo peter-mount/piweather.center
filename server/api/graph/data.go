@@ -1,40 +1,27 @@
 package graph
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/graph"
 	"github.com/peter-mount/piweather.center/graph/chart"
-	"github.com/peter-mount/piweather.center/graph/chart/line"
-	"github.com/peter-mount/piweather.center/graph/svg"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"net/http"
 	"time"
 )
 
-// serveLine generates a line graph
-func (s *SVG) serveLine(start, end time.Time, ctx context.Context) error {
-	r := rest.GetRest(ctx)
-
+func (s *SVG) initChart(start, end time.Time, ctx context.Context, c chart.Chart) (bool, error) {
 	id := ctx.Value("id").(string)
+
+	g := station.GraphFromContext(ctx)
 
 	readings := s.Store.GetHistoryBetween(id, start, end)
 	if readings == nil {
-		r.Status(http.StatusNotFound)
-		return nil
+		return false, nil
 	}
 
-	var buf bytes.Buffer
-
 	period := time2.PeriodOf(start, end)
-	l := line.New()
-
-	g := station.GraphFromContext(ctx)
 
 	// resolve the datasource
 	var dataSource util.DataSource
@@ -42,7 +29,7 @@ func (s *SVG) serveLine(start, end time.Time, ctx context.Context) error {
 	if calc != nil && calc.IsPseudo() {
 		to, ok := value.GetUnit(calc.Use)
 		if !ok {
-			return fmt.Errorf("unit %q not defined", calc.Use)
+			return false, fmt.Errorf("unit %q not defined", calc.Use)
 		}
 
 		t := calc.Sensors().Station().LatLong().Time(period.Start())
@@ -72,19 +59,9 @@ func (s *SVG) serveLine(start, end time.Time, ctx context.Context) error {
 		dataSource = readings
 	}
 
-	l.SetDefinition(g).
+	c.SetDefinition(g).
 		Add(chart.NewUnitSource(id, dataSource)).
-		SetPeriod(period).
-		SetBounds(svg.NewRect(0, 0, svgWidth, svgHeight))
+		SetPeriod(period)
 
-	svg.New(&buf, svgWidth, svgHeight, func(s svg.SVG) {
-		graph.CSS(s)
-		s.Draw(l)
-	})
-
-	r.Status(http.StatusOK).
-		ContentType("image/svg+xml").
-		Value(buf.Bytes())
-
-	return nil
+	return true, nil
 }

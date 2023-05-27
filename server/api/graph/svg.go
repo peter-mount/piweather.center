@@ -3,6 +3,8 @@ package graph
 import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2"
+	"github.com/peter-mount/piweather.center/graph/chart/gauge"
+	"github.com/peter-mount/piweather.center/graph/chart/line"
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station"
@@ -13,11 +15,6 @@ import (
 func init() {
 	kernel.Register(&SVG{})
 }
-
-const (
-	svgWidth  = 1024
-	svgHeight = 132
-)
 
 // SVG provides the /api/svg endpoint which displays svg graphs for a metric
 type SVG struct {
@@ -35,15 +32,15 @@ func (s *SVG) Start() error {
 
 // registerGraph adds endpoints for a Graph object
 func (s *SVG) registerGraph(ctx context.Context) error {
-	sensors := station.SensorsFromContext(ctx)
 	g := station.GraphFromContext(ctx)
-
-	id := g.Sensor().GetID()
-	g.Path = path.Join("/svg", path.Join(strings.Split(id, ".")...))
+	g.Path = path.Join("/svg", path.Join(strings.Split(g.Sensor().GetID(), ".")...))
 
 	switch {
+	case g.Gauge != nil:
+		return s.registerSvgChartEndpoint(g, "Gauge", gauge.New, gaugeWidth, gaugeHeight, ServeLatest)
+
 	case g.Line != nil:
-		return s.registerSvgEndpoints(sensors, g, id, "Line graph", s.serveLine, ServeDay, ServeToday)
+		return s.registerSvgChartEndpoint(g, "Line graph", line.New, svgWidth, svgHeight, ServeDay, ServeToday)
 
 	default:
 		// No Chart defined so remove path, so that we don't use it elsewhere
