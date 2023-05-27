@@ -34,3 +34,9 @@ func (g *Graph) GetMinMax() (*float64, *float64) {
 
 func (g *Graph) GetReading() *Reading                 { return g.reading }
 func (g *Graph) GetCalculatedValue() *CalculatedValue { return g.calculatedValue }
+func (g *Graph) Sensor() Sensor {
+	if g.reading != nil {
+		return g.reading
+	}
+	return g.calculatedValue
+}

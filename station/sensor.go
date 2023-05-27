@@ -5,6 +5,17 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
+// Sensor is the common interface for Reading and CalculatedValue
+type Sensor interface {
+	WithContext(ctx context.Context) (context.Context, error)
+	Sensors() *Sensors
+	Accept(v Visitor) error
+	GetID() string
+	Graphs() []*Graph
+	IsCalculated() bool
+	IsPseudo() bool
+}
+
 // Reading defines a sensor available within a collection
 type Reading struct {
 	ID string `json:"-" xml:"-" yaml:"-"`
@@ -55,3 +66,9 @@ func (s *Reading) Unit() *value.Unit {
 }
 
 func (s *Reading) Sensors() *Sensors { return s.sensors }
+
+func (s *Reading) GetID() string { return s.ID }
+
+func (s *Reading) Graphs() []*Graph   { return s.Graph }
+func (s *Reading) IsCalculated() bool { return false }
+func (s *Reading) IsPseudo() bool     { return false }

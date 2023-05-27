@@ -52,6 +52,8 @@ func (s *CalculatedValue) Calculate(t value.Time, v ...value.Value) (value.Value
 
 func (s *CalculatedValue) Calculator() value.Calculator { return s.calculator }
 
+func (s *CalculatedValue) IsCalculated() bool { return true }
+
 // IsPseudo returns true if this is a Pseudo calculation.
 //
 // A Pseudo calculation is where the calculation takes no values, just the value.Time.
@@ -66,3 +68,7 @@ func (s *CalculatedValue) IsPseudo() bool {
 }
 
 func (s *CalculatedValue) Sensors() *Sensors { return s.sensors }
+
+func (s *CalculatedValue) GetID() string { return s.ID }
+
+func (s *CalculatedValue) Graphs() []*Graph { return s.Graph }
