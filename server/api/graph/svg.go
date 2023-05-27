@@ -251,12 +251,7 @@ func (s *SVG) serve(start, end time.Time, ctx context.Context) error {
 	// resolve the datasource
 	var dataSource util.DataSource
 	calc := g.GetCalculatedValue()
-	if calc == nil {
-		r.Status(http.StatusExpectationFailed)
-		return nil
-	}
-
-	if calc.IsPseudo() {
+	if calc != nil && calc.IsPseudo() {
 		to, ok := value.GetUnit(calc.Use)
 		if !ok {
 			return fmt.Errorf("unit %q not defined", calc.Use)
