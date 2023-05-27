@@ -8,8 +8,6 @@ import (
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station"
-	"path"
-	"strings"
 )
 
 func init() {
@@ -33,8 +31,6 @@ func (s *SVG) Start() error {
 // registerGraph adds endpoints for a Graph object
 func (s *SVG) registerGraph(ctx context.Context) error {
 	g := station.GraphFromContext(ctx)
-	g.Path = path.Join("/svg", path.Join(strings.Split(g.Sensor().GetID(), ".")...))
-
 	switch {
 	case g.Gauge != nil:
 		return s.registerSvgChartEndpoint(g, "Gauge", gauge.New, gaugeWidth, gaugeHeight, ServeLatest)
