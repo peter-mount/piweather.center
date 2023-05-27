@@ -17,12 +17,11 @@ import (
 	"time"
 )
 
+// serveLine generates a line graph
 func (s *SVG) serveLine(start, end time.Time, ctx context.Context) error {
 	r := rest.GetRest(ctx)
 
 	id := ctx.Value("id").(string)
-	//reading := station.ReadingFromContext(ctx)
-	//id := reading.ID
 
 	readings := s.Store.GetHistoryBetween(id, start, end)
 	if readings == nil {
