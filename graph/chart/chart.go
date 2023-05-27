@@ -13,6 +13,9 @@ type ChartFactory func() Chart
 func Factory(c ChartFactory) ChartFactory { return c }
 
 type Chart interface {
+	// Type returns the type of chart, e.g. "line", "gauge" etc.
+	// This is used in forming url paths
+	Type() string
 	// Add a Source to the Chart
 	Add(Source) Chart
 	// Period of the Chart
@@ -38,6 +41,8 @@ type AbstractChart struct {
 	bounds     svg.Rect
 	definition *station.Graph
 }
+
+func (c *AbstractChart) Type() string { return "???" }
 
 func (c *AbstractChart) Sources() []Source { return c.sources }
 

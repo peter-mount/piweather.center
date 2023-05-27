@@ -15,12 +15,13 @@ import (
 )
 
 func (s *SVG) registerSvgChartEndpoint(graph *station.Graph, name string, chartFactory chart.ChartFactory, width, height float64, factories ...GeneratorFactory) error {
-	return s.registerSvgEndpoint(graph, name, s.createChartGenerator(chartFactory, svg.NewRect(0, 0, width, height)), factories...)
+	return s.registerSvgEndpoint(graph, name, chartFactory, s.createChartGenerator(chartFactory, svg.NewRect(0, 0, width, height)), factories...)
 }
 
-func (s *SVG) registerSvgEndpoint(graph *station.Graph, name string, generator Generator, factories ...GeneratorFactory) error {
+func (s *SVG) registerSvgEndpoint(graph *station.Graph, name string, chartFactory chart.ChartFactory, generator Generator, factories ...GeneratorFactory) error {
+
 	id := graph.Sensor().GetID()
-	graph.Path = path.Join("/svg", path.Join(strings.Split(id, ".")...))
+	graph.Path = path.Join("/svg", strings.ToLower(strings.ReplaceAll(id, ".", "/")), chartFactory().Type())
 
 	sensorName := "svg " + graph.Sensor().Sensors().Name
 

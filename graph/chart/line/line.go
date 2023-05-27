@@ -21,6 +21,8 @@ func New() chart.Chart {
 	return &Line{}
 }
 
+func (c *Line) Type() string { return "line" }
+
 func (l *Line) Draw(s svg.SVG, styles ...string) {
 	if len(styles) > 0 {
 		s.Group(l.draw, styles...)

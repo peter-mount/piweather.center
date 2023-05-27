@@ -14,6 +14,8 @@ func New() chart.Chart {
 	return &Gauge{}
 }
 
+func (c *Gauge) Type() string { return "gauge" }
+
 func (g *Gauge) Draw(s svg.SVG, styles ...string) {
 	if len(styles) > 0 {
 		s.Group(g.draw, styles...)
