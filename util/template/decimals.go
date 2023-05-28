@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/util"
 	"strconv"
+	"strings"
 )
 
 // DecimalAlign provides a means to align a table column against the decimal point.
@@ -77,8 +78,19 @@ func (d *DecimalAlign) Width() string {
 // Pad returns the value to include with the --pad css variable for a
 // specific table cell.
 func (d *DecimalAlign) Pad(v interface{}) string {
-	vf, _ := util.ToFloat64(v)
-	lp := len(fmt.Sprintf("%.0f", vf))
+	var lp int
+	if s, ok := v.(string); ok {
+		// If a string then look for ".".
+		// If found then lp=num chars before but excluding it.
+		// If not found then use length of string
+		lp = strings.Index(s, ".")
+		if lp < 0 {
+			lp = len(s)
+		}
+	} else {
+		vf, _ := util.ToFloat64(v)
+		lp = len(fmt.Sprintf("%.0f", vf))
+	}
 	return strconv.Itoa(d.lp - lp)
 }
 
