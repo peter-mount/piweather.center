@@ -5,12 +5,12 @@ import (
 )
 
 func init() {
-	MetersPerSecond = value.NewLowerBoundUnit("MetersPerSecond", "Speed", "Meters Per Second", " m/s", 1, 0)
-	KilometersPerHour = value.NewLowerBoundUnit("KilometersPerHour", "Speed", "Kilometers Per Hour", " km/h", 1, 0)
-	MilesPerHour = value.NewLowerBoundUnit("MilesPerHour", "Speed", "Miles Per Hour", " mph", 1, 0)
-	FeetPerSecond = value.NewLowerBoundUnit("FeetPerSecond", "Speed", "Feet Per Second", " ft/s", 1, 0)
-	Knots = value.NewLowerBoundUnit("Knots", "Speed", "Knots", " kn", 1, 0)
-	BeaufortScale = value.NewBoundedUnit("BeaufortScale", "Speed", "Beaufort Scale", "", 0, 0, 12)
+	MetersPerSecond = value.NewLowerBoundUnit("MetersPerSecond", "Meters Per Second", " m/s", 1, 0)
+	KilometersPerHour = value.NewLowerBoundUnit("KilometersPerHour", "Kilometers Per Hour", " km/h", 1, 0)
+	MilesPerHour = value.NewLowerBoundUnit("MilesPerHour", "Miles Per Hour", " mph", 1, 0)
+	FeetPerSecond = value.NewLowerBoundUnit("FeetPerSecond", "Feet Per Second", " ft/s", 1, 0)
+	Knots = value.NewLowerBoundUnit("Knots", "Knots", " kn", 1, 0)
+	BeaufortScale = value.NewBoundedUnit("BeaufortScale", "Beaufort Scale", "", 0, 0, 12)
 
 	// Transforms between mps and each unit - this registers both directions
 	value.NewBasicBiTransform(MetersPerSecond, KilometersPerHour, mpsToKph)
@@ -20,11 +20,11 @@ func init() {
 	value.NewBiTransform(MetersPerSecond, BeaufortScale, mpsToBeaufort, beaufortToMps)
 
 	// Conversions between units other than MetersPerSecond. These convert to MetersPerSecond first then to the final one
-	value.NewTransformations(MetersPerSecond, FeetPerSecond, KilometersPerHour, Knots, MilesPerHour, BeaufortScale)
-
+	Speed = value.NewGroup("Speed", MetersPerSecond, FeetPerSecond, KilometersPerHour, Knots, MilesPerHour, BeaufortScale)
 }
 
 var (
+	Speed             *value.Group
 	FeetPerSecond     *value.Unit
 	KilometersPerHour *value.Unit
 	Knots             *value.Unit

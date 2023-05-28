@@ -6,13 +6,13 @@ import (
 )
 
 func init() {
-	Radian = value.NewUnit("Radian", "Angle", "Radians", " rad", 4)
-	Degree = value.NewUnit("Degree", "Angle", "Degrees", "°", 3)
-	ArcMinute = value.NewUnit("ArcMinute", "Angle", "Arc Minute", "'", 3)
-	ArcSecond = value.NewUnit("ArcSecond", "Angle", "Arc Second", "\"", 3)
-	Gradian = value.NewUnit("Gradian", "Angle", "Gradian", " grad", 3)
-	HourAngle = value.NewUnit("HourAngle", "Angle", "Hour Angle", " ha", 3)
-	Turn = value.NewUnit("Turn", "Angle", "Turn", " turn", 6)
+	Radian = value.NewUnit("Radian", "Radians", " rad", 4)
+	Degree = value.NewUnit("Degree", "Degrees", "°", 3)
+	ArcMinute = value.NewUnit("ArcMinute", "Arc Minute", "'", 3)
+	ArcSecond = value.NewUnit("ArcSecond", "Arc Second", "\"", 3)
+	Gradian = value.NewUnit("Gradian", "Gradian", " grad", 3)
+	HourAngle = value.NewUnit("HourAngle", "Hour Angle", " ha", 3)
+	Turn = value.NewUnit("Turn", "Turn", " turn", 6)
 
 	// Turn is the default unit
 	value.NewBasicBiTransform(Turn, Degree, 360)
@@ -30,10 +30,12 @@ func init() {
 	value.NewBasicBiTransform(HourAngle, Degree, 15.0)
 
 	// Ensure all others exist
-	value.NewTransformations(Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle)
+	Angle = value.NewGroup("Angle", Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle)
 }
 
 var (
+	// Angle value.group of all angular value.Unit's
+	Angle *value.Group
 	// Radian is determined by the circumference of a circle that is equal in
 	// length to the radius of the circle (n = 2π = 6.283...). It is the angle
 	// subtended by an arc of a circle that has the same length as the circle's

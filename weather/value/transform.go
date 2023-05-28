@@ -63,7 +63,7 @@ func NewTransform(from, to *Unit, t Transformer) {
 	transformers[n] = t
 }
 
-// NewTransformations generates transformations to convert between two or more Unit's
+// newTransformations generates transformations to convert between two or more Unit's
 // Using a base Unit as the intermediary. It will create every possible transform based on the list of units.
 //
 // e.g. for speed you can convert KilometersPerHour to FeetPerSecond by converting to MetersPerSecond first.
@@ -73,9 +73,9 @@ func NewTransform(from, to *Unit, t Transformer) {
 //
 // If the baseUnit is present in the unit list it will also panic because that transform will already be registered.
 // If no transform exists between two units, then a transform will be created converting via the baseUnit.
-func NewTransformations(baseUnit *Unit, units ...*Unit) {
+func newTransformations(baseUnit *Unit, units ...*Unit) {
 	if len(units) < 2 {
-		panic(errors.New("must supply 2 or more Unit's"))
+		panic(errors.New("must supply 2 or more Unit's to link to base"))
 	}
 
 	for _, src := range units {
@@ -133,6 +133,22 @@ func TransformAvailable(from, to *Unit) bool {
 	n := transformName(from, to)
 	_, exists := transformers[n]
 	return exists
+}
+
+// TransformsAvailable returns true if it's possible
+// to transform between two units in either direction.
+func TransformsAvailable(a, b *Unit) bool {
+	return TransformAvailable(a, b) && TransformAvailable(b, a)
+}
+
+// AssertTransformsAvailable returns an error if it's not possible
+// to transform between two units in either direction.
+func AssertTransformsAvailable(a, b *Unit) error {
+	_, err := GetTransform(a, b)
+	if err == nil {
+		_, err = GetTransform(b, a)
+	}
+	return err
 }
 
 // Transform will transform a float64 between two units.

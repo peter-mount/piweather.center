@@ -14,18 +14,28 @@ import (
 // be transformed.
 type Unit struct {
 	id        string  // Unique ID, case insensitive
-	category  string  // Category of Unit
+	group     *Group  // Group the unit belongs to, nil for no membership
 	name      string  // Name of Unit, e.g. "Celsius"
 	unit      string  // Short name of Unit e.g. "°C"
 	format    string  // Format for Sprintf
 	precision int     // Precision of the unit
 	min       float64 // min valid value
 	max       float64 // max valid value
+	err       error   // Error from assertion
 }
 
 func (u *Unit) ID() string { return u.id }
 
-func (u *Unit) Category() string { return u.category }
+func (u *Unit) Category() string {
+	if u.group == nil {
+		return "Uncategorized"
+	}
+	return u.group.Name()
+}
+
+// Group returns the Group this Unit is a member of, or nil if
+// it's not a member of one.
+func (u *Unit) Group() *Group { return u.group }
 
 // Name of the Unit. e.g. "Celsius"
 func (u *Unit) Name() string { return u.name }
@@ -108,30 +118,50 @@ func (u *Unit) Value(v float64) Value {
 	return Value{v: v, u: u}
 }
 
+// AssertUnit will return an error if the two Unit's do not match.
+// If either Unit is nil then this returns nil.
+func (u *Unit) AssertUnit(b *Unit) error {
+	if u == nil || b == nil || u.Equals(b) {
+		return nil
+	}
+	return u.err
+}
+
+// AssertValue returns an error if the Value's Unit does not match this Unit.
+func (u *Unit) AssertValue(v Value) error {
+	return u.AssertUnit(v.Unit())
+}
+
+// IsErr returns true if the error was returned by AssertUnit or AssertValue.
+func (u *Unit) IsErr(err error) bool {
+	return u != nil && u.err == err
+}
+
 // NewUnit creates a new Unit, registering it with the system.
-func NewUnit(id, category, name, unit string, precision int) *Unit {
+func NewUnit(id, name, unit string, precision int) *Unit {
 	mutex.Lock()
 	defer mutex.Unlock()
 	n := strings.ToLower(id)
 	if _, exists := units[n]; exists {
-		panic(fmt.Errorf("unit %q already exists", id))
+		panic(fmt.Errorf("unit %q already registered", n))
 	}
 	u := &Unit{
 		id:        n,
-		category:  category,
 		name:      name,
 		unit:      unit,
 		precision: precision,
 		format:    fmt.Sprintf("%%.%df%%s", precision),
 		min:       -math.MaxFloat64,
-		max:       math.MaxFloat64}
+		max:       math.MaxFloat64,
+		err:       fmt.Errorf("not a %s %q", id, name),
+	}
 	units[n] = u
 	return u
 }
 
 // NewBoundedUnit creates a new Unit which has both min and max values.
-func NewBoundedUnit(id, category, name, unit string, precision int, min, max float64) *Unit {
-	u := NewUnit(id, category, name, unit, precision)
+func NewBoundedUnit(id, name, unit string, precision int, min, max float64) *Unit {
+	u := NewUnit(id, name, unit, precision)
 	if min > max {
 		min, max = max, min
 	}
@@ -141,13 +171,13 @@ func NewBoundedUnit(id, category, name, unit string, precision int, min, max flo
 }
 
 // NewLowerBoundUnit creates a new Unit which has a lower limit on it's permitted values.
-func NewLowerBoundUnit(id, category, name, unit string, precision int, min float64) *Unit {
-	return NewBoundedUnit(id, category, name, unit, precision, min, math.MaxFloat64)
+func NewLowerBoundUnit(id, name, unit string, precision int, min float64) *Unit {
+	return NewBoundedUnit(id, name, unit, precision, min, math.MaxFloat64)
 }
 
 // NewUpperBoundUnit creates a new Unit which has an upper limit on it's permitted values.
-func NewUpperBoundUnit(id, category, name, unit string, precision int, max float64) *Unit {
-	return NewBoundedUnit(id, category, name, unit, precision, -math.MaxFloat64, max)
+func NewUpperBoundUnit(id, name, unit string, precision int, max float64) *Unit {
+	return NewBoundedUnit(id, name, unit, precision, -math.MaxFloat64, max)
 }
 
 // GetUnit returns a registered Unit based on its name.
@@ -172,9 +202,9 @@ func GetUnits() []*Unit {
 
 var (
 	// Integer is effectively an integer value with no unit.
-	Integer = NewUnit("Integer", "Misc", "Integer", "", 0)
+	Integer = NewUnit("Integer", "Integer", "", 0)
 	// Float is a value with no unit
-	Float = NewUnit("Float", "Misc", "Float", "", 3)
+	Float = NewUnit("Float", "Float", "", 3)
 	// Percent is a Unit bounded by 0..100 and has no decimal places
-	Percent = NewBoundedUnit("Percent", "Misc", "Percent", "%", 0, 0, 100)
+	Percent = NewBoundedUnit("Percent", "Percent", "%", 0, 0, 100)
 )

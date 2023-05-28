@@ -6,19 +6,7 @@ import (
 )
 
 func init() {
-	HeatIndex = value.NewBoundedUnit("HeatIndex", "Indices", "HeatIndex", "%", 0, 0, 100)
-
 	value.NewCalculator("heatIndex", TemperatureRelativeHumidityCalculator(GetHeatIndex))
-}
-
-var (
-	// HeatIndex unit
-	HeatIndex *value.Unit
-)
-
-// IsHeatIndex returns true if the Value is a HeatIndex value.
-func IsHeatIndex(v value.Value) bool {
-	return v.Unit() == HeatIndex
 }
 
 const (

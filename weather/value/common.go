@@ -12,5 +12,6 @@ var (
 	nInf         = errors.New("-Inf")
 	mutex        sync.Mutex
 	units        = make(map[string]*Unit)
+	groups       = make(map[string]*Group)
 	transformers = make(map[string]Transformer)
 )
