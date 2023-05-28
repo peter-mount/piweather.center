@@ -1,13 +1,3 @@
-{{- define "statusTransformsLegend" -}}
-<tr class="heading">
-    <td class="alignLeft" colspan="2"><strong>{{.}}</strong></td>
-</tr>
-<tr>
-    <th class="alignLeft">From</th>
-    <th class="alignLeft">To</th>
-</tr>
-{{- end -}}
-
 {{- template "layout/default-start.html" $ -}}
 
 <h1>Available Unit Transforms</h1>
@@ -20,14 +10,20 @@
     <thead>
     </thead>
     <tbody>
-    {{- range $cat := $.cats -}}
-    {{- template "statusTransformsLegend" $cat -}}
-    {{- range $unit := index $.units $cat -}}
+    {{- range $group := $.groups -}}
+    <tr class="heading">
+        <td class="alignLeft" colspan="2"><strong>{{$group.Name}}</strong></td>
+    </tr>
     <tr>
-        <td class="alignLeft">{{$unit.ID}}</td>
-        {{- range index $.transforms $unit.ID }}
-        <td>{{.}}</td>
-        {{- end}}
+        <th class="alignLeft">From</th>
+        <th class="alignLeft">To</th>
+    </tr>
+    {{- range $from := $group.Units -}}
+    <tr>
+        <td class="alignLeft">{{$from.ID}}</td>
+        {{- range $to := index $.transforms $from.ID -}}
+        <td>{{$to}}</td>
+        {{- end -}}
     </tr>
     {{- end -}}
     {{- end -}}

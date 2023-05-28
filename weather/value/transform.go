@@ -3,6 +3,7 @@ package value
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -198,26 +199,35 @@ func NewBasicBiTransform(u1, u2 *Unit, factor float64) {
 	NewTransform(u2, u1, BasicInverseTransform(factor))
 }
 
-type TransformDef struct {
-	From string
-	To   string
-}
-
-func GetTransforms() []TransformDef {
+func getTransforms() []string {
 	mutex.Lock()
 	defer mutex.Unlock()
-
-	var defs []TransformDef
+	var r []string
 	for k, _ := range transformers {
+		r = append(r, k)
+	}
+	return r
+}
+
+// GetTransforms returns a slice of TransformDef representing the defined transforms.
+// The result will be sorted by From and then by To.
+func GetTransforms() map[string][]string {
+	m := make(map[string][]string)
+
+	for _, k := range getTransforms() {
 		s := strings.Split(k, "->")
 		if len(s) == 2 {
-			defs = append(defs, TransformDef{
-				From: s[0],
-				To:   s[1],
-			})
+			m[s[0]] = append(m[s[0]], s[1])
 		}
 	}
-	return defs
+
+	for _, v := range m {
+		sort.SliceStable(v, func(i, j int) bool {
+			return v[i] < v[j]
+		})
+	}
+
+	return m
 }
 
 // NopTransformer does nothing.

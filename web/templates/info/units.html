@@ -2,24 +2,11 @@
 {{- /* Calculate decimalAlign for the min and max columns */ -}}
 {{- $minPad := decimalAlign 2 }}{{/* Account for -∞ in minimum column as it's 2 chars */}}
 {{- $maxPad := decimalAlign -}}
-{{- range $cat := $.cats -}}
-{{- range $unit := index $.units $cat -}}
+{{- range $group := $.groups -}}
+{{- range $unit := $group.Units -}}
 {{- if $unit.HasMin }}{{$minPad.Add $unit.Min $unit.Precision}}{{end -}}
 {{- if $unit.HasMax }}{{$maxPad.Add $unit.Max $unit.Precision}}{{end -}}
 {{- end -}}
-{{- end -}}
-
-{{- define "statusUnitsLegend" -}}
-<tr class="heading">
-    <td class="alignLeft" colspan="2"><strong>{{.cat}}</strong></td>
-</tr>
-<tr>
-    <th class="alignLeft">ID</th>
-    <th class="alignLeft">Name</th>
-    <th class="alignLeft">Unit</th>
-    <th class="alignCenter" style="width:{{.min.Width}};">Min</th>
-    <th class="alignCenter" style="width:{{.max.Width}};">Max</th>
-</tr>
 {{- end -}}
 
 {{- template "layout/default-start.html" $ -}}
@@ -34,9 +21,18 @@
     <thead>
     </thead>
     <tbody>
-    {{- range $cat := $.cats -}}
-    {{- template "statusUnitsLegend" (dict "cat" $cat "min" $minPad "max" $maxPad) -}}
-    {{- range $unit := index $.units $cat -}}
+    {{- range $group := $.groups -}}
+    <tr class="heading">
+        <td class="alignLeft" colspan="2"><strong>{{$group.Name}}</strong></td>
+    </tr>
+    <tr>
+        <th class="alignLeft">ID</th>
+        <th class="alignLeft">Name</th>
+        <th class="alignLeft">Unit</th>
+        <th class="alignCenter" style="width:{{$minPad.Width}};">Min</th>
+        <th class="alignCenter" style="width:{{$maxPad.Width}};">Max</th>
+    </tr>
+    {{- range $unit := $group.Units -}}
     <tr>
         <td class="alignLeft">{{$unit.ID}}</td>
         <td class="alignLeft">{{$unit.Name}}</td>
@@ -52,7 +48,6 @@
         <td class="alignDecimal" style="--pad:{{$maxPad.Pad 1}};">∞</td>
         {{- end}}
     </tr>
-
     {{- end -}}
     {{- end -}}
     </tbody>
