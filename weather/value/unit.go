@@ -27,8 +27,9 @@ type Unit struct {
 func (u *Unit) ID() string { return u.id }
 
 func (u *Unit) Category() string {
+	// Just in-case this is called whilst a Unit is being added to Group
 	if u.group == nil {
-		return "Uncategorized"
+		return uncategorized.Name()
 	}
 	return u.group.Name()
 }
@@ -145,6 +146,7 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 	if _, exists := units[n]; exists {
 		panic(fmt.Errorf("unit %q already registered", n))
 	}
+
 	u := &Unit{
 		id:        n,
 		name:      name,
@@ -154,8 +156,13 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 		min:       -math.MaxFloat64,
 		max:       math.MaxFloat64,
 		err:       fmt.Errorf("not a %s %q", id, name),
+		group:     uncategorized,
 	}
 	units[n] = u
+
+	// Initially add to the uncategorized group
+	uncategorized.addUnit(u).sort()
+
 	return u
 }
 

@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -25,9 +26,8 @@ func NewGroup(name string, base *Unit, siblings ...*Unit) *Group {
 	}
 
 	g := &Group{
-		name:  name,
-		err:   fmt.Errorf("not a %s", name),
-		units: append([]*Unit{base}, siblings...),
+		name: name,
+		err:  fmt.Errorf("not a %s", name),
 	}
 
 	// Validate the group Unit's can transform between each other
@@ -49,25 +49,82 @@ func NewGroup(name string, base *Unit, siblings ...*Unit) *Group {
 		newTransformations(base, siblings...)
 	}
 
-	// Finally link each Unit to the Group
-	for _, unit := range g.units {
-		if unit.group != nil {
-			panic(fmt.Errorf("unit %q is already a member of group %q", unit.ID(), unit.group.Name()))
-		}
-		unit.group = g
-	}
-
-	// Register the group.
+	// =======================================================================
 	// We cannot lock before this point as the Transformation checks share the
 	// same mutex and we would deadlock ourselves
+	// =======================================================================
 	mutex.Lock()
 	defer mutex.Unlock()
+
+	// Transfer the Unit's from Uncategorized to the new Group
+	for _, unit := range append(siblings, base) {
+		unit.removeFromGroup().sort()
+		g.addUnit(unit)
+	}
+	g.sort()
+
+	// Register the group.
 	if _, exists := groups[n]; exists {
 		// Should never happen but as we cannot be locked until this point
 		// we should check just in-case...
 		panic(fmt.Errorf("race condition: group %q created during it's own creation", n))
 	}
 	groups[n] = g
+
+	return g
+}
+
+// sort the unit's in a group
+func (g *Group) sort() *Group {
+	if g != nil {
+		sort.SliceStable(g.units, func(i, j int) bool {
+			return g.units[i].ID() < g.units[j].ID()
+		})
+	}
+	return g
+}
+
+// assertGroup panics if the unit is a member of any Group other than uncategorized
+// or none
+func assertUncategorized(u *Unit) {
+	if u.group != nil && u.group != uncategorized {
+		panic(fmt.Errorf("unit %q is already a member of group %q", u.ID(), u.group.Name()))
+	}
+}
+
+// addUnit adds a Unit to an existing Group.
+// It returns the Group the unit has been added to
+func (g *Group) addUnit(u *Unit) *Group {
+	if g == nil || u == nil {
+		return nil
+	}
+
+	assertUncategorized(u)
+	g.units = append(g.units, u)
+	u.group = g
+	return g
+}
+
+// removeUnit transfers a Unit from an existing Group to another Group.
+// It returns the Group the Unit was removed from.
+func (u *Unit) removeFromGroup() *Group {
+	if u == nil || u.group == nil {
+		return nil
+	}
+
+	// Only permitted to remove from Uncategorized
+	assertUncategorized(u)
+
+	g := u.group
+
+	var a []*Unit
+	for _, e := range g.units {
+		if e.id != u.id {
+			a = append(a, e)
+		}
+	}
+	g.units = a
+	u.group = nil
 
 	return g
 }
@@ -141,7 +198,8 @@ func GetGroup(id string) (*Group, bool) {
 	return g, e
 }
 
-// GetGroupIDs returns a slice of all registered group ID's
+// GetGroupIDs returns a slice of all registered group ID's.
+// The returned ID's will be sorted.
 func GetGroupIDs() []string {
 	var r []string
 	mutex.Lock()
@@ -149,10 +207,14 @@ func GetGroupIDs() []string {
 	for k, _ := range groups {
 		r = append(r, k)
 	}
+	sort.SliceStable(r, func(i, j int) bool {
+		return r[i] < r[j]
+	})
 	return r
 }
 
-// GetGroups returns a slice of all registered group's
+// GetGroups returns a slice of all registered group's.
+// The returned Group's will be sorted by Group.Name.
 func GetGroups() []*Group {
 	var r []*Group
 	mutex.Lock()
@@ -160,5 +222,8 @@ func GetGroups() []*Group {
 	for _, g := range groups {
 		r = append(r, g)
 	}
+	sort.SliceStable(r, func(i, j int) bool {
+		return r[i].Name() < r[j].Name()
+	})
 	return r
 }
