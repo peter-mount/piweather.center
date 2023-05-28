@@ -24,7 +24,7 @@ func (m *Manager) Start() error {
 	if *m.webRoot != "" {
 		m.rootDir = path.Join(*m.webRoot, "templates")
 	} else {
-		m.rootDir = path.Join(filepath.Dir(os.Args[0]), "../lib/templates")
+		m.rootDir = path.Join(filepath.Dir(os.Args[0]), "../lib/web/templates")
 	}
 
 	log.Printf("Loading templates in %q", m.rootDir)
