@@ -29,8 +29,8 @@
         <th class="alignLeft">ID</th>
         <th class="alignLeft">Name</th>
         <th class="alignLeft">Unit</th>
-        <th class="alignCenter" style="width:{{$minPad.Width}};">Min</th>
-        <th class="alignCenter" style="width:{{$maxPad.Width}};">Max</th>
+        <th class="alignDecimal" style="--pad:{{$minPad.Pad 100}};width:{{$minPad.Width}};">Min</th>
+        <th class="alignDecimal" style="--pad:{{$maxPad.Pad 100}};width:{{$maxPad.Width}};">Max</th>
     </tr>
     {{- range $unit := $group.Units -}}
     <tr>
