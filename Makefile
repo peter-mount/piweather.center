@@ -68,13 +68,16 @@ clean:
 	$(call REMOVE,$(BUILDS) $(DIST))
 
 init: go-init
+	$(call GO-BUILD,$(BUILD_PLATFORM),$(BUILDS)/dataencoder,tools/dataencoder/bin/main.go)
+	$(call cmd,"GENERATE","Makefile");$(BUILDS)/dataencoder -d $(BUILDS) -build Makefile.gen -build-platform "$(PLATFORMS)"
 
 test: go-test
 
-build:
-	$(call GO-BUILD,$(BUILD_PLATFORM),$(BUILDS)/dataencoder,tools/dataencoder/bin/main.go)
-	$(call cmd,"GENERATE","Makefile");$(BUILDS)/dataencoder -d $(BUILDS) -build Makefile.gen -build-platform "$(PLATFORMS)"
+build: test
 	@${MAKE} --no-print-directory -f Makefile.gen all
+
+jenkins:
+	$(call cmd,"GENERATE","Jenkinsfile");$(BUILDS)/dataencoder -d $(BUILDS) -jenkins Jenkinsfile
 
 dist: build
 	$(MKDIR) $(DIST)
