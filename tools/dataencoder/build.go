@@ -72,7 +72,12 @@ func (s *Build) Start() error {
 			return err
 		}
 
-		return s.platformIndex(arch)
+		err = s.platformIndex(arch)
+		if err != nil {
+			return err
+		}
+
+		return s.jenkinsfile(tools, arch)
 	}
 	return nil
 }
@@ -172,9 +177,23 @@ func (s *Build) generate(tools []string, arches []Arch) error {
 			archListTargets = append(archListTargets, arch.Target())
 		}
 	}
-	a = append(a, "all: "+strings.Join(archListTargets, " "))
+	a = append(a, "all: "+strings.Join(archListTargets, " "), "")
 
 	var archList, toolList, libList []string
+
+	los := ""
+	var losdep []string
+	for _, arch := range arches {
+		if los != arch.GOOS {
+			if len(losdep) > 0 {
+				a = append(a, los+": "+strings.Join(losdep, " "), "")
+			}
+			los = arch.GOOS
+			losdep = nil
+		}
+		losdep = append(losdep, arch.Target())
+	}
+	a = append(a, los+": "+strings.Join(losdep, " "), "")
 
 	for _, arch := range arches {
 		archList = append(archList,
@@ -241,6 +260,7 @@ func (s *Build) build(libList, archListTargets []string, arch Arch, lib string, 
 
 	return libList, archListTargets
 }
+
 func (s *Build) platformIndex(arches []Arch) error {
 	var a []string
 	a = append(a,
@@ -271,4 +291,56 @@ func (s *Build) platformIndex(arches []Arch) error {
 
 	a = append(a, "")
 	return os.WriteFile("platforms.md", []byte(strings.Join(a, "\n")), 0644)
+}
+
+func (s *Build) jenkinsfile(tools []string, arches []Arch) error {
+
+	var a []string
+
+	// Build properties
+	a = append(a,
+		"properties([",
+		"  buildDiscarder(",
+		"    logRotator(",
+		"      artifactDaysToKeepStr: '',",
+		"      artifactNumToKeepStr: '',",
+		"      daysToKeepStr: '',",
+		"      numToKeepStr: '10'",
+		"    )",
+		"  ),",
+		"  disableConcurrentBuilds(),",
+		"  disableResume(),",
+		"  pipelineTriggers([",
+		"    cron('H H * * *')",
+		"  ])",
+		"])",
+	)
+
+	a = append(a, "node(\"go\") {")
+	a = append(a, "  stage( 'Checkout' ) {",
+		"    checkout scm",
+		//"    git 'https://github.com/peter-mount/piweather.center'",
+		"  }",
+		"  stage( 'Init' ) {",
+		"    sh 'make clean init test'",
+		"  }")
+
+	los := ""
+	for _, arch := range arches {
+		if los != arch.GOOS {
+			los = arch.GOOS
+			a = append(a,
+				"  stage( '"+los+"' ) {",
+				"    sh 'make -f Makefile.gen "+arch.GOOS+"'",
+				"  }")
+		}
+	}
+
+	// End node
+	a = append(a, "}")
+
+	// Ensure we have a blank line at end
+	a = append(a, "")
+
+	return os.WriteFile("Jenkinsfile", []byte(strings.Join(a, "\n")), 0644)
 }
