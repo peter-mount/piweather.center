@@ -8,8 +8,9 @@ import (
 
 // Path allows for a SVG Path element to be constructed.
 type Path struct {
-	p    []string // Path being generated
-	x, y float64  // Absolute coordinates of last position
+	p            []string // Path being generated
+	x, y         float64  // Absolute coordinates of last position
+	optimalCount int      // Used to limit how many optimisations are done
 }
 
 // IsEmpty returns true of no points have been added to the Path
@@ -26,7 +27,7 @@ func (p *Path) MoveTo(x, y float64) *Path {
 	if !p.IsEmpty() && value.Equal(p.x, x) && value.Equal(p.y, y) {
 		return p
 	}
-	p.x, p.y = x, y
+	p.x, p.y, p.optimalCount = x, y, 0
 	return p.add("M", x, y)
 }
 
@@ -42,7 +43,7 @@ func (p *Path) LineTo(x, y float64) *Path {
 	if value.Equal(p.x, x) && value.Equal(p.y, y) {
 		return p
 	}
-	p.x, p.y = x, y
+	p.x, p.y, p.optimalCount = x, y, 0
 	return p.add("L", x, y)
 }
 
@@ -92,9 +93,16 @@ func (p *Path) optimalTo(x, y float64, abs, rel func(float64, float64) *Path) *P
 	if !p.IsEmpty() {
 		dx, dy := x-p.x, y-p.y
 		if math.Abs(dx) < math.Abs(x) && math.Abs(dy) < math.Abs(y) {
-			return rel(dx, dy)
+			// If we have 10 successive optimisations then skip and keep the
+			// absolute coordinate. This keeps the axes accurate as, over time
+			// errors happen due to the limited precision in the output
+			p.optimalCount++
+			if p.optimalCount < 10 {
+				return rel(dx, dy)
+			}
 		}
 	}
+	p.optimalCount = 0
 	return abs(x, y)
 }
 
