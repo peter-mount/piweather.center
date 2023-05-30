@@ -1,4 +1,4 @@
-package measurment
+package measurement
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"testing"
 )
 
-func TestHeatIndex(t *testing.T) {
+func TestGetDewPoint(t *testing.T) {
 	tests := []struct {
 		temp        value.Value
 		relHumidity value.Value
 		want        value.Value
 		wantErr     bool
 	}{
-		{Celsius.Value(18.7), RelativeHumidity.Value(56.0), Celsius.Value(18.087777777777774).AsGuard(Fahrenheit), false},
+		{Celsius.Value(18.299999999999997), RelativeHumidity.Value(57.0), Celsius.Value(9.640399901820626), false},
 	}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s %s", tt.temp, tt.relHumidity), func(t *testing.T) {
-			got, err := GetHeatIndex(tt.temp, tt.relHumidity)
+			got, err := GetDewPoint(tt.temp, tt.relHumidity)
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("GetDewPoint() error = %v, wantErr %v", err, tt.wantErr)

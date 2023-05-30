@@ -1,4 +1,4 @@
-package measurment
+package measurement
 
 import (
 	"fmt"

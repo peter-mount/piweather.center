@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/util/template"
-	_ "github.com/peter-mount/piweather.center/weather/measurment"
+	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 

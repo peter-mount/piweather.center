@@ -1,4 +1,4 @@
-package measurment
+package measurement
 
 import "github.com/peter-mount/piweather.center/weather/value"
 

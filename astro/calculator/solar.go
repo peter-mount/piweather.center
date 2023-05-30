@@ -3,7 +3,7 @@ package calculator
 import (
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/astro/sun"
-	"github.com/peter-mount/piweather.center/weather/measurment"
+	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/planetposition"
 	"github.com/soniakeys/unit"
@@ -15,7 +15,7 @@ func (c *calculator) SolarAltitudeCalculator() value.Calculator {
 		if err != nil {
 			return value.Value{}, err
 		}
-		return measurment.Degree.Value(h.Deg()), nil
+		return measurement.Degree.Value(h.Deg()), nil
 	}
 }
 
@@ -25,7 +25,7 @@ func (c *calculator) SolarAzimuthCalculator() value.Calculator {
 		if err != nil {
 			return value.Value{}, err
 		}
-		return measurment.Degree.Value(A.Deg()), nil
+		return measurement.Degree.Value(A.Deg()), nil
 	}
 }
 

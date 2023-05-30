@@ -1,4 +1,4 @@
-package measurment
+package measurement
 
 const (
 	// Distance conversion constants:
