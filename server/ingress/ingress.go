@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/archiver"
 	_ "github.com/peter-mount/piweather.center/server/menu"
@@ -12,7 +13,6 @@ import (
 	_ "github.com/peter-mount/piweather.center/server/view"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
-	"github.com/peter-mount/piweather.center/util/mq"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
 	"net/http"
@@ -68,16 +68,16 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 		return nil
 	}
 
-	amqp := sensor.Source.Amqp
+	queue := sensor.Source.Amqp
 
-	broker := s.Amqp.GetMQ(amqp.Broker)
+	broker := s.Amqp.GetMQ(queue.Broker)
 	if broker == nil {
-		return fmt.Errorf("no broker %q defined for %s", amqp.Broker, sensor.ID)
+		return fmt.Errorf("no broker %q defined for %s", queue.Broker, sensor.ID)
 	}
 
 	task, err := s.EndpointManager.RegisterEndpoint(
 		"amqp",
-		amqp.Broker+":"+amqp.Name,
+		queue.Broker+":"+queue.Name,
 		sensor.ID,
 		sensor.Name,
 		"AMQP",
@@ -97,7 +97,7 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 		})
 
 	if err == nil {
-		err = broker.ConsumeTask(amqp, sensor.ID, task)
+		err = broker.ConsumeTask(queue, sensor.ID, task)
 	}
 	return err
 }

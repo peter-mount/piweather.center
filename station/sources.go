@@ -1,7 +1,7 @@
 package station
 
 import (
-	"github.com/peter-mount/piweather.center/util/mq"
+	"github.com/peter-mount/piweather.center/mq/amqp"
 )
 
 // Source defines the source of data for a Sensors collection.
@@ -13,7 +13,7 @@ type Source struct {
 	// EcoWitt protocol endpoint under /api/import
 	EcoWitt *EcoWitt `json:"ecowitt,omitempty" xml:"ecowitt,attr,omitempty" yaml:"ecowitt,omitempty"`
 	// Amqp RabbitMQ broker
-	Amqp *mq.Queue `json:"amqp,omitempty" xml:"amqp,omitempty" yaml:"amqp,omitempty"`
+	Amqp *amqp.Queue `json:"amqp,omitempty" xml:"amqp,omitempty" yaml:"amqp,omitempty"`
 	// TODO add MQTT broker here
 }
 
@@ -26,8 +26,8 @@ type EcoWitt struct {
 
 type Amqp struct {
 	// Url of the broker
-	Url   string    `json:"url" xml:"url" yaml:"url"`
-	Queue *mq.Queue `json:"queue" xml:"queue" yaml:"queue"`
+	Url   string      `json:"url" xml:"url" yaml:"url"`
+	Queue *amqp.Queue `json:"queue" xml:"queue" yaml:"queue"`
 	// Exchange for publishing, defaults to amq.topic
 	Exchange string `json:"exchange,omitempty" xml:"exchange,omitempty" yaml:"exchange,omitempty"`
 	// Connection name that appears in the management plugin
