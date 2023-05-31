@@ -75,6 +75,10 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 		return fmt.Errorf("no broker %q defined for %s", queue.Broker, sensor.ID)
 	}
 
+	if err := queue.Bind(broker); err != nil {
+		return err
+	}
+
 	task, err := s.EndpointManager.RegisterEndpoint(
 		"amqp",
 		queue.Broker+":"+queue.Name,
@@ -97,7 +101,7 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 		})
 
 	if err == nil {
-		err = broker.ConsumeTask(queue, sensor.ID, task)
+		err = queue.Start(sensor.ID, false, mq.ContextTask(task, context.Background()))
 	}
 	return err
 }

@@ -36,7 +36,6 @@ func (p *pool) Start() error {
 		}
 
 		mq.name = name
-		mq.worker = p.Worker
 
 		if mq.ConnectionName == "" {
 			mq.ConnectionName = name
@@ -49,10 +48,5 @@ func (p *pool) Start() error {
 		}
 	}
 
-	for _, mq := range *p.Brokers {
-		if err := mq.Connect(); err != nil {
-			return err
-		}
-	}
 	return nil
 }

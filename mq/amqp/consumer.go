@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 )
 
 const (
@@ -21,6 +20,13 @@ func Message(ctx context.Context) []byte {
 	return Delivery(ctx).Body
 }
 
+func ContextTask(f task.Task, ctx context.Context) Task {
+	return func(msg amqp.Delivery) error {
+		return f.WithValue(DeliveryKey, msg).Do(ctx)
+	}
+}
+
+/*
 func (s *MQ) ConsumeTask(queue *Queue, tag string, f task.Task) error {
 	return s.Consume(queue, tag,
 		true,
@@ -56,3 +62,4 @@ func Guard(b task.Task) task.Task {
 		return nil
 	}
 }
+*/

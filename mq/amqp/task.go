@@ -51,16 +51,3 @@ func (a Task) IfRouteNotEquals(r string, b Task) Task {
 		return delivery.RoutingKey != r
 	}, b)
 }
-
-func (q *Queue) nakTask(f Task) Task {
-	return func(msg amqp.Delivery) error {
-		if err := f(msg); err != nil {
-			q.logError(err)
-			q.logError(msg.Nack(false, true))
-			return err
-		}
-
-		q.logError(msg.Ack(false))
-		return nil
-	}
-}

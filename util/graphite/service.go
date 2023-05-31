@@ -26,8 +26,9 @@ type graphite struct {
 }
 
 func (m *graphite) Start() error {
-	err := m.MQ.AttachPublisher(m.Publisher)
-	return err
+	/*err := m.MQ.AttachPublisher(m.Publisher)
+	return err*/
+	return nil
 }
 
 func (m *graphite) Publish(t time.Time, k string, v interface{}) error {
