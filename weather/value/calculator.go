@@ -68,3 +68,17 @@ func GetCalculatorIDs() []string {
 
 	return r
 }
+
+// Calculator2arg utility to convert a function that takes two Value's into a Calculator
+func Calculator2arg(f func(_, _ Value) (Value, error)) Calculator {
+	return func(_ Time, args ...Value) (Value, error) {
+		return f(args[0], args[1])
+	}
+}
+
+// Calculator3arg utility to convert a function that takes three Value's into a Calculator
+func Calculator3arg(f func(_, _, _ Value) (Value, error)) Calculator {
+	return func(_ Time, args ...Value) (Value, error) {
+		return f(args[0], args[1], args[2])
+	}
+}

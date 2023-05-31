@@ -5,10 +5,6 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
-func init() {
-	value.NewCalculator("heatIndex", TemperatureRelativeHumidityCalculator(GetHeatIndex))
-}
-
 const (
 	hic1 = -42.379
 	hic2 = 2.04901523
@@ -23,11 +19,16 @@ const (
 
 // GetHeatIndex returns the HeatIndex based on Temperature and RelativeHumidity.
 func GetHeatIndex(temp value.Value, relHumidity value.Value) (value.Value, error) {
-	return TemperatureRelativeHumidityCalculation(temp, relHumidity, Fahrenheit, getHeatIndex)
-}
+	temp, err := temp.As(Fahrenheit)
+	if err != nil {
+		return value.Value{}, err
+	}
 
-// temp must be Fahrenheit
-func getHeatIndex(temp value.Value, relHumidity value.Value) (value.Value, error) {
+	relHumidity, err = relHumidity.As(RelativeHumidity)
+	if err != nil {
+		return value.Value{}, err
+	}
+
 	T, RH := temp.Float(), relHumidity.Float()
 
 	// try simplified formula first (used for HI < 80)

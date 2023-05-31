@@ -5,19 +5,19 @@ import (
 	"math"
 )
 
-func init() {
-	// Register the Calculator which enforces
-	value.NewCalculator("dewPoint", TemperatureRelativeHumidityCalculator(GetDewPoint))
-}
-
 // GetDewPoint returns a Value representing the Dewpoint based on Temperature and RelativeHumidity.
 // The returned value is in Celsius.
 func GetDewPoint(temp value.Value, relHumidity value.Value) (value.Value, error) {
-	return TemperatureRelativeHumidityCalculation(temp, relHumidity, Celsius, getDewPoint)
-}
+	temp, err := temp.As(Celsius)
+	if err != nil {
+		return value.Value{}, err
+	}
 
-// temp must be Celsius
-func getDewPoint(temp value.Value, relHumidity value.Value) (value.Value, error) {
+	relHumidity, err = relHumidity.As(RelativeHumidity)
+	if err != nil {
+		return value.Value{}, err
+	}
+
 	t0, rh := temp.Float(), relHumidity.Float()
 
 	b, c := 17.368, 238.88
