@@ -28,4 +28,8 @@ type Line struct {
 	// Readings is a list of readings to plot.
 	// If this Line is linked to a Reading then it will be ignored and the reading used.
 	Readings []string `yaml:"readings,omitempty"`
+	// Dot if set will plot points with this radius instead of a line.
+	// Useful for readings like wind direction where the values can look wild as they can
+	// change to random not linear values over time
+	Dot *float64 `yaml:"dot,omitempty"`
 }

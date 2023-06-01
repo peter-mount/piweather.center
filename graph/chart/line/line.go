@@ -21,7 +21,7 @@ func New() chart.Chart {
 	return &Line{}
 }
 
-func (c *Line) Type() string { return "line" }
+func (l *Line) Type() string { return "line" }
 
 func (l *Line) Draw(s svg.SVG, styles ...string) {
 	if len(styles) > 0 {
@@ -153,13 +153,25 @@ func (l *Line) draw(s svg.SVG) {
 		},
 		func(s svg.SVG) {
 			for _, src := range src {
-				p := &svg.Path{}
-				src.DataSource().ForEach(func(i int, t time.Time, v value.Value) {
-					if period.Contains(t) {
-						p.AddProjectX(period.MinutesFromStart(t), v.Float(), proj)
-					}
-				})
-				s.Draw(p, graph.StrokeRed, graph.StrokeWidth1, graph.FillNone)
+				if definition.Line.Dot != nil {
+					s.Group(func(s svg.SVG) {
+						diam := *definition.Line.Dot
+						src.DataSource().ForEach(func(i int, t time.Time, v value.Value) {
+							if period.Contains(t) {
+								px, py := proj.Project(period.MinutesFromStart(t), v.Float())
+								s.Circle(px, py, diam)
+							}
+						})
+					}, graph.FillRed)
+				} else {
+					p := &svg.Path{}
+					src.DataSource().ForEach(func(i int, t time.Time, v value.Value) {
+						if period.Contains(t) {
+							p.AddProjectX(period.MinutesFromStart(t), v.Float(), proj)
+						}
+					})
+					s.Draw(p, graph.StrokeRed, graph.StrokeWidth1, graph.FillNone)
+				}
 			}
 		})
 
