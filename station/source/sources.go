@@ -1,4 +1,4 @@
-package station
+package source
 
 import (
 	"github.com/peter-mount/piweather.center/mq/amqp"
