@@ -86,6 +86,10 @@ func (u *Unit) Valid(f float64) bool {
 
 // BoundsError returns an error if the unit is outside its bounds, NaN or Infinity
 func (u *Unit) BoundsError(f float64) error {
+	if u == nil {
+		return nilErr
+	}
+
 	if u.Valid(f) {
 		return nil
 	}
@@ -94,8 +98,6 @@ func (u *Unit) BoundsError(f float64) error {
 	// of float64. As such we don't have to care about accuracy here
 	lb, ub := u.min > -math.MaxFloat64, u.max < math.MaxFloat64
 	switch {
-	case u == nil:
-		return nilErr
 	case math.IsNaN(f):
 		return nan
 	case math.IsInf(f, 1):
