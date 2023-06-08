@@ -33,12 +33,14 @@ func (c *client) get(path string, v interface{}) (bool, error) {
 			return false, nil
 		}
 
-		if body, err := io.ReadAll(resp.Body); err != nil {
-			return false, err
-		} else {
-			json.Unmarshal(body, v)
-			return true, nil
+		body, err := io.ReadAll(resp.Body)
+		if err == nil {
+			err = json.Unmarshal(body, v)
 		}
+		if err != nil {
+			return false, err
+		}
+		return true, nil
 	}
 }
 

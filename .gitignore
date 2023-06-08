@@ -14,7 +14,8 @@ go.sum
 /go_build_main_go
 
 /config.yaml
-/mastodon.yml
+/mastodon.yaml
+/weatherbot.yaml
 /build*
 /tmp/
 /dist/

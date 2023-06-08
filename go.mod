@@ -7,6 +7,7 @@ require (
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230511110738-8c74dc697e3b
+	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5
 	github.com/peter-mount/nre-feeds v0.0.0-20230406193040-e2414d2669d1
 	github.com/rabbitmq/amqp091-go v1.8.1
@@ -16,6 +17,7 @@ require (
 	golang.org/x/image v0.7.0
 	golang.org/x/net v0.10.0
 	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -57,5 +59,4 @@ require (
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

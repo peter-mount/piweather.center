@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"compress/gzip"
 	"encoding/gob"
+	"encoding/json"
+	"encoding/xml"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/strings"
+	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 )
@@ -105,5 +108,23 @@ func (a Reader) ForEachLine(handler strings.StringHandler) Reader {
 func (a Reader) Gob(e any) Reader {
 	return a.Then(func(r io.Reader) error {
 		return gob.NewDecoder(r).Decode(e)
+	})
+}
+
+func (a Reader) Json(e any) Reader {
+	return a.Then(func(r io.Reader) error {
+		return json.NewDecoder(r).Decode(e)
+	})
+}
+
+func (a Reader) Xml(e any) Reader {
+	return a.Then(func(r io.Reader) error {
+		return xml.NewDecoder(r).Decode(e)
+	})
+}
+
+func (a Reader) Yaml(e any) Reader {
+	return a.Then(func(r io.Reader) error {
+		return yaml.NewDecoder(r).Decode(e)
 	})
 }
