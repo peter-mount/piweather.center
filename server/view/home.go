@@ -6,7 +6,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/server/api"
-	"github.com/peter-mount/piweather.center/server/store"
+	"github.com/peter-mount/piweather.center/store"
 	"github.com/peter-mount/piweather.center/util/template"
 	"os/exec"
 	"strings"

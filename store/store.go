@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/util/template"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
 	"sort"
@@ -16,12 +15,11 @@ import (
 )
 
 type Store struct {
-	Templates *template.Manager `kernel:"inject"`
-	Cron      *cron.CronService `kernel:"inject"`
-	Config    station.Config    `kernel:"inject"`
-	mutex     sync.Mutex
-	data      map[string]*Reading
-	history   map[string][]*Reading
+	Cron    *cron.CronService `kernel:"inject"`
+	Config  station.Config    `kernel:"inject"`
+	mutex   sync.Mutex
+	data    map[string]*Reading
+	history map[string][]*Reading
 }
 
 const (
@@ -48,13 +46,6 @@ func (r *Reading) String() string {
 		strconv.FormatFloat(r.Value.Float(), 'f', 3, 64),
 		strconv.Itoa(int(r.Time.UTC().Unix())),
 	}, " ")
-}
-
-func (s *Store) PostInit() error {
-	s.Templates.AddFunction("getReadingKeys", s.GetKeys)
-	s.Templates.AddFunction("getReading", s.GetReading)
-	s.Templates.AddFunction("getReadingHistory", s.GetHistory)
-	return nil
 }
 
 func (s *Store) Start() error {

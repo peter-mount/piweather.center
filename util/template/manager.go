@@ -4,6 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
+	"github.com/peter-mount/piweather.center/store"
 	"html/template"
 	"os"
 	"path"
@@ -13,6 +14,7 @@ import (
 type Manager struct {
 	restService  *rest.Server `kernel:"inject"`
 	webRoot      *string      `kernel:"flag,webroot,Web root directory"`
+	Store        *store.Store `kernel:"inject"`
 	rootTemplate *template.Template
 	funcMap      template.FuncMap
 	rootDir      string

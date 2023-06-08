@@ -6,8 +6,8 @@ import (
 	"github.com/peter-mount/piweather.center/graph/chart/gauge"
 	"github.com/peter-mount/piweather.center/graph/chart/line"
 	"github.com/peter-mount/piweather.center/server/api"
-	"github.com/peter-mount/piweather.center/server/store"
 	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/store"
 )
 
 func init() {
