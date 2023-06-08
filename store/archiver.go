@@ -17,6 +17,7 @@ import (
 
 type Archiver struct {
 	Store       *Store     `kernel:"inject"`
+	State       *State     `kernel:"inject"`
 	storeDir    *string    `kernel:"flag,archive-dir,Archive directory"`
 	logMessages *bool      `kernel:"flag,archive-log,Dump messages to stdout"`
 	worker      task.Queue `kernel:"worker"`
@@ -90,12 +91,15 @@ func (s *Archiver) appendReading(fileName string, rec *payload.Payload) error {
 func (s *Archiver) Preload(ctx context.Context) error {
 
 	// Load yesterday
-	if err := s.preload(ctx, time.Now().Add(-24*time.Hour)); err != nil {
-		return err
-	}
+	err := s.preload(ctx, time.Now().Add(-24*time.Hour))
 
 	// Load today
-	return s.preload(ctx, time.Now())
+	if err == nil {
+		err = s.preload(ctx, time.Now())
+	}
+
+	// Now update the State with what we have loaded
+	return s.State.updateStations(nil)
 }
 
 func (s *Archiver) preload(ctx context.Context, t time.Time) error {
