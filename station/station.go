@@ -66,6 +66,7 @@ type Sensors struct {
 	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
 	// CalculatedValue's to calculate with this calculation
 	Calculations map[string]*CalculatedValue `json:"calculations,omitempty" xml:"calculations,omitempty" yaml:"calculations,omitempty"`
+	Output       *Output                     `json:"output,omitempty" xml:"output,omitempty" yaml:"output,omitempty"`
 	// The station containing this sensor
 	station *Station
 }

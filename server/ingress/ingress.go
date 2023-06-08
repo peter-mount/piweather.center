@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	"github.com/peter-mount/piweather.center/influxdb"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/server/archiver"
@@ -26,6 +27,7 @@ type Ingress struct {
 	EndpointManager *api.EndpointManager   `kernel:"inject"`
 	Config          station.Config         `kernel:"inject"`
 	Store           *store.Store           `kernel:"inject"`
+	InfluxDB        influxdb.Pool          `kernel:"inject"`
 	subContext      context.Context        // Common Context
 	processVisitor  station.VisitorBuilder // Common visitor used by all sources to process data
 }
@@ -41,7 +43,8 @@ func (s *Ingress) Start() error {
 		Sensors(value.ResetMap).
 		Sensors(s.Archiver.Archive).
 		Reading(s.Store.ProcessReading).
-		CalculatedValue(s.Store.Calculate)
+		CalculatedValue(s.Store.Calculate).
+		Output(s.InfluxDB.StoreReading)
 
 	// Now we preload data from storage to give us some recent history
 	if err := s.Config.Accept(station.NewVisitor().

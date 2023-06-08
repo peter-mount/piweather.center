@@ -12,6 +12,7 @@ type Visitor interface {
 	VisitReading(s *Reading) error
 	VisitCalculatedValue(s *CalculatedValue) error
 	VisitGraph(s *Graph) error
+	VisitOutput(s *Output) error
 }
 
 type Visitable interface {
@@ -24,6 +25,7 @@ type visitorCommon struct {
 	sensors     task.Task
 	reading     task.Task
 	calculation task.Task
+	output      task.Task
 	graph       task.Task
 }
 
@@ -102,6 +104,12 @@ func (v *visitor) VisitSensors(s *Sensors) error {
 		}
 	}
 
+	if s.Output != nil {
+		if err := s.Output.Accept(v); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -155,12 +163,23 @@ func (v *visitor) VisitGraph(s *Graph) error {
 	return v.graph.Do(v.ctx)
 }
 
+func (v *visitor) VisitOutput(s *Output) error {
+	oldCtx := v.ctx
+	v.ctx, _ = s.WithContext(v.ctx)
+	defer func() {
+		v.ctx = oldCtx
+	}()
+
+	return v.output.Do(v.ctx)
+}
+
 type VisitorBuilder interface {
 	Stations(t task.Task) VisitorBuilder
 	Station(t task.Task) VisitorBuilder
 	Sensors(t task.Task) VisitorBuilder
 	Reading(t task.Task) VisitorBuilder
 	CalculatedValue(t task.Task) VisitorBuilder
+	Output(t task.Task) VisitorBuilder
 	Graph(t task.Task) VisitorBuilder
 	WithContext(context.Context) Visitor
 }
@@ -210,5 +229,10 @@ func (b *visitorBuilder) CalculatedValue(t task.Task) VisitorBuilder {
 
 func (b *visitorBuilder) Graph(t task.Task) VisitorBuilder {
 	b.graph = b.graph.Then(t)
+	return b
+}
+
+func (b *visitorBuilder) Output(t task.Task) VisitorBuilder {
+	b.output = b.output.Then(t)
 	return b
 }

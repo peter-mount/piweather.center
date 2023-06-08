@@ -47,3 +47,11 @@ func ResetMap(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (m *Map) GetKeys() []string {
+	var a []string
+	for k, _ := range m.m {
+		a = append(a, k)
+	}
+	return a
+}
