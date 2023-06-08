@@ -57,13 +57,14 @@ func (s *State) updateStation(station *station.Station) {
 	stn := &state.Station{
 		ID: station.ID,
 		Meta: state.Meta{
-			Name:     station.Name,
-			Units:    make(map[string]state.Unit),
-			Time:     now,
-			Minute10: now.Add(-10 * time.Minute),
-			Hour:     now.Add(-time.Hour),
-			Hour24:   now.Add(-24 * time.Hour),
-			Today:    today,
+			Name:       station.Name,
+			Units:      make(map[string]state.Unit),
+			Time:       now,
+			Minute10:   now.Add(-10 * time.Minute),
+			Previous10: now.Add(-20 * time.Minute),
+			Hour:       now.Add(-time.Hour),
+			Hour24:     now.Add(-24 * time.Hour),
+			Today:      today,
 		},
 	}
 
@@ -112,8 +113,7 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 
 	m := &state.Measurement{ID: id}
 
-	// Time pointers for start of each Value
-
+	// Populate from the data
 	r.ForEach(func(i int, t time.Time, value value.Value) {
 		if value.IsValid() {
 			// Set unit on first valid entry
@@ -122,6 +122,7 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 			}
 
 			f := value.Float()
+
 			if t.After(meta.Hour24) {
 				m.Hour24 = m.Hour24.Include(f)
 			}
@@ -131,8 +132,20 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 			if t.After(meta.Hour) {
 				m.Hour = m.Hour.Include(f)
 			}
+
 			if t.After(meta.Minute10) {
+				m.Current = state.Point{
+					Value: state.RoundedFloat(f),
+					Time:  t,
+				}
 				m.Minute10 = m.Minute10.Include(f)
+			}
+			if t.After(meta.Previous10) && t.Before(meta.Minute10) {
+				m.Previous = state.Point{
+					Value: state.RoundedFloat(f),
+					Time:  t,
+				}
+				m.Previous10 = m.Previous10.Include(f)
 			}
 
 			if t.After(m.Time) {
@@ -140,6 +153,16 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 			}
 		}
 	})
+
+	// Calculate trends
+	m.Trends = state.Trends{
+		From:    m.Previous.Time,
+		To:      m.Current.Time,
+		Current: state.TrendFrom(float64(m.Previous.Value), float64(m.Current.Value)),
+		Min:     state.TrendFrom(float64(m.Previous10.Min), float64(m.Minute10.Min)),
+		Max:     state.TrendFrom(float64(m.Previous10.Max), float64(m.Minute10.Max)),
+		Mean:    state.TrendFrom(float64(m.Previous10.Mean), float64(m.Minute10.Mean)),
+	}
 
 	return m
 }
