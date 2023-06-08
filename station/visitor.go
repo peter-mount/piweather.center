@@ -18,14 +18,18 @@ type Visitable interface {
 	Accept(v Visitor) error
 }
 
-type visitor struct {
-	ctx         context.Context
+type visitorCommon struct {
 	stations    task.Task
 	station     task.Task
 	sensors     task.Task
 	reading     task.Task
 	calculation task.Task
 	graph       task.Task
+}
+
+type visitor struct {
+	visitorCommon
+	ctx context.Context
 }
 
 func (v *visitor) VisitStations(s *Stations) error {
@@ -162,12 +166,7 @@ type VisitorBuilder interface {
 }
 
 type visitorBuilder struct {
-	stations    task.Task
-	station     task.Task
-	sensors     task.Task
-	reading     task.Task
-	calculation task.Task
-	graph       task.Task
+	visitorCommon
 }
 
 func NewVisitor() VisitorBuilder {
@@ -175,14 +174,7 @@ func NewVisitor() VisitorBuilder {
 }
 
 func (b *visitorBuilder) WithContext(ctx context.Context) Visitor {
-	v := &visitor{
-		stations:    b.stations,
-		station:     b.station,
-		sensors:     b.sensors,
-		reading:     b.reading,
-		calculation: b.calculation,
-		graph:       b.graph,
-	}
+	v := &visitor{visitorCommon: b.visitorCommon}
 	v.ctx = context.WithValue(ctx, "Visitor", v)
 	return v
 }
