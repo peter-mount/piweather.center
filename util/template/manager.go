@@ -16,6 +16,11 @@ type Manager struct {
 	rootTemplate *template.Template
 	funcMap      template.FuncMap
 	rootDir      string
+	disabled     bool
+}
+
+func (m *Manager) Disable() {
+	m.disabled = true
 }
 
 func (m *Manager) GetRootDir() string { return m.rootDir }
@@ -25,6 +30,10 @@ func (m *Manager) Start() error {
 		m.rootDir = path.Join(*m.webRoot, "templates")
 	} else {
 		m.rootDir = path.Join(filepath.Dir(os.Args[0]), "../lib/web/templates")
+	}
+
+	if m.disabled {
+		return nil
 	}
 
 	log.Printf("Loading templates in %q", m.rootDir)
