@@ -26,7 +26,7 @@ const (
 	storeMaxAge = time.Hour * 26 // Max time to keep readings
 )
 
-func FromContext(ctx context.Context) *Store {
+func StoreFromContext(ctx context.Context) *Store {
 	return ctx.Value("local.store").(*Store)
 }
 

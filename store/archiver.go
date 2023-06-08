@@ -1,4 +1,4 @@
-package archiver
+package store
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
-	"github.com/peter-mount/piweather.center/store"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"os"
 	"path/filepath"
@@ -17,14 +16,14 @@ import (
 )
 
 type Archiver struct {
-	Store       *store.Store `kernel:"inject"`
-	storeDir    *string      `kernel:"flag,archive-dir,Archive directory"`
-	logMessages *bool        `kernel:"flag,archive-log,Dump messages to stdout"`
-	worker      task.Queue   `kernel:"worker"`
+	Store       *Store     `kernel:"inject"`
+	storeDir    *string    `kernel:"flag,archive-dir,Archive directory"`
+	logMessages *bool      `kernel:"flag,archive-log,Dump messages to stdout"`
+	worker      task.Queue `kernel:"worker"`
 	mutex       sync.Mutex
 }
 
-func FromContext(ctx context.Context) *Archiver {
+func ArchiveFromContext(ctx context.Context) *Archiver {
 	return ctx.Value("local.archiver").(*Archiver)
 }
 

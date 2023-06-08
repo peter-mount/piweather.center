@@ -8,7 +8,6 @@ import (
 	"github.com/peter-mount/piweather.center/influxdb"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/server/api"
-	"github.com/peter-mount/piweather.center/server/archiver"
 	_ "github.com/peter-mount/piweather.center/server/menu"
 	_ "github.com/peter-mount/piweather.center/server/view"
 	"github.com/peter-mount/piweather.center/station"
@@ -22,7 +21,7 @@ import (
 // Ingress handles the ability to get data into the system, be it via
 // http, amqp, mqtt etc.
 type Ingress struct {
-	Archiver        *archiver.Archiver     `kernel:"inject"`
+	Archiver        *store.Archiver        `kernel:"inject"`
 	Amqp            mq.Pool                `kernel:"inject"`
 	EndpointManager *api.EndpointManager   `kernel:"inject"`
 	Config          station.Config         `kernel:"inject"`
