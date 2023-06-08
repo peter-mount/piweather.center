@@ -169,12 +169,12 @@ const (
 // TrendFrom returns the Trend based on a previous and current value
 func TrendFrom(previous, current float64) Trend {
 	switch {
-	case current > previous:
+	case current < previous:
 		return Trend{
 			Trend: Falling,
 			Char:  TrendFalling,
 		}
-	case current < previous:
+	case current > previous:
 		return Trend{
 			Trend: Rising,
 			Char:  TrendRising,
