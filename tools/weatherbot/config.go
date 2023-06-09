@@ -28,10 +28,11 @@ type Row struct {
 
 // Value in a Row that will provide data for the Row formatter
 type Value struct {
-	Sensor string  `yaml:"sensor"` // Sensor to inject
-	Type   string  `yaml:"type"`   // Type of result expected
-	Factor float64 `yaml:"factor"` // Factor to apply to value
-	Unit   Unit    `yaml:"unit"`   // Units to use
+	Sensor string  `yaml:"sensor"`          // Sensor to inject
+	Type   string  `yaml:"type"`            // Type of result expected
+	Factor float64 `yaml:"factor"`          // Factor to apply to value
+	Unit   Unit    `yaml:"unit"`            // Units to use
+	Range  string  `yaml:"range,omitempty"` // The state.Value range to use, default current10
 }
 
 // GetUnit returns the appropriate unit for f.
@@ -87,10 +88,20 @@ type SubUnit struct {
 // Value.Type values
 const (
 	ValueLatest      = "latest"      // Default, latest value
+	ValuePrevious    = "previous"    // latest value in previous10
 	ValueTrend       = "trend"       // Trend between first and last value in the range
 	ValueTime        = "time"        // Time of the latest value. When no sensor the current time
 	ValueStationName = "stationName" // Station name
 	ValueMin         = "min"         // Min value
 	ValueMax         = "max"         // Max value
 	ValueMean        = "mean"        // Mean of all values in the range
+)
+
+// Measurement range selections
+const (
+	RangeCurrent  = "current"  // default, use current10
+	RangePrevious = "previous" // use previous10
+	RangeHour     = "hour"     // use hour
+	RangeHour24   = "hour24"   // use hour24
+	RangeToday    = "today"    // use today
 )

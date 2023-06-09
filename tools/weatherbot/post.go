@@ -47,10 +47,10 @@ func (t *Bot) createPostText() error {
 			str = append(str, s)
 		}
 
-		text := thread.Prefix + strings.Join(str, "\n") + thread.Suffix
-
-		// Replace errors when data is unavailable with "N/A"
-		text = t.cleanup.ReplaceAllString(text, "N/A")
+		text := thread.Prefix + strings.Join(str, " ") + thread.Suffix
+		text = strings.ReplaceAll(text, " \n", "\n")
+		text = strings.ReplaceAll(text, "\n ", "\n")
+		text = strings.ReplaceAll(text, "  ", " ")
 
 		if *t.Test {
 			log.Printf("---- thread %d length %d\n%s\n---- thread %d end\n\n", tid, len(text), text, tid)
@@ -84,22 +84,39 @@ func (t *Bot) processRow(row *Row) (string, error) {
 				return fmt.Sprintf("sensor %q missing", value.Sensor), nil
 			}
 
+			valueRange := m.Current10
+			switch value.Range {
+			case RangeCurrent, "":
+				valueRange = m.Current10
+			case RangePrevious:
+				valueRange = m.Previous10
+			case RangeHour:
+				valueRange = m.Hour
+			case RangeHour24:
+				valueRange = m.Hour24
+			case RangeToday:
+				valueRange = m.Today
+			}
+
 			var f state.RoundedFloat
 			switch value.Type {
 			case "", ValueLatest:
 				f = m.Current.Value
 
+			case ValuePrevious:
+				f = m.Previous.Value
+
 			case ValueTrend:
 				v = m.Trends.Current.Char
 
 			case ValueMin:
-				f = m.Current10.Min
+				f = valueRange.Min
 
 			case ValueMax:
-				f = m.Current10.Max
+				f = valueRange.Max
 
 			case ValueMean:
-				f = m.Current10.Mean
+				f = valueRange.Mean
 
 			default:
 				return "", fmt.Errorf("unsupported type %q for sensor %q", value.Type, value.Sensor)

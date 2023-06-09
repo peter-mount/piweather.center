@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 )
 
 type Bot struct {
@@ -22,23 +21,15 @@ type Bot struct {
 	station        *state.Station
 	mastodonConfig mastodon.Config
 	client         mastodon.Client
-	cleanup        *regexp.Regexp
 }
 
 func (t *Bot) Start() error {
-	// Regex to replace errors when data is unavailable with "N/A"
-	r, err := regexp.Compile("(%!f\\(string=\\W*?\\))")
-	if err != nil {
-		return err
-	}
-	t.cleanup = r
-
 	// Path to lib directory for data lookup
 	if *t.RootDir == "" {
 		*t.RootDir = path.Join(filepath.Dir(os.Args[0]), "../etc")
 	}
 
-	err = t.getPost()
+	err := t.getPost()
 	if err != nil {
 		return err
 	}
