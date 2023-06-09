@@ -8,6 +8,7 @@ import (
 	"github.com/peter-mount/piweather.center/util/unit"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gopkg.in/yaml.v2"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -55,6 +56,12 @@ func (p *Payload) Data() map[string]interface{} {
 
 func (p *Payload) Get(path string) (interface{}, bool) {
 	m := p.data
+
+	// Handle direct key, e.g. carbon or plain map
+	if v, exists := m[path]; exists {
+		return v, true
+	}
+
 	keys := strings.Split(path, ".")
 	l := len(keys) - 1
 	for i, k := range keys {
@@ -107,10 +114,26 @@ func FromBytes(id, format, timestamp string, msg []byte) (*Payload, error) {
 	case "post", "query", "querystring", "form":
 		err = UnmarshalPost(p.msg, &p.data)
 
+	// carbon is formatted string: "key value timestamp" where timestamp is in unix seconds
+	case "carbon":
+		s := strings.SplitN(string(p.msg), " ", 3)
+		if len(s) != 3 {
+			err = fmt.Errorf("invalid carbon record %q", string(p.msg))
+		} else if us, err1 := strconv.ParseInt(s[2], 10, 64); err1 != nil {
+			err = err1
+		} else {
+			p.data = map[string]interface{}{
+				"timestamp": time.Unix(us, 0),
+				s[0]:        s[1],
+			}
+		}
+
 	default:
 		err = fmt.Errorf("unsupported format %q", format)
 	}
 	if err != nil {
+		// uncomment and return nil for err if there's issues
+		//log.Printf("Payload: %v", err)
 		return nil, err
 	}
 

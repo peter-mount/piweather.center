@@ -92,14 +92,19 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 			msg := mq.Delivery(ctx)
 
 			p, err := payload.FromAMQP(sensor.ID, sensor.Format, sensor.Timestamp, msg)
-			if err != nil {
+			switch {
+			case err != nil:
 				log.Println(err)
 				return err
-			}
 
-			return s.processVisitor.
-				WithContext(p.AddContext(s.subContext)).
-				VisitSensors(sensor)
+			case p == nil:
+				return nil
+
+			default:
+				return s.processVisitor.
+					WithContext(p.AddContext(s.subContext)).
+					VisitSensors(sensor)
+			}
 		})
 
 	if err == nil {
@@ -126,12 +131,17 @@ func (s *Ingress) startEcowitt(ctx context.Context) error {
 			body, _ := io.ReadAll(r.Request().Body)
 
 			p, err := payload.FromBytes(sensor.ID, sensor.Format, sensor.Timestamp, body)
-			if err != nil {
+			switch {
+			case err != nil:
 				log.Println(err)
 				return err
-			}
 
-			return s.processVisitor.WithContext(p.AddContext(s.subContext)).
-				VisitSensors(sensor)
+			case p == nil:
+				return nil
+
+			default:
+				return s.processVisitor.WithContext(p.AddContext(s.subContext)).
+					VisitSensors(sensor)
+			}
 		})
 }
