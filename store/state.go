@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/piweather.center/station"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/state"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"sort"
@@ -50,10 +51,6 @@ func (s *State) updateStations(_ context.Context) error {
 func (s *State) updateStation(station *station.Station) {
 	now := time.Now().Truncate(time.Minute)
 
-	// Meta.Today is from 00:00 local time
-	today := now.Truncate(time.Hour)
-	today = today.Add(time.Hour * time.Duration(-today.Hour()))
-
 	stn := &state.Station{
 		ID: station.ID,
 		Meta: state.Meta{
@@ -64,7 +61,7 @@ func (s *State) updateStation(station *station.Station) {
 			Previous10: now.Add(-20 * time.Minute),
 			Hour:       now.Add(-time.Hour),
 			Hour24:     now.Add(-24 * time.Hour),
-			Today:      today,
+			Today:      time2.LocalMidnight(now),
 		},
 	}
 

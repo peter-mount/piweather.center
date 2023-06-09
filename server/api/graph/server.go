@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/util/task"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"path"
 	"time"
 )
@@ -62,16 +63,7 @@ func ServeToday(p string, g Generator) (string, string, task.Task) {
 		func(ctx context.Context) error {
 			now := time.Now()
 			// Start at beginning of the current local day
-			//
-			// Note: truncate to hour then subtract hours to get the start.
-			// It might look weird when you could truncate to day, but that truncate
-			// seems to set it to 0h UTC, so if we are in BST (UTC+1) then the day
-			// starts at 0100 and not 0000 midnight.
-			//
-			// TODO check this works for other timezones
-			start := now.Truncate(time.Hour)
-			start = start.Add(time.Hour * time.Duration(-start.Hour()))
-
+			start := time2.LocalMidnight(now)
 			end := start.Add(time.Hour * 24)
 			return g(start, end, ctx)
 		}
