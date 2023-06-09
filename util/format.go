@@ -23,6 +23,8 @@ const (
 //
 // %d 	integer or floating point with 0 decimal places
 //
+// %e	The unit for Value's, "" otherwise
+//
 // %f 	floating point
 //
 // %.1f	floating point 1 decimal place
@@ -64,6 +66,15 @@ func Sprintf(f string, args ...interface{}) string {
 					}
 				} else {
 					r = append(r, na)
+				}
+				f = f[2:]
+
+			case strings.HasPrefix(f, "%e"):
+				arg, args = getArg(args)
+				if v, ok := arg.(value.Value); ok {
+					r = append(r, strings.TrimSpace(v.Unit().Unit()))
+				} else {
+					r = append(r, "")
 				}
 				f = f[2:]
 
