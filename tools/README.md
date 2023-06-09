@@ -22,3 +22,14 @@ captured data.
 
 This is a tool used by the build process to generate static data files required by the
 various tools.
+
+## weatherbot
+
+This is a standalone tool which implements a bot to post weather reports to Mastodon.
+An example is [@me15weather@area51.social](https://area51.social/@me15weather) which
+posts the current weather every hour.
+
+## weatherstation
+
+This is the core service which both captures data from sensors but also makes them
+available to other services.
