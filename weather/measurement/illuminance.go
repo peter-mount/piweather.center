@@ -15,7 +15,7 @@ func init() {
 	value.NewBasicBiTransform(Lux, KiloFootCandles, 1.0/fcToLux/1000.0)
 	value.NewBasicBiTransform(Lux, KiloLux, 1.0/kluxToLux)
 	value.NewBasicBiTransform(Lux, WattsPerSquareMeter, wm2ToLux)
-	value.NewBasicBiTransform(Lux, KiloWattsPerSquareMeter, wm2ToLux*Kilo)
+	value.NewBasicBiTransform(Lux, KiloWattsPerSquareMeter, wm2ToLux/Kilo)
 
 	// W/m² -> kW/m² for speed
 	value.NewBasicBiTransform(WattsPerSquareMeter, KiloWattsPerSquareMeter, Kilo)
