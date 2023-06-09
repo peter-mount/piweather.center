@@ -22,17 +22,46 @@ type Thread struct {
 
 // Row of data within a Thread
 type Row struct {
-	Format string  `yaml:"format"` // Format for this row
-	Values []Value `yaml:"values"` // Values to pass to the format
+	Format string  `yaml:"format"`         // Format for this row
+	Values []Value `yaml:"values"`         // Values to pass to the format
+	When   []When  `yaml:"when,omitempty"` // Define conditions to show this Row
+}
+
+type When struct {
+	Value            Value  `yaml:"value"`
+	LessThan         *Value `yaml:"lessThan"`
+	LessThanEqual    *Value `yaml:"lessThanEqual"`
+	Equal            *Value `yaml:"equal"`
+	NotEqual         *Value `yaml:"notEqual"`
+	GreaterThanEqual *Value `yaml:"greaterThanEqual"`
+	GreaterThan      *Value `yaml:"greaterThan"`
 }
 
 // Value in a Row that will provide data for the Row formatter
 type Value struct {
-	Sensor string  `yaml:"sensor"`          // Sensor to inject
-	Type   string  `yaml:"type"`            // Type of result expected
-	Factor float64 `yaml:"factor"`          // Factor to apply to value
-	Unit   Unit    `yaml:"unit"`            // Units to use
-	Range  string  `yaml:"range,omitempty"` // The state.Value range to use, default current10
+	Sensor string   `yaml:"sensor"`          // Sensor to inject
+	Type   string   `yaml:"type"`            // Type of result expected
+	Factor float64  `yaml:"factor"`          // Factor to apply to value
+	Unit   Unit     `yaml:"unit"`            // Units to use
+	Range  string   `yaml:"range,omitempty"` // The state.Value range to use, default current10
+	Value  *float64 `yaml:"value"`
+}
+
+func (v Value) GetValue(src value.Value) (value.Value, error) {
+	if dest, destOk := value.GetUnit(v.Unit.Unit); destOk {
+		v1, err := src.As(dest)
+		if err == nil {
+			// If we have an alternate now convert to it
+			altUnit := v.GetUnit(v1.Float())
+			if altUnit != dest.Unit() {
+				if alt, altOk := value.GetUnit(altUnit); altOk {
+					return v1.As(alt)
+				}
+			}
+		}
+		return v1, err
+	}
+	return src, nil
 }
 
 // GetUnit returns the appropriate unit for f.
