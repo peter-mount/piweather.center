@@ -36,7 +36,7 @@ func (t *Bot) getPost() error {
 
 // createPostText takes the post and generates the Mastodon post text
 func (t *Bot) createPostText() error {
-	for _, thread := range t.post.Threads {
+	for tid, thread := range t.post.Threads {
 		var str []string
 
 		for _, row := range thread.Table {
@@ -53,7 +53,7 @@ func (t *Bot) createPostText() error {
 		text = t.cleanup.ReplaceAllString(text, "N/A")
 
 		if *t.Test {
-			log.Printf("Post length: %d\n%s\n", len(text), text)
+			log.Printf("---- thread %d length %d\n%s\n---- thread %d end\n\n", tid, len(text), text, tid)
 		}
 	}
 
@@ -84,11 +84,6 @@ func (t *Bot) processRow(row *Row) (string, error) {
 				return fmt.Sprintf("sensor %q missing", value.Sensor), nil
 			}
 
-			// If no unit then use the one in measurement
-			if value.Unit == "" {
-				value.Unit = m.Unit
-			}
-
 			var f state.RoundedFloat
 			switch value.Type {
 			case "", ValueLatest:
@@ -98,33 +93,50 @@ func (t *Bot) processRow(row *Row) (string, error) {
 				v = m.Trends.Current.Char
 
 			case ValueMin:
-				f = m.Minute10.Min
+				f = m.Current10.Min
 
 			case ValueMax:
-				f = m.Minute10.Max
+				f = m.Current10.Max
 
 			case ValueMean:
-				f = m.Minute10.Mean
+				f = m.Current10.Mean
 
 			default:
 				return "", fmt.Errorf("unsupported type %q for sensor %q", value.Type, value.Sensor)
 			}
 
+			// v not set (see ValueTrend) then use f
 			if v == nil {
+				// Apply Factor if present
 				if value.Factor != 0.0 {
 					f = f * state.RoundedFloat(value.Factor)
 				}
-				if value.Unit != "" {
-					if u, ok := value2.GetUnit(value.Unit); ok {
-						v = u.Value(float64(f))
+
+				// Handle units, src is from Measurement, dest from Value
+				src, srcOk := value2.GetUnit(m.Unit)
+				dest, destOk := value2.GetUnit(value.Unit)
+				switch {
+				case srcOk && destOk:
+					if v1, err := src.Value(float64(f)).As(dest); err != nil {
+						// Cannot transform between requested units
+						v = err.Error()
+					} else {
+						v = v1
 					}
-				}
-				if v == nil {
+
+				case srcOk:
+					v = src.Value(float64(f))
+
+				case destOk:
+					v = dest.Value(float64(f))
+
+				default:
 					v = f
 				}
 			}
 
 		}
+
 		a = append(a, v)
 	}
 
