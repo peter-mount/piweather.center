@@ -4,6 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-mastodon"
 	"github.com/peter-mount/piweather.center/io"
+	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/state"
 	"os"
 	"path"

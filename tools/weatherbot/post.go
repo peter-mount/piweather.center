@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/io"
+	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/state"
+	value2 "github.com/peter-mount/piweather.center/weather/value"
 	"path/filepath"
 	"strings"
 )
@@ -82,6 +84,11 @@ func (t *Bot) processRow(row *Row) (string, error) {
 				return fmt.Sprintf("sensor %q missing", value.Sensor), nil
 			}
 
+			// If no unit then use the one in measurement
+			if value.Unit == "" {
+				value.Unit = m.Unit
+			}
+
 			var f state.RoundedFloat
 			switch value.Type {
 			case "", ValueLatest:
@@ -107,11 +114,19 @@ func (t *Bot) processRow(row *Row) (string, error) {
 				if value.Factor != 0.0 {
 					f = f * state.RoundedFloat(value.Factor)
 				}
-				v = f
+				if value.Unit != "" {
+					if u, ok := value2.GetUnit(value.Unit); ok {
+						v = u.Value(float64(f))
+					}
+				}
+				if v == nil {
+					v = f
+				}
 			}
+
 		}
 		a = append(a, v)
 	}
 
-	return fmt.Sprintf(row.Format, a...), nil
+	return util.Sprintf(row.Format, a...), nil
 }

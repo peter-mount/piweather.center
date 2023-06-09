@@ -21,6 +21,7 @@ type Value struct {
 	Sensor string  `yaml:"sensor"` // Sensor to inject
 	Type   string  `yaml:"type"`   // Type of result expected
 	Factor float64 `yaml:"factor"` // Factor to apply to value
+	Unit   string  `yaml:"unit"`   // Unit ID to use
 }
 
 // Value.Type values
