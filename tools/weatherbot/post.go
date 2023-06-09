@@ -148,6 +148,11 @@ func (t *Bot) processRow(row *Row) (string, error) {
 
 		}
 
+		// Handle "state.RoundedFloat=0" error when using %f
+		if rf, ok := v.(state.RoundedFloat); ok {
+			v = float64(rf)
+		}
+
 		a = append(a, v)
 	}
 
