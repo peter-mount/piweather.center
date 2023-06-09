@@ -13,6 +13,7 @@ const (
 	Kilo   = 1e3
 	Hecto  = 1e2
 	Deca   = 1e1
+	Unit   = 1.0
 	Deci   = 1e-1
 	Centi  = 1e-2
 	Milli  = 1e-3

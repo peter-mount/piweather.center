@@ -1,7 +1,6 @@
 package measurement
 
 import (
-	"fmt"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"testing"
 )
@@ -27,24 +26,7 @@ func Test_pressure_transforms(t *testing.T) {
 		{PressureInHg.Value(29.973), PressureKPA.Value(101.5002267169408), false},
 	}
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s %s %s", tt.from.Unit().ID(), tt.to.Unit().ID(), tt.from), func(t *testing.T) {
-
-			got, err := tt.from.As(tt.to.Unit())
-			if err != nil {
-				if !tt.wantErr {
-					t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
-				}
-				return
-			}
-
-			if eq, err := tt.to.Equals(got); err != nil {
-				if !tt.wantErr {
-					t.Errorf("Value Equals error = %v", err)
-				}
-				return
-			} else if !eq {
-				t.Errorf("from %s got = %.10f, want %s", tt.from.String(), got.Float(), tt.to.String())
-			}
-		})
+		testConversion(t, tt.from, tt.to, tt.wantErr)
+		testConversion(t, tt.to, tt.from, tt.wantErr)
 	}
 }
