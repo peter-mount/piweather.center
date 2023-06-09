@@ -114,10 +114,21 @@ func (t *Bot) processRow(row *Row) (string, error) {
 
 				// Handle units, src is from Measurement, dest from Value
 				src, srcOk := value2.GetUnit(m.Unit)
-				dest, destOk := value2.GetUnit(value.Unit)
+				dest, destOk := value2.GetUnit(value.Unit.Unit)
 				switch {
 				case srcOk && destOk:
-					if v1, err := src.Value(float64(f)).As(dest); err != nil {
+					v1, err := src.Value(float64(f)).As(dest)
+					if err == nil {
+						// If we have an alternate now convert to it
+						altUnit := value.GetUnit(v1.Float())
+						if altUnit != dest.Unit() {
+							if alt, altOk := value2.GetUnit(altUnit); altOk {
+								v1, err = v1.As(alt)
+							}
+						}
+					}
+
+					if err != nil {
 						// Cannot transform between requested units
 						v = err.Error()
 					} else {

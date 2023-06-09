@@ -251,6 +251,16 @@ func Within(a, b, c float64) bool {
 	return GreaterThanEqual(a, b) && LessThanEqual(a, c)
 }
 
+// Without returns true if a <= b || a >= c
+func Without(a, b, c float64) bool {
+	// Ensure b < c
+	if GreaterThan(b, c) {
+		b, c = c, b
+	}
+
+	return LessThanEqual(a, b) || GreaterThanEqual(a, c)
+}
+
 // Add returns the sum of two values. The result is the same unit as v.
 // An error is returned if either value is invalid,
 // b could not be transformed into the same unit as v
