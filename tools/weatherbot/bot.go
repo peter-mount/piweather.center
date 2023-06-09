@@ -1,8 +1,6 @@
 package bot
 
 import (
-	"errors"
-	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-mastodon"
 	"github.com/peter-mount/piweather.center/io"
@@ -11,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strings"
 )
 
 type Bot struct {
@@ -50,42 +47,11 @@ func (t *Bot) Start() error {
 		return err
 	}
 
-	return nil
-}
-
-func (t *Bot) getPost() error {
-	t.posts = make(map[string]*Post)
-	if err := io.NewReader().
-		Yaml(&t.posts).
-		Open(filepath.Join(*t.RootDir, "weatherbot.yaml")); err != nil {
-		return err
-	}
-
-	// Lookup post, show available posts & exit if not found
-	t.post = t.posts[*t.Post]
-	if *t.Post == "" || t.post == nil {
-		a := append([]string{}, "Available posts:")
-		for k, e := range t.posts {
-			a = append(a, fmt.Sprintf("%s: %s", k, e.Name))
-		}
-		return errors.New(strings.Join(a, "\n"))
-	}
-
-	return nil
-}
-
-func (t *Bot) getCurrentState() error {
-	// Get current state for the station for this post
-	stn, err := state.New(*t.Host).GetState(t.post.StationId)
+	err = t.createPostText()
 	if err != nil {
 		return err
 	}
-	if stn == nil {
-		return fmt.Errorf("StationId %q does not exist", t.post.StationId)
-	}
 
-	log.Printf("Station %q data at %v", stn.ID, stn.Meta.Time)
-	t.station = stn
 	return nil
 }
 

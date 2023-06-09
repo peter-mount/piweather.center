@@ -1,22 +1,39 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/weather/state"
+	"path/filepath"
 	"strings"
 )
 
-func (t *Bot) Run() error {
-	err := t.createPost()
-	if err != nil {
+// getPost loads the yaml config and gets the named post to publish
+func (t *Bot) getPost() error {
+	t.posts = make(map[string]*Post)
+	if err := io.NewReader().
+		Yaml(&t.posts).
+		Open(filepath.Join(*t.RootDir, "weatherbot.yaml")); err != nil {
 		return err
+	}
+
+	// Lookup post, show available posts & exit if not found
+	t.post = t.posts[*t.Post]
+	if *t.Post == "" || t.post == nil {
+		a := append([]string{}, "Available posts:")
+		for k, e := range t.posts {
+			a = append(a, fmt.Sprintf("%s: %s", k, e.Name))
+		}
+		return errors.New(strings.Join(a, "\n"))
 	}
 
 	return nil
 }
 
-func (t *Bot) createPost() error {
+// createPostText takes the post and generates the Mastodon post text
+func (t *Bot) createPostText() error {
 	for _, thread := range t.post.Threads {
 		var str []string
 
@@ -41,15 +58,7 @@ func (t *Bot) createPost() error {
 	return nil
 }
 
-func (t *Bot) getMeasurement(id string) *state.Measurement {
-	for _, m := range t.station.Measurements {
-		if m.ID == id {
-			return m
-		}
-	}
-	return nil
-}
-
+// processRow processes a Row and returns it as a string
 func (t *Bot) processRow(row *Row) (string, error) {
 	// Blank row
 	if row.Format == "" {
