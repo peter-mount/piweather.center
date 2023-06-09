@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-mastodon"
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/state"
@@ -35,7 +36,7 @@ func (t *Bot) getPost() error {
 }
 
 // createPostText takes the post and generates the Mastodon post text
-func (t *Bot) createPostText() error {
+func (t *Bot) postText() error {
 	for tid, thread := range t.post.Threads {
 		var str []string
 
@@ -54,6 +55,15 @@ func (t *Bot) createPostText() error {
 
 		if *t.Test {
 			log.Printf("---- thread %d length %d\n%s\n---- thread %d end\n\n", tid, len(text), text, tid)
+		} else {
+			if err := t.postToMastodon(mastodon.PostStatus{
+				IdempotencyKey: "",
+				Text:           text,
+				InReplyTo:      0,
+				Visibility:     mastodon.VisibilityUnlisted,
+			}); err != nil {
+				return err
+			}
 		}
 	}
 

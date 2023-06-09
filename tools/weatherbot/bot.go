@@ -39,7 +39,7 @@ func (t *Bot) Start() error {
 		return err
 	}
 
-	err = t.createPostText()
+	err = t.postText()
 	if err != nil {
 		return err
 	}
