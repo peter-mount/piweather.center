@@ -74,12 +74,12 @@ type Measurement struct {
 	Time time.Time `json:"time"`
 	// The unit of this Measurement
 	Unit string `json:"unit"`
-	// Current value in Minute10
+	// Current is the latest value in last 10 minutes represented by Current10
 	Current Point `json:"current"`
-	// Previous is current value in Previous10
-	Previous Point `json:"previous"`
 	// The last 10 minutes
-	Minute10 Value `json:"minute10"`
+	Current10 Value `json:"current10"`
+	// Previous is the latest value in the previous 10 minutes represented by Previous10
+	Previous Point `json:"previous"`
 	// The previous 10 minutes
 	Previous10 Value `json:"previous10"`
 	// The last hour

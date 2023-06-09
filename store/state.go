@@ -138,7 +138,7 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 					Value: state.RoundedFloat(f),
 					Time:  t,
 				}
-				m.Minute10 = m.Minute10.Include(f)
+				m.Current10 = m.Current10.Include(f)
 			}
 			if t.After(meta.Previous10) && t.Before(meta.Minute10) {
 				m.Previous = state.Point{
@@ -159,9 +159,9 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 		From:    m.Previous.Time,
 		To:      m.Current.Time,
 		Current: state.TrendFrom(float64(m.Previous.Value), float64(m.Current.Value)),
-		Min:     state.TrendFrom(float64(m.Previous10.Min), float64(m.Minute10.Min)),
-		Max:     state.TrendFrom(float64(m.Previous10.Max), float64(m.Minute10.Max)),
-		Mean:    state.TrendFrom(float64(m.Previous10.Mean), float64(m.Minute10.Mean)),
+		Min:     state.TrendFrom(float64(m.Previous10.Min), float64(m.Current10.Min)),
+		Max:     state.TrendFrom(float64(m.Previous10.Max), float64(m.Current10.Max)),
+		Mean:    state.TrendFrom(float64(m.Previous10.Mean), float64(m.Current10.Mean)),
 	}
 
 	return m
