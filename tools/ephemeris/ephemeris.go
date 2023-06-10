@@ -17,7 +17,7 @@ type Ephemeris struct {
 	site      *string              `kernel:"flag,site,simple location definition"`
 	step      *float64             `kernel:"flag,s,Step size in days,1.0"`
 	stdout    *bool                `kernel:"flag,d,Dump xml to stdout"`
-	riseSet   *bool                `kernel:"flag,rs,Include Rise/Transit/Set times in output"`
+	riseSet   *bool                `kernel:"flag,rs,Include Rise/UpperTransit/Set times in output"`
 	sun       *bool                `kernel:"flag,sun,Include the Sun"`
 	ephemeris *ephemeris.Ephemeris // Ephemeris to generate
 }
