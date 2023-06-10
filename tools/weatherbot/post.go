@@ -209,6 +209,12 @@ func (t *Bot) GetValue(value Value) (interface{}, error) {
 		case ValueMean:
 			f = valueRange.Mean
 
+		case ValueTotal:
+			f = valueRange.Total
+
+		case ValueCount:
+			f = state.RoundedFloat(valueRange.Count)
+
 		default:
 			return "", fmt.Errorf("unsupported type %q for sensor %q", value.Type, value.Sensor)
 		}

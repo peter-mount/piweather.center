@@ -124,6 +124,8 @@ const (
 	ValueMin         = "min"         // Min value
 	ValueMax         = "max"         // Max value
 	ValueMean        = "mean"        // Mean of all values in the range
+	ValueTotal       = "total"       // The total of all values in the range
+	ValueCount       = "count"       // The number of entries in the range
 )
 
 // Measurement range selections
