@@ -1,0 +1,305 @@
+# Example config for a weatherbot.
+#
+# This is the actual config for @me15weather@area51.social as of 2023 June 10.
+
+# Hourly Post
+hourly:
+  # Name of this post - this is unused
+  name: Hourly
+  # The stationId this post will be for.
+  # It's used to retrieve the current state that the bot will use for this post.
+  stationId: home
+  # Thread of actual posts to be sent to Mastodon.
+  # Currently only 1 is supported but in the future any additional ones will
+  # be sent as replies to the first one.
+  thread:
+    # The first post definition
+    - # Prefix is text that's prepended to the post
+      #prefix: "This Weather Station is currently in beta.\n\n"
+
+      # Suffix is appended to the post
+      #suffix: "\n\nThis weather station is located in South Maidstone, Kent, UK"
+
+      # Table of rows that form the post.
+      # Originally rows were just that, one line each, but now they are just entries
+      # and you add newlines within each one as required.
+      table:
+        # A table entry.
+        # In this instance we announce this is a weather report and the time
+        - # The entries format. This is similar to a standard printf statement but
+          # it uses a custom format.
+          #
+          # The possible % entries are:
+          #
+          # %%    The % character
+          # %d    An integer value or a floating point value with 0 decimal places
+          # %e    For unit values this returns the unit, e.g. °C. For non units this is ""
+          # %f    Floating point number. The number of decimal places will depend on the value.
+          # %.1f  Floating point number with 1 decimal place.
+          # %.2f  Floating point number with 2 decimal places.
+          # %.3f  Floating point number with 3 decimal places.
+          # %s    String value.
+          #       Numbers will be converted to a string.
+          #       Unit values will be formatted as if %u was used.
+          # %u    Unit values with their value and suffix, e.g. "14.2 °C" for temperature.
+          # %v    Interface value - this is the same as %v within go.
+          #
+          format: "Weather at: %s\n\n"
+          # The values required for the format. There must be the same number of entries here as
+          # there are % entries in the format.
+          values:
+            # Type of value to use.
+            # Each value can be one of the following types:
+            #
+            #   latest      Default, latest value in last 10 minutes.
+            #	previous    latest value in previous 10 minutes, e.g. 20..11 minutes ago.
+            #	trend       Trend between the latest value in the last 10 minutes,
+            #               and the latest value in the previous 10 minutes.
+            #
+            # These types operate against a range, by default the "current" range.
+            # See range below:
+            #	min         Min value
+            #	max         Max value
+            #	mean        Mean of all values in the range
+            #	total       The total of all values in the range
+            #	count       The number of entries in the range
+            #
+            # These types take no sensor name as they are global:
+            #	time        Time of the latest value sent by the station.
+            #	stationName Station name
+            - type: time
+
+        # Example of posting the temperature.
+        #
+        # Here we have 2 values:
+        # The first one formatted with %u is the actual temperature, e.g. "14.2 °C"
+        # The second uses %s as it's of type trend which returns a single character.
+        - format: "Temp %u %s"
+          values:
+            # Raw Unit value for a temperature.
+            #
+            # A sensor ID has the format stationId.sensorsId.sensorId
+            - sensor: home.ecowitt.temp
+            # This is the same sensor but of type trend.
+            #
+            # Here it will compare the current value and the value from 10 minutes previously.
+            # it will then use one of the following characters:
+            #
+            #  rising: ↑
+            # falling: ↓
+            #  steady: → - e.g. it's not changed
+            - sensor: home.ecowitt.temp
+              type: trend
+
+        # Show feels like if it differs to the temperature. If it is the same then it does not
+        # include the entry in the result.
+        - format: " feels like %u"
+          values:
+            - sensor: home.ecowitt.feelslike
+          # when defines when an entry is included in the output.
+          #
+          # It consists one or more conditions.
+          # The entry will be included if any single condition is met.
+          # If there are no conditions then the entry is always included.
+          when:
+            # A condition. Here we want to include the entry if the two values are not the same.
+            - # value defines the value for the left hand side of the operation
+              value:
+                # The value to be used for the a side of the comparison.
+                sensor: home.ecowitt.feelslike
+                # notEqual defines the value for the right hand side of the operation.
+                #
+                # Possible operations are:
+                #
+                # lessThan          true if a < b
+                # lessThanEqual     true if a <= b
+                # equal             true if a == b
+                #	notEqual          true if a != b
+                #	greaterThanEqual  true if a >= b
+                #	greaterThan       true if a > b
+                #
+                # Currently you can define just one of these.
+                # If you define more, then the first one in the order listed above
+                # will be used, the others will be ignored.
+                notEqual:
+                  # The b side of the comparison.
+                  sensor: home.ecowitt.temp
+                  # The unit to use for the comparison.
+                  # This is optional, however it's a good idea to set it
+                  unit:
+                    # The unit name, this is case insensitive
+                    unit: Fahrenheit
+        # Show the min and max temperatures for today
+        - format: "min %u max %u"
+          values:
+            # minimum value example
+            - sensor: home.ecowitt.temp
+              # type min will use the minimum value recorded for the range
+              type: min
+              # This sets which range to use for the min, max or mean types.
+              #
+              # This can be one of:
+              #
+              # current   The current period consisting of the last 10 minutes
+              # previous  The previous 10 minutes before current, e.g. 20..11 minutes ago
+              # hour      The previous 60 minutes
+              # hour24    The previous 24 hours
+              # today     The time since midnight (00:00) of the current day.
+              range: today
+            - sensor: home.ecowitt.temp
+              type: max
+              range: today
+        # UV index - this is shown only when it's above 0
+        - format: "UV: %u %s"
+          values:
+            - sensor: home.ecowitt.uv
+            - sensor: home.ecowitt.uv
+              type: trend
+          when:
+            - value:
+                sensor: home.ecowitt.uv
+              greaterThanEqual:
+                value: 1
+                unit:
+                  unit: uv
+        # Latest wind speed, trend, direction and gust speed
+        - format: "\n\nWind %u %s %.0f° gust %.1f"
+          values:
+            - sensor: home.ecowitt.windspeed
+            - sensor: home.ecowitt.windspeed
+              type: trend
+            - sensor: home.ecowitt.winddir
+            - sensor: home.ecowitt.windgust
+
+        # Rain - here we are using hrain_piezo which the actual sensor is sending as the
+        # amount of rain in the last hour.
+        - format: "\n\nRain %d mm %s"
+          values:
+            - sensor: home.ecowitt.hrain_piezo
+              unit:
+                unit: "MilliMeters"
+            - sensor: home.ecowitt.hrain_piezo
+              type: trend
+        # Show daily rain only if we have some.
+        # Again here drain_piezo is the daily rain measurement from the actual sensor.
+        - format: "today %d"
+          values:
+            - sensor: home.ecowitt.drain_piezo
+          when:
+            - value:
+                sensor: home.ecowitt.drain_piezo
+              greaterThan:
+                value: 0
+                unit:
+                  unit: millimeters
+
+        # Show the Pressure.
+        # Here I'm using a different sensor (Pimoroni Enviro Urban) which is located outside.
+        # The ecowitt sensor only measures pressure internally.
+        - format: "\n\nPressure %u %s"
+          values:
+            #- sensor: home.ecowitt.baromrelin
+            - sensor: home.drive.pressure
+            - sensor: home.drive.pressure
+              type: trend
+
+        # Humidity consisting of the relative humidity, trend and
+        # the absolute humidity.
+        - format: "\n\nHumidity %u %s %u"
+          values:
+            - sensor: home.ecowitt.humidity
+            - sensor: home.ecowitt.humidity
+              type: trend
+            - sensor: home.ecowitt.absolutehumidity
+
+        # The dew point
+        - format: "\n\nDew point %u %s"
+          values:
+            - sensor: home.ecowitt.dewpoint
+            - sensor: home.ecowitt.dewpoint
+              type: trend
+
+        # The light level.
+        - format: "\n\nLight %u %s %u"
+          values:
+            # Solar radiation in W/m²
+            - sensor: home.ecowitt.solarradiation
+              unit:
+                unit: WattsPerSquareMeter
+                # Here we define an alternate unit.
+                # Here if the value is >=1000 then it will use kW/m² instead of W/m²
+                alternate:
+                  - unit: KiloWattsPerSquareMeter
+                    min: 1000
+            # Trend of light, e.g. getting brighter, dimmer etc
+            - sensor: home.ecowitt.solarradiation
+              type: trend
+            # Show the same value but converted into Lux.
+            # This will use lx unless it's >1000 when it will use KiloLux (klx)
+            - sensor: home.ecowitt.solarradiation
+              unit:
+                unit: lux
+                alternate:
+                  - unit: kiloLux
+                    min: 1000
+          # Only show Light level when it's not dark - e.g. not at night time ;-)
+          when:
+            - value:
+                sensor: home.ecowitt.solarradiation
+              greaterThan:
+                value: 0
+                unit:
+                  unit: WattsPerSquareMeter
+
+        # Particulate pollution for particles 1µm, 2.5µm and 10µm in diameter.
+        # This is the output of a Pimoroni Enviro Urban mounted next to a main road.
+        - format: "\n\nPollution in %e: 1µm %d %s 2.5µm %d %s 10µm %d %s"
+          values:
+            - sensor: home.drive.pm2_5
+            - sensor: home.drive.pm1
+            - sensor: home.drive.pm1
+              type: trend
+            - sensor: home.drive.pm2_5
+            - sensor: home.drive.pm2_5
+              type: trend
+            - sensor: home.drive.pm10
+            - sensor: home.drive.pm10
+              type: trend
+
+        # Noise pollution level.
+        # This is the output of a Pimoroni Enviro Urban mounted next to a main road.
+        - format: "\n\nNoise %u %s %u"
+          values:
+            # It has a small microphone and records the peak voltage over a period of 1 second.
+            # So we report that voltage as a decibelVolt (dBV) and in milliVolt (mV)
+            - sensor: home.drive.noise
+              unit:
+                unit: decibelVolt
+            - sensor: home.drive.noise
+              type: trend
+            - sensor: home.drive.noise
+              unit:
+                unit: milliVolt
+                alternate:
+                  - unit: Volt
+                    min: 1000
+
+        # Ionising radiation level as measured by a Geiger counter.
+        # This Geiger counter is actually located in my Kitchen hence the sensor
+        # references the "house" sensorsId.
+        - format: "\n\nRadiation %u %u"
+          values:
+            # The raw Count Per Minute value reported by the geiger counter
+            - sensor: home.house.geiger
+              type: max
+              unit:
+                unit: countPerMinute
+            # The CPM converted to µSv
+            #
+            # Note: This is just for fun. It's not an accurate conversion as the
+            #       true conversion is specific to the individual sensor so this
+            #       conversion is based on my own Geiger counter.
+            - sensor: home.house.geiger
+              type: max
+              unit:
+                unit: microSievert

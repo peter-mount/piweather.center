@@ -1,0 +1,11 @@
+# Example config for connecting to Mastodon
+
+# If this is set to true then the bot will only post to stdout
+#debug: true
+
+# The Mastodon server URL
+server: "https://example.com"
+
+# The access token the bot will use to authenticate.
+# You can create this by going into Settings -> Development in Mastodon and selecting New Application.
+access_token: "access-token-from-mastodon-server"
