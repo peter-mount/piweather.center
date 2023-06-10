@@ -93,7 +93,10 @@ hourly:
 
         # Show feels like if it differs to the temperature. If it is the same then it does not
         # include the entry in the result.
-        - format: " feels like %u"
+        #
+        # Note: we use %.1f here instead of %u as we already show °C for the
+        # main temperature, so it saves 3 characters in the final post.
+        - format: " feels like %.1f"
           values:
             - sensor: home.ecowitt.feelslike
           # when defines when an entry is included in the output.
@@ -127,10 +130,14 @@ hourly:
                   # The unit to use for the comparison.
                   # This is optional, however it's a good idea to set it
                   unit:
-                    # The unit name, this is case insensitive
+                    # The unit name, this is case-insensitive
                     unit: Fahrenheit
+
         # Show the min and max temperatures for today
-        - format: "min %u max %u"
+        #
+        # Note: we use %.1f here instead of %u as we already show °C for the
+        # main temperature, so it saves 6 characters in the final post.
+        - format: "min %.1f max %.1f"
           values:
             # minimum value example
             - sensor: home.ecowitt.temp
@@ -149,6 +156,7 @@ hourly:
             - sensor: home.ecowitt.temp
               type: max
               range: today
+
         # UV index - this is shown only when it's above 0
         - format: "UV: %u %s"
           values:
@@ -180,6 +188,7 @@ hourly:
                 unit: "MilliMeters"
             - sensor: home.ecowitt.hrain_piezo
               type: trend
+
         # Show daily rain only if we have some.
         # Again here drain_piezo is the daily rain measurement from the actual sensor.
         - format: "today %d"
