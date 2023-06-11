@@ -70,6 +70,8 @@ clean:
 init: go-init
 	$(call GO-BUILD,$(BUILD_PLATFORM),$(BUILDS)/dataencoder,tools/dataencoder/bin/main.go)
 	$(call cmd,"GENERATE","Makefile");$(BUILDS)/dataencoder -d $(BUILDS) -build Makefile.gen -build-platform "$(PLATFORMS)"
+	# Data that needs building for the tests
+	@$(MAKE) --no-print-directory -f Makefile.gen $(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/lib/vsop87b
 
 test: go-test
 
