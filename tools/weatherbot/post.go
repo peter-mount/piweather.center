@@ -164,7 +164,7 @@ func (t *Bot) GetValue(value Value) (interface{}, error) {
 	var v interface{}
 	switch value.Type {
 	case ValueTime:
-		return t.station.Meta.Time.Format("2006 Jan 02 15:04 BST"), nil
+		return t.station.Meta.Time.Format("2006 Jan 02 15:04 MST"), nil
 
 	case ValueStationName:
 		return t.station.Meta.Name, nil
