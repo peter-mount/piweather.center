@@ -36,6 +36,8 @@ const (
 //
 // %s	String value
 //
+// %T   Integer value in unix seconds - returns as "Jan 02 15:04:05 MST"
+//
 // %u 	Unit value with unit suffix
 //
 // %v	interface value
@@ -116,7 +118,7 @@ func Sprintf(f string, args ...interface{}) string {
 			case strings.HasPrefix(f, "%T"):
 				arg, args = getArg(args)
 				if v, ok := arg.(value.Value); ok {
-					r = append(r, time.Unix(int64(v.Float()), 0).Format("2006 Jan 02 15:04:05 MST"))
+					r = append(r, time.Unix(int64(v.Float()), 0).Format("Jan 02 15:04:05 MST"))
 				} else {
 					r = append(r, na)
 				}
