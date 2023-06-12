@@ -33,7 +33,7 @@ func init() {
 	Temperature = value.NewGroup("Temperature", Celsius, Fahrenheit, Kelvin)
 
 	value.NewCalculator("dewPoint", value.AssertCalculator(value.Calculator2arg(GetDewPoint), Temperature.AssertValue, RelativeHumidity.AssertValue))
-	value.NewCalculator("heatIndex", value.AssertCalculator(value.Calculator2arg(GetHeatIndex), Temperature.AssertValue, RelativeHumidity.AssertValue))
+	value.NewCalculator("heatIndex", value.AssertCalculator(value.Calculator2arg(HeatIndex), Temperature.AssertValue, RelativeHumidity.AssertValue))
 	value.NewCalculator("windChill", value.AssertCalculator(value.Calculator2arg(WindChill), Temperature.AssertValue, Speed.AssertValue))
 	value.NewCalculator("feelsLike", value.AssertCalculator(value.Calculator3arg(FeelsLike), Temperature.AssertValue, RelativeHumidity.AssertValue, MetersPerSecond.AssertValue))
 }

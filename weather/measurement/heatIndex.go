@@ -3,6 +3,7 @@ package measurement
 import (
 	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"math"
 )
 
 const (
@@ -17,8 +18,8 @@ const (
 	hic9 = -1.99e-6
 )
 
-// GetHeatIndex returns the HeatIndex based on Temperature and RelativeHumidity.
-func GetHeatIndex(temp value.Value, relHumidity value.Value) (value.Value, error) {
+// HeatIndex returns the HeatIndex based on Temperature and RelativeHumidity.
+func HeatIndex(temp value.Value, relHumidity value.Value) (value.Value, error) {
 	temp, err := temp.As(Fahrenheit)
 	if err != nil {
 		return value.Value{}, err
@@ -29,7 +30,8 @@ func GetHeatIndex(temp value.Value, relHumidity value.Value) (value.Value, error
 		return value.Value{}, err
 	}
 
-	T, RH := temp.Float(), relHumidity.Float()
+	// Note: RH is an integer percentage Page 2: https://www.weather.gov/media/ffc/ta_htindx.PDF
+	T, RH := temp.Float(), math.Round(relHumidity.Float())
 
 	// try simplified formula first (used for HI < 80)
 	HI := 0.5 * (T + 61.0 + (T-68.0)*1.2 + RH*0.094)

@@ -17,7 +17,7 @@ func TestHeatIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s %s", tt.temp, tt.relHumidity), func(t *testing.T) {
-			got, err := GetHeatIndex(tt.temp, tt.relHumidity)
+			got, err := HeatIndex(tt.temp, tt.relHumidity)
 			if err != nil {
 				if !tt.wantErr {
 					t.Errorf("GetDewPoint() error = %v, wantErr %v", err, tt.wantErr)

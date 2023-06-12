@@ -27,11 +27,13 @@ func FeelsLike(temp, relHumidity, windSpeed value.Value) (value.Value, error) {
 	}
 
 	switch {
-	case temp.Float() <= 50.0 && windSpeed.Float() > 3.0:
+	// WindChill is valid for temps <=50F (10C) and wind speed >=3mph
+	case value.LessThanEqual(temp.Float(), 50.0) && value.GreaterThanEqual(windSpeed.Float(), 1.34112):
 		return WindChill(temp, windSpeed)
 
-	case temp.Float() >= 80.0:
-		return GetHeatIndex(temp, relHumidity)
+	// HeatIndex is valid for temps >=80F (26.6C)
+	case value.GreaterThanEqual(temp.Float(), 80.0):
+		return HeatIndex(temp, relHumidity)
 
 	default:
 		return temp, nil
