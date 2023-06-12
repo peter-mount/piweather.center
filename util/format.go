@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -107,6 +108,15 @@ func Sprintf(f string, args ...interface{}) string {
 						s = err.Error()
 					}
 					r = append(r, s)
+				} else {
+					r = append(r, na)
+				}
+				f = f[2:]
+
+			case strings.HasPrefix(f, "%T"):
+				arg, args = getArg(args)
+				if v, ok := arg.(value.Value); ok {
+					r = append(r, time.Unix(int64(v.Float()), 0).Format("2006 Jan 02 15:04:05 MST"))
 				} else {
 					r = append(r, na)
 				}
