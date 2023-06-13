@@ -5,20 +5,16 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-mastodon"
-	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/state"
 	value2 "github.com/peter-mount/piweather.center/weather/value"
-	"path/filepath"
 	"strings"
 )
 
 // getPost loads the yaml config and gets the named post to publish
 func (t *Bot) getPost() error {
 	t.posts = make(map[string]*Post)
-	if err := io.NewReader().
-		Yaml(&t.posts).
-		Open(filepath.Join(*t.RootDir, "weatherbot.yaml")); err != nil {
+	if err := t.ConfigManager.ReadYaml("weatherbot.yaml", &t.posts); err != nil {
 		return err
 	}
 
