@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/peter-mount/piweather.center/astro/util"
+	configManager "github.com/peter-mount/piweather.center/util/config"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -20,7 +21,8 @@ type Config interface {
 }
 
 type config struct {
-	Config *Stations `kernel:"config,stations"`
+	ConfigManager configManager.Manager `kernel:"inject"`
+	Config        *Stations
 }
 
 func (c *config) Stations() *Stations {
@@ -32,10 +34,19 @@ func (c *config) Accept(v Visitor) error {
 }
 
 func (c *config) Start() error {
+	{
+		m := Stations(make(map[string]*Station))
+		c.Config = &m
+		if err := c.ConfigManager.ReadYaml("station.yaml", &c.Config); err != nil {
+			return err
+		}
+	}
+
 	if c.Config == nil || len(*c.Config) == 0 {
 		return fmt.Errorf("no configuration provided")
 	}
 
+	fmt.Println(c.Config)
 	// Once loaded ensure the structure is intact and ids are set up
 	return NewVisitor().
 		Station(c.initStation).

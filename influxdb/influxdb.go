@@ -8,6 +8,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/util/config"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -21,8 +22,15 @@ type Pool interface {
 }
 
 type pool struct {
-	Brokers *map[string]*Config `kernel:"config,influxdb"`
-	Worker  task.Queue          `kernel:"worker"`
+	ConfigManager config.Manager `kernel:"inject"`
+	Worker        task.Queue     `kernel:"worker"`
+	Brokers       *map[string]*Config
+}
+
+func (p *pool) Start() error {
+	m := make(map[string]*Config)
+	p.Brokers = &m
+	return p.ConfigManager.ReadYaml("influxdb.yaml", p.Brokers)
 }
 
 func (p *pool) GetDB(n string) *Config {

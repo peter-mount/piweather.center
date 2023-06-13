@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	common "github.com/peter-mount/piweather.center"
+	"github.com/peter-mount/piweather.center/util/config"
 	"strings"
 )
 
@@ -17,8 +18,9 @@ type Pool interface {
 }
 
 type pool struct {
-	Brokers *map[string]*MQ `kernel:"config,amqp"`
-	Worker  task.Queue      `kernel:"worker"`
+	ConfigManager config.Manager `kernel:"inject"`
+	Worker        task.Queue     `kernel:"worker"`
+	Brokers       *map[string]*MQ
 }
 
 func (p *pool) GetMQ(n string) *MQ {
@@ -26,6 +28,14 @@ func (p *pool) GetMQ(n string) *MQ {
 }
 
 func (p *pool) Start() error {
+	{
+		m := make(map[string]*MQ)
+		p.Brokers = &m
+		if err := p.ConfigManager.ReadYaml("amqp.yaml", p.Brokers); err != nil {
+			return err
+		}
+	}
+
 	s := strings.SplitN(common.Version, " ", 2)
 	appName := strings.Join([]string{"piweather.center", s[0]}, " ")
 	appVersion := strings.Trim(s[1], "()")
