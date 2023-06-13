@@ -27,19 +27,20 @@ type service struct {
 	Config        *HomeAssistant
 }
 
-func (s *service) Start() error {
-	return s.loadConfig()
-}
-
 func (s *service) Stop() {
 	s.Config.close()
 }
 
-func (s *service) loadConfig() error {
+func (s *service) Start() error {
 	ha := &HomeAssistant{}
 
 	if err := s.ConfigManager.ReadYamlOptional("homeassistant.yaml", ha); err != nil {
 		return err
+	}
+
+	// If disabled do nothing
+	if ha.Disabled {
+		return nil
 	}
 
 	switch {
@@ -56,10 +57,7 @@ func (s *service) loadConfig() error {
 	default:
 	}
 
-	// FIXME make this thread safe
-	oldHA := s.Config
 	s.Config = ha
-	oldHA.close()
 
 	return s.SendConfiguration()
 }

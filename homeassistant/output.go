@@ -12,7 +12,6 @@ func (s *service) StoreReading(ctx context.Context) error {
 	if s.Config != nil {
 		return s.storeReading(ctx)
 	}
-	log.Println("***SKIP***")
 	return nil
 }
 

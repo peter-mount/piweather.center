@@ -6,6 +6,9 @@ import (
 )
 
 type HomeAssistant struct {
+	// if set then HomeAssistant is disabled - used in development
+	Disabled bool `yaml:"disabled"`
+
 	// Amqp broker to use, "" for none
 	Amqp           string        `yaml:"amqp,omitempty"`
 	AmqpPublisher  *mq.Publisher `yaml:"amqp_publisher"`
