@@ -1,24 +1,48 @@
 package amqp
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/peter-mount/go-kernel/v2/log"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 	"strings"
 	"time"
 )
 
 // Publisher represents the configuration for how to send messages to RabbitMQ
 type Publisher struct {
-	Exchange  string            `yaml:"exchange"`  // Exchange to submit to
-	Mandatory bool              `yaml:"mandatory"` // Publish mode
-	Immediate bool              `yaml:"immediate"` // Publish mode
-	Replace   map[string]string `yaml:"replace"`   // Replace prefix table
-	Ignore    []string          `yaml:"ignore"`    // Ignore prefixes
-	Debug     bool              `yaml:"debug"`     // Debug mode
-	Disabled  bool              `yaml:"disabled"`  // Publish disabled
-	channel   *amqp.Channel
-	mq        *MQ
+	Exchange   string            `yaml:"exchange"`  // Exchange to submit to
+	Mandatory  bool              `yaml:"mandatory"` // Publish mode
+	Immediate  bool              `yaml:"immediate"` // Publish mode
+	Replace    map[string]string `yaml:"replace"`   // Replace prefix table
+	Ignore     []string          `yaml:"ignore"`    // Ignore prefixes
+	Debug      bool              `yaml:"debug"`     // Debug mode
+	Disabled   bool              `yaml:"disabled"`  // Publish disabled
+	Tag        string            `yaml:"tag"`       // Tag for connection
+	connection *amqp.Connection  // amqp connection
+	channel    *amqp.Channel
+	mq         *MQ
+}
+
+func (p *Publisher) Bind(broker *MQ) error {
+	if p.mq != nil {
+		return fmt.Errorf("publisher already bound to a broker")
+	}
+	p.mq = broker
+
+	if p.Exchange == "" {
+		p.Exchange = "amq.topic"
+	}
+
+	return nil
+}
+
+func (p *Publisher) Stop() {
+	if p.connection != nil {
+		_ = p.connection.Close()
+		p.connection = nil
+	}
 }
 
 // Publish sends a raw message with the specified routingKey
@@ -79,7 +103,25 @@ func (p *Publisher) Post(key string, body []byte, headers amqp.Table, timestamp 
 		return nil
 	}
 
-	return p.channel.Publish(
+	if p.connection == nil || p.connection.IsClosed() || p.channel == nil || p.channel.IsClosed() {
+		p.Stop()
+		log.Printf("Publisher Start %q", p.Tag)
+		conn, err := p.mq.connect(p.Tag)
+		if err != nil {
+			return err
+		}
+		p.connection = conn
+
+		ch, err := conn.Channel()
+		if err != nil {
+			p.Stop()
+			return err
+		}
+		p.channel = ch
+	}
+
+	return p.channel.PublishWithContext(
+		context.Background(),
 		p.Exchange,
 		key,
 		p.Mandatory,

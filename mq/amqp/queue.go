@@ -2,8 +2,8 @@ package amqp
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-kernel/v2/log"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 	"time"
 )
 
