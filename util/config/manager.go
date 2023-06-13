@@ -13,8 +13,13 @@ func init() {
 }
 
 type Manager interface {
-	RootDir() string
+	// EtcDir returns the path to the etc directory
+	EtcDir() string
+	// ReadYaml will read a yaml file from inside etc
 	ReadYaml(n string, o any) error
+	// ReadYamlOptional is the same as ReadYaml except that the file not existing will not
+	// return an error
+	ReadYamlOptional(n string, o any) error
 }
 
 type manager struct {
@@ -29,12 +34,21 @@ func (m *manager) Start() error {
 	return nil
 }
 
-func (m *manager) RootDir() string {
+func (m *manager) EtcDir() string {
 	return *m.RootDirFlag
 }
 
 func (m *manager) ReadYaml(n string, o any) error {
 	return io.NewReader().
 		Yaml(o).
-		Open(filepath.Join(m.RootDir(), n))
+		Open(filepath.Join(m.EtcDir(), n))
+}
+
+func (m *manager) ReadYamlOptional(n string, o any) error {
+	err := m.ReadYaml(n, o)
+	// Ignore the file not existing
+	if err != nil && os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }

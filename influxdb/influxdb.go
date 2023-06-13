@@ -30,7 +30,7 @@ type pool struct {
 func (p *pool) Start() error {
 	m := make(map[string]*Config)
 	p.Brokers = &m
-	return p.ConfigManager.ReadYaml("influxdb.yaml", p.Brokers)
+	return p.ConfigManager.ReadYamlOptional("influxdb.yaml", p.Brokers)
 }
 
 func (p *pool) GetDB(n string) *Config {

@@ -31,7 +31,7 @@ func (p *pool) Start() error {
 	{
 		m := make(map[string]*MQ)
 		p.Brokers = &m
-		if err := p.ConfigManager.ReadYaml("amqp.yaml", p.Brokers); err != nil {
+		if err := p.ConfigManager.ReadYamlOptional("amqp.yaml", p.Brokers); err != nil {
 			return err
 		}
 	}
