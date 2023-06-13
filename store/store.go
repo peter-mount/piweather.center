@@ -127,6 +127,8 @@ func (s *Store) Calculate(ctx context.Context) error {
 		return err
 	}
 
+	values.Put(calc.ID, result)
+
 	s.Record(calc.ID, result, p.Time())
 
 	return nil
