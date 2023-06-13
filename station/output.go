@@ -22,7 +22,11 @@ const (
 )
 
 func OutputFromContext(ctx context.Context) *Output {
-	return ctx.Value(outputKey).(*Output)
+	v := ctx.Value(outputKey)
+	if o, ok := v.(*Output); ok {
+		return o
+	}
+	return nil
 }
 
 func (g *Output) WithContext(ctx context.Context) (context.Context, error) {

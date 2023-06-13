@@ -104,11 +104,11 @@ func (v *visitor) VisitSensors(s *Sensors) error {
 		}
 	}
 
-	if s.Output != nil {
-		if err := s.Output.Accept(v); err != nil {
-			return err
-		}
+	//if s.Output != nil {
+	if err := s.Output.Accept(v); err != nil {
+		return err
 	}
+	//}
 
 	return nil
 }

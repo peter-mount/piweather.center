@@ -1,6 +1,7 @@
 package homeassistant
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
@@ -16,6 +17,7 @@ func init() {
 }
 
 type Service interface {
+	StoreReading(ctx context.Context) error
 }
 
 // Service implements the HomeAssistant Integration
@@ -25,24 +27,24 @@ type service struct {
 	Config        *HomeAssistant
 }
 
-func (p *service) Start() error {
-	return p.loadConfig()
+func (s *service) Start() error {
+	return s.loadConfig()
 }
 
-func (p *service) Stop() {
-	p.Config.close()
+func (s *service) Stop() {
+	s.Config.close()
 }
 
-func (p *service) loadConfig() error {
+func (s *service) loadConfig() error {
 	ha := &HomeAssistant{}
 
-	if err := p.ConfigManager.ReadYamlOptional("homeassistant.yaml", ha); err != nil {
+	if err := s.ConfigManager.ReadYamlOptional("homeassistant.yaml", ha); err != nil {
 		return err
 	}
 
 	switch {
 	case ha.Amqp != "" && ha.AmqpPublisher != nil:
-		broker := p.Amqp.GetMQ(ha.Amqp)
+		broker := s.Amqp.GetMQ(ha.Amqp)
 		if broker == nil {
 			return fmt.Errorf("amqp broker %q undefined", ha.Amqp)
 		}
@@ -55,15 +57,15 @@ func (p *service) loadConfig() error {
 	}
 
 	// FIXME make this thread safe
-	oldHA := p.Config
-	p.Config = ha
+	oldHA := s.Config
+	s.Config = ha
 	oldHA.close()
 
-	return p.SendConfiguration()
+	return s.SendConfiguration()
 }
 
-func (p *service) SendConfiguration() error {
-	for _, sensors := range p.Config.Sensors {
+func (s *service) SendConfiguration() error {
+	for _, sensors := range s.Config.Sensors {
 		for name, entity := range sensors.Entities {
 			if entity.Name == "" {
 				entity.Name = name
@@ -86,14 +88,14 @@ func (p *service) SendConfiguration() error {
 			}, "-")
 
 			topicPrefix := path.Join(
-				p.Config.DiscoveryPrefix,
+				s.Config.DiscoveryPrefix,
 				entity.SensorType,
 				sensors.NodeId,
 				entity.Name,
 			)
 			configTopic := path.Join(topicPrefix, "config")
 
-			if err := p.publish(configTopic, entity); err != nil {
+			if err := s.publish(configTopic, entity); err != nil {
 				return fmt.Errorf("failed to publish %q: %v", configTopic, err)
 			}
 		}
@@ -102,7 +104,7 @@ func (p *service) SendConfiguration() error {
 	return nil
 }
 
-func (p *service) publish(topic string, msg any) error {
+func (s *service) publish(topic string, msg any) error {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -113,8 +115,8 @@ func (p *service) publish(topic string, msg any) error {
 	}
 
 	switch {
-	case p.Config.AmqpPublisher != nil:
-		return p.Config.AmqpPublisher.Publish(
+	case s.Config.AmqpPublisher != nil:
+		return s.Config.AmqpPublisher.Publish(
 			strings.ReplaceAll(topic, "/", "."),
 			b,
 		)
