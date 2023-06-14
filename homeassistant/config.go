@@ -41,6 +41,13 @@ type Sensor struct {
 	// ObjectIdPrefix is a unique prefix which will be used with the Entity to generate a
 	// unique object_id that will be sent to HomeAssistant
 	ObjectIdPrefix string `yaml:"object_id_prefix"`
+	// Device Information about the device this sensor is a part of to tie it into the device registry.
+	// Only works through MQTT discovery and when unique_id is set.
+	// At least one of identifiers or connections must be present to identify the device.
+	//
+	// Note: This is added to each Entity within this Sensor when it's sent to Home Assistant,
+	// so that a shared common entry is used in the yaml.
+	Device *Device `yaml:"device,omitempty"`
 	// Entities contained in this Sensor.
 	// The key will be appended to ObjectIdPrefix to form the object_id
 	Entities map[string]*Entity `yaml:"entities"`
@@ -56,6 +63,13 @@ type Entity struct {
 	ObjectId   string `yaml:"object_id,omitempty" json:"object_id"`
 	// Name of sensor (optional, if not set then will be set to the key name in the parent Sensors)
 	Name string `yaml:"name,omitempty" json:"name,omitempty"`
+	// Device Information about the device this sensor is a part of to tie it into the device registry.
+	// Only works through MQTT discovery and when unique_id is set.
+	// At least one of identifiers or connections must be present to identify the device.
+	//
+	// Note: This is set by the service when it's sent to Home Assistant, so that
+	// a shared common entry is used in the yaml.
+	Device *Device `yaml:"-" json:"device,omitempty"`
 	// DeviceClass of device, default "None"
 	DeviceClass string `yaml:"device_class,omitempty" json:"device_class,omitempty"`
 	// EnabledByDefault flag which defines if the entity should be enabled when first added, default true
@@ -85,4 +99,20 @@ type Entity struct {
 	//	ValueTemplate	Defines a template to extract the value.
 	ValueTemplate             string `yaml:"value_template,omitempty" json:"value_template,omitempty"`
 	SuggestedDisplayPrecision *int   `yaml:"suggested_display_precision,omitempty" json:"suggested_display_precision,omitempty"`
+}
+
+// Device Information about the device this sensor is a part of to tie it into the device registry.
+// Only works through MQTT discovery and when unique_id is set.
+// At least one of identifiers or connections must be present to identify the device.
+type Device struct {
+	ConfigurationUrl string     `yaml:"configuration_url,omitempty" json:"configuration_url,omitempty"`
+	Connections      [][]string `yaml:"connections,omitempty" json:"connections,omitempty"`
+	HwVersion        string     `yaml:"hw_version,omitempty" json:"hw_version,omitempty"`
+	Identifiers      []string   `yaml:"identifiers,omitempty" json:"identifiers,omitempty"`
+	Manufacturer     string     `yaml:"manufacturer,omitempty" json:"manufacturer,omitempty"`
+	Model            string     `yaml:"model,omitempty" json:"model,omitempty"`
+	Name             string     `yaml:"name,omitempty" json:"name,omitempty"`
+	SuggestedArea    string     `yaml:"suggested_area,omitempty" json:"suggested_area,omitempty"`
+	SwVersion        string     `yaml:"sw_version,omitempty" json:"sw_version,omitempty"`
+	ViaDevice        string     `yaml:"via_device,omitempty" json:"via_device,omitempty"`
 }

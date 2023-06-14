@@ -73,6 +73,9 @@ func (s *service) SendConfiguration() error {
 				entity.SensorType = "sensor"
 			}
 
+			// Add the optional Device entry
+			entity.Device = sensors.Device
+
 			entity.ObjectId = strings.Join([]string{
 				"piweather_center",
 				sensors.ObjectIdPrefix,
