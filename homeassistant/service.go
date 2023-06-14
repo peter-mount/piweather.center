@@ -78,12 +78,14 @@ func (s *service) SendConfiguration() error {
 
 			entity.ObjectId = strings.Join([]string{
 				"piweather_center",
+				sensors.NodeId,
 				sensors.ObjectIdPrefix,
 				entity.Name,
 			}, "-")
 
 			entity.UniqueID = strings.Join([]string{
 				"piweather_center",
+				sensors.NodeId,
 				sensors.ObjectIdPrefix,
 				entity.Name,
 			}, "-")
