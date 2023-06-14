@@ -3,7 +3,7 @@ package homeassistant
 import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/weather/value"
+	store2 "github.com/peter-mount/piweather.center/store"
 	"path/filepath"
 	"strings"
 )
@@ -17,16 +17,22 @@ func (s *service) StoreReading(ctx context.Context) error {
 
 func (s *service) storeReading(ctx context.Context) error {
 
+	store := store2.StoreFromContext(ctx)
+	if store == nil {
+		return nil
+	}
+
 	// map of state_topic maps to generate
 	topics := make(map[string]map[string]interface{})
 
-	values := value.MapFromContext(ctx)
+	//values := value.MapFromContext(ctx)
 
 	for _, sensor := range s.Config.Sensors {
 		for _, entity := range sensor.Entities {
 			if entity.SensorId != "" && entity.StateTopic != "" {
-				val := values.Get(entity.SensorId)
-				if val.IsValid() {
+				reading := store.GetReading(entity.SensorId)
+				if reading != nil && reading.Value.IsValid() {
+
 					// TODO add conversion here
 
 					// Store using last value past .
@@ -37,7 +43,7 @@ func (s *service) storeReading(ctx context.Context) error {
 
 					field := strings.ReplaceAll(filepath.Ext(entity.SensorId), ".", "")
 					field = strings.ToLower(field)
-					topic[field] = val.Float()
+					topic[field] = reading.Value.Float()
 
 					topics[entity.StateTopic] = topic
 				}
