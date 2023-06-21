@@ -3,6 +3,7 @@ package dataencoder
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/peter-mount/go-script/tools/dataencoder"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,15 +15,22 @@ import (
 // The data are the VSOP87B.* files (there's 8) from Vizier
 // http://cdsarc.u-strasbg.fr/viz-bin/cat/VI/81#/browse
 type Vsop87Encoder struct {
-	Encoder *Encoder `kernel:"inject"`
-	Source  *string  `kernel:"flag,vsop87,install vsop87 data"`
+	Encoder *dataencoder.Encoder `kernel:"inject"`
+	Build   *dataencoder.Build   `kernel:"inject"`
+	Source  *string              `kernel:"flag,vsop87,install vsop87 data"`
 }
 
 func (s *Vsop87Encoder) Start() error {
+	s.Build.AddLibProvider(s.includeVsop87)
+
 	if *s.Source != "" {
 		return s.encode()
 	}
 	return nil
+}
+
+func (s *Vsop87Encoder) includeVsop87(dest string) (string, []string) {
+	return filepath.Join(dest, "lib/vsop87b"), []string{"-vsop87", "data"}
 }
 
 func (s *Vsop87Encoder) encode() error {

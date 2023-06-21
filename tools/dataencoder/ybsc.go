@@ -3,6 +3,7 @@ package dataencoder
 import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/tools/dataencoder"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/io"
@@ -17,15 +18,22 @@ import (
 // You can download bsc5.dat.gz from Harvard University
 // http://tdc-www.harvard.edu/catalogs/bsc5.html
 type YbscEncoder struct {
-	Encoder *Encoder `kernel:"inject"`
-	Source  *string  `kernel:"flag,bsc5,Encode bsc5.dat"`
+	Encoder *dataencoder.Encoder `kernel:"inject"`
+	Build   *dataencoder.Build   `kernel:"inject"`
+	Source  *string              `kernel:"flag,bsc5,Encode bsc5.dat"`
 }
 
 func (s *YbscEncoder) Start() error {
+	s.Build.AddLibProvider(s.includeYbsc)
+
 	if *s.Source != "" {
 		return s.encode()
 	}
 	return nil
+}
+
+func (s *YbscEncoder) includeYbsc(dest string) (string, []string) {
+	return filepath.Join(dest, "lib/ybsc"), []string{"-bsc5", "data/bsc5.dat.gz", "-v"}
 }
 
 func (s *YbscEncoder) encode() error {

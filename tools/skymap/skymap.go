@@ -24,7 +24,7 @@ func (s *Skymap) Start() error {
 	s.catalog = &catalogue.Catalog{}
 	if err := io2.NewReader(s.catalog.Read).
 		Decompress().
-		Open(filepath.Join(filepath.Dir(os.Args[0]), "../lib/bsc5.bin")); err != nil {
+		Open(filepath.Join(filepath.Dir(os.Args[0]), "../lib/ybsc/bsc5.bin")); err != nil {
 		return err
 	}
 

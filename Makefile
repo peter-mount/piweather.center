@@ -46,17 +46,7 @@ BUILD_DATE = $(shell date)
 BUILDS 	= builds
 DIST    = dist
 
-# BINDIR is the prefix before any built tools. Set to "" for none, otherwise
-# it must end with /
-BINDIR ?= bin/
-
-# ETCDIR is the prefix before any config files
-ETCDIR ?= etc/
-
-# LIBDIR is the prefix before any data/library files
-LIBDIR ?= lib/
-
-.PHONY: all clean init test build data dist
+.PHONY: all clean init test build data
 
 all: init test build #data
 
@@ -69,7 +59,7 @@ clean:
 
 init: go-init
 	$(call GO-BUILD,$(BUILD_PLATFORM),$(BUILDS)/dataencoder,tools/dataencoder/bin/main.go)
-	$(call cmd,"GENERATE","Makefile");$(BUILDS)/dataencoder -d $(BUILDS) -build Makefile.gen -build-platform "$(PLATFORMS)"
+	$(call cmd,"GENERATE","Makefile");$(BUILDS)/dataencoder -d $(BUILDS) -build Makefile.gen -build-platform "$(PLATFORMS)" -dist $(DIST) -package "$(PACKAGE_NAME)" -prefix "$(DIST_PREFIX)"
 	# Data that needs building for the tests
 	@$(MAKE) --no-print-directory -f Makefile.gen $(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/lib/vsop87b
 
@@ -77,10 +67,3 @@ test: go-test
 
 build: test
 	@${MAKE} --no-print-directory -f Makefile.gen all
-
-jenkins:
-	$(call cmd,"GENERATE","Jenkinsfile");$(BUILDS)/dataencoder -d $(BUILDS) -jenkins Jenkinsfile
-
-dist: build
-	$(MKDIR) $(DIST)
-	$(foreach PLATFORM,$(shell cd $(BUILDS);ls -d */*),$(call TAR,$(PLATFORM))${\n})

@@ -6,17 +6,17 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
-	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230511110738-8c74dc697e3b
+	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230619130506-1cde6a352c53
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
-	github.com/peter-mount/go-script v0.0.0-20230608104708-3cc8e3403b5d
+	github.com/peter-mount/go-script v0.0.0-20230621202719-f8485d5c46d9
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5
 	github.com/peter-mount/nre-feeds v0.0.0-20230406193040-e2414d2669d1
 	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/soniakeys/unit v1.0.0
-	golang.org/x/image v0.7.0
-	golang.org/x/net v0.10.0
+	golang.org/x/image v0.8.0
+	golang.org/x/net v0.11.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -55,9 +55,9 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/crypto v0.10.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
 )

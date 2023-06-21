@@ -2,6 +2,7 @@ package dataencoder
 
 import (
 	"github.com/peter-mount/go-kernel/v2/util/walk"
+	"github.com/peter-mount/go-script/tools/dataencoder"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,18 +11,24 @@ import (
 
 // WebEncoder simply installs the web content into the distribution
 type WebEncoder struct {
-	Encoder *Encoder `kernel:"inject"`
-	Source  *string  `kernel:"flag,web,install web content"`
+	Encoder *dataencoder.Encoder `kernel:"inject"`
+	Build   *dataencoder.Build   `kernel:"inject"`
+	Source  *string              `kernel:"flag,web,install web content"`
 }
 
 func (s *WebEncoder) Start() error {
+	s.Build.AddLibProvider(s.includeWeb)
+
 	if *s.Source != "" {
 		return walk.NewPathWalker().
 			Then(s.copy).
 			Walk(*s.Source)
-
 	}
 	return nil
+}
+
+func (s *WebEncoder) includeWeb(dest string) (string, []string) {
+	return filepath.Join(dest, "lib/web"), []string{"-web", "web"}
 }
 
 func (s *WebEncoder) copy(path string, info os.FileInfo) error {
