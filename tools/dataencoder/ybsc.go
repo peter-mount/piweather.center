@@ -33,7 +33,7 @@ func (s *YbscEncoder) Start() error {
 }
 
 func (s *YbscEncoder) includeYbsc(dest string) (string, []string) {
-	return filepath.Join(dest, "lib/ybsc"), []string{"-bsc5", "data/bsc5.dat.gz", "-v"}
+	return filepath.Join(dest, "lib/ybsc"), []string{"-bsc5", "data/bsc5.dat.gz"}
 }
 
 func (s *YbscEncoder) encode() error {

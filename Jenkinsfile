@@ -52,6 +52,9 @@ node("go") {
       },
       arm7: {
         sh 'make -f Makefile.gen freebsd_arm7'
+      },
+      riscv64: {
+        sh 'make -f Makefile.gen freebsd_riscv64'
       }
     )
   }
@@ -139,9 +142,6 @@ node("go") {
       },
       arm7: {
         sh 'make -f Makefile.gen openbsd_arm7'
-      },
-      mips64: {
-        sh 'make -f Makefile.gen openbsd_mips64'
       }
     )
   }
