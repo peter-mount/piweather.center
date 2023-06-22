@@ -10,20 +10,20 @@ properties([
   disableConcurrentBuilds(),
   disableResume(),
   pipelineTriggers([
-    cron('H H * * *')
+    cron("H H * * *")
   ])
 ])
 node("go") {
-  stage( 'Checkout' ) {
+  stage("Checkout") {
     checkout scm
   }
-  stage( 'Init' ) {
+  stage("Init") {
     sh 'make clean init test'
   }
-  stage( 'aix' ) {
-        sh 'make -f Makefile.gen aix_ppc64'
+  stage("aix") {
+    sh 'make -f Makefile.gen aix_ppc64'
   }
-  stage( 'darwin' ) {
+  stage("darwin") {
     parallel(
       amd64: {
         sh 'make -f Makefile.gen darwin_amd64'
@@ -33,10 +33,10 @@ node("go") {
       }
     )
   }
-  stage( 'dragonfly' ) {
-        sh 'make -f Makefile.gen dragonfly_amd64'
+  stage("dragonfly") {
+    sh 'make -f Makefile.gen dragonfly_amd64'
   }
-  stage( 'freebsd' ) {
+  stage("freebsd") {
     parallel(
       386: {
         sh 'make -f Makefile.gen freebsd_386'
@@ -58,10 +58,10 @@ node("go") {
       }
     )
   }
-  stage( 'illumos' ) {
-        sh 'make -f Makefile.gen illumos_amd64'
+  stage("illumos") {
+    sh 'make -f Makefile.gen illumos_amd64'
   }
-  stage( 'linux' ) {
+  stage("linux") {
     parallel(
       386: {
         sh 'make -f Makefile.gen linux_386'
@@ -107,7 +107,7 @@ node("go") {
       }
     )
   }
-  stage( 'netbsd' ) {
+  stage("netbsd") {
     parallel(
       386: {
         sh 'make -f Makefile.gen netbsd_386'
@@ -126,7 +126,7 @@ node("go") {
       }
     )
   }
-  stage( 'openbsd' ) {
+  stage("openbsd") {
     parallel(
       386: {
         sh 'make -f Makefile.gen openbsd_386'
@@ -145,7 +145,7 @@ node("go") {
       }
     )
   }
-  stage( 'plan9' ) {
+  stage("plan9") {
     parallel(
       386: {
         sh 'make -f Makefile.gen plan9_386'
@@ -161,10 +161,10 @@ node("go") {
       }
     )
   }
-  stage( 'solaris' ) {
-        sh 'make -f Makefile.gen solaris_amd64'
+  stage("solaris") {
+    sh 'make -f Makefile.gen solaris_amd64'
   }
-  stage( 'windows' ) {
+  stage("windows") {
     parallel(
       386: {
         sh 'make -f Makefile.gen windows_386'

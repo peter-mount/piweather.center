@@ -14,16 +14,6 @@
 #
 # For all other processors, including arm64, leave the third field blank.
 #
-# To disable tests, you can prefix make with:
-#
-# GO_TEST="#" make clean all
-#
-# The quotes are important!
-#
-# You can combine the two as necessary.
-#
-# e.g. GO_TEST="#" PLATFORMS=linux:amd64: make clean all
-#
 # For a parallel builds you can use the -j parameter to make as usual.
 #
 # e.g.: make -j 8 clean all
@@ -33,36 +23,21 @@
 # of the binaries in parallel speeding up the full build.
 #
 
-# The repository name/package prefix.
-# This should match the value of module in go.mod
-PACKAGE_PREFIX = $(shell grep ^module go.mod | cut -f2 -d' ' | head -1)
-PACKAGE_NAME = $(shell basename $(PACKAGE_PREFIX))
-VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null | sed "s/-/./g")
-DIST_PREFIX = $(PACKAGE_NAME)_$(VERSION)
-BUILD_DATE = $(shell date)
+.PHONY: all clean init test build
 
-# Where to place build artifacts. These must be subdirectories here and not
-# a path elsewhere, otherwise it will break the build!
-BUILDS 	= builds
-DIST    = dist
+all: init test build
 
-.PHONY: all clean init test build data
+init:
+	@echo "GO MOD   tidy";go mod tidy
+	@echo "GO MOD   download";go mod download
+	@echo "GENERATE build";CGO_ENABLED=0 go build -o build tools/dataencoder/bin/main.go
+	@./build -build Makefile.gen -build-platform "$(PLATFORMS)" -d builds -dist dist
 
-all: init test build #data
+clean: init
+	@${MAKE} --no-print-directory -f Makefile.gen clean
 
-include Makefile.include
-include Go.include
-
-clean:
-	$(call GO-CLEAN,-testcache)
-	$(call REMOVE,$(BUILDS) $(DIST))
-
-init: go-init
-	$(call GO-BUILD,$(BUILD_PLATFORM),$(BUILDS)/dataencoder,tools/dataencoder/bin/main.go)
-	$(call cmd,"GENERATE","Makefile");$(BUILDS)/dataencoder -d $(BUILDS) -build Makefile.gen -build-platform "$(PLATFORMS)" -dist $(DIST) -package "$(PACKAGE_NAME)" -prefix "$(DIST_PREFIX)"
-	@$(MAKE) --no-print-directory -f Makefile.gen $(BUILDS)/$(call GO-ARCH-DIR,$(BUILD_PLATFORM))/lib/vsop87b
-
-test: go-test
+test: init
+	@${MAKE} --no-print-directory -f Makefile.gen test
 
 build: test
 	@${MAKE} --no-print-directory -f Makefile.gen all
