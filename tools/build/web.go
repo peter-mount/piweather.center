@@ -1,8 +1,8 @@
-package dataencoder
+package build
 
 import (
+	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	"github.com/peter-mount/go-script/tools/dataencoder"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,9 +11,9 @@ import (
 
 // WebEncoder simply installs the web content into the distribution
 type WebEncoder struct {
-	Encoder *dataencoder.Encoder `kernel:"inject"`
-	Build   *dataencoder.Build   `kernel:"inject"`
-	Source  *string              `kernel:"flag,web,install web content"`
+	Encoder *core.Encoder `kernel:"inject"`
+	Build   *core.Build   `kernel:"inject"`
+	Source  *string       `kernel:"flag,web,install web content"`
 }
 
 func (s *WebEncoder) Start() error {

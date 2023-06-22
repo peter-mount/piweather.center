@@ -15,3 +15,5 @@ The following platforms are supported by virtue of how the build system works:
 | plan9 | 386 amd64 arm6 arm7 |
 | solaris | amd64 |
 | windows | 386 amd64 arm6 arm7 arm64 |
+
+Operating Systems 11 CPU's 14

@@ -1,9 +1,9 @@
-package dataencoder
+package build
 
 import (
 	"compress/gzip"
 	"fmt"
-	"github.com/peter-mount/go-script/tools/dataencoder"
+	"github.com/peter-mount/go-build/core"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,9 +15,9 @@ import (
 // The data are the VSOP87B.* files (there's 8) from Vizier
 // http://cdsarc.u-strasbg.fr/viz-bin/cat/VI/81#/browse
 type Vsop87Encoder struct {
-	Encoder *dataencoder.Encoder `kernel:"inject"`
-	Build   *dataencoder.Build   `kernel:"inject"`
-	Source  *string              `kernel:"flag,vsop87,install vsop87 data"`
+	Encoder *core.Encoder `kernel:"inject"`
+	Build   *core.Build   `kernel:"inject"`
+	Source  *string       `kernel:"flag,vsop87,install vsop87 data"`
 }
 
 func (s *Vsop87Encoder) Start() error {

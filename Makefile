@@ -30,7 +30,8 @@ all: init test build
 init:
 	@echo "GO MOD   tidy";go mod tidy
 	@echo "GO MOD   download";go mod download
-	@echo "GENERATE build";CGO_ENABLED=0 go build -o build tools/dataencoder/bin/main.go
+	@echo "GENERATE build";
+	CGO_ENABLED=0 go build -o build tools/build/bin/main.go
 	@./build -build Makefile.gen -build-platform "$(PLATFORMS)" -d builds -dist dist
 
 clean: init
