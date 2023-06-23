@@ -36,13 +36,15 @@ func (s *YbscEncoder) Start() error {
 
 func (s *YbscEncoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
 
+	srcFile := "data/bsc5.dat.gz"
+
 	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib")
 	destFile := filepath.Join(destDir, "bsc5.bin")
 
-	target.Target(destFile).
+	target.Target(destFile, srcFile).
 		MkDir(destDir).
 		Echo("YBSC", destFile).
-		BuildTool("-bsc5", "data/bsc5.dat.gz", "-d", destFile)
+		BuildTool("-bsc5", srcFile, "-d", destFile)
 }
 
 func (s *YbscEncoder) encode() error {

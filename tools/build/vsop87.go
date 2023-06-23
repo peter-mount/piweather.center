@@ -26,13 +26,14 @@ func (s *Vsop87Encoder) Start() error {
 func (s *Vsop87Encoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
 	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib/vsop87b")
 
-	destDirTarget := target.Target(destDir).
-		MkDir(destDir)
+	destDirTarget := target.Target(destDir)
 
 	for _, planet := range []string{"mer", "ven", "ear", "mar", "jup", "sat", "ura", "nep"} {
 		src := filepath.Join("data", "vsop87b."+planet+".gz")
 		dest := filepath.Join(destDir, "VSOP87B."+planet)
 		destDirTarget.
+			Target(dest, src).
+			MkDir(destDir).
 			Echo("VSOP87", dest).
 			BuildTool("-gunzip", src, "-d", dest)
 	}
