@@ -5,11 +5,11 @@ go 1.20
 require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
-	github.com/peter-mount/go-build v0.0.0-20230622204857-791ba41677ad
+	github.com/peter-mount/go-build v0.0.0-20230623123658-192a09c42560
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230622193345-c3b500bdaa5b
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
-	github.com/peter-mount/go-script v0.0.0-20230622182434-9297d07cae64
+	github.com/peter-mount/go-script v0.0.0-20230622205300-906bf9bd110e
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5
 	github.com/peter-mount/nre-feeds v0.0.0-20230406193040-e2414d2669d1
 	github.com/rabbitmq/amqp091-go v1.8.1

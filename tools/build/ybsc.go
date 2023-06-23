@@ -3,6 +3,9 @@ package build
 import (
 	"fmt"
 	"github.com/peter-mount/go-build/core"
+	"github.com/peter-mount/go-build/util/arch"
+	"github.com/peter-mount/go-build/util/makefile/target"
+	"github.com/peter-mount/go-build/util/meta"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/util"
@@ -24,16 +27,22 @@ type YbscEncoder struct {
 }
 
 func (s *YbscEncoder) Start() error {
-	s.Build.AddLibProvider(s.includeYbsc)
-
+	s.Build.AddExtension(s.extension)
 	if *s.Source != "" {
 		return s.encode()
 	}
 	return nil
 }
 
-func (s *YbscEncoder) includeYbsc(dest string) (string, []string) {
-	return filepath.Join(dest, "lib/ybsc"), []string{"-bsc5", "data/bsc5.dat.gz"}
+func (s *YbscEncoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
+
+	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib")
+	destFile := filepath.Join(destDir, "bsc5.bin")
+
+	target.Target(destFile).
+		MkDir(destDir).
+		Echo("YBSC", destFile).
+		BuildTool("-bsc5", "data/bsc5.dat.gz", "-d", destFile)
 }
 
 func (s *YbscEncoder) encode() error {
@@ -55,11 +64,9 @@ func (s *YbscEncoder) encode() error {
 		return err
 	}
 
-	dstFile := filepath.Join(*s.Encoder.Dest, "bsc5.bin")
-
 	if err := io.NewWriter(bsc.Write).
 		Compress().
-		CreateFile(dstFile); err != nil {
+		CreateFile(*s.Encoder.Dest); err != nil {
 		return err
 	}
 	log.Printf("Written %d stars", bsc.Size())
@@ -68,7 +75,7 @@ func (s *YbscEncoder) encode() error {
 	readBsc := &catalogue.Catalog{}
 	if err := io.NewReader(readBsc.Read).
 		Decompress().
-		Open(dstFile); err != nil {
+		Open(*s.Encoder.Dest); err != nil {
 		return err
 	}
 

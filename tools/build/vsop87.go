@@ -1,11 +1,10 @@
 package build
 
 import (
-	"compress/gzip"
-	"fmt"
 	"github.com/peter-mount/go-build/core"
-	"io"
-	"os"
+	"github.com/peter-mount/go-build/util/arch"
+	"github.com/peter-mount/go-build/util/makefile/target"
+	"github.com/peter-mount/go-build/util/meta"
 	"path/filepath"
 )
 
@@ -17,60 +16,24 @@ import (
 type Vsop87Encoder struct {
 	Encoder *core.Encoder `kernel:"inject"`
 	Build   *core.Build   `kernel:"inject"`
-	Source  *string       `kernel:"flag,vsop87,install vsop87 data"`
 }
 
 func (s *Vsop87Encoder) Start() error {
-	s.Build.AddLibProvider(s.includeVsop87)
-
-	if *s.Source != "" {
-		return s.encode()
-	}
+	s.Build.AddExtension(s.extension)
 	return nil
 }
 
-func (s *Vsop87Encoder) includeVsop87(dest string) (string, []string) {
-	return filepath.Join(dest, "lib/vsop87b"), []string{"-vsop87", "data"}
-}
+func (s *Vsop87Encoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
+	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib/vsop87b")
 
-func (s *Vsop87Encoder) encode() error {
-	if err := os.MkdirAll(*s.Source, 0755); err != nil {
-		return err
-	}
+	destDirTarget := target.Target(destDir).
+		MkDir(destDir)
 
 	for _, planet := range []string{"mer", "ven", "ear", "mar", "jup", "sat", "ura", "nep"} {
-		if err := s.installPlanet(planet); err != nil {
-			return err
-		}
+		src := filepath.Join("data", "vsop87b."+planet+".gz")
+		dest := filepath.Join(destDir, "VSOP87B."+planet)
+		destDirTarget.
+			Echo("VSOP87", dest).
+			BuildTool("-gunzip", src, "-d", dest)
 	}
-
-	return nil
-}
-
-func (s *Vsop87Encoder) installPlanet(planet string) error {
-
-	srcFile := filepath.Join(*s.Source, fmt.Sprintf("vsop87b.%s.gz", planet))
-	dstFile := filepath.Join(*s.Encoder.Dest, fmt.Sprintf("VSOP87B.%s", planet))
-
-	srcF, err := os.Open(srcFile)
-	if err != nil {
-		return err
-	}
-	defer srcF.Close()
-
-	gr, err := gzip.NewReader(srcF)
-	if err != nil {
-		return err
-	}
-	defer gr.Close()
-
-	destF, err := os.Create(dstFile)
-	if err != nil {
-		return err
-	}
-	defer destF.Close()
-
-	_, err = io.Copy(destF, gr)
-
-	return err
 }
