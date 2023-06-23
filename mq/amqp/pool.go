@@ -2,9 +2,9 @@ package amqp
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/util/task"
-	common "github.com/peter-mount/piweather.center"
 	"github.com/peter-mount/piweather.center/util/config"
 	"strings"
 )
@@ -36,7 +36,7 @@ func (p *pool) Start() error {
 		}
 	}
 
-	s := strings.SplitN(common.Version, " ", 2)
+	s := strings.SplitN(version.Version, " ", 2)
 	appName := strings.Join([]string{"piweather.center", s[0]}, " ")
 	appVersion := strings.Trim(s[1], "()")
 

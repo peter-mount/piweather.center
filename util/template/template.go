@@ -3,9 +3,9 @@ package template
 import (
 	"bytes"
 	"context"
+	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	common "github.com/peter-mount/piweather.center"
 	"os"
 	"time"
 )
@@ -38,7 +38,7 @@ func (m *Manager) ExecuteTemplate(r *rest.Rest, n string, d interface{}) error {
 	}
 	m1["request"] = r.Request()
 	m1["now"] = time.Now()
-	m1["version"] = common.Version
+	m1["version"] = version.Version
 
 	//r.CacheMaxAge(60)
 	if v, exists := m1["generated"]; exists {

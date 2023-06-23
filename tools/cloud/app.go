@@ -2,12 +2,12 @@ package cloud
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-build/version"
 	graph "github.com/peter-mount/go-graphics"
 	"github.com/peter-mount/go-graphics/filter/cloud"
 	"github.com/peter-mount/go-graphics/graphics"
 	"github.com/peter-mount/go-graphics/text"
 	"github.com/peter-mount/go-kernel/v2/log"
-	piweather_center "github.com/peter-mount/piweather.center"
 	image2 "github.com/peter-mount/piweather.center/image"
 	"github.com/peter-mount/piweather.center/image/annotate"
 	"github.com/peter-mount/piweather.center/image/service"
@@ -41,7 +41,7 @@ func Join(baseDir, fileName string) string {
 }
 
 func (a *App) Start() error {
-	log.Println("CloudDetect", piweather_center.Version)
+	log.Println("CloudDetect", version.Version)
 
 	baseDir, fileName := a.Directory.Split(*a.ImageName)
 
