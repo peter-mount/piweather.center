@@ -34,10 +34,8 @@ func (r *LatLong) String() string {
 // whereas we use East positive, so this function is the best way to get
 // the coordinates correct.
 func (r *LatLong) Coord() *globe.Coord {
-	if r.coord.Lat == 0 && r.coord.Lon == 0 {
-		r.coord.Lon = -r.Longitude
-		r.coord.Lat = r.Latitude
-	}
+	r.coord.Lon = -r.Longitude
+	r.coord.Lat = r.Latitude
 	return &r.coord
 }
 

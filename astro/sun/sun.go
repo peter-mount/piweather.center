@@ -15,14 +15,14 @@ func ApparentEquatorial(jd julian.Day) coord.Equatorial {
 	return coord.New(a, d)
 }
 
-func ApparentEquatorialVSOP87(jd julian.Day) coord.Equatorial {
+func ApparentEquatorialVSOP87(jd julian.Day) (coord.Equatorial, error) {
 	e, err := planetposition.LoadPlanet(planetposition.Earth)
 	if err != nil {
-		panic(err)
+		return coord.Equatorial{}, err
 	}
 
 	a, d, _ := solar.ApparentEquatorialVSOP87(e, jd.JD())
-	return coord.New(a, d)
+	return coord.New(a, d), nil
 }
 
 // ApparentHzVSOP87 calculates the azimuth and elevation of the sun
