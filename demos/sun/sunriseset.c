@@ -9,15 +9,19 @@ main() {
     location := geo.LatLong(52.5, 0.5, 0)
 
     // Julian Day to calculate from
-    day:= astroTime.JDNow()
+    day:= astroTime.StartOfToday()
 
     eq := astro.Sun.ApparentEquatorial(day)
     rs := eq.RiseSet( location.Coord(), day.Apparent0UT(), astro.Angle.AngleFromMin(-50) )
 
+    fmt.Printf("       Date %s\n", day.Time().Format(time.RFC822Z))
     fmt.Printf(" Julian Day %.3f\n", day)
     fmt.Printf(" Equatorial %.6f\t%.6f\n", eq.Alpha.Hour(), eq.Delta.Deg() )
-    fmt.Printf("Circumpolar %v\n", rs.Circumpolar)
-    fmt.Printf("       Rise %v\n", astroTime.HourDMSString(rs.Rise))
-    fmt.Printf("    Transit %v\n", astroTime.HourDMSString(rs.Transit))
-    fmt.Printf("        Set %v\n", astroTime.HourDMSString(rs.Set))
+    if rs.Circumpolar {
+        fmt.Printf("Circumpolar\n")
+    }else {
+        fmt.Printf("       Rise %v UTC\n", astroTime.HourDMSString(rs.Rise))
+        fmt.Printf("    Transit %v UTC\n", astroTime.HourDMSString(rs.Transit))
+        fmt.Printf("        Set %v UTC\n", astroTime.HourDMSString(rs.Set))
+    }
 }
