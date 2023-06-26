@@ -10,14 +10,14 @@ main() {
     year := 2023
 
     // The start time in julian day's
-    jd := astroTime.FromDate( year, 1, 1, 0, 0, 0)
+    jd0 := astroTime.FromDate( year, 1, 1, 0, 0, 0)
 
     // Location of London, UK
     location := geo.LatLong(51.5, -8/60.0, 0)
 
     // Number of days in this year
     jd1 := astroTime.FromDate( year+1, 1, 1, 0, 0, 0)
-    days := jd1-jd
+    days := jd1 - jd0
     fmt.Println("Year",year,"days",days)
 
     hourScale   := 20       // Pixels horizontally per hour
@@ -27,15 +27,18 @@ main() {
 
     // Calculate the ephemeris
     data := newArray()
-    for i:=0; i<days; i=i+1 {
-        if i % 15 == 0 {
-            fmt.Print("\rCalculating Ephemeris ",jd.Time().Format("2006 Jan 02"))
+    {
+        jd := jd0
+        for i:=0; i<days; i=i+1 {
+            if i % 15 == 0 {
+                fmt.Print("\rCalculating Ephemeris ",jd.Time().Format("2006 Jan 02"))
+            }
+            t := value.BasicTime(jd.Time(), location.Coord(), 0.0)
+            data=append( data, calculator.SolarEphemeris( t ) )
+            jd=jd.Add(1)
         }
-        t := value.BasicTime(jd.Time(), location.Coord(), 0.0)
-        data=append( data, calculator.SolarEphemeris( t ) )
-        jd=jd.Add(1)
+        fmt.Println()
     }
-    fmt.Println()
 
     // Graphics context with final image size
     ctx := animGraphic.NewSizedContext(w+100,h+100)
@@ -79,10 +82,38 @@ main() {
                 gc.MoveTo(50,y)
                 gc.LineTo(50+(24*hourScale),y)
             }
-            gc.SetStrokeColor( colour.Colour("lightGrey"))
+            gc.SetStrokeColor( colour.Colour("#aaaaaa"))
             gc.Stroke()
         }
 
+        // Draw week lines
+        try (ctx) {
+            jd = jd0
+            gc.BeginPath()
+            for doy:=0; doy<=days; doy=doy+1 {
+                if jd.Time().Weekday() == 0 {
+                    y = 50 + (doy * dayScale)
+                    gc.MoveTo(50,y)
+                    gc.LineTo(50+(24*hourScale),y)
+                }
+                jd=jd.Add(1)
+            }
+            gc.SetStrokeColor( colour.Colour("#666666"))
+            gc.Stroke()
+        }
+
+        // Draw month lines
+        try (ctx) {
+            gc.BeginPath()
+            for m:=1; m<=12; m=m+1 {
+                doy := astroTime.FromDate( year, m, 1, 0, 0, 0) - jd0
+                y = 50 + (doy * dayScale)
+                gc.MoveTo(50,y)
+                gc.LineTo(50+(24*hourScale),y)
+            }
+            gc.SetStrokeColor( colour.Colour("#333333"))
+            gc.Stroke()
+        }
 
         try (ctx) {
 
