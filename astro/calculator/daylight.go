@@ -88,6 +88,9 @@ func (c *calculator) SolarEphemeris(t0 value.Time) (SolarEphemeris, error) {
 	// previous value. Hence, the duration is also 24h 1m long
 	t := t0.Clone()
 	midnight := time2.LocalMidnight(t.Time())
+	if midnight.IsDST() {
+		midnight = midnight.Add(-time.Hour)
+	}
 	t.SetTime(midnight.Add(-time.Minute))
 
 	r := SolarEphemeris{
@@ -126,7 +129,7 @@ func (c *calculator) SolarEphemeris(t0 value.Time) (SolarEphemeris, error) {
 				r.SunRise = SolarEphemerisTime(r.SunRise, curr, hD, SolarStandardAltitude)
 
 			// Sun is setting in the sky
-			case r.UpperTransit.IsValid() && value.LessThan(curr.Altitude.Float(), previous.Altitude.Float()):
+			case /*r.UpperTransit.IsValid() &&*/ value.LessThan(curr.Altitude.Float(), previous.Altitude.Float()):
 				r.SunSet = SolarEphemerisTime(r.SunSet, curr, SolarStandardAltitude, hD)
 				r.CivilDusk = SolarEphemerisTime(r.CivilDusk, curr, CivilTwilight, hD)
 				r.NauticalDusk = SolarEphemerisTime(r.NauticalDusk, curr, NauticalTwilight, hD)
