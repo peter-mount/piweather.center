@@ -112,10 +112,7 @@ main() {
                 gc.LineTo(px1,py1)
                 gc.LineTo(px0,py1)
                 gc.LineTo(px0,py0)
-                try( ctx ) {
-                    gc.Fill()
-                }
-                gc.Stroke()
+                gc.FillStroke()
             }
         }
 
@@ -136,10 +133,7 @@ main() {
             gc.LineTo(x0,y0)
             zOffset := zScale*(days-1)
             gc.LineTo(x0-zOffset,y0-zOffset)
-            try( ctx ) {
-                gc.Fill()
-            }
-            gc.Stroke()
+            gc.FillStroke()
         }
 
         // Draw foreground axes
