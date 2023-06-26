@@ -10,7 +10,7 @@ type Time interface {
 	Time() time.Time
 	// SetTime sets the time, used so a single instance can be used
 	// in iterators for the same location
-	SetTime(time.Time)
+	SetTime(time.Time) Time
 	// Add a time.Duration to this Time
 	Add(d time.Duration)
 	// Location on Earth's surface
@@ -41,7 +41,10 @@ type basicTime struct {
 
 func (b *basicTime) Time() time.Time { return b.t }
 
-func (b *basicTime) SetTime(t time.Time) { b.t = t }
+func (b *basicTime) SetTime(t time.Time) Time {
+	b.t = t
+	return b
+}
 
 func (b *basicTime) Add(d time.Duration) {
 	b.SetTime(b.Time().Add(d))
@@ -64,7 +67,10 @@ type timeWrapper struct {
 
 func (b *timeWrapper) Time() time.Time { return b.t }
 
-func (b *timeWrapper) SetTime(t time.Time) { b.t = t }
+func (b *timeWrapper) SetTime(t time.Time) Time {
+	b.t = t
+	return b
+}
 
 func (b *timeWrapper) Add(d time.Duration) {
 	b.SetTime(b.Time().Add(d))
@@ -74,7 +80,7 @@ func (b *timeWrapper) Location() *globe.Coord { return b.p.Location() }
 
 func (b *timeWrapper) Altitude() float64 { return b.p.Altitude() }
 
-func (b *timeWrapper) Clone() Time { return b.p.Clone() }
+func (b *timeWrapper) Clone() Time { return &timeWrapper{t: b.t, p: b.p} }
 
 func (b *timeWrapper) ForEach(step, duration time.Duration, f func(Time) error) error {
 	return forEachTime(b, step, duration, f)
