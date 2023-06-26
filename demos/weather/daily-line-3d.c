@@ -21,6 +21,8 @@ main() {
     // Coordinates of origin
     x0 := 100 + (days * zScale)
     y0 := 100 + h + (days * zScale)
+    x1 := x0 + w
+    y1 := y0 - h
 
     // Time of start of today in julian.Day's
     t0 := astroTime.StartOfToday()
@@ -57,20 +59,25 @@ main() {
 
         image.Fill( ctx, colour.Colour("white") )
 
-        // Draw axes
+        // Draw background axes
         try(ctx) {
             gc.SetStrokeColor( colour.Colour("black") )
+
+            zOffset := zScale*(days-1)
+
             gc.BeginPath()
             // y-axis
-            gc.MoveTo(x0,y0-h)
-            gc.LineTo(x0,y0)
-            // x-axis
-            gc.MoveTo(x0,y0)
-            gc.LineTo(x0+w,y0)
+            gc.MoveTo(x0-zOffset,y0-zOffset)
+            gc.LineTo(x0-zOffset,y1-zOffset)
+            gc.LineTo(x1-zOffset,y1-zOffset)
+            gc.LineTo(x1-zOffset,y0-zOffset)
             // z-axis
-            gc.MoveTo(x0,y0)
-            zOffset := zScale*(days)
-            gc.LineTo(x0-zOffset,y0-zOffset)
+            gc.MoveTo(x1,y1)
+            gc.LineTo(x1-zOffset,y1-zOffset)
+            gc.MoveTo(x1,y0)
+            gc.LineTo(x1-zOffset,y0-zOffset)
+            gc.MoveTo(x1,y1)
+            gc.LineTo(x1,y0)
             gc.Stroke()
         }
 
@@ -82,7 +89,7 @@ main() {
                 tDay := t0.Add(-days+day).Time()
 
                 // z-axis offset
-                zOffset := zScale*(days-day)
+                zOffset := zScale*(days-day-1)
 
                 gc.BeginPath()
                 px0:=0              // first point
@@ -111,6 +118,30 @@ main() {
                 gc.Stroke()
             }
         }
+
+        // Draw foreground axes
+        try(ctx) {
+            gc.SetStrokeColor( colour.Colour("black") )
+
+            zOffset := zScale*(days-1)
+
+            gc.BeginPath()
+            // y-axis
+            gc.MoveTo(x0,y0)
+            gc.LineTo(x0,y1)
+            // x-axis
+            gc.MoveTo(x0,y0)
+            gc.LineTo(x1,y0)
+            gc.MoveTo(x0,y1)
+            gc.LineTo(x1,y1)
+            // z-axis
+            gc.MoveTo(x0,y0)
+            gc.LineTo(x0-zOffset,y0-zOffset)
+            gc.MoveTo(x0,y1)
+            gc.LineTo(x0-zOffset,y1-zOffset)
+            gc.Stroke()
+        }
+
     }
 
     try( f:=os.Create("daily-line-2d.png") ) {
