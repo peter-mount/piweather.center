@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-anim/tools/build/font"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/tools/build"
 	"os"
@@ -9,6 +10,7 @@ import (
 
 func main() {
 	if err := kernel.Launch(
+		&font.FontDownloader{},
 		&build.Vsop87Encoder{},
 		&build.YbscEncoder{},
 		&build.WebEncoder{},

@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
-	github.com/peter-mount/go-anim v0.0.0-20230626092511-f2f0936d3b62
+	github.com/peter-mount/go-anim v0.0.0-20230626203327-00a9877a27b7
 	github.com/peter-mount/go-build v0.0.0-20230623201325-1516bc503887
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230622193345-c3b500bdaa5b
@@ -61,6 +61,6 @@ require (
 	golang.org/x/image v0.8.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 // indirect
 )
