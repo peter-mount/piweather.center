@@ -3,7 +3,6 @@ package io
 import (
 	"compress/gzip"
 	"encoding/gob"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"io"
 	"os"
 )
@@ -64,7 +63,7 @@ func (a Writer) CreateFile(filename string) error {
 		return nil
 	}
 
-	log.Printf("Creating %s", filename)
+	//log.Printf("Creating %s", filename)
 	f, err := os.Create(filename)
 	if err != nil {
 		return err

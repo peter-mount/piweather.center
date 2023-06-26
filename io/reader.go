@@ -6,7 +6,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/strings"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -58,7 +57,7 @@ func (a Reader) Open(filename string) error {
 		return nil
 	}
 
-	log.Printf("Reading %s", filename)
+	//log.Printf("Reading %s", filename)
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
