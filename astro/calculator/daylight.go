@@ -103,7 +103,7 @@ func (c *calculator) SolarEphemeris(t0 value.Time) (SolarEphemeris, error) {
 	var previous AltAz
 	started := false
 	// For each minute of the day...
-	err = t.ForEach(time.Minute, (24*time.Hour)+time.Minute, func(t value.Time) error {
+	err = t.ForEach(time.Minute, (24*time.Hour)+(2*time.Minute), func(t value.Time) error {
 		A, h := sun.ApparentHzVSOP87(julian.FromTime(t.Time()), r.Latitude(), r.Longitude(), earth)
 
 		hD := h.Deg()
@@ -126,7 +126,7 @@ func (c *calculator) SolarEphemeris(t0 value.Time) (SolarEphemeris, error) {
 				r.SunRise = SolarEphemerisTime(r.SunRise, curr, hD, SolarStandardAltitude)
 
 			// Sun is setting in the sky
-			case value.LessThan(curr.Altitude.Float(), previous.Altitude.Float()):
+			case r.UpperTransit.IsValid() && value.LessThan(curr.Altitude.Float(), previous.Altitude.Float()):
 				r.SunSet = SolarEphemerisTime(r.SunSet, curr, SolarStandardAltitude, hD)
 				r.CivilDusk = SolarEphemerisTime(r.CivilDusk, curr, CivilTwilight, hD)
 				r.NauticalDusk = SolarEphemerisTime(r.NauticalDusk, curr, NauticalTwilight, hD)
@@ -189,7 +189,7 @@ func (c *calculator) SolarEphemeris(t0 value.Time) (SolarEphemeris, error) {
 // return t1 if t0 is zero (e.g. unset).
 // This allows us to record the moment an object
 func SolarEphemerisTime(t0, t1 AltAz, a, b float64) AltAz {
-	if !t0.IsValid() && value.GreaterThan(a, b) && math.Abs(a-b) <= 1 {
+	if !t0.IsValid() && value.GreaterThan(a, b) && math.Abs(a-b) < 0.5 {
 		return t1
 	}
 	return t0
