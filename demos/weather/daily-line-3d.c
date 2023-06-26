@@ -49,7 +49,10 @@ main() {
         }
     }
     fmt.Printf("Data range: %.3f ... %.3f\n",yMin,yMax)
-    yScale := h / (yMax-yMin)
+    // Calculate scale, handle /by-zero
+    dy := (yMax-yMin)
+    if dy == 0.0 {dy = 1}
+    yScale := h / dy
 
     // Graphics context with final image size
     ctx := animGraphic.NewSizedContext(x0+w+100,y0+100)
@@ -84,6 +87,7 @@ main() {
         try(ctx) {
             gc.SetFillColor( colour.Colour("white") )
             gc.SetStrokeColor( colour.Colour("red") )
+
             for day,readings:= range data {
                 // Time of start of day in time.Time
                 tDay := t0.Add(-days+day).Time()
@@ -120,6 +124,10 @@ main() {
         try(ctx) {
             gc.SetFillColor( colour.Colour("white") )
             gc.SetStrokeColor( colour.Colour("red") )
+
+            zOffset := zScale*(days-1)
+            gc.MoveTo(x0-zOffset,y0-zOffset)
+
             for day,readings:= range data {
                 zOffset := zScale*(days-day-1)
                 if len(readings) > 0 {
