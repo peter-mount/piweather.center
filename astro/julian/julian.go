@@ -12,9 +12,37 @@ import (
 type Day float64
 
 // JD returns the Julian Date of a day
-func (t Day) JD() float64 {
-	return float64(t)
+// Deprecated
+func (d Day) JD() float64 {
+	return float64(d)
 }
+
+// Float is useful to convert a Day to a Float
+func (d Day) Float() float64 {
+	return float64(d)
+}
+
+func (d Day) Day() Day {
+	return d
+}
+
+func (d Day) Year() Year {
+	return Year(float64(d) / JulianYear)
+}
+
+func (d Day) Century() Century {
+	return d.Year().Century()
+}
+
+func (y Year) Century() Century {
+	return Century(float64(y) / JulianCentury)
+}
+
+const (
+	// JulianYear (a) = 365.25 days
+	JulianYear    = 365.25
+	JulianCentury = 100 * JulianYear
+)
 
 // IsGregorian returns true if the date is in the Gregorian Calendar.
 // Here we take the original date of the reform so dates on or before 1582 Oct 4 is
@@ -84,8 +112,8 @@ func FromDate(y, m, d, h, min, s int) Day {
 }
 
 // Time returns the time.Time of a Day
-func (t Day) Time() time.Time {
-	z, f := math.Modf(t.JD() + 0.5)
+func (d Day) Time() time.Time {
+	z, f := math.Modf(d.Float() + 0.5)
 
 	a := int(z)
 	if z >= 2299161 {
@@ -95,8 +123,8 @@ func (t Day) Time() time.Time {
 
 	b := float64(a + 1524)
 	c := math.Floor((b - 122.1) / 365.25)
-	d := math.Floor(365.25 * c)
-	e := math.Floor((b - d) / 30.6001)
+	d1 := math.Floor(365.25 * c)
+	e := math.Floor((b - d1) / 30.6001)
 
 	month := e - 1
 	if e >= 14 {
@@ -108,51 +136,51 @@ func (t Day) Time() time.Time {
 		year = int(c) - 4716
 	}
 
-	day, h, m, s := util.FdayToHMS(b - d - math.Floor(30.6001*e) + f)
+	day, h, m, s := util.FdayToHMS(b - d1 - math.Floor(30.6001*e) + f)
 
 	return time.Date(year, time.Month(int(month)), day, h, m, s, 0, time.UTC)
 }
 
 // CenturiesJ2k returns the number of Julian Centuries since J2000.0 (2000 Jan 1.5 TD)
-func (t Day) CenturiesJ2k() float64 {
-	return (t.JD() - 2451545.0) / 36525.0
+func (d Day) CenturiesJ2k() float64 {
+	return (d.Float() - 2451545.0) / 36525.0
 }
 
-func (t Day) String() string {
-	return fmt.Sprintf("%f", t.JD())
+func (d Day) String() string {
+	return fmt.Sprintf("%f", d.Float())
 }
 
-func (t Day) MarshalText() ([]byte, error) {
-	return []byte(t.String()), nil
+func (d Day) MarshalText() ([]byte, error) {
+	return []byte(d.String()), nil
 }
 
 // JDMidnight returns the Day at 0h
-func (t Day) JDMidnight() Day {
+func (d Day) JDMidnight() Day {
 	// Julian days start at midday hence subtract 0.5 before converting to integer then adding 0.5 back.
-	return Day(math.Floor(t.JD()-0.5) + 0.5)
+	return Day(math.Floor(d.Float()-0.5) + 0.5)
 }
 
 // Apparent returns the apparent sidereal time at Greenwich for this Day
-func (t Day) Apparent() unit.Time {
-	return sidereal.Apparent(t.JD())
+func (d Day) Apparent() unit.Time {
+	return sidereal.Apparent(d.Float())
 }
 
 // Apparent0UT returns the apparent sidereal time at Greenwich at 0UT on this Day
-func (t Day) Apparent0UT() unit.Time {
-	return sidereal.Apparent0UT(t.JD())
+func (d Day) Apparent0UT() unit.Time {
+	return sidereal.Apparent0UT(d.Float())
 }
 
 // Mean returns the mean sidereal time at Greenwich for this Day
-func (t Day) Mean() unit.Time {
-	return sidereal.Mean(t.JD())
+func (d Day) Mean() unit.Time {
+	return sidereal.Mean(d.Float())
 }
 
 // Mean0UT returns the mean sidereal time at Greenwich at 0UT on this Day
-func (t Day) Mean0UT() unit.Time {
-	return sidereal.Mean0UT(t.JD())
+func (d Day) Mean0UT() unit.Time {
+	return sidereal.Mean0UT(d.Float())
 }
 
-func (t Day) IsGregorian() bool {
-	t1 := t.Time()
+func (d Day) IsGregorian() bool {
+	t1 := d.Time()
 	return IsGregorian(t1.Day(), int(t1.Month()), t1.Year())
 }

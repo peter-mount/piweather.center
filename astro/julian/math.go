@@ -1,15 +1,15 @@
 package julian
 
-func (t Day) Before(b Day) bool {
-	return t < b
+func (d Day) Before(b Day) bool {
+	return d < b
 }
 
-func (t Day) After(b Day) bool {
-	return t > b
+func (d Day) After(b Day) bool {
+	return d > b
 }
 
-func (t Day) Add(d float64) Day {
-	return t + Day(d)
+func (d Day) Add(days float64) Day {
+	return d + Day(days)
 }
 
 func Swap(a, b Day) (Day, Day) {
