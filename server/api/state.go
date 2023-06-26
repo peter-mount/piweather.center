@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/task"
-	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store"
 	"net/http"
 	"strings"
@@ -12,7 +12,7 @@ import (
 
 // Api general APIs
 type Api struct {
-	Config    station.Config   `kernel:"inject"`
+	Config    service.Config   `kernel:"inject"`
 	Endpoints *EndpointManager `kernel:"inject"`
 	State     *store.State     `kernel:"inject"`
 }

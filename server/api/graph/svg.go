@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/piweather.center/graph/chart/line"
 	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store"
 )
 
@@ -18,7 +19,7 @@ func init() {
 type SVG struct {
 	Inbound *api.EndpointManager `kernel:"inject"`
 	Store   *store.Store         `kernel:"inject"`
-	Config  station.Config       `kernel:"inject"`
+	Config  service.Config       `kernel:"inject"`
 }
 
 func (s *SVG) Start() error {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/station/service"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/state"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -15,7 +16,7 @@ import (
 // State manages an in memory copy of the ID data
 type State struct {
 	Store    *Store            `kernel:"inject"`
-	Config   station.Config    `kernel:"inject"`
+	Config   service.Config    `kernel:"inject"`
 	Cron     *cron.CronService `kernel:"inject"`
 	mutex    sync.Mutex
 	stations map[string]*state.Station

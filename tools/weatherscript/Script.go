@@ -11,6 +11,7 @@ import (
 	_ "github.com/peter-mount/piweather.center/script/astro"
 	_ "github.com/peter-mount/piweather.center/script/geo"
 	_ "github.com/peter-mount/piweather.center/script/value"
+	_ "github.com/peter-mount/piweather.center/script/weather"
 )
 
 type Script struct {

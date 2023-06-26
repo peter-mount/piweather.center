@@ -41,9 +41,14 @@ func (s *Archiver) Start() error {
 
 	return nil
 }
+
 func (s *Archiver) archiveFileName(name string, t time.Time) string {
+	return ArchiveFileName(*s.storeDir, name, t)
+}
+
+func ArchiveFileName(dir, name string, t time.Time) string {
 	p := filepath.Join(strings.Split(name, ".")...)
-	return filepath.Join(*s.storeDir, p, t.UTC().Format("2006/01/02")+".log")
+	return filepath.Join(dir, p, t.UTC().Format("2006/01/02")+".log")
 }
 
 func (s *Archiver) Archive(ctx context.Context) error {

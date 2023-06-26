@@ -5,7 +5,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	_ "github.com/peter-mount/piweather.center/server/menu"
 	_ "github.com/peter-mount/piweather.center/server/view"
-	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/util/template"
 	"path/filepath"
 )
@@ -13,7 +13,7 @@ import (
 // Server represents the primary service running the fully integrated weather station.
 type Server struct {
 	Rest      *rest.Server      `kernel:"inject"`
-	Config    station.Config    `kernel:"inject"`
+	Config    service.Config    `kernel:"inject"`
 	Templates *template.Manager `kernel:"inject"`
 }
 

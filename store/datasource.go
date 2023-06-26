@@ -1,13 +1,14 @@
 package store
 
 import (
+	"github.com/peter-mount/piweather.center/store/memory"
 	"github.com/peter-mount/piweather.center/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
 
-type dataSource []*Reading
+type dataSource []*memory.Reading
 
 func (s *Store) GetHistoryBetween(name string, start, end time.Time) util.DataSource {
 	start, end = time2.NormalizeTime(start, end)

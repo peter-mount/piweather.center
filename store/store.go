@@ -4,11 +4,12 @@ import (
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/station/service"
+	"github.com/peter-mount/piweather.center/store/memory"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -16,10 +17,10 @@ import (
 
 type Store struct {
 	Cron    *cron.CronService `kernel:"inject"`
-	Config  station.Config    `kernel:"inject"`
+	Config  service.Config    `kernel:"inject"`
 	mutex   sync.Mutex
-	data    map[string]*Reading
-	history map[string][]*Reading
+	data    map[string]*memory.Reading
+	history map[string][]*memory.Reading
 }
 
 const (
@@ -34,23 +35,9 @@ func (s *Store) AddContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, "local.store", s)
 }
 
-type Reading struct {
-	Name  string
-	Value value.Value
-	Time  time.Time
-}
-
-func (r *Reading) String() string {
-	return strings.Join([]string{
-		r.Name,
-		strconv.FormatFloat(r.Value.Float(), 'f', 3, 64),
-		strconv.Itoa(int(r.Time.UTC().Unix())),
-	}, " ")
-}
-
 func (s *Store) Start() error {
-	s.data = make(map[string]*Reading)
-	s.history = make(map[string][]*Reading)
+	s.data = make(map[string]*memory.Reading)
+	s.history = make(map[string][]*memory.Reading)
 
 	// Register every reading in the store so we have an entry for them
 	err := s.Config.Accept(station.NewVisitor().
@@ -74,9 +61,9 @@ func (s *Store) registerReading(ctx context.Context) error {
 	defer s.mutex.Unlock()
 
 	if _, exists := s.data[name]; !exists {
-		rec := &Reading{Name: name, Value: r.Unit().Value(0)}
+		rec := &memory.Reading{Name: name, Value: r.Unit().Value(0)}
 		s.data[name] = rec
-		s.history[name] = []*Reading{rec}
+		s.history[name] = []*memory.Reading{rec}
 	}
 
 	return nil
@@ -140,7 +127,7 @@ func (s *Store) Record(name string, value value.Value, recTime time.Time) {
 
 	name = strings.ToLower(name)
 
-	rec := &Reading{
+	rec := &memory.Reading{
 		Name:  name,
 		Value: value,
 		Time:  recTime,
@@ -163,7 +150,7 @@ func (s *Store) Record(name string, value value.Value, recTime time.Time) {
 	}
 }
 
-func (s *Store) GetReading(name string) *Reading {
+func (s *Store) GetReading(name string) *memory.Reading {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -171,7 +158,7 @@ func (s *Store) GetReading(name string) *Reading {
 	return s.data[name]
 }
 
-func (s *Store) GetHistory(name string) []*Reading {
+func (s *Store) GetHistory(name string) []*memory.Reading {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -211,7 +198,7 @@ func (s *Store) prune(key string) {
 	}
 }
 
-func (s *Store) pruneHistory(hist []*Reading) []*Reading {
+func (s *Store) pruneHistory(hist []*memory.Reading) []*memory.Reading {
 	cutoff := time.Now().Add(-storeMaxAge)
 
 	// >2 so we keep the last 2 entries regardless of how old

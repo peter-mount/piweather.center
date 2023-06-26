@@ -13,6 +13,7 @@ import (
 	_ "github.com/peter-mount/piweather.center/server/view"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
@@ -25,7 +26,7 @@ type Ingress struct {
 	Archiver        *store.Archiver        `kernel:"inject"`
 	Amqp            mq.Pool                `kernel:"inject"`
 	EndpointManager *api.EndpointManager   `kernel:"inject"`
-	Config          station.Config         `kernel:"inject"`
+	Config          service.Config         `kernel:"inject"`
 	Store           *store.Store           `kernel:"inject"`
 	HomeAssistant   homeassistant.Service  `kernel:"inject"`
 	InfluxDB        influxdb.Pool          `kernel:"inject"`
