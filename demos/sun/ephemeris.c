@@ -11,8 +11,6 @@
 # values in a map, so we have to pass parameters in a long form.
 # Once that issue is fixed then this can be made simpler when plotting the twilight/rise/set times.
 #
-# Text labels need adding once fonts are available, need to work how how to import from go-script.
-#
 
 main() {
 
@@ -88,6 +86,7 @@ main() {
             }
             gc.SetStrokeColor( colour.Colour("grey"))
             gc.Stroke()
+
         }
 
         // Draw day lines
@@ -129,6 +128,84 @@ main() {
             }
             gc.SetStrokeColor( colour.Colour("#333333"))
             gc.Stroke()
+        }
+
+        // Hour and date labels
+        try( ctx ) {
+
+            //gc.SetStrokeColor(colour.Colour("blue"))
+            gc.SetFillColor(colour.Colour("black"))
+
+            animGraphic.SetFont( gc, "luxi 14 mono bold" )
+            animUtil.DrawString(gc, 50 + (12*hourScale), 40-14-16, "Daylight & Twilight for %d", year)
+
+            animGraphic.SetFont( gc, "luxi 10 mono" )
+            animUtil.DrawString(gc, 50 + (12*hourScale), 40-14, "Local Time of Day")
+
+            animUtil.DrawString(gc, 50 + (12*hourScale), 50 + h + 30,
+                "Lat %.4f Long %.4f %s",
+                location.Latitude.Deg(),
+                location.Longitude.Deg(),
+                timeZone.String() )
+
+            animGraphic.SetFont( gc, "luxi 8 mono" )
+
+            // Hour labels
+            for hr:=0;hr<=24;hr=hr+3 {
+                x = 50 + (hr * hourScale)
+                gc.SetFillColor(colour.Colour("black"))
+                animUtil.DrawString(gc, x, 40, "%d", hr)
+            }
+
+            lastTz := ""
+            for jd:= jd0; jd < jd1; jd=jd.Add(1) {
+                t := jd.Time()
+                doy := jd - jd0
+                y = 50 + (doy * dayScale)
+
+                gc.SetFillColor(colour.Colour("black"))
+
+                // At mid-month show the month name
+                if t.Day() == 15 {
+                    try(ctx) {
+                        gc.Translate(20,y)
+                        gc.Rotate( -math.Pi/2.0 )
+                        animUtil.DrawString(gc, 0,0, t.Month().String())
+                    }
+                }
+
+                // Date labels shown for each Sunday
+                if t.Weekday()==0 {
+                    animUtil.DrawString(gc, 35, y, "%d", t.Day())
+                }
+
+                // Show Timezone at start and at any changes during the year
+                tz := t.In(timeZone).Format("MST")
+                if tz != lastTz {
+                    gc.BeginPath()
+                    gc.MoveTo(50+w,y)
+                    gc.LineTo(55+w,y)
+                    gc.Stroke()
+                    gc.FillStringAt( tz, 55 + w, y)
+                    zone := t.In(timeZone).Zone()
+                    gc.FillStringAt( fmt.Sprintf("UTC%+d", zone[1]/3600), 55+w, y+10)
+                    lastTz = tz
+                }
+            }
+
+            // Legend
+            y := 50 + h + 15
+            gc.SetFillColor( colour.Colour("black"))
+            gc.FillStringAt("Astronomical",50,y)
+
+            gc.SetFillColor( colour.Colour("blue"))
+            gc.FillStringAt("Nautical",130,y)
+
+            gc.SetFillColor( colour.Colour("red"))
+            gc.FillStringAt("Civil Twilight",185,y)
+
+            gc.SetFillColor( colour.Colour("darkGreen"))
+            gc.FillStringAt("Sun Rise/Set",280,y)
         }
 
         try (ctx) {
