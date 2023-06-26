@@ -3,6 +3,7 @@ package astro
 import (
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/astro/util"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/soniakeys/unit"
 	"time"
 )
@@ -43,4 +44,8 @@ func (_ Time) DegDMSString(d float64, sign bool) string {
 
 func (_ Time) DegDMSStringExt(d float64, sign bool, p, m string) string {
 	return util.DegDMSStringExt(d, sign, p, m)
+}
+
+func (_ Time) LocalMidnight(t time.Time) time.Time {
+	return time2.LocalMidnight(t)
 }
