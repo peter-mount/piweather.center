@@ -11,6 +11,11 @@ main() {
     // Sensor reading to plot
     sensor:= "home.ecowitt.temp"
 
+    // a Reducer reduces recorded data into fixed periods of time.
+    // So here, with underlying readings every 20 seconds, a reducer
+    // with 5 minutes will reduce the number of points by a factor of 15
+    reducer := weather.ReducerMinutes(5)
+
     // Size of area
     w := 1440 // Also number of minutes in 24 hours
     h := 300
@@ -32,8 +37,24 @@ main() {
     try( store := weather.NewStore( "/home/peter/tmp/weather/data" ) ) {
         t := t0.Add(-days)
         for i:=0; i<days; i=i+1 {
+            // Load the data for the day contained by t
             store.Load(t.Time())
-            data=append(data,store.Get(sensor))
+
+            // Get the sensor readings
+            readings:= store.Get(sensor)
+
+            // reduce the readings so we have a uniform data set.
+            //
+            // The following reductions are available:
+            //
+            // Min the minimum value within the reduction period
+            // Max the maximum value within the reduction period
+            // Sum the sum of all values in the reduction period
+            // Mean the Sum within the reduction period / the number of entries in that period.
+            readings = reducer.Mean(readings)
+
+            // Append the reduced readings to the array ready for plotting
+            data=append(data,readings)
             t=t.Add(1)
         }
     }

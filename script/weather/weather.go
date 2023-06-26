@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"time"
 )
 
 func init() {
@@ -36,4 +37,12 @@ func (w *Weather) LoadConfig(fileName string) error {
 
 func (w *Weather) NewStore(dir string) (*memory.Store, error) {
 	return memory.New(dir, w.stations)
+}
+
+func (w *Weather) Reducer(period time.Duration) *memory.Reducer {
+	return memory.NewReducer(period)
+}
+
+func (w *Weather) ReducerMinutes(minutes int) *memory.Reducer {
+	return memory.NewReducerMins(minutes)
 }
