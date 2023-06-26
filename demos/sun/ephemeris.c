@@ -2,6 +2,16 @@
 #
 # Draw a graph of the sun across the year, including times of sun rise, set and twilight.
 #
+# It does this by running through the entire year calculating the Suns ephemeris for each day
+# and then plotting the times for Astronomical, Nautical, Civil twilight and Sun rise/Set.
+#
+# Issues:
+#
+# This is a bit convoluted because currently due to issue go-script#2 we cannot change existing
+# values in a map, so we have to pass parameters in a long form.
+# Once that issue is fixed then this can be made simpler when plotting the twilight/rise/set times.
+#
+# Text labels need adding once fonts are available, need to work how how to import from go-script.
 #
 
 main() {
@@ -9,16 +19,22 @@ main() {
     // The year to plot
     year := 2023
 
-    // The start time in julian day's
-    jd0 := astroTime.FromDate( year, 1, 1, 0, 0, 0)
-
     // Location of London, UK
     location := geo.LatLong(51.5, -8/60.0, 0)
+    timeZone := time.LoadLocation("Europe/London")
 
-    // Number of days in this year
-    jd1 := astroTime.FromDate( year+1, 1, 1, 0, 0, 0)
+    // Alternate location: New York, New York, USA
+//    location := geo.LatLong(40.7128, -74.0060, 0)
+//    timeZone := time.LoadLocation("US/Eastern")
+
+    // The start time in julian day's
+    // Note: use time.Date so we go from the required timeZone
+    jd0 := astroTime.FromTime( astroTime.LocalMidnight( time.Date( year, 1, 1, 0, 0, 0, 0, timeZone) ) )
+
+    // Number of days in this year by counting julian days from the start
+    // of next year
+    jd1 := astroTime.FromTime( astroTime.LocalMidnight( time.Date( year+1, 1, 1, 0, 0, 0, 0, timeZone) ) )
     days := jd1 - jd0
-    fmt.Println("Year",year,"days",days)
 
     hourScale   := 20       // Pixels horizontally per hour
     dayScale    := 5        // Pixels vertically per day
@@ -30,7 +46,7 @@ main() {
     {
         jd := jd0
         for i:=0; i<days; i=i+1 {
-            if i % 15 == 0 {
+            if jd.Time().Weekday() == 0 {
                 fmt.Print("\rCalculating Ephemeris ",jd.Time().Format("2006 Jan 02"))
             }
             t := value.BasicTime(jd.Time(), location.Coord(), 0.0)
@@ -119,50 +135,74 @@ main() {
 
             gc.BeginPath()
             valid := false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.AstronomicalDawn, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.AstronomicalDawn, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
             valid = false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.AstronomicalDusk, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.AstronomicalDusk, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
             gc.SetStrokeColor( colour.Colour("black") )
             gc.Stroke()
 
             gc.BeginPath()
             valid := false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.NauticalDawn, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.NauticalDawn, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
             valid = false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.NauticalDusk, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.NauticalDusk, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
             gc.SetStrokeColor( colour.Colour("blue") )
             gc.Stroke()
 
             gc.BeginPath()
             valid := false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.CivilDawn, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.CivilDawn, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
 
             valid = false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.CivilDusk, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.CivilDusk, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
             gc.SetStrokeColor( colour.Colour("red") )
             gc.Stroke()
 
             gc.BeginPath()
             valid := false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.SunRise, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.SunRise, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
 
             valid = false
+            lx := -1
             for doy, ephemeris := range data {
-                valid = plot(ctx, valid, doy, ephemeris.SunSet, hourScale, dayScale)
+                r = plot(ctx, valid, doy, ephemeris.SunSet, hourScale, dayScale, timeZone, lx)
+                valid=r[0]
+                lx=r[1]
             }
             gc.SetStrokeColor( colour.Colour("darkGreen") )
             gc.Stroke()
@@ -174,19 +214,21 @@ main() {
     }
 }
 
-plot(ctx, valid, doy, altAz, hourScale, dayScale) {
+plot(ctx, valid, doy, altAz, hourScale, dayScale, timeZone, lx) {
     altAzValid := altAz.IsValid()
+    x:=lx
     if altAzValid {
-        tm := math.Float(altAz.Time.Hour())+(math.Float(altAz.Time.Minute())/60.0)
-        x := 50 + (tm * hourScale)
+        tt := altAz.Time.In(timeZone)
+        tm := math.Float(tt.Hour())+(math.Float(tt.Minute())/60.0)
+        x = 50 + (tm * hourScale)
         y := 50 + (doy * dayScale)
 
         gc := ctx.Gc()
-        if valid {
+        if valid && lx > 0 && math.Abs(x-lx)<(3*hourScale) {
             gc.LineTo(x,y)
         } else {
             gc.MoveTo(x,y)
         }
     }
-    return altAzValid
+    return append(newArray(), altAzValid, x)
 }
