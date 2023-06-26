@@ -119,6 +119,29 @@ main() {
             }
         }
 
+        // Draw left hand side as a solid shape
+        try(ctx) {
+            gc.SetFillColor( colour.Colour("white") )
+            gc.SetStrokeColor( colour.Colour("red") )
+            for day,readings:= range data {
+                zOffset := zScale*(days-day-1)
+                if len(readings) > 0 {
+                    reading := readings[0]
+                    y := (reading.Value-yMin) * yScale
+                    x := x0 - zOffset
+                    y = y0 - y - zOffset
+                    gc.LineTo(x,y)
+                }
+            }
+            gc.LineTo(x0,y0)
+            zOffset := zScale*(days-1)
+            gc.LineTo(x0-zOffset,y0-zOffset)
+            try( ctx ) {
+                gc.Fill()
+            }
+            gc.Stroke()
+        }
+
         // Draw foreground axes
         try(ctx) {
             gc.SetStrokeColor( colour.Colour("black") )
