@@ -8,8 +8,11 @@ main() {
     // Load the weather station config
     weather.LoadConfig( "workConfig/station.yaml" )
 
+    title := "A229 Pollution 2.5µm"
+    yAxisLabel := "Pollution µg/m³"
     // Sensor reading to plot
-    sensor:= "home.ecowitt.temp"
+    //sensor:= "home.ecowitt.temp"
+    sensor:= "home.drive.pm2_5"
 
     // a Reducer reduces recorded data into fixed periods of time.
     // So here, with underlying readings every 20 seconds, a reducer
@@ -37,6 +40,7 @@ main() {
     try( store := weather.NewStore( "/home/peter/tmp/weather/data" ) ) {
         t := t0.Add(-days)
         for i:=0; i<days; i=i+1 {
+            fmt.Printf("\rLoading %s", t.Time().Format("2006 Jan 02"))
             // Load the data for the day contained by t
             store.Load(t.Time())
 
@@ -51,12 +55,13 @@ main() {
             // Max the maximum value within the reduction period
             // Sum the sum of all values in the reduction period
             // Mean the Sum within the reduction period / the number of entries in that period.
-            readings = reducer.Mean(readings)
+            readings = reducer.Max(readings)
 
             // Append the reduced readings to the array ready for plotting
             data=append(data,readings)
             t=t.Add(1)
         }
+        fmt.Println()
     }
 
     // range of Y axes TODO make this dependent on the data
@@ -64,7 +69,7 @@ main() {
     yMax := -999999.0
     for _,readings := range data {
         for _,reading := range readings {
-            v:=reading.Value.Float()
+            v:=reading.Value
             yMin = math.Min(yMin,v)
             yMax = math.Max(yMax,v)
         }
@@ -82,6 +87,92 @@ main() {
         gc := ctx.Gc()
 
         image.Fill( ctx, colour.Colour("white") )
+
+        try(ctx) {
+            gc.SetFillColor(colour.Colour("black"))
+
+            // Main title
+            animGraphic.SetFont( gc, "luxi 18 mono bold" )
+            animUtil.DrawString(gc, x0 + (w/2), 40-14-12, title)
+
+            animGraphic.SetFont( gc, "luxi 14 mono bold" )
+            animUtil.DrawString(gc, x0 + (w/2), 45,
+             "For the period %s to %s",
+             t0.Add(-days).Time().Format("2006 Jan 02"),
+             t0.Add(-1).Time().Format("2006 Jan 02")
+             )
+
+            // y-axis
+            try(ctx) {
+                zOffset := zScale*(days-1)
+                x0L := x0 - zOffset
+                y0L := y0 - zOffset
+                x1 := x0 + w
+                y1 := y0 + w
+
+                animGraphic.SetFont( gc, "luxi 10 mono bold" )
+                yStep := (yMax-yMin)/10
+                gc.BeginPath()
+                for i:=0; i<=10; i=i+1 {
+                    y := h*i/10.0
+                    gc.MoveTo(x0L, y0L-y)
+                    gc.LineTo(x0L-10, y0L-y)
+                    gc.MoveTo(x1, y1-y)
+                    gc.LineTo(x1-10, y1-y)
+                    s := fmt.Sprintf("%.0f",i*yStep)
+                    gc.FillStringAt(s,x0L-5-(10*len(s)),y0L-y+5)
+                }
+                gc.Stroke()
+
+                // y-axis label
+                try(ctx) {
+                    animGraphic.SetFont( gc, "luxi 14 mono bold" )
+                    sMin := len(fmt.Sprintf("%.0f",yMin))
+                    sMax := len(fmt.Sprintf("%.0f",yMax))
+                    gc.Translate(x0L-20-(10*math.Max(sMin,sMax)),y0L-(h/2))
+                    gc.Rotate( -math.Pi/2.0 )
+                    animUtil.DrawString(gc, 0,0, yAxisLabel)
+                }
+            }
+
+            // x-axis
+            try(ctx) {
+                animGraphic.SetFont( gc, "luxi 10 mono bold" )
+                gc.BeginPath()
+                for hr:=0; hr<=24; hr=hr+1 {
+                    x := x0+(hr*60)
+                    animUtil.DrawString(gc, x,y0+14, "%d", hr)
+                    gc.MoveTo(x,y0)
+                    gc.LineTo(x,y0+10)
+                }
+                gc.Stroke()
+
+                animGraphic.SetFont( gc, "luxi 14 mono bold" )
+                animUtil.DrawString(gc, x0 + (w/2), y0+35, "Local Time")
+            }
+
+            // z-axis
+            try(ctx) {
+                animGraphic.SetFont( gc, "luxi 10 mono bold" )
+                gc.BeginPath()
+                for day,_ := range data {
+                    // Time of start of day in time.Time
+                    tDay := t0.Add(-days+day).Time()
+                    // Label every Sunday
+                    if tDay.Weekday() == 0 {
+                        zOffset := (days-day)*zScale
+                        x := x0-zOffset
+                        y := y0-zOffset
+                        gc.MoveTo(x,y)
+                        gc.LineTo(x-10,y)
+
+                        s := tDay.Format("Jan 02")
+                        gc.FillStringAt(s,x-10-(10*len(s)),y+5)
+                    }
+                }
+                gc.Stroke()
+            }
+        }
 
         // Draw background axes
         try(ctx) {
