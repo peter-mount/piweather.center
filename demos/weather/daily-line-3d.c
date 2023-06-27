@@ -10,9 +10,17 @@ main() {
 
     title := "A229 Pollution 2.5µm"
     yAxisLabel := "Pollution µg/m³"
-    // Sensor reading to plot
-    //sensor:= "home.ecowitt.temp"
     sensor:= "home.drive.pm2_5"
+
+    // Alternate showing Hourly Rainfall
+    //title = "Hourly Rainfall"
+    //yAxisLabel = "Rainfall mm"
+    //sensor = "home.ecowitt.rrain_piezo"
+
+    // Alternate showing Solar Radiation
+    //title = "Solar Radiation"
+    //yAxisLabel = "Solar Radiation W/m²"
+    //sensor = "home.ecowitt.solarradiation"
 
     // a Reducer reduces recorded data into fixed periods of time.
     // So here, with underlying readings every 20 seconds, a reducer
