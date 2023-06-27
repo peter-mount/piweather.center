@@ -68,7 +68,6 @@ func (s *Store) GetAt(id string, t time.Time) *Reading {
 
 // Load a stations data for a time
 func (s *Store) Load(t time.Time) error {
-	fmt.Println("Store.Load", t)
 	s.Clear()
 
 	s.visitor = station.NewVisitor().
