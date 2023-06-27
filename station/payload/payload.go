@@ -122,8 +122,9 @@ func FromBytes(id, format, timestamp string, msg []byte) (*Payload, error) {
 		} else if us, err1 := strconv.ParseInt(s[2], 10, 64); err1 != nil {
 			err = err1
 		} else {
+			p.time = time.Unix(us, 0)
 			p.data = map[string]interface{}{
-				"timestamp": time.Unix(us, 0),
+				"timestamp": p.time,
 				s[0]:        s[1],
 			}
 		}
