@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -22,10 +23,16 @@ var timeFormats = []string{
 }
 
 func ParseTime(s string) time.Time {
+	// Parse time using one of our formats
 	for _, tf := range timeFormats {
 		if t, err := time.Parse(tf, s); err == nil {
 			return t
 		}
+	}
+
+	// Unix time
+	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return time.Unix(i, 0)
 	}
 
 	return time.Time{}
