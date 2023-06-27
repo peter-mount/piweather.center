@@ -46,3 +46,7 @@ func (w *Weather) Reducer(period time.Duration) *memory.Reducer {
 func (w *Weather) ReducerMinutes(minutes int) *memory.Reducer {
 	return memory.NewReducerMins(minutes)
 }
+
+func (w *Weather) Filter() *memory.Filter {
+	return memory.NewFilter()
+}

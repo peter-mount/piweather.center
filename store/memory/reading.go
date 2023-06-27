@@ -23,6 +23,45 @@ func (r *Reading) String() string {
 	}, " ")
 }
 
+type Operation func(float64, float64) float64
+
+type Finalizer func(*Entry) value.Value
+
+type Predicate func(float64) bool
+
+func (a Predicate) Or(b Predicate) Predicate {
+	if a == nil {
+		return b
+	}
+	if b == nil {
+		return a
+	}
+	return func(f float64) bool {
+		return a(f) || b(f)
+	}
+}
+
+func (a Predicate) And(b Predicate) Predicate {
+	if a == nil {
+		return b
+	}
+	if b == nil {
+		return a
+	}
+	return func(f float64) bool {
+		return a(f) && b(f)
+	}
+}
+
+func (a Predicate) Not() Predicate {
+	if a == nil {
+		return nil
+	}
+	return func(f float64) bool {
+		return !a(f)
+	}
+}
+
 // Reducer performs reductions of data to reduce them to meaningful values
 type Reducer struct {
 	period time.Duration // Period between readings
@@ -41,7 +80,7 @@ func NewReducerMins(minutes int) *Reducer {
 	return NewReducer(time.Minute * time.Duration(minutes))
 }
 
-func (r *Reducer) Reduce(d []*Reading, op func(float64, float64) float64, f func(*Entry) value.Value) ([]*Reading, error) {
+func (r *Reducer) Reduce(d []*Reading, op Operation, f Finalizer) ([]*Reading, error) {
 	var entries []*Entry
 	var e *Entry
 	for _, reading := range d {
@@ -95,4 +134,49 @@ func (r *Reducer) Sum(d []*Reading) ([]*Reading, error) {
 
 func (r *Reducer) Mean(d []*Reading) ([]*Reading, error) {
 	return r.Reduce(d, add, mean)
+}
+
+// Filter allows for a Reading set to be filtered, removing entries
+// that do not match a set of criteria.
+//
+// Usually this is to remove readings that are abnormal, due to sensor errors etc.
+type Filter struct {
+}
+
+func NewFilter() *Filter {
+	return &Filter{}
+}
+
+func (_ Filter) Filter(d []*Reading, p Predicate) []*Reading {
+	var ret []*Reading
+	for _, reading := range d {
+		if p(reading.Value.Float()) {
+			ret = append(ret, reading)
+		}
+	}
+	return ret
+}
+
+func (f Filter) Min(d []*Reading, min float64) []*Reading {
+	return f.Filter(d, func(f float64) bool {
+		return value.GreaterThanEqual(f, min)
+	})
+}
+
+func (f Filter) Max(d []*Reading, max float64) []*Reading {
+	return f.Filter(d, func(f float64) bool {
+		return value.LessThanEqual(f, max)
+	})
+}
+
+func (f Filter) Within(d []*Reading, min, max float64) []*Reading {
+	return f.Filter(d, func(f float64) bool {
+		return value.Within(f, min, max)
+	})
+}
+
+func (f Filter) Without(d []*Reading, min, max float64) []*Reading {
+	return f.Filter(d, func(f float64) bool {
+		return value.Without(f, min, max)
+	})
 }
