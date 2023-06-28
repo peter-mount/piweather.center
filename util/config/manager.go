@@ -15,7 +15,7 @@ func init() {
 type Manager interface {
 	// EtcDir returns the path to the etc directory
 	EtcDir() string
-	// ReadJson will read a json file from inside etc
+	// ReadJson will read a yaml file from inside etc
 	ReadJson(n string, o any) error
 	// ReadJsonOptional is the same as ReadJson except that the file not existing will not
 	// return an error
@@ -25,6 +25,9 @@ type Manager interface {
 	// ReadYamlOptional is the same as ReadYaml except that the file not existing will not
 	// return an error
 	ReadYamlOptional(n string, o any) error
+	// FixPath ensures that, if the path is relative it will point to EtcDir().
+	// This will do nothing is s==nil or *s==""
+	FixPath(s *string)
 }
 
 type manager struct {
@@ -71,4 +74,10 @@ func (m *manager) ReadYamlOptional(n string, o any) error {
 		return nil
 	}
 	return err
+}
+
+func (m *manager) FixPath(s *string) {
+	if s != nil && *s != "" && !filepath.IsAbs(*s) {
+		*s = filepath.Join(m.EtcDir(), *s)
+	}
 }
