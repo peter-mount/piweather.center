@@ -10,6 +10,7 @@ import (
 
 func main() {
 	if err := kernel.Launch(
+		&build.ConfigInstaller{},
 		&font.FontDownloader{},
 		&build.Vsop87Encoder{},
 		&build.YbscEncoder{},
