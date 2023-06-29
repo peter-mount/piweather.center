@@ -21,19 +21,3 @@ type EcoWitt struct {
 	// PassKey unique to the unit. "" to allow all
 	PassKey string `json:"passKey,omitempty" xml:"passKey,attr,omitempty" yaml:"passKey,omitempty"`
 }
-
-type Amqp struct {
-	// Url of the broker
-	Url   string      `json:"url" xml:"url" yaml:"url"`
-	Queue *amqp.Queue `json:"queue" xml:"queue" yaml:"queue"`
-	// Exchange for publishing, defaults to amq.topic
-	Exchange string `json:"exchange,omitempty" xml:"exchange,omitempty" yaml:"exchange,omitempty"`
-	// Connection name that appears in the management plugin
-	ConnectionName string `json:"connectionName,omitempty" xml:"connectionName,omitempty" yaml:"connectionName,omitempty"`
-	// HeartBeat in seconds. Defaults to 10
-	HeartBeat int `json:"heartBeat,omitempty" xml:"heartBeat,omitempty" yaml:"heartBeat,omitempty"`
-	// Product name that appears in the management plugin (optional)
-	Product string `json:"product,omitempty" xml:"product,omitempty" yaml:"product,omitempty"`
-	// Version that appears in the management plugin (optional)
-	Version string `json:"version,omitempty" xml:"version,omitempty" yaml:"version,omitempty"`
-}
