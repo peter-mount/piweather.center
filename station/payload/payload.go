@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/peter-mount/piweather.center/util/unit"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gopkg.in/yaml.v2"
@@ -84,6 +85,10 @@ func (p *Payload) Get(path string) (interface{}, bool) {
 
 func FromAMQP(id, format, timestamp string, msg amqp.Delivery) (*Payload, error) {
 	return FromBytes(id, format, timestamp, msg.Body)
+}
+
+func FromMQTT(id, format, timestamp string, msg mqtt.Message) (*Payload, error) {
+	return FromBytes(id, format, timestamp, msg.Payload())
 }
 
 func FromBytes(id, format, timestamp string, msg []byte) (*Payload, error) {

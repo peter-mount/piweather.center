@@ -8,6 +8,7 @@ import (
 	"github.com/peter-mount/piweather.center/homeassistant"
 	"github.com/peter-mount/piweather.center/influxdb"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/server/api"
 	_ "github.com/peter-mount/piweather.center/server/menu"
 	_ "github.com/peter-mount/piweather.center/server/view"
@@ -25,6 +26,7 @@ import (
 type Ingress struct {
 	Archiver        *store.Archiver        `kernel:"inject"`
 	Amqp            mq.Pool                `kernel:"inject"`
+	Mqtt            mqtt.Pool              `kernel:"inject"`
 	EndpointManager *api.EndpointManager   `kernel:"inject"`
 	Config          service.Config         `kernel:"inject"`
 	Store           *store.Store           `kernel:"inject"`
@@ -113,6 +115,52 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 
 	if err == nil {
 		err = queue.Start(sensor.ID, false, mq.ContextTask(task, context.Background()))
+	}
+	return err
+}
+
+func (s *Ingress) startMQTT(ctx context.Context) error {
+	sensor := station.SensorsFromContext(ctx)
+	if sensor.Source.Amqp == nil {
+		return nil
+	}
+
+	queue := sensor.Source.Mqtt
+
+	broker := s.Mqtt.GetMQ(queue.Broker)
+	if broker == nil {
+		return fmt.Errorf("no broker %q defined for %s", queue.Broker, sensor.ID)
+	}
+
+	task, err := s.EndpointManager.RegisterEndpoint(
+		"mqtt",
+		queue.Broker+":"+queue.Topic,
+		sensor.ID,
+		sensor.Name,
+		"MQTT",
+		sensor.Format,
+		func(ctx context.Context) error {
+			msg := mqtt.Delivery(ctx)
+
+			p, err := payload.FromMQTT(sensor.ID, sensor.Format, sensor.Timestamp, msg)
+			switch {
+			case err != nil:
+				log.Println(err)
+				return err
+
+			case p == nil:
+				return nil
+
+			default:
+				return s.processVisitor.
+					WithContext(p.AddContext(s.subContext)).
+					VisitSensors(sensor)
+			}
+		})
+
+	queue.AddHandler(mqtt.ContextTask(task, context.Background()))
+	if err == nil {
+		err = queue.Bind(broker)
 	}
 	return err
 }

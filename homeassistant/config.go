@@ -2,6 +2,7 @@ package homeassistant
 
 import (
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -9,11 +10,13 @@ type HomeAssistant struct {
 	// if set then HomeAssistant is disabled - used in development
 	Disabled bool `yaml:"disabled"`
 
-	// Amqp broker to use, "" for none
-	Amqp           string        `yaml:"amqp,omitempty"`
-	AmqpPublisher  *mq.Publisher `yaml:"amqp_publisher"`
+	Amqp           string          `yaml:"amqp,omitempty"`
+	AmqpPublisher  *mq.Publisher   `yaml:"amqp_publisher"`
+	Mqtt           string          `yaml:"mqtt,omitempty"`
+	MqttPublisher  *mqtt.Publisher `yaml:"mqtt_publisher"`
 	amqp           *mq.MQ
 	amqpConnection *amqp091.Connection
+	mqtt           *mqtt.MQ
 
 	// DiscoveryPrefix, will default to "homeassistant"
 	DiscoveryPrefix string `yaml:"discovery_prefix,omitempty"`
@@ -29,6 +32,8 @@ func (h *HomeAssistant) close() {
 
 		h.amqp = nil
 		h.amqpConnection = nil
+
+		h.mqtt = nil
 	}
 }
 

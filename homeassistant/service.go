@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/util/config"
 	"path"
 	"strings"
@@ -24,6 +25,7 @@ type Service interface {
 type service struct {
 	ConfigManager config.Manager `kernel:"inject"`
 	Amqp          mq.Pool        `kernel:"inject"`
+	Mqtt          mqtt.Pool      `kernel:"inject"`
 	Config        *HomeAssistant
 }
 
@@ -54,7 +56,18 @@ func (s *service) Start() error {
 			return err
 		}
 
+	case ha.Mqtt != "" && ha.MqttPublisher != nil:
+		broker := s.Mqtt.GetMQ(ha.Mqtt)
+		if broker == nil {
+			return fmt.Errorf("mqtt broker %q undefined", ha.Mqtt)
+		}
+		ha.mqtt = broker
+		if err := ha.MqttPublisher.Bind(broker); err != nil {
+			return err
+		}
+
 	default:
+		return fmt.Errorf("no message broker configured")
 	}
 
 	s.Config = ha

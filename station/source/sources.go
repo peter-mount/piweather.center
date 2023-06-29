@@ -2,19 +2,17 @@ package source
 
 import (
 	"github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/mq/mqtt"
 )
 
 // Source defines the source of data for a Sensors collection.
 // You must define one of these, otherwise no data will be received.
 // You can define multiple entries here
 type Source struct {
-	// WUnderground protocol endpoint
-	WUnderground string `json:"wunderground,omitempty" xml:"wunderground,attr,omitempty" yaml:"wunderground,omitempty"`
-	// EcoWitt protocol endpoint under /api/import
-	EcoWitt *EcoWitt `json:"ecowitt,omitempty" xml:"ecowitt,attr,omitempty" yaml:"ecowitt,omitempty"`
-	// Amqp RabbitMQ broker
-	Amqp *amqp.Queue `json:"amqp,omitempty" xml:"amqp,omitempty" yaml:"amqp,omitempty"`
-	// TODO add MQTT broker here
+	WUnderground string      `yaml:"wunderground,omitempty"`
+	EcoWitt      *EcoWitt    `yaml:"ecowitt,omitempty"`
+	Amqp         *amqp.Queue `yaml:"amqp,omitempty"`
+	Mqtt         *mqtt.Queue `yaml:"mqtt,omitempty"`
 }
 
 type EcoWitt struct {
