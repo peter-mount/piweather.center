@@ -5,7 +5,7 @@ import (
 )
 
 type Output struct {
-	InfluxDB *InfluxDB `json:"influxdb,omitempty" xml:"influxdb,omitempty" yaml:"influxdb,omitempty"`
+	InfluxDB *InfluxDB `yaml:"influxdb,omitempty"`
 }
 
 func (s *Output) Accept(v Visitor) error {
@@ -13,8 +13,8 @@ func (s *Output) Accept(v Visitor) error {
 }
 
 type InfluxDB struct {
-	Name        string `yaml:"name" xml:"name,attr" json:"name"`                      // InfluxDB name
-	Measurement string `yaml:"measurement" xml:"measurement,attr" json:"measurement"` // measurement
+	Name        string `yaml:"name"`        // InfluxDB name
+	Measurement string `yaml:"measurement"` // measurement
 }
 
 const (

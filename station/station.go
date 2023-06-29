@@ -24,13 +24,13 @@ func (s *Stations) Accept(v Visitor) error {
 // Station defines a Weather Station at a specific location.
 // It consists of one or more Reading's
 type Station struct {
-	ID string `json:"-" xml:"-" yaml:"-"`
+	ID string `yaml:"-"`
 	// Name of the station
-	Name string `json:"name" xml:"name,attr" yaml:"name"`
+	Name string `yaml:"name"`
 	// Location of the station
-	Location Location `json:"location" xml:"location,omitempty" yaml:"location,omitempty"`
+	Location Location `yaml:"location,omitempty"`
 	// One or more Sensors collection
-	Sensors map[string]*Sensors `json:"sensors" xml:"sensors" yaml:"sensors"`
+	Sensors map[string]*Sensors `yaml:"sensors"`
 	latLong *coord.LatLong
 }
 
@@ -53,20 +53,20 @@ func (s *Station) Accept(v Visitor) error {
 // Sensors define a Reading collection within the Station.
 // A Reading collection is
 type Sensors struct {
-	ID string `json:"-" xml:"-" yaml:"-"`
+	ID string `yaml:"-"`
 	// Name of the Readings collection
-	Name string `json:"name" xml:"name,attr" yaml:"name"`
+	Name string `yaml:"name"`
 	// Source of data for this collection
-	Source source.Source `json:"source" xml:"source" yaml:"source"`
+	Source source.Source `yaml:"source"`
 	// Format of the message, default is json
 	Format string
 	// Timestamp Path to timestamp, "" for none
 	Timestamp string
 	// Reading's provided by this collection
-	Readings map[string]*Reading `json:"readings" xml:"readings" yaml:"readings"`
+	Readings map[string]*Reading `yaml:"readings"`
 	// CalculatedValue's to calculate with this calculation
-	Calculations map[string]*CalculatedValue `json:"calculations,omitempty" xml:"calculations,omitempty" yaml:"calculations,omitempty"`
-	Output       *Output                     `json:"output,omitempty" xml:"output,omitempty" yaml:"output,omitempty"`
+	Calculations map[string]*CalculatedValue `yaml:"calculations,omitempty"`
+	Output       *Output                     `yaml:"output,omitempty"`
 	// The station containing this sensor
 	station *Station
 }

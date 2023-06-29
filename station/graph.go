@@ -9,10 +9,10 @@ import (
 // or a custom one combining multiple Reading's.
 type Graph struct {
 	// Title on top of graph (optional)
-	Title           string       `json:"title,omitempty" xml:"title,attr,omitempty" yaml:"title,omitempty"`
-	Line            *graph.Line  `json:"line,omitempty" xml:"line,omitempty" yaml:"line,omitempty"`
-	Gauge           *graph.Gauge `json:"gauge,omitempty" xml:"gauge,omitempty" yaml:"gauge,omitempty"`
-	Path            string       `json:"-" xml:"-" yaml:"-"`
+	Title           string       `yaml:"title,omitempty"`
+	Line            *graph.Line  `yaml:"line,omitempty"`
+	Gauge           *graph.Gauge `yaml:"gauge,omitempty"`
+	Path            string       `yaml:"-"`
 	reading         *Reading
 	calculatedValue *CalculatedValue
 }
