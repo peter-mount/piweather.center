@@ -1,7 +1,6 @@
 package value
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -75,7 +74,6 @@ func (v Value) As(to *Unit) (Value, error) {
 func (v Value) AsGuard(to *Unit) Value {
 	n, err := v.As(to)
 	if err != nil {
-		fmt.Println(err)
 		panic(err)
 	}
 	return n

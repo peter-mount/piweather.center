@@ -189,9 +189,9 @@ func NewUpperBoundUnit(id, name, unit string, precision int, max float64) *Unit 
 	return NewBoundedUnit(id, name, unit, precision, -math.MaxFloat64, max)
 }
 
-// GetUnit returns a registered Unit based on its name.
+// GetUnit returns a registered Unit based on its id.
 // If the unit is not registered then this returns (nil,false).
-// Names are case insensitive.
+// Ids are case insensitive.
 func GetUnit(id string) (*Unit, bool) {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -199,6 +199,7 @@ func GetUnit(id string) (*Unit, bool) {
 	return u, e
 }
 
+// GetUnits returns a slice of all Unit's
 func GetUnits() []*Unit {
 	var r []*Unit
 	mutex.Lock()

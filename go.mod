@@ -7,12 +7,12 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
-	github.com/peter-mount/go-anim v0.0.0-20230626203327-00a9877a27b7
-	github.com/peter-mount/go-build v0.0.0-20230623201325-1516bc503887
+	github.com/peter-mount/go-anim v0.0.0-20230929102653-4caf008f3ba9
+	github.com/peter-mount/go-build v0.0.0-20230901134424-72658295ac41
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20230622193345-c3b500bdaa5b
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
-	github.com/peter-mount/go-script v0.0.0-20230626102130-41768545695d
+	github.com/peter-mount/go-script v0.0.0-20230914100626-4205bb23e4be
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5
 	github.com/peter-mount/nre-feeds v0.0.0-20230406193040-e2414d2669d1
 	github.com/rabbitmq/amqp091-go v1.8.1
