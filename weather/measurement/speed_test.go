@@ -1,49 +1,42 @@
 package measurement
 
 import (
-	"fmt"
-	"github.com/peter-mount/piweather.center/weather/value"
 	"testing"
 )
 
-func Test_speed_transforms(t *testing.T) {
-	tests := []struct {
-		from    value.Value
-		to      value.Value
-		wantErr bool
-	}{
-		// Base transforms where one side is always MetersPerSecond
+func Test_speed(t *testing.T) {
+	testConversions(t, []conversionTest{
+		// =========================
+		// MetersPerSecond
+		// =========================
 		{MetersPerSecond.Value(1), KilometersPerHour.Value(3.6), false},
-		{KilometersPerHour.Value(3.6), MetersPerSecond.Value(1), false},
+		{MetersPerSecond.Value(1), Knots.Value(1.9438444), false},
+		{MetersPerSecond.Value(1), MilesPerHour.Value(2.236936), false},
+		// =========================
+		// KilometersPerHour
+		// =========================
+		{KilometersPerHour.Value(1), MetersPerSecond.Value(0.27777777), false},
+		{KilometersPerHour.Value(1), Knots.Value(0.539956), false},
+		{KilometersPerHour.Value(1), MilesPerHour.Value(0.62137111), false},
+		// =========================
+		// Knots
+		// =========================
 		{Knots.Value(1), MetersPerSecond.Value(0.5144444444), false},
-
-		// Generated transforms which go via MetersPerSecond
-		{MilesPerHour.Value(1), KilometersPerHour.Value(1.609344), false},
-		{KilometersPerHour.Value(1.609344), MilesPerHour.Value(1), false},
 		{Knots.Value(1), MilesPerHour.Value(1.1507794480), false},
-		{MilesPerHour.Value(1.1507794480), Knots.Value(1), false},
 		{Knots.Value(1), KilometersPerHour.Value(1.852), false},
-		{KilometersPerHour.Value(1.852), Knots.Value(1), false},
-	}
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s %s %s", tt.from.Unit().Name(), tt.to.Unit().Name(), tt.from), func(t *testing.T) {
-
-			got, err := tt.from.As(tt.to.Unit())
-			if err != nil {
-				if !tt.wantErr {
-					t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
-				}
-				return
-			}
-
-			if eq, err := tt.to.Equals(got); err != nil {
-				if !tt.wantErr {
-					t.Errorf("Value Equals error = %v", err)
-				}
-				return
-			} else if !eq {
-				t.Errorf("from %s got = %.10f, want %s (%.10f)", tt.from.String(), got.Float(), tt.to.String(), tt.to.Float())
-			}
-		})
-	}
+		// =========================
+		// MilesPerHour
+		// =========================
+		{MilesPerHour.Value(1), MetersPerSecond.Value(0.4470400), false},
+		{MilesPerHour.Value(1), KilometersPerHour.Value(1.609344), false},
+		{MilesPerHour.Value(1), Knots.Value(0.8690), false},
+		{MilesPerHour.Value(1), FeetPerSecond.Value(1.4667), false},
+		// =========================
+		// FeetPerSecond
+		// =========================
+		{FeetPerSecond.Value(1), MetersPerSecond.Value(0.30488), false},
+		{FeetPerSecond.Value(1), KilometersPerHour.Value(1.0973), false},
+		{FeetPerSecond.Value(1), Knots.Value(0.5924839), false},
+		{FeetPerSecond.Value(1), MilesPerHour.Value(0.6818185), false},
+	})
 }

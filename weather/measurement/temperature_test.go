@@ -1,16 +1,11 @@
 package measurement
 
 import (
-	"github.com/peter-mount/piweather.center/weather/value"
 	"testing"
 )
 
 func Test_temperature_transforms(t *testing.T) {
-	tests := []struct {
-		from    value.Value
-		to      value.Value
-		wantErr bool
-	}{
+	testConversions(t, []conversionTest{
 		{Celsius.Value(0), Fahrenheit.Value(32.0), false},
 		{Celsius.Value(10), Fahrenheit.Value(50.0), false},
 		{Fahrenheit.Value(32), Celsius.Value(0.0), false},
@@ -25,9 +20,5 @@ func Test_temperature_transforms(t *testing.T) {
 		{Celsius.Value(-274.15), Kelvin.Value(-1), true},
 		{Kelvin.Value(0), Fahrenheit.Value(-460.67), true},
 		{Fahrenheit.Value(-460.67), Kelvin.Value(0), true},
-	}
-	for _, tt := range tests {
-		testConversion(t, tt.from, tt.to, tt.wantErr)
-		testConversion(t, tt.to, tt.from, tt.wantErr)
-	}
+	})
 }

@@ -22,7 +22,9 @@ const (
 	// Illuminance conversion constants:
 	kluxToLux = 1000.0
 	fcToLux   = 10.7639
-	wm2ToLux  = 0.0079
+
+	// This is an approximate conversion of lux to W/m2 based on average wavelength of sunlight
+	wm2ToLux = 0.0079
 
 	// Mass conversion constants:
 	poundToGram = 453.59237

@@ -1,16 +1,11 @@
 package measurement
 
 import (
-	"github.com/peter-mount/piweather.center/weather/value"
 	"testing"
 )
 
 func Test_pressure_transforms(t *testing.T) {
-	tests := []struct {
-		from    value.Value
-		to      value.Value
-		wantErr bool
-	}{
+	testConversions(t, []conversionTest{
 		// Test basic values
 		{PressurePA.Value(101325), PressureHPA.Value(1013.25), false},
 		{PressurePA.Value(101325), PressureMBar.Value(1013.25), false},
@@ -24,9 +19,5 @@ func Test_pressure_transforms(t *testing.T) {
 		{PressureInHg.Value(29.973), PressurePA.Value(101500.2267169408), false},
 		{PressureInHg.Value(29.973), PressureHPA.Value(1015.002267169408), false},
 		{PressureInHg.Value(29.973), PressureKPA.Value(101.5002267169408), false},
-	}
-	for _, tt := range tests {
-		testConversion(t, tt.from, tt.to, tt.wantErr)
-		testConversion(t, tt.to, tt.from, tt.wantErr)
-	}
+	})
 }

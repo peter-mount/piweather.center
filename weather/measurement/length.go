@@ -12,13 +12,14 @@ func init() {
 	Yard = value.NewLowerBoundUnit("Yard", "Yard", " yd", 3, 0)
 	Miles = value.NewLowerBoundUnit("Miles", "Miles", " mi", 3, 0)
 
-	value.NewBasicBiTransform(Meters, Kilometers, 1/kmToM)
-	value.NewBasicBiTransform(Meters, CentiMeters, 1/cmToM)
-	value.NewBasicBiTransform(Meters, MilliMeters, 1/mmToM)
-	value.NewBasicBiTransform(Meters, Inches, 1/inToM)
-	value.NewBasicBiTransform(Meters, Feet, 1/footToM)
-	value.NewBasicBiTransform(Meters, Yard, 1/yardToM)
-	value.NewBasicBiTransform(Meters, Miles, 1/mileToM)
+	// Base unit is Meters but as our constants are all ToM then use Meters as the destination
+	value.NewBasicBiTransform(Kilometers, Meters, kmToM)
+	value.NewBasicBiTransform(CentiMeters, Meters, cmToM)
+	value.NewBasicBiTransform(MilliMeters, Meters, mmToM)
+	value.NewBasicBiTransform(Inches, Meters, inToM)
+	value.NewBasicBiTransform(Feet, Meters, footToM)
+	value.NewBasicBiTransform(Yard, Meters, yardToM)
+	value.NewBasicBiTransform(Miles, Meters, mileToM)
 
 	Length = value.NewGroup("Length", Meters, Kilometers, CentiMeters, MilliMeters, Inches, Feet, Yard, Miles)
 }
