@@ -18,7 +18,7 @@ func Test_temperature_transforms(t *testing.T) {
 		// This is invalid as cannot be colder than Absolute Zero so expect an error
 		{Kelvin.Value(-1), Celsius.Value(-274.15), true},
 		{Celsius.Value(-274.15), Kelvin.Value(-1), true},
-		{Kelvin.Value(0), Fahrenheit.Value(-460.67), true},
-		{Fahrenheit.Value(-460.67), Kelvin.Value(0), true},
+		{Kelvin.Value(0), Fahrenheit.Value(-459.67), true},
+		{Fahrenheit.Value(-459.67), Kelvin.Value(0), true},
 	})
 }
