@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"hash/fnv"
 	"math"
 	"strings"
 )
@@ -14,6 +15,7 @@ import (
 // be transformed.
 type Unit struct {
 	id        string  // Unique ID, case insensitive
+	hash      uint64  // Unique ID based on hash of id
 	group     *Group  // Group the unit belongs to, nil for no membership
 	name      string  // Name of Unit, e.g. "Celsius"
 	unit      string  // Short name of Unit e.g. "°C"
@@ -25,6 +27,8 @@ type Unit struct {
 }
 
 func (u *Unit) ID() string { return u.id }
+
+func (u *Unit) Hash() uint64 { return u.hash }
 
 func (u *Unit) Category() string {
 	// Just in-case this is called whilst a Unit is being added to Group
@@ -149,8 +153,17 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 		panic(fmt.Errorf("unit %q already registered", n))
 	}
 
+	// Unique hashcode - panic if we have a collision
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(id))
+	hid := h.Sum64()
+	if existing, exists := hashes[hid]; exists {
+		panic(fmt.Errorf("unit ID clash, %q[%d] clashes with %q", n, hid, existing.id))
+	}
+
 	u := &Unit{
 		id:        n,
+		hash:      hid,
 		name:      name,
 		unit:      unit,
 		precision: precision,
@@ -161,6 +174,7 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 		group:     uncategorized,
 	}
 	units[n] = u
+	hashes[hid] = u
 
 	// Initially add to the uncategorized group
 	uncategorized.addUnit(u).sort()
@@ -208,6 +222,16 @@ func GetUnits() []*Unit {
 		r = append(r, e)
 	}
 	return r
+}
+
+// GetUnitByHash returns a registered Unit based on its hash.
+// If the unit is not registered then this returns (nil,false).
+// This is usually used when we want to store the unit in a compressed form
+func GetUnitByHash(h uint64) (*Unit, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	u, e := hashes[h]
+	return u, e
 }
 
 var (

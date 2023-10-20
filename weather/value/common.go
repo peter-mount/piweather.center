@@ -18,6 +18,7 @@ var (
 		name: "Uncategorized",
 		err:  errors.New("not uncategorized"),
 	}
+	hashes = make(map[uint64]*Unit)
 )
 
 func init() {

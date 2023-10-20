@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func ToString(v interface{}) string {
@@ -60,4 +61,13 @@ func FloatDefault(a *float64, b float64) float64 {
 		return *a
 	}
 	return b
+}
+
+func Itoa(i int, p int) string {
+	s := strconv.Itoa(i)
+	if p > len(s) {
+		s = strings.Repeat("0", p) + s
+		s = s[len(s)-p:]
+	}
+	return s
 }
