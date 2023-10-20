@@ -22,8 +22,10 @@ func (s *Server) Init(_ kernel.Kernel) error {
 
 func (s *Server) PostInit() error {
 	s.Web.Handle("/record", s.record).Methods(POST)
+	s.Web.Handle("/recordMultiple", s.recordMultiple).Methods(POST)
 
 	s.Web.Handle("/query"+metricPattern+"/today", s.queryToday).Methods(GET)
+	s.Web.Handle("/query"+metricPattern+"/todayUTC", s.queryTodayUTC).Methods(GET)
 
 	return nil
 }

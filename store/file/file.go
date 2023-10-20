@@ -189,8 +189,6 @@ func openFile(name string) (*File, error) {
 // Warning, the file will be open when this returns, so it's up to the caller to close it.
 // returns nil,nil if the file does not exist.
 func createFile(name, metric string) (*File, error) {
-	log.Printf("create %q for %q", name, metric)
-
 	if err := os.MkdirAll(filepath.Dir(name), 0755); err != nil {
 		return nil, err
 	}

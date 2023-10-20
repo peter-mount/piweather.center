@@ -23,6 +23,28 @@ func (s *Server) record(r *rest.Rest) error {
 	return nil
 }
 
+func (s *Server) recordMultiple(r *rest.Rest) error {
+	var metrics []api.Metric
+	if err := r.Body(&metrics); err != nil {
+		return err
+	}
+
+	response := api.Response{
+		Status:  404,
+		Message: "Nothing imported",
+	}
+
+	for _, metric := range metrics {
+		response = s.recordMetric(metric)
+	}
+
+	r.Status(response.Status).
+		ContentType(r.GetHeader("Content-Type")).
+		Value(response)
+
+	return nil
+}
+
 func (s *Server) recordMetric(metric api.Metric) api.Response {
 
 	if metric.Time.IsZero() {

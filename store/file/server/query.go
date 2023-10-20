@@ -6,10 +6,15 @@ import (
 	"github.com/peter-mount/piweather.center/store/file/api"
 )
 
-// record implements the /record api
 func (s *Server) queryToday(r *rest.Rest) error {
 	return s.query(r, r.Var(METRIC), func(b file.QueryBuilder) {
 		b.Today()
+	})
+}
+
+func (s *Server) queryTodayUTC(r *rest.Rest) error {
+	return s.query(r, r.Var(METRIC), func(b file.QueryBuilder) {
+		b.TodayUTC()
 	})
 }
 
