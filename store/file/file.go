@@ -74,7 +74,7 @@ func (f *File) Size() (int, error) {
 	return int(l), err
 }
 
-// EntryCount returns the number of records in the file
+// EntryCount returns the number of metrics in the file
 func (f *File) EntryCount() (int, error) {
 	s, err := f.Size()
 	if err == nil && s > f.header.Size {

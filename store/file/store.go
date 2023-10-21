@@ -22,7 +22,7 @@ type Store interface {
 	Append(metric string, rec record.Record) error
 	// GetRecord returns the numbered record for a metric on a specific date
 	GetRecord(metric string, date time.Time, num int) (record.Record, error)
-	// NumRecords returns the number of records for a metric on a specific date
+	// NumRecords returns the number of metrics for a metric on a specific date
 	NumRecords(metric string, date time.Time) (int, error)
 	// Query returns a builder to build a query against a metric
 	Query(metric string) QueryBuilder
@@ -33,6 +33,7 @@ type Store interface {
 // which ones are open
 type store struct {
 	Cron       *cron.CronService `kernel:"inject"`                                       // Cron to run periodic jobs
+	Latest     *Latest           `kernel:"inject"`                                       // Used to store most recent metric
 	BaseDir    *string           `kernel:"flag,metric-db,Directory for storing metrics"` // Base directory of database
 	FileExpiry *int              `kernel:"flag,metric-expiry,Expiry time in minutes,2"`  // Expiry time for open files in minutes
 
@@ -87,6 +88,9 @@ func (s *store) Append(metric string, rec record.Record) error {
 	file, err := s.openOrCreateFile(metric, rec.Time)
 	if err == nil {
 		err = file.Append(rec)
+	}
+	if err == nil {
+		s.Latest.Append(metric, rec)
 	}
 	return err
 }
