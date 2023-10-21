@@ -127,8 +127,8 @@ func (s *store) getFileKeys() []string {
 // close open files. If all is true then all files, false then only unused ones.
 func (s *store) close(all bool) {
 	// Add 10 seconds to allow for something accessing it at the moment we run
-	expiry := (time.Duration(-*s.FileExpiry) * time.Minute) + (10 * time.Second)
-	now := time.Now().Add(expiry)
+	expiry := (time.Duration(*s.FileExpiry) * time.Minute) + (10 * time.Second)
+	now := time.Now().Add(-expiry)
 	for _, key := range s.getFileKeys() {
 		// Note we do not want to touch the file here!
 		f := s.getFileImpl(key, false)
