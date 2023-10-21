@@ -1,8 +1,11 @@
 package file
 
-import "time"
+import (
+	"github.com/peter-mount/piweather.center/store/file/record"
+	"time"
+)
 
-type Filter func(Record) bool
+type Filter func(record.Record) bool
 
 func Of(filters ...Filter) Filter {
 	switch len(filters) {
@@ -24,22 +27,22 @@ func Of(filters ...Filter) Filter {
 }
 
 func (a Filter) And(b Filter) Filter {
-	return func(record Record) bool {
+	return func(record record.Record) bool {
 		return a(record) && b(record)
 	}
 }
 
 func (a Filter) Or(b Filter) Filter {
-	return func(record Record) bool {
+	return func(record record.Record) bool {
 		return a(record) || b(record)
 	}
 }
 
-func True(_ Record) bool {
+func True(_ record.Record) bool {
 	return true
 }
 
-func False(_ Record) bool {
+func False(_ record.Record) bool {
 	return false
 }
 
@@ -47,21 +50,21 @@ func Between(s, e time.Time) Filter {
 	if s.After(e) {
 		s, e = e, s
 	}
-	return func(record Record) bool {
+	return func(record record.Record) bool {
 		// don't use After(s) && Before(e) here as we want to match when equals on both as well
 		return !record.Time.Before(s) && record.Time.Before(e)
 	}
 }
 
 func After(t time.Time) Filter {
-	return func(record Record) bool {
+	return func(record record.Record) bool {
 		// don't use After(t) here as we want to match when equals t as well
 		return !record.Time.Before(t)
 	}
 }
 
 func Before(t time.Time) Filter {
-	return func(record Record) bool {
+	return func(record record.Record) bool {
 		// don't use After(t) here as we want to match when equals t as well
 		return !record.Time.After(t)
 	}

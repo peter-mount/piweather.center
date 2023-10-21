@@ -1,6 +1,7 @@
-package file
+package record
 
 import (
+	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
@@ -29,5 +30,5 @@ func (r Record) Equals(b Record) bool {
 }
 
 func AssertRecordLength(r RecordHandler, b []byte) error {
-	return AssertLength(r.Size(), b)
+	return util.AssertLength(r.Size(), b)
 }

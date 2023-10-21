@@ -3,6 +3,7 @@ package file
 import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,13 +12,13 @@ import (
 )
 
 type File struct {
-	mutex      sync.Mutex         // Mutex used to keep reads/writes atomic
-	name       string             // Name of file
-	header     FileHeader         // File header
-	file       io.ReadWriteSeeker // File access
-	closer     io.Closer          // To close underlying file
-	handler    RecordHandler      // Handler for version
-	lastAccess time.Time          // Time of last access
+	mutex      sync.Mutex           // Mutex used to keep reads/writes atomic
+	name       string               // Name of file
+	header     record.FileHeader    // File header
+	file       io.ReadWriteSeeker   // File access
+	closer     io.Closer            // To close underlying file
+	handler    record.RecordHandler // Handler for version
+	lastAccess time.Time            // Time of last access
 }
 
 func (f *File) touch() {
@@ -76,13 +77,13 @@ func (f *File) Size() (int, error) {
 // EntryCount returns the number of records in the file
 func (f *File) EntryCount() (int, error) {
 	s, err := f.Size()
-	if err == nil && s > headerSize {
-		return (s - headerSize) / f.handler.Size(), nil
+	if err == nil && s > f.header.Size {
+		return (s - f.header.Size) / f.handler.Size(), nil
 	}
 	return 0, err
 }
 
-func (f *File) Append(rec Record) error {
+func (f *File) Append(rec record.Record) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -109,11 +110,11 @@ func (f *File) Append(rec Record) error {
 	return err
 }
 
-func (f *File) GetRecord(i int) (Record, error) {
+func (f *File) GetRecord(i int) (record.Record, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	var rec Record
+	var rec record.Record
 	recordSize := f.handler.Size()
 
 	err := f.assertOpen()
@@ -123,7 +124,7 @@ func (f *File) GetRecord(i int) (Record, error) {
 		// Do this here so if we are not open we don't touch and it should then expire
 		f.touch()
 
-		_, err = f.file.Seek(int64(headerSize+(i*recordSize)), io.SeekStart)
+		_, err = f.file.Seek(int64(f.header.Size+(i*recordSize)), io.SeekStart)
 	}
 
 	if err == nil {
@@ -162,14 +163,9 @@ func openFile(name string) (*File, error) {
 	}
 
 	// Read the header and configure the RecordHandler for this files version
-	err = file.header.read(f)
+	err = file.header.Read(f)
 	if err == nil {
-		switch file.header.Version {
-		case 1:
-			file.handler = version1Handler
-		default:
-			err = fmt.Errorf("unsupported file version %d", file.header.Version)
-		}
+		file.handler, err = file.header.GetRecordHandler()
 	}
 
 	// If we have an error then close the underlying file before returning the error
@@ -203,14 +199,11 @@ func createFile(name, metric string) (*File, error) {
 		file:       f,
 		closer:     f,
 		lastAccess: time.Now(),
-		handler:    currentHandler,
-		header: FileHeader{
-			Name:    metric,
-			Version: currentFileVersion,
-		},
+		handler:    record.CurrentHandler(),
+		header:     record.NewFileHeader(metric),
 	}
 
-	err = file.header.write(f)
+	err = file.header.Write(f)
 	if err != nil {
 		_ = f.Close()
 		return nil, err

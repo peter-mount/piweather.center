@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/file/api"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -72,7 +72,7 @@ func (s *Server) recordMetric(metric api.Metric) api.Response {
 		}
 	}
 
-	err := s.Store.Append(metric.Metric, file.Record{
+	err := s.Store.Append(metric.Metric, record.Record{
 		Time:  metric.Time,
 		Value: val,
 	})

@@ -1,4 +1,8 @@
-package file
+package record
+
+import (
+	"github.com/peter-mount/piweather.center/util"
+)
 
 // RecV1 implements record format version 1
 type RecV1 struct {
@@ -18,18 +22,18 @@ func (r RecV1) Read(b []byte) (Record, error) {
 	err := AssertRecordLength(r, b)
 
 	if err == nil {
-		rec.Time, err = ReadTime(b[0:8])
+		rec.Time, err = util.ReadTime(b[0:8])
 	}
 
 	if err == nil {
-		rec.Value, err = ReadValue(b[8:24])
+		rec.Value, err = util.ReadValue(b[8:24])
 	}
 
 	return rec, err
 }
 
 func (r RecV1) Append(b []byte, rec Record) []byte {
-	b = AppendTime(b, rec.Time)
-	b = AppendValue(b, rec.Value)
+	b = util.AppendTime(b, rec.Time)
+	b = util.AppendValue(b, rec.Value)
 	return b
 }

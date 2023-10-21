@@ -2,27 +2,28 @@ package file
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"time"
 )
 
 type Query interface {
 	HasNext() bool
-	Next() Record
+	Next() record.Record
 }
 
 type queryScanner struct {
-	metric     string    // Metric being iterated
-	start      time.Time // start time inclusive
-	end        time.Time // end time exclusive
-	date       time.Time // Current date in search
-	store      *store    // link to Store
-	file       *File     // current file or nil if non
-	recordNum  int       // entry in current file
-	entryCount int       // number of entries in file at the point it was requested
-	record     Record    // current record
+	metric     string        // Metric being iterated
+	start      time.Time     // start time inclusive
+	end        time.Time     // end time exclusive
+	date       time.Time     // Current date in search
+	store      *store        // link to Store
+	file       *File         // current file or nil if non
+	recordNum  int           // entry in current file
+	entryCount int           // number of entries in file at the point it was requested
+	record     record.Record // current record
 }
 
-func (q *queryScanner) Next() Record {
+func (q *queryScanner) Next() record.Record {
 	return q.record
 }
 
@@ -79,7 +80,7 @@ func (q *queryScanner) nextFile() {
 type filteredQuery struct {
 	query  Query
 	filter Filter
-	record Record
+	record record.Record
 }
 
 func (q *filteredQuery) HasNext() bool {
@@ -91,6 +92,6 @@ func (q *filteredQuery) HasNext() bool {
 	return found
 }
 
-func (q *filteredQuery) Next() Record {
+func (q *filteredQuery) Next() record.Record {
 	return q.record
 }

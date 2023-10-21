@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	cron2 "gopkg.in/robfig/cron.v2"
 	"os"
 	"path/filepath"
@@ -18,9 +19,9 @@ func init() {
 
 type Store interface {
 	// Append a record to a metric
-	Append(metric string, rec Record) error
+	Append(metric string, rec record.Record) error
 	// GetRecord returns the numbered record for a metric on a specific date
-	GetRecord(metric string, date time.Time, num int) (Record, error)
+	GetRecord(metric string, date time.Time, num int) (record.Record, error)
 	// NumRecords returns the number of records for a metric on a specific date
 	NumRecords(metric string, date time.Time) (int, error)
 	// Query returns a builder to build a query against a metric
@@ -82,7 +83,7 @@ func (s *store) Stop() {
 	s.close(true)
 }
 
-func (s *store) Append(metric string, rec Record) error {
+func (s *store) Append(metric string, rec record.Record) error {
 	file, err := s.openOrCreateFile(metric, rec.Time)
 	if err == nil {
 		err = file.Append(rec)
@@ -90,8 +91,8 @@ func (s *store) Append(metric string, rec Record) error {
 	return err
 }
 
-func (s *store) GetRecord(metric string, date time.Time, num int) (Record, error) {
-	var rec Record
+func (s *store) GetRecord(metric string, date time.Time, num int) (record.Record, error) {
+	var rec record.Record
 	file, err := s.openFile(metric, date)
 	if err == nil {
 		rec, err = file.GetRecord(num)
