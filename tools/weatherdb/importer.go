@@ -10,17 +10,21 @@ import (
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store/file"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Importer struct {
-	Config service.Config `kernel:"inject"`
-	Store  file.Store     `kernel:"inject"`
-	Import *string        `kernel:"flag,metric-import,Import log archives from directory"`
+	Config    service.Config `kernel:"inject"`
+	Store     file.Store     `kernel:"inject"`
+	Import    *string        `kernel:"flag,metric-import,Import log archives from directory"`
+	Recent    *bool          `kernel:"flag,metric-import-recent,Import last 7 days only"`
+	startDate time.Time
 }
 
 func (i *Importer) Start() error {
@@ -29,6 +33,11 @@ func (i *Importer) Start() error {
 	}
 
 	log.Println("Scanning log archives")
+
+	// Limit import to files modified in last 7 days
+	if *i.Recent {
+		i.startDate = time.Now().UTC().Add(-7 * 24 * time.Hour)
+	}
 
 	ctx := value.WithMap(context.Background())
 
@@ -47,7 +56,13 @@ func (i *Importer) importSensor(ctx context.Context) error {
 	dir := filepath.Join(*i.Import, filepath.Join(strings.Split(sensors.ID, ".")...))
 
 	err := walk.NewPathWalker().
-		Then(func(path string, _ os.FileInfo) error {
+		Then(func(path string, fi os.FileInfo) error {
+
+			// Filter out old files
+			if !i.startDate.IsZero() && fi.ModTime().Before(i.startDate) {
+				return nil
+			}
+
 			log.Printf("Reading %s", path)
 			return io.NewReader().
 				ForEachLine(func(line string) error {
@@ -92,7 +107,7 @@ func (i *Importer) processReading(ctx context.Context) error {
 				return nil
 			}
 
-			return i.Store.Append(r.ID, file.Record{
+			return i.Store.Append(r.ID, record.Record{
 				Time:  p.Time(),
 				Value: v,
 			})
