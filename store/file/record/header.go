@@ -2,6 +2,7 @@ package record
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/peter-mount/piweather.center/util"
 	"io"
@@ -12,10 +13,11 @@ const (
 	currentFileVersion       = 1          // Current version of record format
 	headerMagic              = "PIWTHRDB" // File magic, must be 8 bytes!
 	headerMagicOffset        = 0
-	headerSizeOffset         = headerMagicOffset + 8        // Offset of header size - 2 bytes
-	headerVersionOffset      = headerSizeOffset + 2         // 1 byte
-	headerFileVersionOffset  = headerVersionOffset + 1      // 1 byte
-	headerMetricLengthOffset = headerFileVersionOffset + 1  // 2 byte
+	headerSizeOffset         = headerMagicOffset + 8        // 2 bytes
+	headerVersionOffset      = headerSizeOffset + 2         // 2 bytes
+	headerFileVersionOffset  = headerVersionOffset + 2      // 2 bytes
+	headerRecordLengthOffset = headerFileVersionOffset + 2  // 2 bytes
+	headerMetricLengthOffset = headerRecordLengthOffset + 2 // 2 bytes
 	headerMetricOffset       = headerMetricLengthOffset + 2 // Offset of metric
 )
 
@@ -29,9 +31,11 @@ var (
 func NewFileHeader(metric string) FileHeader {
 	size, _ := headerSize(metric)
 	return FileHeader{
-		Name:    metric,
-		Version: currentFileVersion,
-		Size:    size,
+		Name:          metric,
+		Size:          size,
+		HeaderVersion: currentHeaderVersion,
+		RecordVersion: currentFileVersion,
+		RecordLength:  currentHandler.Size(),
 	}
 }
 
@@ -42,19 +46,20 @@ func CurrentHandler() RecordHandler {
 type FileHeader struct {
 	Size          int    // Header size
 	HeaderVersion int    // Header version
-	Version       int    // File format version
+	RecordVersion int    // File format version
+	RecordLength  int    // Record length
 	Name          string // Name of metric this file contains
 }
 
 func (h *FileHeader) GetRecordHandler() (RecordHandler, error) {
-	if h.Version == 0 {
-		h.Version = currentFileVersion
+	if h.RecordVersion == 0 {
+		h.RecordVersion = currentFileVersion
 	}
-	switch h.Version {
+	switch h.RecordVersion {
 	case 1:
 		return version1Handler, nil
 	default:
-		return nil, fmt.Errorf("unsupported file version %d", h.Version)
+		return nil, fmt.Errorf("unsupported file version %d", h.RecordVersion)
 	}
 }
 
@@ -72,11 +77,13 @@ func (h *FileHeader) Write(w io.Writer) error {
 
 	b := append([]byte{}, headerMagic...) // 8 bytes
 	b = binary.LittleEndian.AppendUint16(b, uint16(size))
-	b = append(b, currentHeaderVersion, currentFileVersion)
+	b = binary.LittleEndian.AppendUint16(b, uint16(h.HeaderVersion))
+	b = binary.LittleEndian.AppendUint16(b, uint16(h.RecordVersion))
+	b = binary.LittleEndian.AppendUint16(b, uint16(h.RecordLength))
 	b = binary.LittleEndian.AppendUint16(b, uint16(nameLen))
 	b = append(b, h.Name...)
 
-	// Should not be needed but pad to fit expected size
+	// pad to fit expected size as we keep records working on a 16 byte boundary
 	b, err := util.PadToLength(b, size)
 	if err != nil {
 		// Can happen if metric name is too long
@@ -106,10 +113,17 @@ func (h *FileHeader) Read(r io.Reader) error {
 		return fmt.Errorf("invalid header, expected %d bytes got %d", headerMetricOffset, n)
 	}
 
+	// Ensure this is an actual DB file by checking the headerMagic
+	//log.Printf("%X", b[headerMagicOffset:headerMagicOffset+8])
+	if string(b[headerMagicOffset:headerMagicOffset+8]) != headerMagic {
+		return errors.New("not a db file")
+	}
+
 	// Read in the default data from the header
 	h.Size = int(binary.LittleEndian.Uint16(b[headerSizeOffset : headerSizeOffset+2]))
-	h.HeaderVersion = int(b[headerVersionOffset])
-	h.Version = int(b[headerFileVersionOffset])
+	h.HeaderVersion = int(binary.LittleEndian.Uint16(b[headerVersionOffset : headerVersionOffset+2]))
+	h.RecordVersion = int(binary.LittleEndian.Uint16(b[headerFileVersionOffset : headerFileVersionOffset+2]))
+	h.RecordLength = int(binary.LittleEndian.Uint16(b[headerRecordLengthOffset : headerRecordLengthOffset+2]))
 	nameLen := int(binary.LittleEndian.Uint16(b[headerMetricLengthOffset : headerMetricLengthOffset+2]))
 
 	// Now read in the metric name

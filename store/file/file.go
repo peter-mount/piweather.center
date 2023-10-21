@@ -78,7 +78,7 @@ func (f *File) Size() (int, error) {
 func (f *File) EntryCount() (int, error) {
 	s, err := f.Size()
 	if err == nil && s > f.header.Size {
-		return (s - f.header.Size) / f.handler.Size(), nil
+		return (s - f.header.Size) / f.header.RecordLength, nil
 	}
 	return 0, err
 }
@@ -115,7 +115,7 @@ func (f *File) GetRecord(i int) (record.Record, error) {
 	defer f.mutex.Unlock()
 
 	var rec record.Record
-	recordSize := f.handler.Size()
+	recordSize := f.header.RecordLength
 
 	err := f.assertOpen()
 
@@ -175,7 +175,7 @@ func openFile(name string) (*File, error) {
 	}
 
 	if log.IsVerbose() {
-		log.Printf("opened %s(%s) ver %d", name, file.header.Name, file.header.Version)
+		log.Printf("opened %s", name)
 	}
 
 	return file, nil
@@ -199,8 +199,12 @@ func createFile(name, metric string) (*File, error) {
 		file:       f,
 		closer:     f,
 		lastAccess: time.Now(),
-		handler:    record.CurrentHandler(),
 		header:     record.NewFileHeader(metric),
+	}
+
+	file.handler, err = file.header.GetRecordHandler()
+	if err != nil {
+		return nil, err
 	}
 
 	err = file.header.Write(f)
