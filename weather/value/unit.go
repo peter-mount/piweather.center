@@ -155,7 +155,7 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 
 	// Unique hashcode - panic if we have a collision
 	h := fnv.New64a()
-	_, _ = h.Write([]byte(id))
+	_, _ = h.Write([]byte(n))
 	hid := h.Sum64()
 	if existing, exists := hashes[hid]; exists {
 		panic(fmt.Errorf("unit ID clash, %q[%d] clashes with %q", n, hid, existing.id))
