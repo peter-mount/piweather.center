@@ -210,7 +210,7 @@ func createFile(name, metric string) (*File, error) {
 	}
 
 	if log.IsVerbose() {
-		log.Printf("created %s(%s) ver %d", name, file.header.Name, file.header.Version)
+		log.Printf("created %s", name)
 	}
 
 	return file, nil

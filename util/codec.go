@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 	"time"
@@ -55,5 +56,9 @@ func ReadValue(b []byte) (value.Value, error) {
 func AppendValue(b []byte, v value.Value) []byte {
 	b = binary.LittleEndian.AppendUint64(b, math.Float64bits(v.Float()))
 	b = binary.LittleEndian.AppendUint64(b, v.Unit().Hash())
+
+	if v.Unit().Hash() == 7599665368900986221 {
+		log.Printf("*** Hash 7599665368900986221 %q %s", v.Unit().ID(), v.String())
+	}
 	return b
 }
