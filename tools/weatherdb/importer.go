@@ -12,7 +12,6 @@ import (
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/weather/value"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,16 +38,13 @@ func (i *Importer) Start() error {
 		i.startDate = time.Now().UTC().Add(-7 * 24 * time.Hour)
 	}
 
-	ctx := value.WithMap(context.Background())
-
 	return i.Config.Accept(station.NewVisitor().
 		Sensors(i.importSensor).
-		WithContext(ctx))
+		WithContext(context.Background()))
 }
 
 func (i *Importer) importSensor(ctx context.Context) error {
 	visitor := station.NewVisitor().
-		Sensors(value.ResetMap).
 		Reading(i.processReading)
 
 	sensors := station.SensorsFromContext(ctx)
