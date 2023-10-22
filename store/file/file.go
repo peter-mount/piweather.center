@@ -65,7 +65,11 @@ func (f *File) assertOpen() error {
 func (f *File) Size() (int, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
+	return f.size()
+}
 
+// size must be called from within a lock
+func (f *File) size() (int, error) {
 	if err := f.assertOpen(); err != nil {
 		return 0, err
 	}
@@ -124,7 +128,16 @@ func (f *File) GetRecord(i int) (record.Record, error) {
 		// Do this here so if we are not open we don't touch and it should then expire
 		f.touch()
 
-		_, err = f.file.Seek(int64(f.header.Size+(i*recordSize)), io.SeekStart)
+		var size int
+		size, err = f.size()
+		if err == nil {
+			offset := f.header.Size + (i * recordSize)
+			if offset >= size {
+				err = io.EOF
+			} else {
+				_, err = f.file.Seek(int64(offset), io.SeekStart)
+			}
+		}
 	}
 
 	if err == nil {
