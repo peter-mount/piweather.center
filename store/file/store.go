@@ -62,7 +62,9 @@ func (s *store) PostInit() error {
 }
 
 func (s *store) Start() error {
-	err := os.MkdirAll(*s.BaseDir, 0755)
+	if err := os.MkdirAll(*s.BaseDir, 0755); err != nil {
+		return err
+	}
 
 	s.openFiles = make(map[string]*File)
 
@@ -76,7 +78,7 @@ func (s *store) Start() error {
 		s.expiryId = id
 	}
 
-	return err
+	return nil
 }
 
 func (s *store) Stop() {
