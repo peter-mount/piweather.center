@@ -78,7 +78,7 @@ func (s *store) Start() error {
 		s.expiryId = id
 	}
 
-	return nil
+	return s.initLatest()
 }
 
 func (s *store) Stop() {
@@ -112,4 +112,13 @@ func (s *store) NumRecords(metric string, date time.Time) (int, error) {
 		return file.EntryCount()
 	}
 	return -1, err
+}
+
+func (s *store) GetLatestRecord(metric string, date time.Time) (record.Record, error) {
+	var rec record.Record
+	file, err := s.openFile(metric, date)
+	if err == nil {
+		rec, err = file.GetLatestRecord()
+	}
+	return rec, err
 }

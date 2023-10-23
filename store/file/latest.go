@@ -24,6 +24,7 @@ func (l *Latest) Append(metric string, rec record.Record) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
+	// Check that existing entry is not newer than the one being appended
 	old, exists := l.metrics[metric]
 	if exists && old.IsValid() && old.Time.After(rec.Time) {
 		return

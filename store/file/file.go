@@ -19,6 +19,7 @@ type File struct {
 	closer     io.Closer            // To close underlying file
 	handler    record.RecordHandler // Handler for version
 	lastAccess time.Time            // Time of last access
+	latest     record.Record        // The most recent record
 }
 
 func (f *File) touch() {
@@ -104,14 +105,38 @@ func (f *File) Append(rec record.Record) error {
 
 	if err == nil {
 		n, err1 := f.file.Write(b)
-		if err1 != nil {
+		switch {
+		case err1 != nil:
 			err = err1
-		} else if n != len(b) {
+		case n != len(b):
 			err = fmt.Errorf("%s: wrote %d/%d bytes", f.header.Name, n, len(b))
+		default:
+			f.latest = rec
 		}
 	}
 
 	return err
+}
+
+func (f *File) GetLatestRecord() (record.Record, error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if f.latest.IsValid() {
+		return f.latest, nil
+	}
+
+	// Seek to start of most recent record
+	offset, err := f.file.Seek(-int64(f.header.RecordLength), io.SeekEnd)
+	if err == nil && offset >= int64(f.header.Size) {
+		// We have a valid entry
+		f.latest, err = f.readRecord()
+	} else {
+		// Replace with an invalid entry
+		f.latest = record.Record{}
+	}
+
+	return f.latest, err
 }
 
 func (f *File) GetRecord(i int) (record.Record, error) {
@@ -141,19 +166,24 @@ func (f *File) GetRecord(i int) (record.Record, error) {
 	}
 
 	if err == nil {
-		buf := make([]byte, recordSize)
-		n, err1 := f.file.Read(buf)
-		switch {
-		case err1 != nil:
-			err = err1
-		case n != recordSize:
-			err = fmt.Errorf("expected %d bytes got %d record %d file %s", recordSize, n, i, f.name)
-		default:
-			rec, err = f.handler.Read(buf)
-		}
+		rec, err = f.readRecord()
 	}
 
 	return rec, err
+}
+
+func (f *File) readRecord() (rec record.Record, err error) {
+	buf := make([]byte, f.header.RecordLength)
+	n, err1 := f.file.Read(buf)
+	switch {
+	case err1 != nil:
+		err = err1
+	case n != f.header.RecordLength:
+		err = fmt.Errorf("expected %d bytes got %d file %s", f.header.RecordLength, n, f.name)
+	default:
+		rec, err = f.handler.Read(buf)
+	}
+	return
 }
 
 // openFile opens the named file.
