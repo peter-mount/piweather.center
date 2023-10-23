@@ -43,7 +43,6 @@ func (c *config) Start() error {
 		return fmt.Errorf("no configuration provided")
 	}
 
-	fmt.Println(c.Config)
 	// Once loaded ensure the structure is intact and ids are set up
 	return c.Config.Init()
 }
