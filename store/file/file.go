@@ -15,8 +15,7 @@ type File struct {
 	mutex      sync.Mutex           // Mutex used to keep reads/writes atomic
 	name       string               // Name of file
 	header     record.FileHeader    // File header
-	file       io.ReadWriteSeeker   // File access
-	closer     io.Closer            // To close underlying file
+	file       *os.File             // Underlying file
 	handler    record.RecordHandler // Handler for version
 	lastAccess time.Time            // Time of last access
 	latest     record.Record        // The most recent record
@@ -34,12 +33,11 @@ func (f *File) Close() error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	if f.closer != nil && f.file != nil {
+	if f.file != nil {
 		defer func() {
-			f.closer = nil
 			f.file = nil
 		}()
-		return f.closer.Close()
+		return f.file.Close()
 	}
 	return nil
 }
@@ -52,7 +50,7 @@ func (f *File) IsOpen() bool {
 }
 
 func (f *File) isOpen() bool {
-	return f.closer != nil && f.file != nil
+	return f.file != nil
 }
 
 func (f *File) assertOpen() error {
@@ -89,6 +87,14 @@ func (f *File) EntryCount() (int, error) {
 }
 
 func (f *File) Append(rec record.Record) error {
+	return f.append(rec, true)
+}
+
+func (f *File) AppendBulk(rec record.Record) error {
+	return f.append(rec, false)
+}
+
+func (f *File) append(rec record.Record, sync bool) error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
@@ -104,6 +110,9 @@ func (f *File) Append(rec record.Record) error {
 	// Seek to the end of the file
 	offset, err := f.file.Seek(0, io.SeekEnd)
 
+	// Check the file length is at an expected record start location.
+	// If it is not, for now just remove the last partial record
+	// TODO implement WAL and restore here?
 	if err == nil {
 		// Test the file end is at the end of a record.
 		lastRecSize := (int(offset) - f.header.Size) % f.header.RecordLength
@@ -122,6 +131,7 @@ func (f *File) Append(rec record.Record) error {
 		}
 	}
 
+	// Write the record
 	if err == nil {
 		n, err1 := f.file.Write(b)
 		switch {
@@ -134,7 +144,22 @@ func (f *File) Append(rec record.Record) error {
 		}
 	}
 
+	// Force the data to disk
+	if sync && err == nil {
+		err = f.file.Sync()
+	}
+
 	return err
+}
+
+func (f *File) Sync() error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if f.isOpen() {
+		return f.file.Sync()
+	}
+	return nil
 }
 
 func (f *File) GetLatestRecord() (record.Record, error) {
@@ -220,7 +245,6 @@ func openFile(name string) (*File, error) {
 	file := &File{
 		name:       name,
 		file:       f,
-		closer:     f,
 		lastAccess: time.Now(),
 	}
 
@@ -259,7 +283,6 @@ func createFile(name, metric string) (*File, error) {
 	file := &File{
 		name:       name,
 		file:       f,
-		closer:     f,
 		lastAccess: time.Now(),
 		header:     record.NewFileHeader(metric),
 	}

@@ -84,6 +84,9 @@ func (s *store) openOrCreateFileImpl(metric string, t time.Time, create bool) (*
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	// Enforce UTC
+	t = t.UTC()
+
 	key := GenKey(metric, t)
 
 	// Check we have it already open

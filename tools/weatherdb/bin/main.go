@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/file/server"
-	"github.com/peter-mount/piweather.center/tools/weatherdb"
+	"github.com/peter-mount/piweather.center/store/util"
 	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"os"
 )
@@ -12,7 +12,7 @@ import (
 func main() {
 	if err := kernel.Launch(
 		&server.Server{},
-		&weatherdb.Importer{},
+		&util.Importer{},
 	); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

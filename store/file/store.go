@@ -20,6 +20,8 @@ func init() {
 type Store interface {
 	// Append a record to a metric
 	Append(metric string, rec record.Record) error
+	AppendBulk(metric string, rec record.Record) error
+	Sync(metric string) error
 	// GetRecord returns the numbered record for a metric on a specific date
 	GetRecord(metric string, date time.Time, num int) (record.Record, error)
 	// NumRecords returns the number of metrics for a metric on a specific date
@@ -87,12 +89,32 @@ func (s *store) Stop() {
 }
 
 func (s *store) Append(metric string, rec record.Record) error {
+	return s.append(metric, rec, false)
+}
+
+func (s *store) AppendBulk(metric string, rec record.Record) error {
+	return s.append(metric, rec, true)
+}
+
+func (s *store) append(metric string, rec record.Record, bulk bool) error {
 	file, err := s.openOrCreateFile(metric, rec.Time)
 	if err == nil {
-		err = file.Append(rec)
+		if bulk {
+			err = file.AppendBulk(rec)
+		} else {
+			err = file.Append(rec)
+		}
 	}
 	if err == nil {
 		s.Latest.Append(metric, rec)
+	}
+	return err
+}
+
+func (s *store) Sync(metric string) error {
+	file, err := s.openOrCreateFile(metric, time.Now())
+	if err == nil {
+		err = file.Sync()
 	}
 	return err
 }

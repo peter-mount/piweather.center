@@ -1,4 +1,4 @@
-package weatherdb
+package util
 
 import (
 	"context"
@@ -103,7 +103,7 @@ func (i *Importer) processReading(ctx context.Context) error {
 				return nil
 			}
 
-			return i.Store.Append(r.ID, record.Record{
+			return i.Store.AppendBulk(r.ID, record.Record{
 				Time:  p.Time(),
 				Value: v,
 			})
