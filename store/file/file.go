@@ -101,7 +101,26 @@ func (f *File) Append(rec record.Record) error {
 
 	b := f.handler.Append(nil, rec)
 
-	_, err := f.file.Seek(0, io.SeekEnd)
+	// Seek to the end of the file
+	offset, err := f.file.Seek(0, io.SeekEnd)
+
+	if err == nil {
+		// Test the file end is at the end of a record.
+		lastRecSize := (int(offset) - f.header.Size) % f.header.RecordLength
+		if lastRecSize != 0 {
+			// If not, log a warning and try to fix by removing the extra bytes on the end
+			_, _ = fmt.Fprintf(os.Stderr, "Warning: last record size is %d bytes not %d, trying to fix %s", lastRecSize, f.header.RecordLength, f.name)
+
+			// Not ideal but loose the last record
+			offset, err = f.file.Seek(offset-int64(lastRecSize), io.SeekStart)
+			if err == nil {
+				lastRecSize = (int(offset) - f.header.Size) % f.header.RecordLength
+				if lastRecSize != 0 {
+					_, _ = fmt.Fprintf(os.Stderr, "Warning: file potentially corrupt %q", f.name)
+				}
+			}
+		}
+	}
 
 	if err == nil {
 		n, err1 := f.file.Write(b)
