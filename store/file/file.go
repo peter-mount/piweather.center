@@ -234,7 +234,7 @@ func (f *File) readRecord() (rec record.Record, err error) {
 // Warning, the file will be open when this returns, so it's up to the caller to close it.
 // returns nil,nil if the file does not exist.
 func openFile(name string) (*File, error) {
-	f, err := os.Open(name)
+	f, err := os.OpenFile(name, os.O_RDWR, 0)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
