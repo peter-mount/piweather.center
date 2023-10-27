@@ -5,71 +5,44 @@ import (
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
+	"github.com/peter-mount/piweather.center/store/file"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 )
 
-type Store struct {
-	Cron    *cron.CronService `kernel:"inject"`
-	Config  service.Config    `kernel:"inject"`
-	mutex   sync.Mutex
-	data    map[string]*memory.Reading
-	history map[string][]*memory.Reading
+type Store interface {
+	AddContext(ctx context.Context) context.Context
+	ProcessReading(ctx context.Context) error
+	Calculate(ctx context.Context) error
+	Record(name string, value value.Value, recTime time.Time)
+	Latest(name string) (record.Record, bool)
+	Metrics() []string
+	GetMetricBetween(metric string, from, to time.Time) []record.Record
+	GetHistory(metric string) []record.Record
 }
 
-const (
-	storeMaxAge = time.Hour * 26 // Max time to keep readings
-)
-
-func StoreFromContext(ctx context.Context) *Store {
-	return ctx.Value("local.store").(*Store)
+type store struct {
+	Cron   *cron.CronService `kernel:"inject"`
+	Config service.Config    `kernel:"inject"`
+	Memory memory.Latest     `kernel:"inject"`
+	File   file.Store        `kernel:"inject"`
 }
 
-func (s *Store) AddContext(ctx context.Context) context.Context {
+func StoreFromContext(ctx context.Context) Store {
+	return ctx.Value("local.store").(Store)
+}
+
+func (s *store) AddContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, "local.store", s)
 }
 
-func (s *Store) Start() error {
-	s.data = make(map[string]*memory.Reading)
-	s.history = make(map[string][]*memory.Reading)
-
-	// Register every reading in the store so we have an entry for them
-	err := s.Config.Accept(station.NewVisitor().
-		Reading(s.registerReading).
-		WithContext(context.Background()))
-
-	if err == nil {
-		// Every 10 minutes clear down history
-		_, err = s.Cron.AddTask("0/10 * * * ?", s.pruneTask)
-	}
-
-	return err
-}
-
-func (s *Store) registerReading(ctx context.Context) error {
-	r := station.ReadingFromContext(ctx)
-
-	name := strings.ToLower(r.ID)
-
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	if _, exists := s.data[name]; !exists {
-		rec := &memory.Reading{Name: name, Value: r.Unit().Value(0)}
-		s.data[name] = rec
-		s.history[name] = []*memory.Reading{rec}
-	}
-
-	return nil
-}
-
-func (s *Store) ProcessReading(ctx context.Context) error {
+func (s *store) ProcessReading(ctx context.Context) error {
 	r := station.ReadingFromContext(ctx)
 	values := value.MapFromContext(ctx)
 	if r.Unit() != nil {
@@ -98,7 +71,7 @@ func (s *Store) ProcessReading(ctx context.Context) error {
 	return nil
 }
 
-func (s *Store) Calculate(ctx context.Context) error {
+func (s *store) Calculate(ctx context.Context) error {
 	// Get value.Time from Station and Payload
 	sensors := station.SensorsFromContext(ctx)
 	p := payload.GetPayload(ctx)
@@ -121,92 +94,42 @@ func (s *Store) Calculate(ctx context.Context) error {
 	return nil
 }
 
-func (s *Store) Record(name string, value value.Value, recTime time.Time) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
+func (s *store) Record(name string, value value.Value, recTime time.Time) {
 	name = strings.ToLower(name)
 
-	rec := &memory.Reading{
-		Name:  name,
-		Value: value,
+	rec := record.Record{
 		Time:  recTime,
+		Value: value,
 	}
 
-	// Prepend to history, keeping only last 60 entries
-	hist := s.history[name]
-	hist = append(hist, rec)
-	sort.SliceStable(hist, func(i, j int) bool {
-		return hist[i].Time.Before(hist[j].Time)
+	_ = s.File.Append(name, rec)
+	s.Memory.Append(name, rec)
+}
+
+func (s *store) Latest(name string) (record.Record, bool) {
+	return s.Memory.Latest(name)
+}
+
+func (s *store) Metrics() []string {
+	return s.Memory.Metrics()
+}
+
+func (s *store) GetMetrics(query file.Query) []record.Record {
+	records := file.GetAllRecords(query)
+	sort.SliceStable(records, func(i, j int) bool {
+		return records[i].Time.Before(records[j].Time)
 	})
-
-	// Prune the history as we add an entry
-	hist = s.pruneHistory(hist)
-	s.history[name] = hist
-
-	// Cache latest value which is at end, but only if we have data
-	if len(hist) > 0 {
-		s.data[name] = hist[len(hist)-1]
-	}
+	return records
 }
 
-func (s *Store) GetReading(name string) *memory.Reading {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	name = strings.ToLower(name)
-	return s.data[name]
+func (s *store) GetMetricBetween(metric string, from, to time.Time) []record.Record {
+	return s.GetMetrics(s.File.Query(metric).
+		Between(from, to).
+		Build())
 }
 
-func (s *Store) GetHistory(name string) []*memory.Reading {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	name = strings.ToLower(name)
-	return s.history[name]
-}
-
-func (s *Store) GetKeys() []string {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	var keys []string
-	for k, _ := range s.data {
-		keys = append(keys, k)
-	}
-
-	sort.SliceStable(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
-
-	return keys
-}
-
-func (s *Store) pruneTask(_ context.Context) error {
-	keys := s.GetKeys()
-	for _, k := range keys {
-		s.prune(k)
-	}
-	return nil
-}
-
-func (s *Store) prune(key string) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	if hist, exists := s.history[key]; exists {
-		s.history[key] = s.pruneHistory(hist)
-	}
-}
-
-func (s *Store) pruneHistory(hist []*memory.Reading) []*memory.Reading {
-	cutoff := time.Now().Add(-storeMaxAge)
-
-	// >2 so we keep the last 2 entries regardless of how old
-	// they are - so on status page we have a last received time
-	// if a sensor is offline.
-	for len(hist) > 1 && hist[0].Time.Before(cutoff) {
-		hist = hist[1:]
-	}
-
-	return hist
+func (s *store) GetHistory(metric string) []record.Record {
+	return s.GetMetrics(s.File.Query(metric).
+		Today().
+		Build())
 }

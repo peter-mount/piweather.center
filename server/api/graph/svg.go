@@ -18,7 +18,7 @@ func init() {
 // SVG provides the /api/svg endpoint which displays svg graphs for a metric
 type SVG struct {
 	Inbound *api.EndpointManager `kernel:"inject"`
-	Store   *store.Store         `kernel:"inject"`
+	Store   store.Store          `kernel:"inject"`
 	Config  service.Config       `kernel:"inject"`
 }
 

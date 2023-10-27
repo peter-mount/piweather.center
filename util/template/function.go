@@ -30,8 +30,8 @@ func (m *Manager) PostInit() error {
 		"divide":            genCalc(value.Divide),
 		"dict":              dict,
 		"decimalAlign":      NewDecimalAlign,
-		"getReadingKeys":    m.Store.GetKeys,
-		"getReading":        m.Store.GetReading,
+		"getReadingKeys":    m.Store.Metrics(),
+		"getReading":        m.Store.Latest,
 		"getReadingHistory": m.Store.GetHistory,
 	}
 	return nil

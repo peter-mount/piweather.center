@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/piweather.center/store/file/record"
+	"github.com/peter-mount/piweather.center/store/memory"
 	cron2 "gopkg.in/robfig/cron.v2"
 	"os"
 	"path/filepath"
@@ -35,7 +36,7 @@ type Store interface {
 // which ones are open
 type store struct {
 	Cron       *cron.CronService `kernel:"inject"`                                       // Cron to run periodic jobs
-	Latest     *Latest           `kernel:"inject"`                                       // Used to store most recent metric
+	Latest     memory.Latest     `kernel:"inject"`                                       // Used to store most recent metric
 	BaseDir    *string           `kernel:"flag,metric-db,Directory for storing metrics"` // Base directory of database
 	FileExpiry *int              `kernel:"flag,metric-expiry,Expiry time in minutes,2"`  // Expiry time for open files in minutes
 

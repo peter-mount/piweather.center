@@ -14,7 +14,7 @@ import (
 type Manager struct {
 	restService  *rest.Server `kernel:"inject"`
 	webRoot      *string      `kernel:"flag,webroot,Web root directory"`
-	Store        *store.Store `kernel:"inject"`
+	Store        store.Store  `kernel:"inject"`
 	rootTemplate *template.Template
 	funcMap      template.FuncMap
 	rootDir      string

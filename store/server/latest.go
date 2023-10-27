@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/store/file/api"
+	api2 "github.com/peter-mount/piweather.center/store/api"
 	"sort"
 	"strings"
 )
@@ -10,7 +10,7 @@ import (
 // record implements the /record api
 func (s *Server) latestMetrics(r *rest.Rest) error {
 
-	var metrics []api.Metric
+	var metrics []api2.Metric
 
 	keys := s.Latest.Metrics()
 	sort.SliceStable(keys, func(i, j int) bool {
@@ -20,7 +20,7 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 	for _, metric := range keys {
 		if rec, exists := s.Latest.Latest(metric); exists {
 			v := rec.Value
-			metrics = append(metrics, api.Metric{
+			metrics = append(metrics, api2.Metric{
 				Metric: metric,
 				Time:   rec.Time,
 				Unit:   v.Unit().ID(),
@@ -29,7 +29,7 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 		}
 	}
 
-	response := api.Response{
+	response := api2.Response{
 		Status:  200,
 		Metrics: metrics,
 	}
@@ -45,14 +45,14 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 func (s *Server) latestMetric(r *rest.Rest) error {
 	metric := strings.ReplaceAll(r.Var(METRIC), "/", ".")
 
-	response := api.Response{Metric: metric}
+	response := api2.Response{Metric: metric}
 
 	rec, exists := s.Latest.Latest(metric)
 
 	if exists {
 		v := rec.Value
 		response.Status = 200
-		response.Result = &api.MetricValue{
+		response.Result = &api2.MetricValue{
 			Time:  rec.Time,
 			Unit:  v.Unit().ID(),
 			Value: v.Float(),

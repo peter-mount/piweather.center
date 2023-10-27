@@ -23,6 +23,14 @@ type queryScanner struct {
 	record     record.Record // current record
 }
 
+func GetAllRecords(q Query) []record.Record {
+	var records []record.Record
+	for q.HasNext() {
+		records = append(records, q.Next())
+	}
+	return records
+}
+
 func (q *queryScanner) Next() record.Record {
 	return q.record
 }

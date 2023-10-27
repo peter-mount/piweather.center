@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
-	"github.com/peter-mount/piweather.center/store/file/server"
+	"github.com/peter-mount/piweather.center/store/server"
 	"github.com/peter-mount/piweather.center/store/util"
 	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"os"

@@ -1,10 +1,13 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/store/file/api"
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 // record implements the /record api
@@ -85,4 +88,18 @@ func (s *Server) recordMetric(metric api.Metric) api.Response {
 	}
 
 	return api.Response{Status: 200}
+}
+
+// recordMetricAmqp accepts a metric from RabbitMQ and passes it to recordMetric
+func (s *Server) recordMetricAmqp(delivery amqp091.Delivery) error {
+	var metric api.Metric
+	err := json.Unmarshal(delivery.Body, &metric)
+	if err == nil {
+		resp := s.recordMetric(metric)
+		// Allow 2xx for successful status codes
+		if (resp.Status / 100) != 2 {
+			err = fmt.Errorf("recordMetricAmqp status %d %s %q", resp.Status, resp.Message, resp.Source)
+		}
+	}
+	return err
 }

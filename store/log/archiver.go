@@ -1,4 +1,4 @@
-package store
+package log
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/store"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"os"
 	"path/filepath"
@@ -16,11 +17,11 @@ import (
 )
 
 type Archiver struct {
-	Store       *Store     `kernel:"inject"`
-	State       *State     `kernel:"inject"`
-	storeDir    *string    `kernel:"flag,archive-dir,Archive directory"`
-	logMessages *bool      `kernel:"flag,archive-log,Dump messages to stdout"`
-	worker      task.Queue `kernel:"worker"`
+	Store       store.Store  `kernel:"inject"`
+	State       *store.State `kernel:"inject"`
+	storeDir    *string      `kernel:"flag,archive-dir,Archive directory"`
+	logMessages *bool        `kernel:"flag,archive-log,Dump messages to stdout"`
+	worker      task.Queue   `kernel:"worker"`
 	mutex       sync.Mutex
 }
 
@@ -104,7 +105,7 @@ func (s *Archiver) Preload(ctx context.Context) error {
 	}
 
 	// Now update the State with what we have loaded
-	return s.State.updateStations(nil)
+	return s.State.UpdateStations(nil)
 }
 
 func (s *Archiver) preload(ctx context.Context, t time.Time) error {

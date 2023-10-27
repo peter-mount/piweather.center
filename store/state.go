@@ -15,7 +15,7 @@ import (
 
 // State manages an in memory copy of the ID data
 type State struct {
-	Store    *Store            `kernel:"inject"`
+	Store    Store             `kernel:"inject"`
 	Config   service.Config    `kernel:"inject"`
 	Cron     *cron.CronService `kernel:"inject"`
 	mutex    sync.Mutex
@@ -25,12 +25,12 @@ type State struct {
 func (s *State) Start() error {
 	s.stations = make(map[string]*state.Station)
 
-	if _, err := s.Cron.AddTask("58 * * * * ?", s.updateStations); err != nil {
+	if _, err := s.Cron.AddTask("58 * * * * ?", s.UpdateStations); err != nil {
 		return err
 	}
 
 	// Trigger a scan so we have some data.
-	_ = s.updateStations(nil)
+	_ = s.UpdateStations(nil)
 
 	return nil
 }
@@ -41,7 +41,7 @@ func (s *State) GetStation(id string) *state.Station {
 	return s.stations[id]
 }
 
-func (s *State) updateStations(_ context.Context) error {
+func (s *State) UpdateStations(_ context.Context) error {
 	for _, stationDef := range *s.Config.Stations() {
 		s.updateStation(stationDef)
 	}
@@ -102,6 +102,7 @@ func (s *State) updateStation(station *station.Station) {
 // getMeasurement calculates the ID of a specific reading id
 func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement {
 
+	/* FIXME reimplement
 	meta := stn.Meta
 
 	r := s.Store.GetHistoryBetween(id, meta.Hour24, meta.Time)
@@ -163,4 +164,6 @@ func (s *State) getMeasurement(stn *state.Station, id string) *state.Measurement
 	}
 
 	return m
+	*/
+	return nil
 }

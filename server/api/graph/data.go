@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/graph/chart"
 	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -16,7 +17,7 @@ func (s *SVG) initChart(start, end time.Time, ctx context.Context, c chart.Chart
 
 	g := station.GraphFromContext(ctx)
 
-	readings := s.Store.GetHistoryBetween(id, start, end)
+	readings := s.Store.GetMetricBetween(id, start, end)
 	if readings == nil {
 		return false, nil
 	}
@@ -56,7 +57,11 @@ func (s *SVG) initChart(start, end time.Time, ctx context.Context, c chart.Chart
 		}
 
 	} else {
-		dataSource = readings
+		ds, err := record.DataSource(readings)
+		if err != nil {
+			return false, err
+		}
+		dataSource = ds
 	}
 
 	c.SetDefinition(g).

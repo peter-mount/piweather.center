@@ -4,8 +4,6 @@ import (
 	"github.com/peter-mount/go-script/packages"
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/store/memory"
-	"time"
 )
 
 func init() {
@@ -35,6 +33,7 @@ func (w *Weather) LoadConfig(fileName string) error {
 	return nil
 }
 
+/*
 func (w *Weather) NewStore(dir string) (*memory.Store, error) {
 	return memory.New(dir, w.stations)
 }
@@ -50,3 +49,4 @@ func (w *Weather) ReducerMinutes(minutes int) *memory.Reducer {
 func (w *Weather) Filter() *memory.Filter {
 	return memory.NewFilter()
 }
+*/

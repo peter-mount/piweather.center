@@ -30,8 +30,7 @@ func (s *service) storeReading(ctx context.Context) error {
 	for _, sensor := range s.Config.Sensors {
 		for _, entity := range sensor.Entities {
 			if entity.SensorId != "" && entity.StateTopic != "" {
-				reading := store.GetReading(entity.SensorId)
-				if reading != nil && reading.Value.IsValid() {
+				if reading, exists := store.Latest(entity.SensorId); exists && reading.Value.IsValid() {
 
 					// TODO add conversion here
 

@@ -1,22 +1,33 @@
-package file
+package memory
 
 import (
+	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"sync"
 )
 
+func init() {
+	kernel.RegisterAPI((*Latest)(nil), &latest{})
+}
+
 // Latest manages an in memory copy of the most recent Record entered into the database
-type Latest struct {
+type Latest interface {
+	Append(metric string, rec record.Record)
+	Latest(metric string) (record.Record, bool)
+	Metrics() []string
+}
+
+type latest struct {
 	mutex   sync.Mutex
 	metrics map[string]record.Record
 }
 
-func (l *Latest) Start() error {
+func (l *latest) Start() error {
 	l.metrics = make(map[string]record.Record)
 	return nil
 }
 
-func (l *Latest) Append(metric string, rec record.Record) {
+func (l *latest) Append(metric string, rec record.Record) {
 	if metric == "" || !rec.IsValid() {
 		return
 	}
@@ -33,7 +44,7 @@ func (l *Latest) Append(metric string, rec record.Record) {
 	l.metrics[metric] = rec
 }
 
-func (l *Latest) Latest(metric string) (record.Record, bool) {
+func (l *latest) Latest(metric string) (record.Record, bool) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
@@ -41,7 +52,7 @@ func (l *Latest) Latest(metric string) (record.Record, bool) {
 	return rec, exists
 }
 
-func (l *Latest) Metrics() []string {
+func (l *latest) Metrics() []string {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 

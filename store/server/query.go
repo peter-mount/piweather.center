@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
+	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
-	"github.com/peter-mount/piweather.center/store/file/api"
 )
 
 func (s *Server) queryToday(r *rest.Rest) error {
@@ -24,7 +24,7 @@ func (s *Server) query(r *rest.Rest, metric string, qbf func(file.QueryBuilder))
 	qbf(qb)
 	query := qb.Build()
 
-	response := api.Response{
+	response := api2.Response{
 		Status: 200,
 		Metric: metric,
 	}
@@ -32,7 +32,7 @@ func (s *Server) query(r *rest.Rest, metric string, qbf func(file.QueryBuilder))
 	for query.HasNext() {
 		rec := query.Next()
 		val := rec.Value
-		response.Results = append(response.Results, api.MetricValue{
+		response.Results = append(response.Results, api2.MetricValue{
 			Time:  rec.Time,
 			Unit:  val.Unit().ID(),
 			Value: val.Float(),

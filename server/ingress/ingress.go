@@ -16,6 +16,7 @@ import (
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store"
+	log2 "github.com/peter-mount/piweather.center/store/log"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
 	"net/http"
@@ -24,12 +25,12 @@ import (
 // Ingress handles the ability to get data into the system, be it via
 // http, amqp, mqtt etc.
 type Ingress struct {
-	Archiver        *store.Archiver        `kernel:"inject"`
+	Archiver        *log2.Archiver         `kernel:"inject"`
 	Amqp            mq.Pool                `kernel:"inject"`
 	Mqtt            mqtt.Pool              `kernel:"inject"`
 	EndpointManager *api.EndpointManager   `kernel:"inject"`
 	Config          service.Config         `kernel:"inject"`
-	Store           *store.Store           `kernel:"inject"`
+	Store           store.Store            `kernel:"inject"`
 	HomeAssistant   homeassistant.Service  `kernel:"inject"`
 	InfluxDB        influxdb.Pool          `kernel:"inject"`
 	subContext      context.Context        // Common Context
