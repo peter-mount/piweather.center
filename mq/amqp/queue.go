@@ -26,6 +26,10 @@ type Binding struct {
 	Key   string `json:"key" xml:"key,attr" yaml:"key"`
 }
 
+func (b Binding) Equals(o Binding) bool {
+	return b.Topic == o.Topic && b.Key == o.Key
+}
+
 func (q *Queue) Bind(broker *MQ) error {
 	if q.mq != nil {
 		return fmt.Errorf("Queue %s already bound to a broker", q.Name)
@@ -125,4 +129,13 @@ func (q *Queue) logError(err error) {
 	if err != nil {
 		log.Printf("error, queue=%q, error=%v", q.Name, err)
 	}
+}
+
+func (q *Queue) AddBinding(b Binding) {
+	for _, o := range q.Binding {
+		if b.Equals(o) {
+			return
+		}
+	}
+	q.Binding = append(q.Binding, b)
 }

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/homeassistant"
-	"github.com/peter-mount/piweather.center/influxdb"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/server/api"
@@ -16,6 +14,8 @@ import (
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store"
+	api2 "github.com/peter-mount/piweather.center/store/api"
+	"github.com/peter-mount/piweather.center/store/broker"
 	log2 "github.com/peter-mount/piweather.center/store/log"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
@@ -25,19 +25,21 @@ import (
 // Ingress handles the ability to get data into the system, be it via
 // http, amqp, mqtt etc.
 type Ingress struct {
-	Archiver        *log2.Archiver         `kernel:"inject"`
-	Amqp            mq.Pool                `kernel:"inject"`
-	Mqtt            mqtt.Pool              `kernel:"inject"`
-	EndpointManager *api.EndpointManager   `kernel:"inject"`
-	Config          service.Config         `kernel:"inject"`
-	Store           store.Store            `kernel:"inject"`
-	HomeAssistant   homeassistant.Service  `kernel:"inject"`
-	InfluxDB        influxdb.Pool          `kernel:"inject"`
-	subContext      context.Context        // Common Context
-	processVisitor  station.VisitorBuilder // Common visitor used by all sources to process data
+	Archiver        *log2.Archiver       `kernel:"inject"`
+	Amqp            mq.Pool              `kernel:"inject"`
+	Mqtt            mqtt.Pool            `kernel:"inject"`
+	EndpointManager *api.EndpointManager `kernel:"inject"`
+	Config          service.Config       `kernel:"inject"`
+	Store           store.Store          `kernel:"inject"`
+	//HomeAssistant   homeassistant.Service  `kernel:"inject"`
+	//InfluxDB        influxdb.Pool          `kernel:"inject"`
+	DatabaseBroker broker.DatabaseBroker  `kernel:"inject"`
+	subContext     context.Context        // Common Context
+	processVisitor station.VisitorBuilder // Common visitor used by all sources to process data
 }
 
 func (s *Ingress) Start() error {
+
 	// Common context for processing
 	s.subContext = s.Archiver.AddContext(s.Store.AddContext(value.WithMap(context.Background())))
 
@@ -49,8 +51,10 @@ func (s *Ingress) Start() error {
 		Sensors(s.Archiver.Archive).
 		Reading(s.Store.ProcessReading).
 		CalculatedValue(s.Store.Calculate).
-		Output(s.HomeAssistant.StoreReading).
-		Output(s.InfluxDB.StoreReading)
+		Output(s.databaseReading)
+	// TODO remove these as they should be in egress
+	//Output(s.HomeAssistant.StoreReading).
+	//Output(s.InfluxDB.StoreReading)
 
 	// Now we preload data from storage to give us some recent history
 	if err := s.Config.Accept(station.NewVisitor().
@@ -197,4 +201,26 @@ func (s *Ingress) startEcowitt(ctx context.Context) error {
 					VisitSensors(sensor)
 			}
 		})
+}
+
+func (s *Ingress) databaseReading(ctx context.Context) error {
+	payloadEntry := payload.GetPayload(ctx)
+
+	metric := api2.Metric{Time: payloadEntry.Time().UTC()}
+
+	values := value.MapFromContext(ctx)
+	for _, key := range values.GetKeys() {
+		val := values.Get(key)
+
+		metric.Metric = key
+		metric.Value = val.Float()
+		metric.Unit = val.Unit().ID()
+
+		err := s.DatabaseBroker.PublishMetric(metric)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

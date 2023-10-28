@@ -2,6 +2,7 @@ package template
 
 import (
 	"errors"
+	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
@@ -30,9 +31,12 @@ func (m *Manager) PostInit() error {
 		"divide":            genCalc(value.Divide),
 		"dict":              dict,
 		"decimalAlign":      NewDecimalAlign,
-		"getReadingKeys":    m.Store.Metrics(),
-		"getReading":        m.Store.Latest,
+		"getReadingKeys":    m.Store.Metrics,
 		"getReadingHistory": m.Store.GetHistory,
+		"getReading": func(name string) record.Record {
+			r, _ := m.Store.Latest(name)
+			return r
+		},
 	}
 	return nil
 }

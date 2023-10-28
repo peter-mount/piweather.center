@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
@@ -15,6 +16,10 @@ import (
 	"strings"
 	"time"
 )
+
+func init() {
+	kernel.RegisterAPI((*Store)(nil), &store{})
+}
 
 type Store interface {
 	AddContext(ctx context.Context) context.Context
@@ -64,8 +69,6 @@ func (s *store) ProcessReading(ctx context.Context) error {
 			}
 
 			values.Put(r.ID, v)
-
-			s.Record(r.ID, v, p.Time())
 		}
 	}
 	return nil
@@ -88,8 +91,6 @@ func (s *store) Calculate(ctx context.Context) error {
 	}
 
 	values.Put(calc.ID, result)
-
-	s.Record(calc.ID, result, p.Time())
 
 	return nil
 }

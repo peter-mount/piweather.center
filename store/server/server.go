@@ -6,17 +6,18 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/memory"
 )
 
 type Server struct {
-	Web     *rest.Server  `kernel:"inject"`
-	Amqp    amqp.Pool     `kernel:"inject"`
-	Store   file.Store    `kernel:"inject"`
-	Latest  memory.Latest `kernel:"inject"`
-	mq      *amqp.MQ
-	mqQueue *amqp.Queue
+	Web            *rest.Server          `kernel:"inject"`
+	Amqp           amqp.Pool             `kernel:"inject"`
+	Store          file.Store            `kernel:"inject"`
+	Latest         memory.Latest         `kernel:"inject"`
+	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
+	mqQueue        *amqp.Queue
 }
 
 const (
@@ -25,7 +26,6 @@ const (
 	metricPattern = "/{" + METRIC + ":.{1,}}"
 	POST          = "POST"
 	GET           = "GET"
-	brokerName    = "database"
 )
 
 func (s *Server) Init(_ kernel.Kernel) error {
@@ -50,30 +50,14 @@ func (s *Server) PostInit() error {
 }
 
 func (s *Server) Start() error {
-	s.mq = s.Amqp.GetMQ(brokerName)
-	if s.mq == nil {
-		return nil
-	}
-
-	s.mq.ConnectionName = "PIWeatherCenter Database"
-	s.mq.Version = version.Version
 
 	s.mqQueue = &amqp.Queue{
-		Name: "database.ingress",
-		Binding: []amqp.Binding{
-			{
-				Topic: s.mq.Exchange,
-				Key:   "metric.#",
-			},
-		},
+		Name:       "database.ingress",
 		Durable:    true,
 		AutoDelete: false,
 	}
 
-	err := s.mqQueue.Bind(s.mq)
-	if err == nil {
-		err = s.mqQueue.Start("database ingress", false, s.recordMetricAmqp)
-	}
+	err := s.DatabaseBroker.ConsumeKeys(s.mqQueue, "ingress", s.recordMetricAmqp, "metric.#")
 
 	if err == nil {
 		log.Println(version.Version)

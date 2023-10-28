@@ -138,10 +138,12 @@ func (p *Publisher) Post(key string, body []byte, headers amqp.Table, timestamp 
 // graphite. The output will also in lower case.
 func (p *Publisher) EncodeKey(key string) string {
 	key = EncodeKey(key)
-	for k, v := range p.Replace {
-		if strings.HasPrefix(key, k+".") {
-			a := v + key[len(k):]
-			key = a
+	if p.Replace != nil {
+		for k, v := range p.Replace {
+			if strings.HasPrefix(key, k+".") {
+				a := v + key[len(k):]
+				key = a
+			}
 		}
 	}
 	return key
