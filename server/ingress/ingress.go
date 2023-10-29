@@ -13,10 +13,10 @@ import (
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
-	"github.com/peter-mount/piweather.center/store"
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	log2 "github.com/peter-mount/piweather.center/store/log"
+	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
 	"net/http"
@@ -25,23 +25,20 @@ import (
 // Ingress handles the ability to get data into the system, be it via
 // http, amqp, mqtt etc.
 type Ingress struct {
-	Archiver        *log2.Archiver       `kernel:"inject"`
-	Amqp            mq.Pool              `kernel:"inject"`
-	Mqtt            mqtt.Pool            `kernel:"inject"`
-	EndpointManager *api.EndpointManager `kernel:"inject"`
-	Config          service.Config       `kernel:"inject"`
-	Store           store.Store          `kernel:"inject"`
-	//HomeAssistant   homeassistant.Service  `kernel:"inject"`
-	//InfluxDB        influxdb.Pool          `kernel:"inject"`
-	DatabaseBroker broker.DatabaseBroker  `kernel:"inject"`
-	subContext     context.Context        // Common Context
-	processVisitor station.VisitorBuilder // Common visitor used by all sources to process data
+	Archiver        *log2.Archiver         `kernel:"inject"`
+	Amqp            mq.Pool                `kernel:"inject"`
+	Mqtt            mqtt.Pool              `kernel:"inject"`
+	EndpointManager *api.EndpointManager   `kernel:"inject"`
+	Config          service.Config         `kernel:"inject"`
+	DatabaseBroker  broker.DatabaseBroker  `kernel:"inject"`
+	subContext      context.Context        // Common Context
+	processVisitor  station.VisitorBuilder // Common visitor used by all sources to process data
 }
 
 func (s *Ingress) Start() error {
 
 	// Common context for processing
-	s.subContext = s.Archiver.AddContext(s.Store.AddContext(value.WithMap(context.Background())))
+	s.subContext = s.Archiver.AddContext(value.WithMap(context.Background()))
 
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
@@ -49,20 +46,9 @@ func (s *Ingress) Start() error {
 	s.processVisitor = station.NewVisitor().
 		Sensors(value.ResetMap).
 		Sensors(s.Archiver.Archive).
-		Reading(s.Store.ProcessReading).
-		CalculatedValue(s.Store.Calculate).
+		Reading(s.processReading).
+		CalculatedValue(s.calculate).
 		Output(s.databaseReading)
-	// TODO remove these as they should be in egress
-	//Output(s.HomeAssistant.StoreReading).
-	//Output(s.InfluxDB.StoreReading)
-
-	// Now we preload data from storage to give us some recent history
-	if err := s.Config.Accept(station.NewVisitor().
-		Sensors(value.ResetMap).
-		Sensors(s.Archiver.Preload).
-		WithContext(s.subContext)); err != nil {
-		return err
-	}
 
 	// Now start the sources
 	if err := s.Config.Accept(station.NewVisitor().
@@ -221,6 +207,54 @@ func (s *Ingress) databaseReading(ctx context.Context) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (s *Ingress) processReading(ctx context.Context) error {
+	r := station.ReadingFromContext(ctx)
+	values := value.MapFromContext(ctx)
+	if r.Unit() != nil {
+		p := payload.GetPayload(ctx)
+
+		str, ok := p.Get(r.Source)
+		if !ok {
+			// FIXME warn/fail if not found?
+			return nil
+		}
+
+		if f, ok := util.ToFloat64(str); ok {
+			// Convert to Type unit then transform to Use unit
+			v, err := r.Value(f)
+			if err != nil {
+				// Ignore, should only happen if the result is
+				// invalid as we checked the transform previously
+				return nil
+			}
+
+			values.Put(r.ID, v)
+		}
+	}
+	return nil
+}
+
+func (s *Ingress) calculate(ctx context.Context) error {
+	// Get value.Time from Station and Payload
+	sensors := station.SensorsFromContext(ctx)
+	p := payload.GetPayload(ctx)
+	t := sensors.Station().LatLong().Time(p.Time())
+
+	calc := station.CalculatedValueFromContext(ctx)
+
+	values := value.MapFromContext(ctx)
+	args := values.GetAll(calc.Source...)
+
+	result, err := calc.Calculate(t, args...)
+	if err != nil {
+		return err
+	}
+
+	values.Put(calc.ID, result)
 
 	return nil
 }

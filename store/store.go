@@ -3,13 +3,10 @@ package store
 import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
-	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
-	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"golang.org/x/net/context"
 	"sort"
@@ -23,8 +20,6 @@ func init() {
 
 type Store interface {
 	AddContext(ctx context.Context) context.Context
-	ProcessReading(ctx context.Context) error
-	Calculate(ctx context.Context) error
 	Record(name string, value value.Value, recTime time.Time)
 	Latest(name string) (record.Record, bool)
 	Metrics() []string
@@ -45,54 +40,6 @@ func StoreFromContext(ctx context.Context) Store {
 
 func (s *store) AddContext(ctx context.Context) context.Context {
 	return context.WithValue(ctx, "local.store", s)
-}
-
-func (s *store) ProcessReading(ctx context.Context) error {
-	r := station.ReadingFromContext(ctx)
-	values := value.MapFromContext(ctx)
-	if r.Unit() != nil {
-		p := payload.GetPayload(ctx)
-
-		str, ok := p.Get(r.Source)
-		if !ok {
-			// FIXME warn/fail if not found?
-			return nil
-		}
-
-		if f, ok := util.ToFloat64(str); ok {
-			// Convert to Type unit then transform to Use unit
-			v, err := r.Value(f)
-			if err != nil {
-				// Ignore, should only happen if the result is
-				// invalid as we checked the transform previously
-				return nil
-			}
-
-			values.Put(r.ID, v)
-		}
-	}
-	return nil
-}
-
-func (s *store) Calculate(ctx context.Context) error {
-	// Get value.Time from Station and Payload
-	sensors := station.SensorsFromContext(ctx)
-	p := payload.GetPayload(ctx)
-	t := sensors.Station().LatLong().Time(p.Time())
-
-	calc := station.CalculatedValueFromContext(ctx)
-
-	values := value.MapFromContext(ctx)
-	args := values.GetAll(calc.Source...)
-
-	result, err := calc.Calculate(t, args...)
-	if err != nil {
-		return err
-	}
-
-	values.Put(calc.ID, result)
-
-	return nil
 }
 
 func (s *store) Record(name string, value value.Value, recTime time.Time) {

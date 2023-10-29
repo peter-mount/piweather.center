@@ -4,11 +4,8 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/task"
-	"github.com/peter-mount/piweather.center/io"
-	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/store"
-	"github.com/peter-mount/piweather.center/weather/value"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,53 +89,4 @@ func (s *Archiver) appendReading(fileName string, rec *payload.Payload) error {
 	_, err = f.WriteString(rec.ToLog())
 
 	return nil
-}
-
-func (s *Archiver) Preload(ctx context.Context) error {
-
-	// Load yesterday
-	err := s.preload(ctx, time.Now().Add(-24*time.Hour))
-
-	// Load today
-	if err == nil {
-		err = s.preload(ctx, time.Now())
-	}
-
-	// Now update the State with what we have loaded
-	return s.State.UpdateStations(nil)
-}
-
-func (s *Archiver) preload(ctx context.Context, t time.Time) error {
-	sensors := station.SensorsFromContext(ctx)
-	fileName := s.archiveFileName(sensors.ID, t)
-
-	// Visitor to process the reading into memory cache
-	visitor := station.NewVisitor().
-		Sensors(value.ResetMap).
-		Reading(s.Store.ProcessReading).
-		CalculatedValue(s.Store.Calculate)
-
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	lc := 0
-	err := io.NewReader().
-		ForEachLine(func(line string) error {
-			p, err := payload.FromLog(line)
-			if p != nil && err == nil {
-				lc++
-				_ = visitor.
-					WithContext(p.AddContext(ctx)).
-					VisitSensors(sensors)
-			}
-			return nil
-		}).
-		Open(fileName)
-
-	// Ignore if the file doesn't exist
-	if os.IsNotExist(err) {
-		return nil
-	}
-
-	return err
 }
