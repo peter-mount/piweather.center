@@ -127,9 +127,14 @@ func (p *Publisher) Post(key string, body []byte, headers amqp.Table, timestamp 
 		p.Mandatory,
 		p.Immediate,
 		amqp.Publishing{
-			Headers:   headers,
-			Timestamp: timestamp,
-			Body:      body,
+			Headers:         headers,         // Message headers
+			Timestamp:       timestamp,       // Timestamp of message
+			ContentType:     "text/json",     // MIME content type
+			ContentEncoding: "",              // MIME content encoding
+			Priority:        0,               // Normal priority
+			AppId:           p.Tag,           // Tag of publisher
+			DeliveryMode:    amqp.Persistent, // Required to persist messages on broker restart
+			Body:            body,            // Message body
 		},
 	)
 }
