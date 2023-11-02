@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
@@ -11,6 +12,10 @@ type Metric struct {
 	Time   time.Time `json:"time" xml:"time,attr"`
 	Unit   string    `json:"unit" xml:"unit,attr"`
 	Value  float64   `json:"value" xml:",chardata"`
+}
+
+func (m Metric) String() string {
+	return fmt.Sprintf("Matric[%q,%q,%q,%f]", m.Metric, m.Time.Format(time.RFC3339), m.Unit, m.Value)
 }
 
 type MetricValue struct {
