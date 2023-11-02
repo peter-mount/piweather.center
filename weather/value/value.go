@@ -1,6 +1,7 @@
 package value
 
 import (
+	"errors"
 	"math"
 )
 
@@ -24,10 +25,16 @@ func (v Value) Unit() *Unit {
 
 // String returns this Value as a string with the appropriate Unit attached
 func (v Value) String() string {
+	if v.u == nil {
+		return invalidValue.Error()
+	}
 	return v.u.String(v.v)
 }
 
 func (v Value) PlainString() string {
+	if v.u == nil {
+		return invalidValue.Error()
+	}
 	return v.u.PlainString(v.v)
 }
 
@@ -36,11 +43,18 @@ func (v Value) PlainString() string {
 //
 // If the value is NaN or either Infinity then this returns false.
 func (v Value) IsValid() bool {
-	return v.u.Valid(v.v)
+	return v.u != nil && v.u.Valid(v.v)
 }
+
+var (
+	invalidValue = errors.New("invalid Value")
+)
 
 // BoundsError returns an error if IsValid() returns false, nil otherwise.
 func (v Value) BoundsError() error {
+	if v.u == nil {
+		return invalidValue
+	}
 	return v.u.BoundsError(v.v)
 }
 
