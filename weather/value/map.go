@@ -47,6 +47,8 @@ func (m *Map) Put(k string, v Value) {
 }
 
 func (m *Map) Reset() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	if m != nil {
 		m.m = make(map[string]Value)
 	}
@@ -61,6 +63,8 @@ func ResetMap(ctx context.Context) error {
 }
 
 func (m *Map) GetKeys() []string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	var a []string
 	for k, _ := range m.m {
 		a = append(a, k)
