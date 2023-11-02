@@ -38,7 +38,7 @@ type Ingress struct {
 func (s *Ingress) Start() error {
 
 	// Common context for processing
-	s.subContext = s.Archiver.AddContext(value.WithMap(context.Background()))
+	s.subContext = s.Archiver.AddContext(context.Background())
 
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
@@ -54,7 +54,7 @@ func (s *Ingress) Start() error {
 	if err := s.Config.Accept(station.NewVisitor().
 		Sensors(s.startAMQP).
 		Sensors(s.startEcowitt).
-		WithContext(s.subContext)); err != nil {
+		WithContext(value.WithMap(s.subContext))); err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 
 			default:
 				return s.processVisitor.
-					WithContext(p.AddContext(s.subContext)).
+					WithContext(p.AddContext(value.WithMap(s.subContext))).
 					VisitSensors(sensor)
 			}
 		})
@@ -144,7 +144,7 @@ func (s *Ingress) startMQTT(ctx context.Context) error {
 
 			default:
 				return s.processVisitor.
-					WithContext(p.AddContext(s.subContext)).
+					WithContext(p.AddContext(value.WithMap(s.subContext))).
 					VisitSensors(sensor)
 			}
 		})
@@ -183,7 +183,7 @@ func (s *Ingress) startEcowitt(ctx context.Context) error {
 				return nil
 
 			default:
-				return s.processVisitor.WithContext(p.AddContext(s.subContext)).
+				return s.processVisitor.WithContext(p.AddContext(value.WithMap(s.subContext))).
 					VisitSensors(sensor)
 			}
 		})
@@ -198,13 +198,19 @@ func (s *Ingress) databaseReading(ctx context.Context) error {
 	for _, key := range values.GetKeys() {
 		val := values.Get(key)
 
-		metric.Metric = key
-		metric.Value = val.Float()
-		metric.Unit = val.Unit().ID()
+		if val.IsValid() {
 
-		err := s.DatabaseBroker.PublishMetric(metric)
-		if err != nil {
-			return err
+			metric.Metric = key
+			metric.Value = val.Float()
+			metric.Unit = val.Unit().ID()
+
+			err := s.DatabaseBroker.PublishMetric(metric)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Has happened, not sure if down to altered ID's etc
+			log.Printf("Invalid Metric %q", key)
 		}
 	}
 
