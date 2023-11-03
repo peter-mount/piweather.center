@@ -75,21 +75,17 @@ func (lw *lineWriter) Write(s string) error {
 }
 
 func (a Reader) ForEachLine(handler ReaderHandler) Reader {
-	return func(r io.Reader) error {
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			if err := handler(scanner.Text()); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+	return a.forEach(bufio.ScanLines, handler)
 }
 
 func (a Reader) ForEachRecord(handler ReaderHandler) Reader {
+	return a.forEach(ScanStxEtxRecord, handler)
+}
+
+func (a Reader) forEach(splitFunc bufio.SplitFunc, handler ReaderHandler) Reader {
 	return func(r io.Reader) error {
 		scanner := bufio.NewScanner(r)
-		scanner.Split(ScanStxEtxRecord)
+		scanner.Split(splitFunc)
 		for scanner.Scan() {
 			if err := handler(scanner.Text()); err != nil {
 				return err
