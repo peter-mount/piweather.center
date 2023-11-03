@@ -1,12 +1,11 @@
 package io
 
 import (
-	"bufio"
+	"bytes"
 	"compress/gzip"
 	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
-	"github.com/peter-mount/go-kernel/v2/util/strings"
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
@@ -66,6 +65,13 @@ func (a Reader) Open(filename string) error {
 	return a(f)
 }
 
+func (a Reader) FromBytes(b []byte) error {
+	if a == nil {
+		return nil
+	}
+	return a(bytes.NewBuffer(b))
+}
+
 func (a Reader) Decompress() Reader {
 	if a == nil {
 		return nil
@@ -88,18 +94,6 @@ func (a Reader) DecompressIf(p bool) Reader {
 		return a.Decompress()
 	}
 	return a
-}
-
-func (a Reader) ForEachLine(handler strings.StringHandler) Reader {
-	return func(r io.Reader) error {
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			if err := handler(scanner.Text()); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
 }
 
 // Gob will read a struct/value from the reader using the

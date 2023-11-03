@@ -1,6 +1,7 @@
 package io
 
 import (
+	"bytes"
 	"compress/gzip"
 	"encoding/gob"
 	"io"
@@ -70,6 +71,18 @@ func (a Writer) CreateFile(filename string) error {
 	}
 	defer f.Close()
 	return a(f)
+}
+
+func (a Writer) CreateBytes() ([]byte, error) {
+	if a == nil {
+		return nil, nil
+	}
+	var buf bytes.Buffer
+	err := a(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // Compress will compress using gzip
