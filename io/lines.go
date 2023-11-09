@@ -74,15 +74,26 @@ func (lw *lineWriter) Write(s string) error {
 	return err
 }
 
+// ForEachLine will call a ReaderHandler function for each lf or crlf terminated line
+// from the file.
+//
+// This is shorthand for Reader.ForEach(bufio.ScanLines, handler)
 func (a Reader) ForEachLine(handler ReaderHandler) Reader {
-	return a.forEach(bufio.ScanLines, handler)
+	return a.ForEach(bufio.ScanLines, handler)
 }
 
+// ForEachRecord will call a ReaderHandler function for each STX-ETX delimited record
+// from the file.
+//
+// This is shorthand for Reader.ForEach(ScanStxEtxRecord, handler)
 func (a Reader) ForEachRecord(handler ReaderHandler) Reader {
-	return a.forEach(ScanStxEtxRecord, handler)
+	return a.ForEach(ScanStxEtxRecord, handler)
 }
 
-func (a Reader) forEach(splitFunc bufio.SplitFunc, handler ReaderHandler) Reader {
+// ForEach will call a ReaderHandler function for each token returned by a bufio.Scanner
+// running over the file. The scanner will use the supplied bufio.SplitFunc to determine
+// the token's passed to the ReaderHandler.
+func (a Reader) ForEach(splitFunc bufio.SplitFunc, handler ReaderHandler) Reader {
 	return func(r io.Reader) error {
 		scanner := bufio.NewScanner(r)
 		scanner.Split(splitFunc)
@@ -95,18 +106,81 @@ func (a Reader) forEach(splitFunc bufio.SplitFunc, handler ReaderHandler) Reader
 	}
 }
 
-// ScanStxEtxRecord is a scanner with looks for a record which is
+// ScanStxEtxRecord is a bufio.SplitFunc with looks for a record which is
 // within an STX (0x02) and ETX (0x03) characters
 func ScanStxEtxRecord(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
-	if s := bytes.IndexByte(data, stx); s >= 0 {
-		if e := bytes.IndexByte(data, etx); e > s {
+	s := bytes.IndexByte(data, stx)
+	e := bytes.IndexByte(data, etx)
+	if s >= 0 {
+		if e > s {
 			// We have a full stx-etx record.
 			return e + 1, data[s+1 : e], nil
 		}
 	}
+	if atEOF {
+		// at eof, we have a stx but not etx then fail
+		return len(data), nil, nil
+	}
 	// Request more data.
 	return 0, nil, nil
+}
+
+// ScanStxEtxCombiRecord is a bufio.SplitFunc which can handle a mix of plain lines and STX-ETX records.
+// This is used instead of ScanStxEtcRecord or bufio.ScanLines if the content can be mixed.
+//
+// e.g. a log file was originally plain lines then changed to STX-ETX record format.
+//
+// The tokens
+func ScanStxEtxCombiRecord(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+
+	n := bytes.IndexByte(data, lfByte)
+	s := bytes.IndexByte(data, stx)
+	e := bytes.IndexByte(data, etx)
+
+	if atEOF {
+		// No STX in data then return the final non-terminated line
+		if s == -1 {
+			return len(data), dropCR(data), nil
+		}
+
+		// we have a stx then fail
+		return len(data), nil, nil
+	}
+
+	switch {
+
+	// stx at start but no etx then request more data
+	case s == 0 && e == -1:
+		return 0, nil, nil
+
+	// stx at start and we have a full record
+	case s == 0 && e > s:
+		return e + 1, data[s+1 : e], nil
+
+	// We have a line feed and no stx or stx but after it then we have a plain line
+	case n >= 0 && (s == -1 || n < s):
+		return n + 1, dropCR(data[0:n]), nil
+
+	// We have a stx but either no new line or it's after the stx then plain line up to the stx
+	case s > 0 && (n == -1 || n > s):
+		return s, data[:s], nil
+
+		// Request more data.
+	default:
+		return 0, nil, nil
+	}
+}
+
+// dropCR drops a terminal \r from the data.
+func dropCR(data []byte) []byte {
+	if len(data) > 0 && data[len(data)-1] == '\r' {
+		return data[0 : len(data)-1]
+	}
+	return data
 }
