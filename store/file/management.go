@@ -4,6 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/util"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -114,6 +115,10 @@ func (s *store) addFile(key string, f *File) {
 		s.openFiles[key] = f
 		f.touch()
 	}
+
+	if len(s.openFiles) > *s.MaxOpenFiles {
+		go s.closeOldestFile()
+	}
 }
 
 // getFileKeys returns a slice of key names from openFiles
@@ -153,5 +158,27 @@ func (s *store) closeFile(f *File) {
 			}
 		}()
 		_ = f.Close()
+	}
+}
+
+func (s *store) closeOldestFile() {
+	var files []*File
+	for _, k := range s.getFileKeys() {
+		f := s.getFileImpl(k, false)
+		if f != nil {
+			files = append(files, f)
+		}
+	}
+
+	sort.SliceStable(files, func(i, j int) bool {
+		return files[i].lastAccess.Before(files[j].lastAccess)
+	})
+
+	for len(files) > 0 {
+		if files[0].IsOpen() {
+			s.closeFile(files[0])
+			return
+		}
+		files = files[1:]
 	}
 }

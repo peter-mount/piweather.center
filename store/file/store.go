@@ -35,10 +35,11 @@ type Store interface {
 // This is the main entry point for accessing them as it manages
 // which ones are open
 type store struct {
-	Cron       *cron.CronService `kernel:"inject"`                                       // Cron to run periodic jobs
-	Latest     memory.Latest     `kernel:"inject"`                                       // Used to store most recent metric
-	BaseDir    *string           `kernel:"flag,metric-db,Directory for storing metrics"` // Base directory of database
-	FileExpiry *int              `kernel:"flag,metric-expiry,Expiry time in minutes,2"`  // Expiry time for open files in minutes
+	Cron         *cron.CronService `kernel:"inject"`                                          // Cron to run periodic jobs
+	Latest       memory.Latest     `kernel:"inject"`                                          // Used to store most recent metric
+	BaseDir      *string           `kernel:"flag,metric-db,Directory for storing metrics"`    // Base directory of database
+	FileExpiry   *int              `kernel:"flag,metric-expiry,Expiry time in minutes,2"`     // Expiry time for open files in minutes
+	MaxOpenFiles *int              `kernel:"flag,db-max-files,Max number of open files,1024"` // Maximum number of open files
 
 	mutex     sync.Mutex       // Mutex for internal structures like openFiles
 	openFiles map[string]*File // Map of open files. Use addFile, getFile, getFileKeys & removeFile only to access this
