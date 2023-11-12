@@ -241,4 +241,6 @@ var (
 	Float = NewUnit("Float", "Float", "", 3)
 	// Percent is a Unit bounded by 0..100 and has no decimal places
 	Percent = NewBoundedUnit("Percent", "Percent", "%", 0, 0, 100)
+	// Unix Time in seconds since 1970-Jan-1
+	Unix = NewUnit("UnixTime", "Unix Time", "", 0)
 )
