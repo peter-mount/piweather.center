@@ -195,8 +195,20 @@ func NewBasicTransform(from, to *Unit, factor float64) {
 // NewBasicBiTransform registers two transforms using a constant conversion factor.
 // This allows for conversions between two units.
 func NewBasicBiTransform(u1, u2 *Unit, factor float64) {
-	NewTransform(u1, u2, BasicTransform(factor))
-	NewTransform(u2, u1, BasicInverseTransform(factor))
+	if factor != 0 {
+		NewTransform(u1, u2, BasicTransform(factor))
+		NewTransform(u2, u1, BasicInverseTransform(factor))
+	} else {
+		// Used when we have dummy transforms
+		NewTransform(u1, u2, nullTransform)
+		NewTransform(u2, u1, nullTransform)
+	}
+}
+
+var nullTransformError = errors.New("invalid transform")
+
+func nullTransform(_ float64) (float64, error) {
+	return 0, nullTransformError
 }
 
 func getTransforms() []string {
