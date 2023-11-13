@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-// record implements the /record api
 func (s *Server) latestMetrics(r *rest.Rest) error {
 
 	var metrics []api2.Metric
@@ -36,12 +35,11 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 
 	r.Status(response.Status).
 		ContentType(r.GetHeader("Content-Type")).
-		Value(response)
+		Value(response.Sort())
 
 	return nil
 }
 
-// record implements the /record api
 func (s *Server) latestMetric(r *rest.Rest) error {
 	metric := strings.ReplaceAll(r.Var(METRIC), "/", ".")
 
@@ -63,7 +61,7 @@ func (s *Server) latestMetric(r *rest.Rest) error {
 
 	r.Status(response.Status).
 		ContentType(r.GetHeader("Content-Type")).
-		Value(response)
+		Value(response.Sort())
 
 	return nil
 }

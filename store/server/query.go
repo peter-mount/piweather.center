@@ -41,7 +41,7 @@ func (s *Server) query(r *rest.Rest, metric string, qbf func(file.QueryBuilder))
 
 	r.Status(response.Status).
 		ContentType(r.GetHeader("Content-Type")).
-		Value(response)
+		Value(response.Sort())
 
 	return nil
 }

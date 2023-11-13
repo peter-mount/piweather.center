@@ -43,7 +43,7 @@ func (s *Server) recordMultiple(r *rest.Rest) error {
 
 	r.Status(response.Status).
 		ContentType(r.GetHeader("Content-Type")).
-		Value(response)
+		Value(response.Sort())
 
 	return nil
 }
