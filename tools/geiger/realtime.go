@@ -26,8 +26,8 @@ func (m *Geiger) realtime() error {
 		}
 
 		m.realtimeRecord(CpmReading{
-			Time: time.Now().UTC(),
-			CPS:  (int(b[0]&0x3f) << 8) + int(b[1]),
+			Time: time.Now().UTC().Truncate(time.Second),
+			CPS:  toInt16(b) & 0x3fff,
 		})
 	}
 }

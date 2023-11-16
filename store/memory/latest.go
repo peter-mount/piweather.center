@@ -4,6 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"sync"
+	"time"
 )
 
 func init() {
@@ -31,6 +32,10 @@ func (l *latest) Append(metric string, rec record.Record) {
 	if metric == "" || !rec.IsValid() {
 		return
 	}
+
+	// Truncate time to the second as the DB only has resolution to
+	// the second
+	rec.Time = rec.Time.Truncate(time.Second)
 
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
