@@ -25,10 +25,20 @@ func (m *Geiger) realtime() error {
 			log.Printf("Read %d/%d %02x%02x", n, len(b), b[0], b[1])
 		}
 
-		m.realtimeRecord(CpmReading{
-			Time: time.Now().UTC().Truncate(time.Second),
-			CPS:  toInt16(b) & 0x3fff,
-		})
+		// Only record if we have 2 bytes from the Geiger counter
+		if n == 2 {
+			m.realtimeRecord(CpmReading{
+				Time: time.Now().UTC().Truncate(time.Second),
+				CPS:  toInt16(b) & 0x3fff,
+			})
+		}
+
+		// Clear buffer in case we have a race and we have invalid data
+		// in the stream from the Geiger counter
+		err = m.port.ResetInputBuffer()
+		if err != nil {
+			return err
+		}
 	}
 }
 
