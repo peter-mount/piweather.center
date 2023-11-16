@@ -25,6 +25,13 @@ const (
 	METRIC        = "metric"
 	metricPrefix  = "/metric"
 	metricPattern = "/{" + METRIC + ":.{1,}}"
+	AT            = "at"
+	FROM          = "from"
+	TO            = "to"
+	LATEST        = "latest"
+	TODAY         = "today"
+	TODAYUTC      = "todayUTC"
+	FILTER        = "filter"
 	POST          = "POST"
 	GET           = "GET"
 )
@@ -42,12 +49,20 @@ func (s *Server) PostInit() error {
 		*s.QueueName = "database.ingress"
 	}
 
-	s.Web.Handle("/latest", s.latestMetrics).Methods(GET)
+	// /latest returns the latest values of all metrics
+	s.Web.Handle(metricPrefix, s.latestMetrics).Queries(LATEST, "").Methods(GET)
+	s.Web.Handle(metricPrefix, s.latestMetrics).Queries(LATEST, "").Methods(GET)
+	s.Web.Handle(metricPrefix, s.queryAllAt).Queries(AT, "", FILTER, "").Methods(GET)
+	s.Web.Handle(metricPrefix, s.queryAllAt).Queries(AT, "").Methods(GET)
 
-	s.Web.Handle(metricPrefix+metricPattern, s.latestMetric).Queries("latest", "").Methods(GET)
-	s.Web.Handle(metricPrefix+metricPattern, s.queryToday).Queries("today", "").Methods(GET)
-	s.Web.Handle(metricPrefix+metricPattern, s.queryTodayUTC).Queries("todayUTC", "").Methods(GET)
+	// queries against an individual metric
+	s.Web.Handle(metricPrefix+metricPattern, s.latestMetric).Queries(LATEST, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryToday).Queries(TODAY, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryTodayUTC).Queries(TODAYUTC, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryAt).Queries(AT, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryBetween).Queries(FROM, "", TO, "").Methods(GET)
 
+	// record a metric over http - not normally used as amqp is normally used
 	s.Web.Handle("/record", s.record).Methods(POST)
 	s.Web.Handle("/recordMultiple", s.recordMultiple).Methods(POST)
 

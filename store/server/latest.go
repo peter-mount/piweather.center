@@ -3,28 +3,24 @@ package server
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	api2 "github.com/peter-mount/piweather.center/store/api"
-	"sort"
-	"strings"
 )
 
 func (s *Server) latestMetrics(r *rest.Rest) error {
+	req := getRequest(r)
 
 	var metrics []api2.Metric
 
-	keys := s.Latest.Metrics()
-	sort.SliceStable(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
-
-	for _, metric := range keys {
-		if rec, exists := s.Latest.Latest(metric); exists {
-			v := rec.Value
-			metrics = append(metrics, api2.Metric{
-				Metric: metric,
-				Time:   rec.Time,
-				Unit:   v.Unit().ID(),
-				Value:  v.Float(),
-			})
+	for _, metric := range s.Latest.Metrics() {
+		if req.Match(metric) {
+			if rec, exists := s.Latest.Latest(metric); exists {
+				v := rec.Value
+				metrics = append(metrics, api2.Metric{
+					Metric: metric,
+					Time:   rec.Time,
+					Unit:   v.Unit().ID(),
+					Value:  v.Float(),
+				})
+			}
 		}
 	}
 
@@ -41,11 +37,11 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 }
 
 func (s *Server) latestMetric(r *rest.Rest) error {
-	metric := strings.ReplaceAll(r.Var(METRIC), "/", ".")
+	req := getRequest(r)
 
-	response := api2.Response{Metric: metric}
+	response := req.Response()
 
-	rec, exists := s.Latest.Latest(metric)
+	rec, exists := s.Latest.Latest(req.Metric)
 
 	if exists {
 		v := rec.Value

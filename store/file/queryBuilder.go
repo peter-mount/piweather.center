@@ -1,7 +1,6 @@
 package file
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"time"
 )
@@ -24,6 +23,8 @@ type QueryBuilder interface {
 	TodayUTC() QueryBuilder
 	// DayFrom sets the search range to span for 24 hours from the specified time
 	DayFrom(from time.Time) QueryBuilder
+	// DayTo sets the search range to span for 24 hours up until the specified time
+	DayTo(to time.Time) QueryBuilder
 	// Between sets the time range of the query
 	Between(from, to time.Time) QueryBuilder
 	// Filter sets the filter to use. If one already exists then this will be or'ed with it.
@@ -51,8 +52,6 @@ func (b *queryBuilder) Build() Query {
 		date:   b.start.Truncate(dayDuration),
 		store:  b.store,
 	}
-
-	log.Printf("query from %s to %s", b.start, b.end)
 
 	// As queryScanner works on entire day files, add a default filter to limit within
 	// the required period. If a filter is defined in the builder then and it with the Between filter.
@@ -85,11 +84,15 @@ func (b *queryBuilder) Today() QueryBuilder {
 }
 
 func (b *queryBuilder) TodayUTC() QueryBuilder {
-	return b.DayFrom(time.Now().UTC())
+	return b.DayFrom(time2.LocalMidnight(time.Now().UTC()))
 }
 
 func (b *queryBuilder) DayFrom(from time.Time) QueryBuilder {
 	return b.Between(from, from.Add(24*time.Hour))
+}
+
+func (b *queryBuilder) DayTo(to time.Time) QueryBuilder {
+	return b.Between(to.Add(-24*time.Hour), to)
 }
 
 func (b *queryBuilder) Filter(f Filter) QueryBuilder {
