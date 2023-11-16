@@ -17,6 +17,7 @@ type Server struct {
 	Store          file.Store            `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
+	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.ingress"`
 	mqQueue        *amqp.Queue
 }
 
@@ -37,6 +38,10 @@ func (s *Server) Init(_ kernel.Kernel) error {
 
 func (s *Server) PostInit() error {
 
+	if *s.QueueName == "" {
+		*s.QueueName = "database.ingress"
+	}
+
 	s.Web.Handle("/latest", s.latestMetrics).Methods(GET)
 
 	s.Web.Handle(metricPrefix+metricPattern, s.latestMetric).Queries("latest", "").Methods(GET)
@@ -52,7 +57,7 @@ func (s *Server) PostInit() error {
 func (s *Server) Start() error {
 
 	s.mqQueue = &amqp.Queue{
-		Name:       "database.ingress",
+		Name:       *s.QueueName,
 		Durable:    true,
 		AutoDelete: false,
 	}
