@@ -1,6 +1,8 @@
 package api
 
 import (
+	"github.com/peter-mount/go-kernel/v2/rest"
+	"net/http"
 	"sort"
 	"time"
 )
@@ -18,9 +20,10 @@ type Response struct {
 	Metrics []Metric      `json:"metrics,omitempty" xml:"metrics,omitempty"`
 }
 
-// Sort ensures the Response.Results and Response.Metrics slices
-// are in time order
-func (r Response) Sort() Response {
+// Submit the Response to the client.
+// It will also ensure that the Response.Results and Response.Metrics slices
+// are sorted in metric/time order
+func (r Response) Submit(rs *rest.Rest) error {
 
 	// Sort results by time
 	sort.SliceStable(r.Results, func(i, j int) bool {
@@ -30,13 +33,22 @@ func (r Response) Sort() Response {
 	// Sort metrics by metric id then by time
 	sort.SliceStable(r.Metrics, func(i, j int) bool {
 		a, b := r.Metrics[i], r.Metrics[j]
-		return a.Metric < b.Metric || a.Time.Before(a.Time)
+		return a.Metric < b.Metric || a.Time.Before(b.Time)
 	})
 
-	// Ensure from,to fields are valid
+	// If from and to defined then ensure that from.Before(to) holds.
 	if r.From != nil && r.To != nil && r.From.After(*r.To) {
 		r.From, r.To = r.To, r.From
 	}
 
-	return r
+	// If not set then set Status to 200 OK
+	if r.Status == 0 {
+		r.Status = http.StatusOK
+	}
+
+	rs.Status(r.Status).
+		ContentType(rs.GetHeader("Content-Type")).
+		Value(r)
+
+	return nil
 }

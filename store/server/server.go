@@ -55,9 +55,9 @@ func (s *Server) PostInit() error {
 
 	// queries against an individual metric
 	s.Web.Handle(metricPrefix+metricPattern, s.latestMetric).Queries(LATEST, "").Methods(GET)
-	s.Web.Handle(metricPrefix+metricPattern, s.queryToday).Queries(TODAY, "").Methods(GET)
-	s.Web.Handle(metricPrefix+metricPattern, s.queryTodayUTC).Queries(TODAYUTC, "").Methods(GET)
-	s.Web.Handle(metricPrefix+metricPattern, s.queryAt).Queries(AT, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricToday).Queries(TODAY, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricTodayUTC).Queries(TODAYUTC, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricAt).Queries(AT, "").Methods(GET)
 	s.Web.Handle(metricPrefix+metricPattern, s.queryBetween).Queries(FROM, "", TO, "").Methods(GET)
 
 	// record a metric over http - not normally used as amqp is normally used

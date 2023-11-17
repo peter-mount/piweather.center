@@ -3,12 +3,15 @@ package server
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	api2 "github.com/peter-mount/piweather.center/store/api"
+	"net/http"
+	"time"
 )
 
 func (s *Server) latestMetrics(r *rest.Rest) error {
-	req := getRequest(r)
+	req := GetRequest(r)
 
 	var metrics []api2.Metric
+	var t time.Time
 
 	for _, metric := range s.Latest.Metrics() {
 		if req.Match(metric) {
@@ -20,24 +23,27 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 					Unit:   v.Unit().ID(),
 					Value:  v.Float(),
 				})
+				if rec.Time.After(t) {
+					t = rec.Time
+				}
 			}
 		}
 	}
 
-	response := api2.Response{
-		Status:  200,
-		Metrics: metrics,
+	response := req.Response()
+	if len(metrics) > 0 {
+		response.Time = &t
+		response.Status = http.StatusOK
+		response.Metrics = metrics
+	} else {
+		response.Status = http.StatusNotFound
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }
 
 func (s *Server) latestMetric(r *rest.Rest) error {
-	req := getRequest(r)
+	req := GetRequest(r)
 
 	response := req.Response()
 
@@ -55,9 +61,5 @@ func (s *Server) latestMetric(r *rest.Rest) error {
 		response.Status = 404
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }

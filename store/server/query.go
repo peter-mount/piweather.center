@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-func (s *Server) queryToday(r *rest.Rest) error {
+func (s *Server) queryMetricToday(r *rest.Rest) error {
 	return s.queryMetric(r, r.Var(METRIC), func(b file.QueryBuilder) {
 		b.Today()
 	})
 }
 
-func (s *Server) queryTodayUTC(r *rest.Rest) error {
+func (s *Server) queryMetricTodayUTC(r *rest.Rest) error {
 	return s.queryMetric(r, r.Var(METRIC), func(b file.QueryBuilder) {
 		b.TodayUTC()
 	})
@@ -47,21 +47,12 @@ func (s *Server) queryMetric(r *rest.Rest, metric string, qbf func(file.QueryBui
 		response.Status = http.StatusNotFound
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }
 
-// queryAt handles a single metric with the at query parameter
-func (s *Server) queryAt(r *rest.Rest) error {
-	req := getRequest(r)
-
-	if req.At.IsZero() {
-		r.Status(http.StatusBadRequest)
-		return nil
-	}
+// queryMetricAt handles a single metric with the at query parameter
+func (s *Server) queryMetricAt(r *rest.Rest) error {
+	req := GetRequest(r)
 
 	if req.At.IsZero() {
 		r.Status(http.StatusBadRequest)
@@ -79,16 +70,12 @@ func (s *Server) queryAt(r *rest.Rest) error {
 		response.Result = &val
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }
 
-// queryAt handles a single metric with the at query parameter
+// queryAllAt returns all metric values at a specific timestamp
 func (s *Server) queryAllAt(r *rest.Rest) error {
-	req := getRequest(r)
+	req := GetRequest(r)
 
 	if req.At.IsZero() {
 		r.Status(http.StatusBadRequest)
@@ -114,23 +101,25 @@ func (s *Server) queryAllAt(r *rest.Rest) error {
 		}
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }
 
-// queryBetween handles a single metric with from and to query parameters
+// queryBetween returns all values for a single metric between two times
 func (s *Server) queryBetween(r *rest.Rest) error {
-	req := getRequest(r)
+	req := GetRequest(r)
 
 	response := req.Response()
-	response.Status = http.StatusNotFound
 
-	if req.From.IsZero() || req.To.IsZero() {
+	switch {
+	// Ensure from & to are set, from is before to and
+	// a max duration of 24 hours
+	case req.From.IsZero(),
+		req.To.IsZero(),
+		req.From.After(req.To),
+		req.To.Sub(req.From) > 24*time.Hour:
 		response.Status = http.StatusBadRequest
-	} else {
+
+	default:
 		q := s.Store.Query(req.Metric).
 			Between(req.From, req.To).
 			Build()
@@ -149,14 +138,12 @@ func (s *Server) queryBetween(r *rest.Rest) error {
 
 		if len(response.Results) > 0 {
 			response.Status = http.StatusOK
+		} else {
+			response.Status = http.StatusNotFound
 		}
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }
 
 // queryLatestBetween returns the most recent value of metric up to and including t.

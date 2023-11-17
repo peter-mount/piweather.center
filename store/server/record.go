@@ -19,11 +19,7 @@ func (s *Server) record(r *rest.Rest) error {
 
 	response := s.recordMetric(metric)
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response)
-
-	return nil
+	return response.Submit(r)
 }
 
 func (s *Server) recordMultiple(r *rest.Rest) error {
@@ -41,11 +37,7 @@ func (s *Server) recordMultiple(r *rest.Rest) error {
 		response = s.recordMetric(metric)
 	}
 
-	r.Status(response.Status).
-		ContentType(r.GetHeader("Content-Type")).
-		Value(response.Sort())
-
-	return nil
+	return response.Submit(r)
 }
 
 func (s *Server) recordMetric(metric api.Metric) api.Response {
