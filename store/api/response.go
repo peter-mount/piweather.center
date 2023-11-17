@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"net/http"
 	"sort"
 	"time"
@@ -24,21 +25,37 @@ type Response struct {
 // It will also ensure that the Response.Results and Response.Metrics slices
 // are sorted in metric/time order
 func (r Response) Submit(rs *rest.Rest) error {
+	var p time2.Period
 
-	// Sort results by time
-	sort.SliceStable(r.Results, func(i, j int) bool {
-		return r.Results[i].Time.Before(r.Results[j].Time)
-	})
+	if len(r.Results) > 0 {
+		// Sort results by time
+		sort.SliceStable(r.Results, func(i, j int) bool {
+			return r.Results[i].Time.Before(r.Results[j].Time)
+		})
 
-	// Sort metrics by metric id then by time
-	sort.SliceStable(r.Metrics, func(i, j int) bool {
-		a, b := r.Metrics[i], r.Metrics[j]
-		return a.Metric < b.Metric || a.Time.Before(b.Time)
-	})
+		// Results is for 1 metric so as it's sorted in time order
+		// we can just add the first/last entry to the Period
+		p = p.Add(r.Results[0].Time).
+			Add(r.Results[len(r.Results)-1].Time)
+	}
 
-	// If from and to defined then ensure that from.Before(to) holds.
-	if r.From != nil && r.To != nil && r.From.After(*r.To) {
-		r.From, r.To = r.To, r.From
+	if len(r.Metrics) > 0 {
+		// Sort metrics by metric id then by time
+		sort.SliceStable(r.Metrics, func(i, j int) bool {
+			a, b := r.Metrics[i], r.Metrics[j]
+			return a.Metric < b.Metric || a.Time.Before(b.Time)
+		})
+
+		// We have to scan Metrics as it's ordered by metric then time
+		for _, e := range r.Metrics {
+			p = p.Add(e.Time)
+		}
+	}
+
+	if !p.IsZero() {
+		f, t := p.Range()
+		r.From = &f
+		r.To = &t
 	}
 
 	// If not set then set Status to 200 OK

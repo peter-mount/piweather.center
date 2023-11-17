@@ -63,14 +63,6 @@ func (r Request) Response() api.Response {
 		resp.Time = &r.At
 	}
 
-	if !r.From.IsZero() {
-		resp.From = &r.From
-	}
-
-	if !r.To.IsZero() {
-		resp.To = &r.To
-	}
-
 	return resp
 }
 

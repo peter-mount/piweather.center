@@ -98,6 +98,7 @@ func (s *Server) queryAllAt(r *rest.Rest) error {
 
 	response := req.Response()
 	response.Status = http.StatusOK
+	response.Time = &req.At
 
 	for _, metric := range s.Latest.Metrics() {
 		if req.Match(metric) {

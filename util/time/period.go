@@ -28,6 +28,10 @@ func (r Period) Start() time.Time { return r.start }
 // End returns the end of a period.
 func (r Period) End() time.Time { return r.end }
 
+func (r Period) Range() (time.Time, time.Time) {
+	return r.start, r.end
+}
+
 // Duration returns the duration of the period.
 func (r Period) Duration() time.Duration { return r.duration }
 
