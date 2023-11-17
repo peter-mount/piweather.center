@@ -14,9 +14,21 @@ func (s *Server) queryMetricToday(r *rest.Rest) error {
 	})
 }
 
-func (s *Server) queryMetricTodayUTC(r *rest.Rest) error {
+func (s *Server) queryMetricYesterdayUTC(r *rest.Rest) error {
 	return s.queryMetric(r, r.Var(METRIC), func(b file.QueryBuilder) {
 		b.TodayUTC()
+	})
+}
+
+func (s *Server) queryMetricYesterday(r *rest.Rest) error {
+	return s.queryMetric(r, r.Var(METRIC), func(b file.QueryBuilder) {
+		b.Yesterday()
+	})
+}
+
+func (s *Server) queryMetricTodayUTC(r *rest.Rest) error {
+	return s.queryMetric(r, r.Var(METRIC), func(b file.QueryBuilder) {
+		b.YesterdayUTC()
 	})
 }
 

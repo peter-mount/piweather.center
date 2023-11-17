@@ -21,6 +21,10 @@ type QueryBuilder interface {
 	Today() QueryBuilder
 	// TodayUTC sets the search range to span from Midnight UTC for 24 hours
 	TodayUTC() QueryBuilder
+	// Yesterday sets the search range to span yesterday in local time
+	Yesterday() QueryBuilder
+	// YesterdayUTC sets the search range to span yesterday in UTC
+	YesterdayUTC() QueryBuilder
 	// DayFrom sets the search range to span for 24 hours from the specified time
 	DayFrom(from time.Time) QueryBuilder
 	// DayTo sets the search range to span for 24 hours up until the specified time
@@ -85,6 +89,14 @@ func (b *queryBuilder) Today() QueryBuilder {
 
 func (b *queryBuilder) TodayUTC() QueryBuilder {
 	return b.DayFrom(time2.LocalMidnight(time.Now().UTC()))
+}
+
+func (b *queryBuilder) Yesterday() QueryBuilder {
+	return b.DayFrom(time2.LocalMidnight(time.Now()).Add(-24 * time.Hour))
+}
+
+func (b *queryBuilder) YesterdayUTC() QueryBuilder {
+	return b.DayFrom(time2.LocalMidnight(time.Now().UTC()).Add(-24 * time.Hour))
 }
 
 func (b *queryBuilder) DayFrom(from time.Time) QueryBuilder {

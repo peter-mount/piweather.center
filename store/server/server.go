@@ -31,6 +31,8 @@ const (
 	LATEST        = "latest"
 	TODAY         = "today"
 	TODAYUTC      = "todayUTC"
+	YESTERDAY     = "yesterday"
+	YESTERDAYUTC  = "yesterdayUTC"
 	FILTER        = "filter"
 	POST          = "POST"
 	GET           = "GET"
@@ -57,6 +59,8 @@ func (s *Server) PostInit() error {
 	s.Web.Handle(metricPrefix+metricPattern, s.latestMetric).Queries(LATEST, "").Methods(GET)
 	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricToday).Queries(TODAY, "").Methods(GET)
 	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricTodayUTC).Queries(TODAYUTC, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricYesterday).Queries(YESTERDAY, "").Methods(GET)
+	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricYesterdayUTC).Queries(YESTERDAYUTC, "").Methods(GET)
 	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricAt).Queries(AT, "").Methods(GET)
 	s.Web.Handle(metricPrefix+metricPattern, s.queryBetween).Queries(FROM, "", TO, "").Methods(GET)
 
