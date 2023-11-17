@@ -51,8 +51,6 @@ func (s *Server) PostInit() error {
 
 	// /latest returns the latest values of all metrics
 	s.Web.Handle(metricPrefix, s.latestMetrics).Queries(LATEST, "").Methods(GET)
-	s.Web.Handle(metricPrefix, s.latestMetrics).Queries(LATEST, "").Methods(GET)
-	s.Web.Handle(metricPrefix, s.queryAllAt).Queries(AT, "", FILTER, "").Methods(GET)
 	s.Web.Handle(metricPrefix, s.queryAllAt).Queries(AT, "").Methods(GET)
 
 	// queries against an individual metric
