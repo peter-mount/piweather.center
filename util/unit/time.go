@@ -13,6 +13,15 @@ const (
 	RFC3339NoTC        = "2006-01-02T15:04:05"
 	WeatherUnderground = "2006-01-02 15:04:05" // mysql format, used by Weather Underground
 	Ecowitt            = "2006-01-02+15:04:05" // Common from ecowitt devices
+	Minute             = "2006-01-02T15:04Z07:00"
+	MinuteZulu         = "2006-01-02T15:04Z"
+	MinuteNoTC         = "2006-01-02T15:04"
+	Hour               = "2006-01-02T15Z07:00"
+	HourZulu           = "2006-01-02T15Z"
+	HourNoTC           = "2006-01-02T15"
+	Day                = "2006-01-02Z07:00"
+	DayZulu            = "2006-01-02Z"
+	DayNoTC            = "2006-01-02"
 )
 
 // Time formats in order of precedence.
@@ -25,6 +34,15 @@ var timeFormats = []string{
 	RFC3339Zulu,
 	RFC3339NoTC,
 	RFC3339,
+	Minute,
+	MinuteZulu,
+	MinuteNoTC,
+	Hour,
+	HourZulu,
+	HourNoTC,
+	Day,
+	DayZulu,
+	DayNoTC,
 }
 
 // ParseTime parses a string to get a time. This will accept the following aliases (case-insensitive):
