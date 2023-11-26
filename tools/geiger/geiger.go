@@ -18,7 +18,7 @@ type Geiger struct {
 	Id               *string               `kernel:"flag,geiger-id,Geiger ID"`
 	Port             *string               `kernel:"flag,geiger-port,Geiger Serial Port"`
 	BaudRate         *int                  `kernel:"flag,geiger-baud,Geiger Baud Rate,115200"`
-	Realtime         *int                  `kernel:"flag,geiger-realtime,Geiger in realtime mode report duration in seconds"`
+	Realtime         *int                  `kernel:"flag,geiger-realtime,Geiger in realtime mode report duration in seconds,1"`
 	Debug            *bool                 `kernel:"flag,geiger-debug,Debug protocol"`
 	port             serial.Port           // Connected serial port
 	realtimeReadings []CpmReading          // Readings in realtime mode
