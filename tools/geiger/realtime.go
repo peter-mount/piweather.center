@@ -63,17 +63,14 @@ func (m *Geiger) realtimeRecord(r CpmReading) {
 	// Add this result once we have finished setting it up as it's pass by value here
 	m.realtimeReadings = append(m.realtimeReadings, r)
 
-	// Finally publish the result, based on the report time.
-	if (r.CPS > 0 || r.CPM > 0) && (*m.Realtime == 1 || r.Time.Second()%*m.Realtime == 0) {
-		// Only record CPS when we have it
-		if r.CPS > 0 {
-			m.publish("cps", r.Time, float64(r.CPS), "CountPerSecond")
-		}
+	// Only record CPS when we have it
+	if r.CPS > 0 {
+		m.publish("cps", r.Time, float64(r.CPS), "CountPerSecond")
+	}
 
-		// Only record CPM when we have it, usually the first minute of operation until we
-		// have a minutes worth of data
-		if r.CPM > 0 {
-			m.publish("cpm", r.Time, float64(r.CPM), "CountPerMinute")
-		}
+	// Only record CPM when we have it, usually the first minute of operation until we
+	// have a minutes worth of data
+	if r.CPM > 0 {
+		m.publish("cpm", r.Time, float64(r.CPM), "CountPerMinute")
 	}
 }
