@@ -99,7 +99,11 @@ func (q *Queue) Start(tag string, autoAck bool, task Task) error {
 				} else {
 					if err := task(msg); err != nil {
 						q.logError(err)
-						q.logError(msg.Nack(false, true))
+						// Only requeue on the first nack for this message.
+						// If this is a redelivery then do not requeue as this is probably
+						// a dead message which will then just cause the consumer to endlessly
+						// fail-requeue the faulty message
+						q.logError(msg.Nack(false, !msg.Redelivered))
 					} else {
 						q.logError(msg.Ack(false))
 					}
