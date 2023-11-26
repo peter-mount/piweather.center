@@ -55,6 +55,11 @@ func (q *Queue) Start(tag string, autoAck bool, task Task) error {
 	}
 	q.channel = ch
 
+	err = ch.Qos(5, 0, true)
+	if err != nil {
+		return err
+	}
+
 	_, err = ch.QueueDeclare(q.Name, q.Durable, q.AutoDelete, false, false, nil)
 	if err != nil {
 		return err
