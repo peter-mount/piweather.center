@@ -7,36 +7,35 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
 	"math"
+	"sort"
 	"strings"
 	"time"
 )
 
 func (m *Manager) PostInit() error {
 	m.funcMap = template.FuncMap{
-		"hhmm":              hhmm,
-		"html":              html,
-		"lower":             strings.ToLower,
-		"upper":             strings.ToUpper,
-		"replaceAll":        strings.ReplaceAll,
-		"rfc3339":           rfc3339,
-		"split":             split,
-		"trim":              strings.TrimSpace,
-		"trimPrefix":        trimPrefix,
-		"utc":               utc,
-		"min":               genCalc(math.Min),
-		"max":               genCalc(math.Max),
-		"add":               genCalc(value.Add),
-		"subtract":          genCalc(value.Subtract),
-		"multiply":          genCalc(value.Multiply),
-		"divide":            genCalc(value.Divide),
-		"dict":              dict,
-		"decimalAlign":      NewDecimalAlign,
-		"getReadingKeys":    m.Store.Metrics,
-		"getReadingHistory": m.Store.GetHistory,
-		"getReading": func(name string) record.Record {
-			r, _ := m.Store.Latest(name)
-			return r
-		},
+		"hhmm":           hhmm,
+		"html":           html,
+		"lower":          strings.ToLower,
+		"upper":          strings.ToUpper,
+		"replaceAll":     strings.ReplaceAll,
+		"rfc3339":        rfc3339,
+		"split":          split,
+		"trim":           strings.TrimSpace,
+		"trimPrefix":     trimPrefix,
+		"utc":            utc,
+		"min":            genCalc(math.Min),
+		"max":            genCalc(math.Max),
+		"add":            genCalc(value.Add),
+		"subtract":       genCalc(value.Subtract),
+		"multiply":       genCalc(value.Multiply),
+		"divide":         genCalc(value.Divide),
+		"dict":           dict,
+		"decimalAlign":   NewDecimalAlign,
+		"getReadingKeys": m.getReadingKeys,
+		//"getReadingHistory": m.Latest.GetHistory,
+		"getReading":           m.getReading,
+		"getLatestReadingTime": m.getLatestReadingTime,
 	}
 	return nil
 }
@@ -122,4 +121,21 @@ func dict(values ...any) (map[string]any, error) {
 	}
 
 	return root, nil
+}
+
+func (m *Manager) getReadingKeys() []string {
+	metrics := m.Latest.Metrics()
+	sort.SliceStable(metrics, func(i, j int) bool {
+		return strings.ToLower(metrics[i]) < strings.ToLower(metrics[j])
+	})
+	return metrics
+}
+
+func (m *Manager) getReading(name string) record.Record {
+	r, _ := m.Latest.Latest(name)
+	return r
+}
+
+func (m *Manager) getLatestReadingTime() time.Time {
+	return m.Latest.LatestTime()
 }

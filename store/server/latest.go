@@ -18,10 +18,12 @@ func (s *Server) latestMetrics(r *rest.Rest) error {
 			if rec, exists := s.Latest.Latest(metric); exists {
 				v := rec.Value
 				metrics = append(metrics, api2.Metric{
-					Metric: metric,
-					Time:   rec.Time,
-					Unit:   v.Unit().ID(),
-					Value:  v.Float(),
+					Metric:    metric,
+					Time:      rec.Time,
+					Unit:      v.Unit().ID(),
+					Value:     v.Float(),
+					Formatted: v.String(),
+					Unix:      rec.Time.Unix(),
 				})
 				if rec.Time.After(t) {
 					t = rec.Time

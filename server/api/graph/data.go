@@ -2,71 +2,67 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"github.com/peter-mount/piweather.center/graph/chart"
-	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/store/file/record"
-	"github.com/peter-mount/piweather.center/util"
-	time2 "github.com/peter-mount/piweather.center/util/time"
-	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
 
 func (s *SVG) initChart(start, end time.Time, ctx context.Context, c chart.Chart) (bool, error) {
-	id := ctx.Value("id").(string)
+	return false, nil
+	/*
+		id := ctx.Value("id").(string)
 
-	g := station.GraphFromContext(ctx)
+		g := station.GraphFromContext(ctx)
 
-	readings := s.Store.GetMetricBetween(id, start, end)
-	if readings == nil {
-		return false, nil
-	}
-
-	period := time2.PeriodOf(start, end)
-
-	// resolve the datasource
-	var dataSource util.DataSource
-	calc := g.GetCalculatedValue()
-	if calc != nil && calc.IsPseudo() {
-		to, ok := value.GetUnit(calc.Use)
-		if !ok {
-			return false, fmt.Errorf("unit %q not defined", calc.Use)
+		readings := s.Store.GetMetricBetween(id, start, end)
+		if readings == nil {
+			return false, nil
 		}
+			period := time2.PeriodOf(start, end)
 
-		t := calc.Sensors().Station().LatLong().Time(period.Start())
+			// resolve the datasource
+			var dataSource util.DataSource
+			calc := g.GetCalculatedValue()
+			if calc != nil && calc.IsPseudo() {
+				to, ok := value.GetUnit(calc.Use)
+				if !ok {
+					return false, fmt.Errorf("unit %q not defined", calc.Use)
+				}
 
-		// If we don't set both min and max then use PseudoDataSo
-		min, max := g.GetMinMax()
-		if min != nil && max != nil {
-			dataSource, _ = util.LimitedPseudoDataSource(
-				calc.Calculator(),
-				period,
-				to,
-				time.Minute,
-				to.Value(*min),
-				to.Value(*max),
-				t,
-			)
-		} else {
-			dataSource, _ = util.PseudoDataSource(
-				calc.Calculator(),
-				period,
-				to,
-				time.Minute,
-				t)
-		}
+				t := calc.Sensors().Station().LatLong().Time(period.Start())
 
-	} else {
-		ds, err := record.DataSource(readings)
-		if err != nil {
-			return false, err
-		}
-		dataSource = ds
-	}
+				// If we don't set both min and max then use PseudoDataSo
+				min, max := g.GetMinMax()
+				if min != nil && max != nil {
+					dataSource, _ = util.LimitedPseudoDataSource(
+						calc.Calculator(),
+						period,
+						to,
+						time.Minute,
+						to.Value(*min),
+						to.Value(*max),
+						t,
+					)
+				} else {
+					dataSource, _ = util.PseudoDataSource(
+						calc.Calculator(),
+						period,
+						to,
+						time.Minute,
+						t)
+				}
 
-	c.SetDefinition(g).
-		Add(chart.NewUnitSource(id, dataSource)).
-		SetPeriod(period)
+			} else {
+				ds, err := record.DataSource(readings)
+				if err != nil {
+					return false, err
+				}
+				dataSource = ds
+			}
 
-	return true, nil
+			c.SetDefinition(g).
+				Add(chart.NewUnitSource(id, dataSource)).
+				SetPeriod(period)
+
+			return true, nil
+	*/
 }

@@ -4,7 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	"github.com/peter-mount/piweather.center/store"
+	"github.com/peter-mount/piweather.center/store/memory"
 	"html/template"
 	"os"
 	"path"
@@ -12,17 +12,12 @@ import (
 )
 
 type Manager struct {
-	restService  *rest.Server `kernel:"inject"`
-	webRoot      *string      `kernel:"flag,webroot,Web root directory"`
-	Store        store.Store  `kernel:"inject"`
+	restService  *rest.Server  `kernel:"inject"`
+	webRoot      *string       `kernel:"flag,webroot,Web root directory"`
+	Latest       memory.Latest `kernel:"inject"`
 	rootTemplate *template.Template
 	funcMap      template.FuncMap
 	rootDir      string
-	disabled     bool
-}
-
-func (m *Manager) Disable() {
-	m.disabled = true
 }
 
 func (m *Manager) GetRootDir() string { return m.rootDir }
@@ -32,10 +27,6 @@ func (m *Manager) Start() error {
 		m.rootDir = path.Join(*m.webRoot, "templates")
 	} else {
 		m.rootDir = path.Join(filepath.Dir(os.Args[0]), "../web/templates")
-	}
-
-	if m.disabled {
-		return nil
 	}
 
 	log.Printf("Loading templates in %q", m.rootDir)

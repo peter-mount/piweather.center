@@ -3,7 +3,7 @@ package view
 import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/util/template"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 )

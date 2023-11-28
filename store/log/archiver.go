@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/station/payload"
-	"github.com/peter-mount/piweather.center/store"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,11 +13,9 @@ import (
 )
 
 type Archiver struct {
-	Store       store.Store  `kernel:"inject"`
-	State       *store.State `kernel:"inject"`
-	storeDir    *string      `kernel:"flag,archive-dir,Archive directory"`
-	logMessages *bool        `kernel:"flag,archive-log,Dump messages to stdout"`
-	worker      task.Queue   `kernel:"worker"`
+	storeDir    *string    `kernel:"flag,archive-dir,Archive directory"`
+	logMessages *bool      `kernel:"flag,archive-log,Dump messages to stdout"`
+	worker      task.Queue `kernel:"worker"`
 	mutex       sync.Mutex
 }
 

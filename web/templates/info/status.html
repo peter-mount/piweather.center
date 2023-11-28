@@ -4,39 +4,68 @@
 
 {{- $keys := getReadingKeys -}}
 
-{{- /* Calculate decimalAlign for the value column */ -}}
-{{- $valPad := decimalAlign -}}
-{{- range $reading := $keys -}}
-{{- $reading := getReading $reading -}}
-{{- $valPad.Add $reading.Value.Float $reading.Value.Unit.Precision -}}
-{{- end -}}
-
 <table class="table unitTable">
     <thead>
     </thead>
     <tbody>
     <tr class="heading">
-        <td class="alignLeft" colspan="4">Status</td>
+        <td class="alignLeft" colspan="4">Status at <span id="latestReadingTime">{{getLatestReadingTime}}</span></td>
     </tr>
     <tr>
         <th class="alignLeft">Reading</th>
-        <th class="alignCenter" style="width: {{$valPad.Width}};">Value</th>
-        <th class="alignLeft"></th>
+        <th class="alignCenter">Value</th>
         <th class="alignCenter">Time</th>
         <th class="alignCenter">Unit</th>
     </tr>
 
-    {{- range $reading := $keys -}}
-    {{- $reading := getReading $reading -}}
+    {{- range $key := $keys -}}
+    {{- $reading := getReading $key -}}
     <tr>
-        <td class="alignLeft">{{$reading.Name}}</td>
-        <td style="--pad: {{$valPad.Pad $reading.Value.Float}};" class="alignDecimal">{{$reading.Value.PlainString}}</td>
-        <td class="alignLeft">{{trim $reading.Value.Unit.Unit}}</td>
-        <td class="alignLeft">{{utc $reading.Time | rfc3339}}</td>
+        <td class="alignLeft">{{$key}}</td>
+        <td class="alignRight" id="{{$key}}..v">{{$reading.Value.String}}</td>
+        <td class="alignLeft" id="{{$key}}..t">{{utc $reading.Time | rfc3339}}</td>
         <td class="alignLeft">{{$reading.Value.Unit.Name}}</td>
     </tr>
     {{- end -}}
     </tbody>
 </table>
+
+<script>
+    window.addEventListener("load", function (evt) {
+
+        var now = new Date()
+
+        var ws = new WebSocket("ws://127.0.0.1:8080/live");
+        ws.onclose = function (evt) {
+            ws = null;
+        }
+        ws.onmessage = function (evt) {
+            var metric = JSON.parse(evt.data)
+
+            var id = metric.metric
+            var e = document.getElementById(id+"..v")
+            if (e!==null) {
+                e.textContent = metric.formatted
+            }
+
+            e = document.getElementById(id+"..t")
+            if (e!==null) {
+                e.textContent = metric.time
+            }
+
+            var md = new Date(metric.unix*1000)
+            if (md > now) {
+                now=md
+                e = document.getElementById("latestReadingTime")
+                if (e!==null) {
+                    e.textContent = now.toLocaleString()
+                }
+            }
+        }
+        ws.onerror = function (evt) {
+        }
+        return false;
+    });
+</script>
 
 {{- template "layout/default-end.html" $ -}}

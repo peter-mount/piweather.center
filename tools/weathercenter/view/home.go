@@ -6,8 +6,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/io"
 	"github.com/peter-mount/piweather.center/server/api"
-	"github.com/peter-mount/piweather.center/store"
-	"github.com/peter-mount/piweather.center/util/template"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"os/exec"
 	"strings"
 	"sync"
@@ -15,9 +14,9 @@ import (
 )
 
 type Home struct {
-	Rest       *rest.Server         `kernel:"inject"`
-	Templates  *template.Manager    `kernel:"inject"`
-	Store      store.Store          `kernel:"inject"`
+	Rest      *rest.Server      `kernel:"inject"`
+	Templates *template.Manager `kernel:"inject"`
+	//Store      store.Store          `kernel:"inject"`
 	ApiInbound *api.EndpointManager `kernel:"inject"`
 	meta       *Meta
 	lastUpdate time.Time

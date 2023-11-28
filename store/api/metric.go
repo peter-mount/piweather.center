@@ -8,14 +8,16 @@ import (
 )
 
 type Metric struct {
-	Metric string    `json:"metric" xml:"metric,attr"`
-	Time   time.Time `json:"time" xml:"time,attr"`
-	Unit   string    `json:"unit" xml:"unit,attr"`
-	Value  float64   `json:"value" xml:",chardata"`
+	Metric    string    `json:"metric" xml:"metric,attr"`
+	Time      time.Time `json:"time" xml:"time,attr"`
+	Unit      string    `json:"unit" xml:"unit,attr"`
+	Value     float64   `json:"value" xml:",chardata"`
+	Formatted string    `json:"formatted,omitempty" xml:"formatted,attr,omitempty"`
+	Unix      int64     `json:"unix,omitempty" xml:"unix,attr,omitempty"`
 }
 
 func (m Metric) String() string {
-	return fmt.Sprintf("Matric[%q,%q,%q,%f]", m.Metric, m.Time.Format(time.RFC3339), m.Unit, m.Value)
+	return fmt.Sprintf("Metric[%q,%q,%q,%f]", m.Metric, m.Time.Format(time.RFC3339), m.Unit, m.Value)
 }
 
 type MetricValue struct {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/task"
-	"github.com/peter-mount/piweather.center/util/template"
 	"sort"
 	"strings"
 	"sync"
@@ -16,8 +15,7 @@ import (
 // interface for both inbound feeds (using http or message brokers) as well as
 // for svg and image sources.
 type EndpointManager struct {
-	Rest      *rest.Server      `kernel:"inject"`
-	Templates *template.Manager `kernel:"inject"`
+	Rest      *rest.Server `kernel:"inject"`
 	endPoints map[string][]*endpoint
 	mutex     sync.Mutex
 }
@@ -57,11 +55,6 @@ func (a EndpointEntry) Identical(b EndpointEntry) bool {
 
 func (s *EndpointManager) PostInit() error {
 	s.endPoints = make(map[string][]*endpoint)
-	return nil
-}
-
-func (s *EndpointManager) Start() error {
-	s.Rest.Do("/status/endpoints", s.showEndpoints).Methods("GET")
 	return nil
 }
 
@@ -165,12 +158,4 @@ func (s *EndpointManager) getEndpoints() []Endpoints {
 	}
 
 	return r
-}
-
-func (s *EndpointManager) showEndpoints(ctx context.Context) error {
-	return s.Templates.Render(ctx, "info/endpoints.html", map[string]interface{}{
-		"endpoints":  s.getEndpoints(),
-		"navSection": "Status",
-		"navLink":    "Endpoints",
-	})
 }

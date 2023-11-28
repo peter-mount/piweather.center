@@ -13,14 +13,16 @@ func init() {
 
 // Latest manages an in memory copy of the most recent Record entered into the database
 type Latest interface {
-	Append(metric string, rec record.Record)
+	Append(metric string, rec record.Record) bool
 	Latest(metric string) (record.Record, bool)
 	Metrics() []string
+	LatestTime() time.Time
 }
 
 type latest struct {
-	mutex   sync.Mutex
-	metrics map[string]record.Record
+	mutex      sync.Mutex
+	metrics    map[string]record.Record
+	latestTime time.Time
 }
 
 func (l *latest) Start() error {
@@ -28,9 +30,9 @@ func (l *latest) Start() error {
 	return nil
 }
 
-func (l *latest) Append(metric string, rec record.Record) {
+func (l *latest) Append(metric string, rec record.Record) bool {
 	if metric == "" || !rec.IsValid() {
-		return
+		return false
 	}
 
 	// Truncate time to the second as the DB only has resolution to
@@ -43,10 +45,17 @@ func (l *latest) Append(metric string, rec record.Record) {
 	// Check that existing entry is not newer than the one being appended
 	old, exists := l.metrics[metric]
 	if exists && old.IsValid() && old.Time.After(rec.Time) {
-		return
+		return false
 	}
 
 	l.metrics[metric] = rec
+
+	// Keep latest time value to most recent timestamp
+	if rec.Time.After(l.latestTime) {
+		l.latestTime = rec.Time
+	}
+
+	return true
 }
 
 func (l *latest) Latest(metric string) (record.Record, bool) {
@@ -68,4 +77,11 @@ func (l *latest) Metrics() []string {
 	}
 
 	return metrics
+}
+
+func (l *latest) LatestTime() time.Time {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	return l.latestTime
 }
