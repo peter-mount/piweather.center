@@ -31,6 +31,7 @@ func (m *Manager) PostInit() error {
 		"multiply":       genCalc(value.Multiply),
 		"divide":         genCalc(value.Divide),
 		"sequence":       sequence,
+		"array":          array,
 		"defVal":         defVal,
 		"dict":           dict,
 		"decimalAlign":   NewDecimalAlign,
@@ -173,3 +174,5 @@ func defVal(v *float64, d float64) float64 {
 	}
 	return *v
 }
+
+func array(s ...any) []any { return s }

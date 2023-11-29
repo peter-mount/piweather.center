@@ -1,0 +1,23 @@
+{{- /* simple compass usually used to show wind direction */ -}}
+{{- template "componentStart" . -}}
+<svg viewBox="0 0 250 250" role="img">
+    <g transform="translate(125,125)" stroke-width="3px">
+        <circle r="100" fill="none" stroke="black"/>
+        {{- range $d := sequence 0 360 22.5 -}}
+        <g transform="rotate({{$d}})" fill="none" stroke="black">
+            <path d="M-85 0 l-15 0"/>
+        </g>
+        {{- end -}}
+        {{- range $i, $l := array "N" "NE" "E" "SE" "S" "SW" "W" "NW" -}}
+        <g transform="rotate({{multiply $i 45}})" dominant-baseline="middle" text-anchor="middle">
+            <text y="-110">{{$l}}</text>
+        </g>
+        {{- end -}}
+        <g transform="rotate(45)" fill="red">
+            <circle r="15"/>
+            <path d="M-15 0 l30 0 l-15 -80 z"/>
+        </g>
+        <circle r="10" fill="black"/>
+    </g>
+</svg>
+{{- template "componentEnd" . -}}

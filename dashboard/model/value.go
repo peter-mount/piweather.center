@@ -6,6 +6,7 @@ func init() {
 	f := func() registry.Component { return &Value{} }
 	registry.Register("value", f)
 	registry.Register("rain-gauge", f)
+	registry.Register("compass", f)
 }
 
 type Value struct {

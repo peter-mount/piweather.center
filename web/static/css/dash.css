@@ -64,12 +64,6 @@
     width: 5em;
 }
 
-.dash-rain-gauge {
-    width: 5em;
-/*    text-align: center;
-    vertical-align: middle;*/
-}
-
 .dash-value .label {
     text-align: right;
     font-weight: bold;
@@ -78,4 +72,12 @@
 .dash-value .label {
     text-align: right;
     font-weight: normal;
+}
+
+.dash-rain-gauge {
+    width: 5em;
+}
+
+.dash-compass {
+    width: 10em;
 }
