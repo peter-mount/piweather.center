@@ -30,6 +30,8 @@ func (m *Manager) PostInit() error {
 		"subtract":       genCalc(value.Subtract),
 		"multiply":       genCalc(value.Multiply),
 		"divide":         genCalc(value.Divide),
+		"sequence":       sequence,
+		"defVal":         defVal,
 		"dict":           dict,
 		"decimalAlign":   NewDecimalAlign,
 		"getReadingKeys": m.getReadingKeys,
@@ -138,4 +140,36 @@ func (m *Manager) getReading(name string) record.Record {
 
 func (m *Manager) getLatestReadingTime() time.Time {
 	return m.Latest.LatestTime()
+}
+
+// seq start end step -> slice of values between start and step
+func sequence(start, end, step float64) []float64 {
+	step = math.Abs(step)
+	if step == 0 {
+		step = 1
+	}
+
+	var v []float64
+
+	if start < end {
+		for start <= end {
+			v = append(v, start)
+			start += step
+		}
+	} else {
+		for start >= end {
+			v = append(v, start)
+			start -= step
+		}
+	}
+
+	return v
+}
+
+// defVal returns v if not nil, otherwise d
+func defVal(v *float64, d float64) float64 {
+	if v == nil {
+		return d
+	}
+	return *v
 }

@@ -1,26 +1,73 @@
+.dash-title-box {
+    display: block;
+    /*border: #3c5a86 1px dotted;*/
+    border: 1px solid lightgrey;
+    width: fit-content;
+    height: fit-content;
+    margin: .125em;
+}
+
+.dash-title-title {
+    position: relative;
+    top: -0.6em;
+    margin-left: 1em;
+    display: inline;
+    background-color: white;
+    padding-left: .125em;
+    padding-right: .125em;
+}
+
+.dash-title-box > div:nth-child(2) {
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+    padding-bottom: 0.25em;
+}
+
+.dashboard-outer {
+    margin-top: 0.5em;
+    padding-top: 0.5em;
+}
+
+.dash-dashboard {
+    display: block;
+}
+
+.dash-row,
 .dash-container {
     display: block;
     width: fit-content;
     height: fit-content;
-    border: 1px solid black;
+}
+
+.dash-row > .dash-container,
+.dash-row > .dash-title-box {
+    display: inline-block
+}
+
+.dash-value,
+.dash-rain-gauge {
+    display: inline-block;
+    font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: 1em;
     margin: 1px;
     padding: 1px;
 }
 
 .dash-value {
-    display: inline-block;
     width: 10em;
-    font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
-    font-weight: normal;
-    font-size: 1em;
     border: 1px solid black;
-    margin: 1px;
-    padding: 1px;
 }
 
 .dash-value .label, .dash-value .metric {
     display: inline-block;
     width: 5em;
+}
+
+.dash-rain-gauge {
+    width: 5em;
+/*    text-align: center;
+    vertical-align: middle;*/
 }
 
 .dash-value .label {

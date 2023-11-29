@@ -7,7 +7,9 @@ import (
 )
 
 func init() {
-	registry.Register("container", func() registry.Component { return &Container{} })
+	f := func() registry.Component { return &Container{} }
+	registry.Register("container", f)
+	registry.Register("row", f)
 }
 
 // Dashboard is the top level Component representing an entire dashboard.

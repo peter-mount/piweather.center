@@ -1,11 +1,12 @@
 {{- define "componentStart" -}}
+{{- with $title := .Title -}}<div class="dash-title-box"><div class="dash-title-title">{{$title}}</div>{{- end -}}
 <div class="dash-{{.Type}}" {{with .Style}}style="{{.}}"{{end}}>
 {{- end -}}
 
 {{- define "componentEnd" -}}
-</div>
+</div>{{- with .Title -}}</div>{{- end -}}
 {{- end -}}
 
 {{- template "layout/default-start.html" $ -}}
-{{- showComponent .board -}}
+<div class="dashboard-outer">{{- showComponent .board -}}</div>
 {{- template "layout/default-end.html" $ -}}

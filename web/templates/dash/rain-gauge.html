@@ -1,0 +1,22 @@
+{{- /* rain-gauge shows a value in an open-top bottle which looks like an
+old school rain-gauge */ -}}
+{{- template "componentStart" . -}}
+{{- $val := 10 -}}
+{{- $height := 200 -}}
+{{- /* Axes - default 0..100, use Min,Max in yaml if set but account for val being outside that range*/ -}}
+{{- $min := min $val (defVal .Min 0) -}}
+{{- $max := max $val (defVal .Max 100) -}}
+{{- $range := subtract $max $min -}}
+{{- $scale := divide (subtract $height 10) $range -}}
+{{- $step := divide $range 10 -}}
+{{- /* Axes sequence */ -}}
+{{- $seq := sequence $min $max $step -}}
+{{- $valOff := multiply $scale $val -}}
+<svg viewBox="0 0 150 250" role="img">
+    <path d="M20 {{$height}} l0 -{{$valOff}} l80 0 l0 {{$valOff}} z" fill="lightblue"/>
+    <path d="{{ range $v := $seq }}{{ $y := subtract $height (multiply $scale (subtract $v $min)) }}M100 {{$y}} l 10 0 {{end}}" fill="none" stroke="black" stroke-width="1px"/>
+    <path d="M10 10 L 20 10 L 20 {{$height}} L 100 {{$height}} L 100 10 L 110 10" fill="none" stroke="black" stroke-width="3px"/>
+    {{ range $v := $seq -}}{{- $y := subtract $height (multiply $scale (subtract $v $min)) -}}<text x="115" y="{{$y}}" dominant-baseline="middle">{{$v}}</text>{{end}}
+    {{- with .Label}}<text x="60" y="{{add $height 15}}" dominant-baseline="middle" text-anchor="middle">{{.}}</text>{{end}}
+</svg>
+{{- template "componentEnd" . -}}

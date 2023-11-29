@@ -98,6 +98,9 @@ func (s *Service) setDashboard(n string, d *model.Dashboard) *model.Dashboard {
 	old := s.dashboards[n]
 
 	if d != nil {
+		// Force the type field, needed for template resolution
+		d.Type = "dashboard"
+
 		s.dashboards[n] = d
 		model.Debug(d)
 	} else {
