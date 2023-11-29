@@ -1,0 +1,4 @@
+{{- template "componentStart" . }}
+{{- with .Label}}<span class="label">{{.}}</span>{{end -}}
+{{- with .Metric}}<span class="metric" id="{{.}}"></span>{{end -}}
+{{- template "componentEnd" -}}

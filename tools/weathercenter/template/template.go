@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	"html/template"
 	"os"
 	"time"
 )
@@ -64,4 +65,12 @@ func (m *Manager) Do(path, template string, methods ...string) *Manager {
 		return m.Render(ctx, template, nil)
 	}).Methods(methods...)
 	return m
+}
+
+func (m *Manager) Template(n string, d interface{}) (template.HTML, error) {
+	var buf bytes.Buffer
+	if err := m.rootTemplate.ExecuteTemplate(&buf, n, d); err != nil {
+		return "", err
+	}
+	return template.HTML(buf.String()), nil
 }

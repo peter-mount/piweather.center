@@ -1,0 +1,11 @@
+{{- define "componentStart" -}}
+<div class="dash-{{.Type}}" {{with .Style}}style="{{.}}"{{end}}>
+{{- end -}}
+
+{{- define "componentEnd" -}}
+</div>
+{{- end -}}
+
+{{- template "layout/default-start.html" $ -}}
+{{- showComponent .board -}}
+{{- template "layout/default-end.html" $ -}}

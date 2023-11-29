@@ -1,0 +1,34 @@
+.dash-container {
+    display: block;
+    width: fit-content;
+    height: fit-content;
+    border: 1px solid black;
+    margin: 1px;
+    padding: 1px;
+}
+
+.dash-value {
+    display: inline-block;
+    width: 10em;
+    font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: 1em;
+    border: 1px solid black;
+    margin: 1px;
+    padding: 1px;
+}
+
+.dash-value .label, .dash-value .metric {
+    display: inline-block;
+    width: 5em;
+}
+
+.dash-value .label {
+    text-align: right;
+    font-weight: bold;
+}
+
+.dash-value .label {
+    text-align: right;
+    font-weight: normal;
+}

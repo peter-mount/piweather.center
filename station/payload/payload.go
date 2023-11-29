@@ -8,7 +8,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/peter-mount/piweather.center/util/unit"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"strconv"
 	"strings"
 	"time"

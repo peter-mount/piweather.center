@@ -1,16 +1,22 @@
 package config
 
 import (
+	"github.com/fsnotify/fsnotify"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/io"
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 )
 
 func init() {
 	kernel.RegisterAPI((*Manager)(nil), &manager{})
 }
+
+var (
+	pathSep = string(os.PathSeparator)
+)
 
 type Manager interface {
 	// EtcDir returns the path to the etc directory
@@ -28,10 +34,17 @@ type Manager interface {
 	// FixPath ensures that, if the path is relative it will point to EtcDir().
 	// This will do nothing is s==nil or *s==""
 	FixPath(s *string)
+	// ReadAndWatch read with a custom Unmarshaller but also if the file ever changes.
+	ReadAndWatch(n string, f Factory, u Updater, um Unmarshaller) error
+	// WatchDirectory watches a directory and passes all changes to a single Updater
+	WatchDirectory(d string, f Factory, u Updater, um Unmarshaller)
 }
 
 type manager struct {
 	RootDirFlag *string `kernel:"flag,rootDir,Location of config files"`
+	mutex       sync.Mutex
+	watcher     *fsnotify.Watcher
+	watching    map[string][]*updater
 }
 
 func (m *manager) Start() error {
@@ -39,7 +52,20 @@ func (m *manager) Start() error {
 	if *m.RootDirFlag == "" {
 		*m.RootDirFlag = path.Join(filepath.Dir(os.Args[0]), "../etc")
 	}
-	return nil
+
+	m.watching = make(map[string][]*updater)
+	w, err := fsnotify.NewWatcher()
+	if err == nil {
+		m.watcher = w
+		err = w.Add(m.EtcDir())
+	}
+
+	// Ok then start updater
+	if err == nil {
+		go m.run()
+	}
+
+	return err
 }
 
 func (m *manager) EtcDir() string {
