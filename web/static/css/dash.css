@@ -39,9 +39,15 @@
     height: fit-content;
 }
 
+.dash-row,
+.dash-container,
+.dash-title-box {
+    vertical-align: top;
+}
+
 .dash-row > .dash-container,
 .dash-row > .dash-title-box {
-    display: inline-block
+    display: inline-block;
 }
 
 .dash-value,
