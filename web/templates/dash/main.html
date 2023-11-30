@@ -1,6 +1,6 @@
 {{- define "componentStart" -}}
 {{- with $title := .Title -}}<div class="dash-title-box"><div class="dash-title-title">{{$title}}</div>{{- end -}}
-<div class="dash-{{.Type}}" {{with .Style}}style="{{.}}"{{end}}>
+<div class="dash-{{.Type}}{{with .Class}} {{.}}{{end}}"{{with .Style}} style="{{.}}"{{end}}>
 {{- end -}}
 
 {{- define "componentEnd" -}}

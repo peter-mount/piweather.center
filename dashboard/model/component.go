@@ -34,7 +34,8 @@ type Container struct {
 type Component struct {
 	Type  string `yaml:"type"`            // type of component - required
 	Title string `yaml:"title,omitempty"` // title, optional based on component
-	Style string `yaml:"style,omitempty"` // optional css for this component only
+	Class string `yaml:"class,omitempty"` // optional CSS class
+	Style string `yaml:"style,omitempty"` // optional inline CSS
 }
 
 // GetType returns the type of component
