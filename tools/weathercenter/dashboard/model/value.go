@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -18,12 +17,11 @@ func init() {
 // Value represents a distinct component displaying values
 type Value struct {
 	Component `yaml:",inline"`
-	Label     string   `yaml:"label"`             // optional label
-	Min       *float64 `yaml:"min,omitempty"`     // Min axis value
-	Max       *float64 `yaml:"max,omitempty"`     // Max axis value
-	Ticks     *float64 `yaml:"ticks,omitempty"`   // Number of ticks on axis
-	Metric    *Metric  `yaml:"metric,omitempty"`  // Single metric for value
-	Metrics   []Metric `yaml:"metrics,omitempty"` // Multiple metrics
+	Label     string   `yaml:"label"`            // optional label
+	Min       *float64 `yaml:"min,omitempty"`    // Min axis value
+	Max       *float64 `yaml:"max,omitempty"`    // Max axis value
+	Ticks     *float64 `yaml:"ticks,omitempty"`  // Number of ticks on axis
+	Metric    []Metric `yaml:"metric,omitempty"` // Multiple metrics
 }
 
 type Metric struct {
@@ -83,26 +81,20 @@ func (m *Metric) Accept(s string) bool {
 
 // Process a Metric
 func (c *Value) Process(m api.Metric, r *Response) {
-	update := false
+	if len(c.Metric) > 0 {
+		a := Action{ID: c.ID}
 
-	if c.Metric.Accept(m.Metric) {
-		log.Printf("%q %v", c.Metric.Metric, m)
-		c.Metric.setValue(m)
-		update = update || c.Metric.Value.IsValid()
-	}
+		for i, e := range c.Metric {
+			if e.Accept(m.Metric) {
+				e.setValue(m)
+				if e.Value.IsValid() {
+					a = a.Add(i)
+				}
 
-	if len(c.Metrics) > 0 {
-		for i, e := range c.Metrics {
-			e.setValue(m)
-			update = update || e.Value.IsValid()
-
-			// required as e is not a pointer
-			c.Metrics[i] = e
+				// required as e is not a pointer
+				c.Metric[i] = e
+			}
 		}
-	}
-
-	// If notifiable then add it to the response
-	if update {
-		r.Add(c.Type, c.ID)
+		r.Add(c.Type, a)
 	}
 }

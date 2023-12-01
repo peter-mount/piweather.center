@@ -1,16 +1,10 @@
-/* value.js */
-function update_gauge(r) {
-    for (let id of r.actions['gauge']) {
-        let e = document.getElementById(id+".txt")
-        if (e !==null) {e.textContent=r.metric.formatted}
-
-        let d = document.getElementById(id+".svg")
-        e = document.getElementById(id+".ptr")
-        if (d!==null && e !==null) {
-            let v=Math.max(d.dataset.min,Math.min(r.metric.value,d.dataset.max))
-            let a=((v-d.dataset.min)*d.dataset.delta)-90
-            e.setAttribute("transform",'rotate('+a+')')
-        }
-
-    }
+function update_gauge(m,id,idx) {
+    idx.forEach(i => {
+        let d = document.getElementById(id + ".svg")
+        idx.forEach(i => {
+            setText(id, i, m.formatted)
+            let v = Math.max(d.dataset.min, Math.min(m.value, d.dataset.max))
+            setRotate(id, i, ((v - d.dataset.min) * d.dataset.delta) - 90)
+        })
+    })
 }

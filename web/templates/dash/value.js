@@ -1,7 +1,5 @@
-/* value.js */
-function update_value(r) {
-    for (let id of r.actions['value']) {
-        let e = document.getElementById(id)
-        if (e !==null) {e.textContent=r.metric.formatted}
-    }
+function update_value(m, id, idx) {
+    idx.forEach(i => {
+        setText(id, i, m.formatted)
+    })
 }

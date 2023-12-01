@@ -20,11 +20,17 @@
                 <text y="-110">{{$l}}</text>
             </g>
             {{- end -}}
-            <text id="{{$.ID}}.txt" y="45" font-size="150%">{{$.Metric}}</text>
+            {{- range $i,$m := $.Metric -}}
+                {{- if eq $i 0 -}}
+                    <text id="{{$.ID}}.txt{{$i}}" y="45" font-size="150%">{{printf "%.0f" $m.Value.Float}}°</text>
+                {{- end -}}
+            {{- end -}}
         </g>
-        <g id="{{$.ID}}.ptr" transform="rotate({{$.Metric.Value.Float}})">
+        {{- range $i,$m := $.Metric -}}
+        <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{$m.Value.Float}})">
             <use xlink:href="#h"/>
         </g>
+        {{- end -}}
         <circle r="10" fill="black"/>
     </g>
 </svg>

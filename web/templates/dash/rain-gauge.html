@@ -1,6 +1,8 @@
 {{- /* rain-gauge shows a value in an open-top bottle which looks like an old school rain-gauge */ -}}
 {{- template "componentStart" . -}}
-{{- $val := $.Metric.Value.Float -}}
+{{- /* TODO For now just support 1 metric here */ -}}
+{{- $m := index $.Metric 0 -}}
+{{- $val := $m.Value.Float -}}
 {{- $height := 200.0 -}}
 {{- /* Axes - default 0..100, use Min,Max in yaml if set but account for val being outside that range*/ -}}
 {{- $min := min $val (defVal .Min 0) -}}
@@ -22,7 +24,7 @@
             {{- with .Label -}}
             <text>{{.}}</text>
             {{- end -}}
-            <text y="15">{{$.Metric}}</text>
+            <text y="15">{{$m.String}}</text>
         </g>
     </g>
 </svg>

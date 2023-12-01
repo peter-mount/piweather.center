@@ -13,23 +13,8 @@
 
 {{- with .board.Live -}}
 <script>
-    window.addEventListener("load", function (evt) {
-        let ws = new WebSocket("ws://127.0.0.1:8080/live/dash/{{$.dash}}");
-        ws.onclose = function (evt) {ws = null;}
-        ws.onerror = function (evt) {}
-        ws.onmessage = function (evt) {
-            let msg = JSON.parse(evt.data)
-            {{range $c := $.js -}}
-            if(msg.actions[{{$c}}]) { {{ReplaceAll $c "-" "_"|printf "update_%s(msg)"|js}} }
-            {{end}}
-        }
-        return false;
-    });
-    {{- range $c := $.js}}
-    /* {{$c}} */
-    {{showJs $c}}
-    {{end -}}
+    let actions = { {{- range $c := $.js}}{{$c}}:{{ReplaceAll $c "-" "_"|printf "update_%s"|js}},{{end -}} };
+    {{ showJs "main" $ }}
+    {{- range $c := $.js}}{{showJs $c $}}{{end -}}
 </script>
-
-
 {{- end -}}

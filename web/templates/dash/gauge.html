@@ -27,13 +27,19 @@
             <text y="-100">{{$a.Label}}</text>
         </g>
         {{- end -}}
-        <text id="{{$.ID}}.txt" y="35" font-size="150%">{{$.Metric}}</text>
+        {{- range $i,$m := $.Metric -}}
+            {{- if eq $i 0 -}}
+                <text id="{{$.ID}}.txt{{$i}}" y="35" font-size="150%">{{$m.String}}</text>
+            {{- end -}}
+        {{- end -}}
         {{- with $.Label -}}
         <text y="55" font-size="150%">{{$.Label}}</text>
         {{- end -}}
-        <g id="{{$.ID}}.ptr" transform="rotate({{subtract (multiply (subtract (ensureWithin $.Metric.Value.Float $min $max) $min) $axis.Delta) 90}})">
+        {{- range $i,$m := $.Metric -}}
+        <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90}})">
             <use xlink:href="#h"/>
         </g>
+        {{- end -}}
         <circle r="10" fill="black"/>
     </g>
 </svg>

@@ -11,15 +11,36 @@ type Processor interface {
 }
 
 type Response struct {
-	Metric  api.Metric          `json:"metric"`
-	Actions map[string][]string `json:"actions"`
+	Metric  api.Metric                  `json:"metric"`
+	Actions map[string]map[string][]int `json:"actions"`
 }
 
-func (r *Response) Add(t, id string) {
-	if r.Actions == nil {
-		r.Actions = make(map[string][]string)
+type Action struct {
+	ID    string `json:"id"`
+	Index []int  `json:"index"`
+}
+
+func (a Action) IsValid() bool {
+	return a.ID != "" && len(a.Index) > 0
+}
+
+func (a Action) Add(i int) Action {
+	a.Index = append(a.Index, i)
+	return a
+}
+
+func (r *Response) Add(t string, a Action) {
+	if a.IsValid() {
+		if r.Actions == nil {
+			r.Actions = make(map[string]map[string][]int)
+		}
+		id := r.Actions[t]
+		if id == nil {
+			id = make(map[string][]int)
+		}
+		id[a.ID] = a.Index
+		r.Actions[t] = id
 	}
-	r.Actions[t] = append(r.Actions[t], id)
 }
 
 func (r *Response) Json() ([]byte, bool) {

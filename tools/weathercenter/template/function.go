@@ -193,7 +193,7 @@ func (s *Manager) showComponent(c registry.Component) (template.HTML, error) {
 	return s.Template("dash/"+strings.ToLower(c.GetType())+".html", c)
 }
 
-func (s *Manager) showJs(n string) (template.JS, error) {
-	h, e := s.Template("dash/"+n+".js", nil)
+func (s *Manager) showJs(n string, d any) (template.JS, error) {
+	h, e := s.Template("dash/"+n+".js", d)
 	return template.JS(h), e
 }
