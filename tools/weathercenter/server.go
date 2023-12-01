@@ -1,16 +1,19 @@
 package weathercenter
 
 import (
+	"encoding/json"
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/memory"
 	_ "github.com/peter-mount/piweather.center/tools/weathercenter/menu"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/view"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/ws"
+	"github.com/rabbitmq/amqp091-go"
 	"path/filepath"
 )
 
@@ -27,6 +30,7 @@ type Server struct {
 	DBServer       *string               `kernel:"flag,metric-db,DB url"`
 	mqQueue        *amqp.Queue
 	liveServer     *ws.Server
+	listener       api.Listener
 }
 
 func (s *Server) Start() error {
@@ -35,6 +39,10 @@ func (s *Server) Start() error {
 	staticDir := filepath.Join(rootDir, "static")
 	log.Printf("Static content: %s", staticDir)
 	s.Rest.Static("/static", staticDir)
+
+	// The listener handler
+	s.listener = api.NewListener()
+	go s.listener.Run()
 
 	// Get latest metrics from DB
 	if err := s.loadLatestMetrics(); err != nil {
@@ -59,4 +67,19 @@ func (s *Server) Start() error {
 	}
 
 	return err
+}
+
+// recordMetricAmqp accepts a metric from RabbitMQ, stores it in Latest
+// then forwards it to any websocket clients
+func (s *Server) recordMetricAmqp(delivery amqp091.Delivery) error {
+	var metric api.Metric
+	err := json.Unmarshal(delivery.Body, &metric)
+	if err == nil {
+		s.storeLatest(metric)
+	}
+	return err
+}
+
+func (s *Server) Listener() api.Listener {
+	return s.listener
 }
