@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )
@@ -145,10 +144,6 @@ func autoScale(min, max, size float64) AxisScale {
 		r.Points = append(r.Points, dy*fi)
 		r.Labels = append(r.Labels, fmt.Sprintf(r.Format, min+(dt*fi)))
 	}
-
-	log.Printf("min %f max %f ticks %d r %f sc %f sz %f",
-		r.Min, r.Max, r.Ticks,
-		r.Range, r.Scale, r.Size)
 
 	return r
 }
