@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 type Manager struct {
@@ -35,7 +36,10 @@ func (m *Manager) Start() error {
 
 	return walk.NewPathWalker().
 		Then(m.addTemplate).
-		PathHasSuffix(".html").
+		//PathHasSuffix(".html").
+		If(func(path string, _ os.FileInfo) bool {
+			return strings.HasSuffix(path, ".html") || strings.HasSuffix(path, ".js")
+		}).
 		IsFile().
 		Walk(m.rootDir)
 }

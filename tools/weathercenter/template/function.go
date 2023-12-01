@@ -3,6 +3,7 @@ package template
 import (
 	"errors"
 	"github.com/peter-mount/piweather.center/store/file/record"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
@@ -34,8 +35,12 @@ func (m *Manager) PostInit() error {
 		"array":          array,
 		"defVal":         defVal,
 		"dict":           dict,
+		"js":             js,
 		"decimalAlign":   NewDecimalAlign,
 		"getReadingKeys": m.getReadingKeys,
+		"showJs":         m.showJs,
+		"showComponent":  m.showComponent,
+		"ReplaceAll":     strings.ReplaceAll,
 		//"getReadingHistory": m.Latest.GetHistory,
 		"getReading":           m.getReading,
 		"getLatestReadingTime": m.getLatestReadingTime,
@@ -176,3 +181,16 @@ func defVal(v *float64, d float64) float64 {
 }
 
 func array(s ...any) []any { return s }
+
+func js(s string) template.JS {
+	return template.JS(s)
+}
+
+func (s *Manager) showComponent(c registry.Component) (template.HTML, error) {
+	return s.Template("dash/"+strings.ToLower(c.GetType())+".html", c)
+}
+
+func (s *Manager) showJs(n string) (template.JS, error) {
+	h, e := s.Template("dash/"+n+".js", nil)
+	return template.JS(h), e
+}

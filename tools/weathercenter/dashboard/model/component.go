@@ -2,7 +2,9 @@ package model
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/dashboard/registry"
+	uuid "github.com/peter-mount/go.uuid"
+	"github.com/peter-mount/piweather.center/store/api"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,12 +18,33 @@ func init() {
 // Initially it's the same as Container, however it will have additional fields in the future.
 type Dashboard struct {
 	Container `yaml:",inline"`
+	Live      bool `yaml:"live,omitempty"` // If true then dashboard can have live updates
 }
 
 // Container represents a collection of Components that will be rendered together
 type Container struct {
 	Component  `yaml:",inline"`
 	Components ComponentList `yaml:"components"`
+}
+
+func (c *Container) Init() {
+	c.Component.Init()
+	for _, e := range c.Components {
+		if d, ok := e.(*Container); ok {
+			d.Init()
+		} else if d, ok := e.(*Value); ok {
+			d.Init()
+		}
+	}
+}
+
+// Process a Metric by sending it to all Component's within the Container
+func (c *Container) Process(m api.Metric, r *Response) {
+	for _, e := range c.Components {
+		if d, ok := e.(Processor); ok {
+			d.Process(m, r)
+		}
+	}
 }
 
 // Component is the common fields available to all Component's.
@@ -32,11 +55,24 @@ type Container struct {
 //
 // Doing this ensures that the fields are decoded correctly
 type Component struct {
+	ID    string `yaml:"-"`               // Unique ID, generated on load
 	Type  string `yaml:"type"`            // type of component - required
 	Title string `yaml:"title,omitempty"` // title, optional based on component
 	Class string `yaml:"class,omitempty"` // optional CSS class
 	Style string `yaml:"style,omitempty"` // optional inline CSS
 }
+
+func (c *Component) Init() {
+	if c.ID == "" {
+		u, _ := uuid.NewV1()
+		c.ID = u.String()
+	}
+}
+
+// Process a Metric
+//func (c *Component) Process(m api.Metric) {
+//	// Do nothing, we override this on each type
+//}
 
 // GetType returns the type of component
 func (c *Component) GetType() string {

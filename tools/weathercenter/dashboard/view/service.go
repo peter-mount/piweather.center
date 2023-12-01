@@ -5,11 +5,11 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	"github.com/peter-mount/piweather.center/dashboard/model"
-	"github.com/peter-mount/piweather.center/dashboard/registry"
+	"github.com/peter-mount/piweather.center/tools/weathercenter"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/util/config"
-	template2 "html/template"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,12 +18,13 @@ import (
 )
 
 type Service struct {
-	Rest       *rest.Server      `kernel:"inject"`
-	Config     config.Manager    `kernel:"inject"`
-	Template   *template.Manager `kernel:"inject"`
+	Rest       *rest.Server          `kernel:"inject"`
+	Config     config.Manager        `kernel:"inject"`
+	Template   *template.Manager     `kernel:"inject"`
+	Server     *weathercenter.Server `kernel:"inject"`
 	mutex      sync.Mutex
 	dashDir    string
-	dashboards map[string]*model.Dashboard // current dashboard
+	dashboards map[string]*Live // loaded dashboard instances
 }
 
 const (
@@ -32,13 +33,8 @@ const (
 	webPath    = "/dash/{dash:.{1,}}"
 )
 
-func (s *Service) PostInit() error {
-	s.Template.AddFunction("showComponent", s.showComponent)
-	return nil
-}
-
 func (s *Service) Start() error {
-	s.dashboards = make(map[string]*model.Dashboard)
+	s.dashboards = make(map[string]*Live)
 
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 
@@ -84,30 +80,37 @@ func (s *Service) stripPath(n string) string {
 	return strings.TrimPrefix(strings.TrimSuffix(n, fileSuffix), "/")
 }
 
-func (s *Service) getDashboard(n string) *model.Dashboard {
+func (s *Service) getLive(n string) *Live {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	return s.dashboards[n]
 }
 
-func (s *Service) setDashboard(n string, d *model.Dashboard) *model.Dashboard {
+func (s *Service) getDashboard(n string) *model.Dashboard {
+	l := s.getLive(n)
+	if l == nil {
+		return nil
+	}
+	return l.dashboard
+}
+
+func (s *Service) setDashboard(n string, d *model.Dashboard) {
+	// Force the type field, needed for template resolution
+	if d != nil {
+		d.Type = "dashboard"
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	old := s.dashboards[n]
-
-	if d != nil {
-		// Force the type field, needed for template resolution
-		d.Type = "dashboard"
-
-		s.dashboards[n] = d
-		model.Debug(d)
+	l := s.dashboards[n]
+	if l == nil {
+		l = s.newLiveServer(n, d)
+		s.dashboards[n] = l
 	} else {
-		delete(s.dashboards, n)
+		l.newDashboard(d)
 	}
-
-	return old
 }
 
 func (s *Service) updateDashboard(event fsnotify.Event, o any) error {
@@ -131,19 +134,13 @@ func (s *Service) updateDashboard(event fsnotify.Event, o any) error {
 
 func (s *Service) show(r *rest.Rest) error {
 	dash := r.Var("dash")
-	board := s.getDashboard(dash)
 
-	if board == nil {
+	live := s.getLive(dash)
+
+	if live == nil {
 		r.Status(http.StatusNotFound)
 		return nil
 	}
 
-	return s.Template.ExecuteTemplate(r, "dash/main.html", map[string]interface{}{
-		"dash":  dash,
-		"board": board,
-	})
-}
-
-func (s *Service) showComponent(c registry.Component) (template2.HTML, error) {
-	return s.Template.Template("dash/"+strings.ToLower(c.GetType())+".html", c)
+	return s.Template.ExecuteTemplate(r, "dash/main.html", live.getData())
 }

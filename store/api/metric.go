@@ -16,6 +16,11 @@ type Metric struct {
 	Unix      int64     `json:"unix,omitempty" xml:"unix,attr,omitempty"`
 }
 
+// IsValid returns true if the Metric has a value
+func (m Metric) IsValid() bool {
+	return !m.Time.IsZero()
+}
+
 func (m Metric) String() string {
 	return fmt.Sprintf("Metric[%q,%q,%q,%f]", m.Metric, m.Time.Format(time.RFC3339), m.Unit, m.Value)
 }

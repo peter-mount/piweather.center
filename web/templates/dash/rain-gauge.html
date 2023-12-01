@@ -1,5 +1,4 @@
-{{- /* rain-gauge shows a value in an open-top bottle which looks like an
-old school rain-gauge */ -}}
+{{- /* rain-gauge shows a value in an open-top bottle which looks like an old school rain-gauge */ -}}
 {{- template "componentStart" . -}}
 {{- $val := 10 -}}
 {{- $height := 200 -}}
@@ -12,11 +11,19 @@ old school rain-gauge */ -}}
 {{- /* Axes sequence */ -}}
 {{- $seq := sequence $min $max $step -}}
 {{- $valOff := multiply $scale $val -}}
-<svg viewBox="0 0 150 250" role="img">
+<svg viewBox="0 0 150 250" role="img" id="{{$.ID}}">
     <path d="M20 {{$height}} l0 -{{$valOff}} l80 0 l0 {{$valOff}} z" fill="lightblue"/>
-    <path d="{{ range $v := $seq }}{{ $y := subtract $height (multiply $scale (subtract $v $min)) }}M100 {{$y}} l 10 0 {{end}}" fill="none" stroke="black" stroke-width="1px"/>
-    <path d="M10 10 L 20 10 L 20 {{$height}} L 100 {{$height}} L 100 10 L 110 10" fill="none" stroke="black" stroke-width="3px"/>
-    {{ range $v := $seq -}}{{- $y := subtract $height (multiply $scale (subtract $v $min)) -}}<text x="115" y="{{$y}}" dominant-baseline="middle">{{$v}}</text>{{end}}
-    {{- with .Label}}<text x="60" y="{{add $height 15}}" dominant-baseline="middle" text-anchor="middle">{{.}}</text>{{end}}
+    <path d="{{- range $v := $seq }}M100 {{subtract $height (multiply $scale (subtract $v $min))}} l 10 0 {{end -}}" fill="none" stroke="black" stroke-width="1px"/>
+    <path d="M10 10 l10 0 l0 {{subtract $height 10}} l80 0 l0 {{subtract 10 $height}} l10 0" fill="none" stroke="black" stroke-width="3px"/>
+    <g dominant-baseline="middle">
+        <g transform="translate(115,0)">
+            {{- range $v := $seq -}}{{- $y := subtract $height (multiply $scale (subtract $v $min)) -}}
+            <text y="{{$y}}">{{$v}}</text>
+            {{- end -}}
+        </g>
+        {{- with .Label -}}
+        <text x="60" y="{{add $height 15}}" text-anchor="middle">{{.}}</text>
+        {{- end -}}
+    </g>
 </svg>
 {{- template "componentEnd" . -}}

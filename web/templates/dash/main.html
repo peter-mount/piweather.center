@@ -10,3 +10,26 @@
 {{- template "layout/default-start.html" $ -}}
 <div class="dashboard-outer">{{- showComponent .board -}}</div>
 {{- template "layout/default-end.html" $ -}}
+
+{{- with .board.Live -}}
+<script>
+    window.addEventListener("load", function (evt) {
+        let ws = new WebSocket("ws://127.0.0.1:8080/live/dash/{{$.dash}}");
+        ws.onclose = function (evt) {ws = null;}
+        ws.onerror = function (evt) {}
+        ws.onmessage = function (evt) {
+            let msg = JSON.parse(evt.data)
+            {{range $c := $.js -}}
+            if(msg.actions[{{$c}}]) { {{ReplaceAll $c "-" "_"|printf "update_%s(msg)"|js}} }
+            {{end}}
+        }
+        return false;
+    });
+    {{- range $c := $.js}}
+    /* {{$c}} */
+    {{showJs $c}}
+    {{end -}}
+</script>
+
+
+{{- end -}}

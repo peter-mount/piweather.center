@@ -1,4 +1,4 @@
 {{- template "componentStart" . }}
 {{- with .Label}}<span class="label">{{.}}</span>{{end -}}
-{{- with .Metric}}<span class="metric" id="{{.}}"></span>{{end -}}
+{{- with .Metric}}<span class="metric" id="{{$.ID}}">{{.String}}</span>{{end -}}
 {{- template "componentEnd" . -}}

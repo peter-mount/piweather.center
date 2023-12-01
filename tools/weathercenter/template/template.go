@@ -74,3 +74,8 @@ func (m *Manager) Template(n string, d interface{}) (template.HTML, error) {
 	}
 	return template.HTML(buf.String()), nil
 }
+
+func (m *Manager) HasTemplate(n string) bool {
+	t := m.rootTemplate.Lookup(n)
+	return t != nil
+}
