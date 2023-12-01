@@ -10,13 +10,17 @@
      data-max="{{$max}}"
      data-delta="{{$axis.Delta}}">
     <defs>
-        <g id="h" fill="red">
-            <circle r="15"/>
-            <path d="M-15 0 l30 0 l-15 -80 z"/>
+        <g id="h0" stroke="black" stroke-width="3px">
+            <path d="M0,0 l0,-80"/>
         </g>
-        <g id="m" fill="blue">
-            <circle r="125"/>
-            <path d="M-12.5 0 l25 0 l-12.5 -60 z"/>
+        <g id="h1" stroke="red" stroke-width="3px">
+            <path d="M0,0 l0,-70"/>
+        </g>
+        <g id="h2" stroke="black" stroke-width="2px">
+            <path d="M0 0 l0 -60"/>
+        </g>
+        <g id="h3" stroke="green" stroke-width="1px">
+            <path d="M0 0 l0 -50"/>
         </g>
     </defs>
     <g transform="translate(145,145)" dominant-baseline="middle" text-anchor="middle">
@@ -37,7 +41,7 @@
         {{- end -}}
         {{- range $i,$m := $.Metric -}}
         <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90}})">
-            <use xlink:href="#h"/>
+            <use xlink:href="#h{{min 3 $i}}"/>
         </g>
         {{- end -}}
         <circle r="10" fill="black"/>
