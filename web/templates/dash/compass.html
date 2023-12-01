@@ -20,9 +20,9 @@
                 <text y="-110">{{$l}}</text>
             </g>
             {{- end -}}
-            <text y="45">{{$.Metric}}</text>
+            <text id="{{$.ID}}.txt" y="45" font-size="150%">{{$.Metric}}</text>
         </g>
-        <g id="{{$.ID}}" transform="rotate({{$.Metric.Value.Float}})">
+        <g id="{{$.ID}}.ptr" transform="rotate({{$.Metric.Value.Float}})">
             <use xlink:href="#h"/>
         </g>
         <circle r="10" fill="black"/>

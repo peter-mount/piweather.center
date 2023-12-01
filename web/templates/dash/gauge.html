@@ -1,0 +1,40 @@
+{{- /* simple gauge */ -}}
+{{- template "componentStart" . -}}
+{{- $min := defVal .Min 0 -}}
+{{- $max := defVal .Max 100 -}}
+{{- $ticks := defVal .Ticks 10 -}}
+{{- $axis := genAxis $min $max $ticks 180 -}}
+<svg viewBox="0 0 250 250" role="img"
+     id="{{$.ID}}.svg"
+     data-min="{{$min}}"
+     data-max="{{$max}}"
+     data-delta="{{$axis.Delta}}">
+    <defs>
+        <g id="h" fill="red">
+            <circle r="15"/>
+            <path d="M-15 0 l30 0 l-15 -80 z"/>
+        </g>
+        <g id="m" fill="blue">
+            <circle r="125"/>
+            <path d="M-12.5 0 l25 0 l-12.5 -60 z"/>
+        </g>
+    </defs>
+    <g transform="translate(145,145)" dominant-baseline="middle" text-anchor="middle">
+        <path d="M-90,0 a1,1 0 0,1 180,0" fill="none" stroke="black" stroke-width="3px"/>
+        {{- range $a := $axis.Ticks -}}
+        <g transform="rotate({{subtract $a.Angle 90}})">
+            <path d="M0,-90 l0,10" fill="none" stroke="black" stroke-width="2px"/>
+            <text y="-100">{{$a.Label}}</text>
+        </g>
+        {{- end -}}
+        <text id="{{$.ID}}.txt" y="35" font-size="150%">{{$.Metric}}</text>
+        {{- with $.Label -}}
+        <text y="55" font-size="150%">{{$.Label}}</text>
+        {{- end -}}
+        <g id="{{$.ID}}.ptr" transform="rotate({{subtract (multiply (subtract (ensureWithin $.Metric.Value.Float $min $max) $min) $axis.Delta) 90}})">
+            <use xlink:href="#h"/>
+        </g>
+        <circle r="10" fill="black"/>
+    </g>
+</svg>
+{{- template "componentEnd" . -}}

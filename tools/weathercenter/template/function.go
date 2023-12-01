@@ -2,6 +2,7 @@ package template
 
 import (
 	"errors"
+	"fmt"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/util"
@@ -40,6 +41,8 @@ func (m *Manager) PostInit() error {
 		"getReadingKeys": m.getReadingKeys,
 		"showJs":         m.showJs,
 		"showComponent":  m.showComponent,
+		"genAxis":        genAxis,
+		"ensureWithin":   ensureWithin,
 		"ReplaceAll":     strings.ReplaceAll,
 		//"getReadingHistory": m.Latest.GetHistory,
 		"getReading":           m.getReading,
@@ -193,4 +196,66 @@ func (s *Manager) showComponent(c registry.Component) (template.HTML, error) {
 func (s *Manager) showJs(n string) (template.JS, error) {
 	h, e := s.Template("dash/"+n+".js", nil)
 	return template.JS(h), e
+}
+
+type Axis struct {
+	Delta  float64
+	Num    float64
+	Format string
+	Ticks  []AxisTick
+}
+
+type AxisTick struct {
+	Index int
+	Label string
+	Angle float64
+}
+
+func genAxis(min, max, num, ang float64) Axis {
+	if num < 1 {
+		num = 1
+	}
+	if min > max {
+		min, max = max, min
+	}
+
+	da := ang / num
+	dmm := math.Abs(max - min)
+	dv := dmm / num
+
+	var f string
+	switch {
+	case value.LessThan(dv, 1):
+		f = "%.1f"
+	case value.LessThan(dv, 0.1):
+		f = "%.2f"
+	case value.LessThan(dv, 0.01):
+		f = "%.3f"
+	default:
+		f = "%.0f"
+	}
+
+	r := Axis{
+		Delta:  da,
+		Num:    num,
+		Format: f,
+	}
+
+	for v := min; value.LessThanEqual(v, max); v += dv {
+		i := len(r.Ticks)
+		r.Ticks = append(r.Ticks, AxisTick{
+			Index: i,
+			Label: fmt.Sprintf(f, v),
+			Angle: float64(i) * da,
+		})
+	}
+
+	return r
+}
+
+func ensureWithin(v, min, max float64) float64 {
+	if min > max {
+		min, max = max, min
+	}
+	return math.Max(min, math.Min(v, max))
 }

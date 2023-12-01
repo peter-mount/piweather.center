@@ -50,6 +50,8 @@
     display: inline-block;
 }
 
+.dash-gauge,
+.dash-compass,
 .dash-value,
 .dash-rain-gauge {
     display: inline-block;
@@ -84,6 +86,7 @@
     width: 5em;
 }
 
+.dash-gauge,
 .dash-compass {
     width: 10em;
 }

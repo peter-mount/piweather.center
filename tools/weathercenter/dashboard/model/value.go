@@ -9,9 +9,10 @@ import (
 
 func init() {
 	f := func() registry.Component { return &Value{} }
-	registry.Register("value", f)
-	registry.Register("rain-gauge", f)
 	registry.Register("compass", f)
+	registry.Register("gauge", f)
+	registry.Register("rain-gauge", f)
+	registry.Register("value", f)
 }
 
 // Value represents a distinct component displaying values
@@ -20,6 +21,7 @@ type Value struct {
 	Label     string   `yaml:"label"`             // optional label
 	Min       *float64 `yaml:"min,omitempty"`     // Min axis value
 	Max       *float64 `yaml:"max,omitempty"`     // Max axis value
+	Ticks     *float64 `yaml:"ticks,omitempty"`   // Number of ticks on axis
 	Metric    *Metric  `yaml:"metric,omitempty"`  // Single metric for value
 	Metrics   []Metric `yaml:"metrics,omitempty"` // Multiple metrics
 }
