@@ -45,6 +45,7 @@ type manager struct {
 	mutex       sync.Mutex
 	watcher     *fsnotify.Watcher
 	watching    map[string][]*updater
+	loader      chan fsnotify.Event
 }
 
 func (m *manager) Start() error {
@@ -60,6 +61,7 @@ func (m *manager) Start() error {
 		err = w.Add(m.EtcDir())
 	}
 
+	m.loader = make(chan fsnotify.Event, 100)
 	// Ok then start updater
 	if err == nil {
 		go m.run()

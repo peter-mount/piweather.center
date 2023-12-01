@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type updater struct {
@@ -59,17 +60,26 @@ func (m *manager) run() {
 	for {
 		select {
 		case event := <-m.watcher.Events:
-			log.Printf("event: %d %q", event.Op, event.Name)
 			if event.Op&fsnotify.Write == fsnotify.Write {
 				m.notify(event)
 			}
 		case err := <-m.watcher.Errors:
 			log.Printf("Config: watcher error: %v", err)
+
+		case event := <-m.loader:
+			// Sleep for a bit to allow writing to complete as we
+			// get the event when a file is written, not when it completes.
+			time.Sleep(500 * time.Millisecond)
+
+			m.load(event)
 		}
 	}
 }
 
 func (m *manager) add(n string, f Factory, u Updater, um Unmarshaller) {
+
+	n = filepath.Clean(n)
+
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -110,12 +120,18 @@ func (m *manager) get(n string) []*updater {
 }
 
 func (m *manager) notify(event fsnotify.Event) {
+	m.loader <- event
+}
+
+func (m *manager) load(event fsnotify.Event) {
 	n := strings.TrimPrefix(event.Name, m.EtcDir()+pathSep)
 	watchers := m.get(n)
+	log.Printf("%d %q %q %v", event.Op, event.Name, n, watchers)
 	if len(watchers) > 0 {
 		switch event.Op {
 		// Create or Write, unmarshal new contents and notify
 		case fsnotify.Create, fsnotify.Write:
+
 			log.Printf("Config: update %q", event.Name)
 
 			// Read the file just once
