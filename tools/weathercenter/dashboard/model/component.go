@@ -1,11 +1,11 @@
 package model
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	uuid "github.com/peter-mount/go.uuid"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"gopkg.in/yaml.v3"
+	"strconv"
 )
 
 func init() {
@@ -18,7 +18,29 @@ func init() {
 // Initially it's the same as Container, however it will have additional fields in the future.
 type Dashboard struct {
 	Container `yaml:",inline"`
-	Live      bool `yaml:"live,omitempty"` // If true then dashboard can have live updates
+	Live      bool   `yaml:"live,omitempty"` // If true then dashboard can have live updates
+	Uuid      string `yaml:"-"`              // Uuid of dashboard - generated
+	idSeq     int    // Used in initialising the ID's
+	uuid      uuid.UUID
+}
+
+func (c *Dashboard) Init(uuid uuid.UUID) {
+	c.uuid = uuid
+	c.Uuid = uuid.String()
+	c.idSeq = 0
+	c.Container.init(c)
+}
+
+func (c *Dashboard) NextId() string {
+	c.idSeq++
+	return uuid.NewV3(c.uuid, strconv.Itoa(c.idSeq)).String()
+}
+
+func (c *Dashboard) Process(m api.Metric, r *Response) {
+	// Set the response Uuid to the Dashboard.
+	// This allows the front end to detect a dashboard change.
+	r.Uuid = c.Uuid
+	c.Container.Process(m, r)
 }
 
 // Container represents a collection of Components that will be rendered together
@@ -27,13 +49,13 @@ type Container struct {
 	Components ComponentList `yaml:"components"`
 }
 
-func (c *Container) Init() {
-	c.Component.Init()
+func (c *Container) init(d *Dashboard) {
+	c.Component.init(d)
 	for _, e := range c.Components {
-		if d, ok := e.(*Container); ok {
-			d.Init()
-		} else if d, ok := e.(*Value); ok {
-			d.Init()
+		if ct, ok := e.(*Container); ok {
+			ct.init(d)
+		} else if ct, ok := e.(*Value); ok {
+			ct.init(d)
 		}
 	}
 }
@@ -62,11 +84,8 @@ type Component struct {
 	Style string `yaml:"style,omitempty"` // optional inline CSS
 }
 
-func (c *Component) Init() {
-	if c.ID == "" {
-		u, _ := uuid.NewV1()
-		c.ID = u.String()
-	}
+func (c *Component) init(d *Dashboard) {
+	c.ID = d.NextId()
 }
 
 // Process a Metric
@@ -111,19 +130,4 @@ func (c *ComponentList) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	return nil
-}
-
-func Debug(d *Dashboard) {
-	log.Printf("Dashboard %q %q", d.Type, d.Title)
-	debugList(0, d.Components)
-}
-func debugList(level int, l ComponentList) {
-	log.Printf("%03d START", level)
-	for _, child := range l {
-		log.Printf("%03d found %q", level, child.GetType())
-		switch child.GetType() {
-		case "container":
-			debugList(level+1, child.(*Container).Components)
-		}
-	}
 }

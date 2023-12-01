@@ -11,8 +11,9 @@ type Processor interface {
 }
 
 type Response struct {
-	Metric  api.Metric                  `json:"metric"`
-	Actions map[string]map[string][]int `json:"actions"`
+	Uuid    string                      `json:"uuid"`    // UUID of Dashboard
+	Metric  api.Metric                  `json:"metric"`  // Inbound metric
+	Actions map[string]map[string][]int `json:"actions"` // Actions for this metric
 }
 
 type Action struct {

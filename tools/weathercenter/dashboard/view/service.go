@@ -1,10 +1,11 @@
 package view
 
 import (
+	"crypto/sha1"
 	"github.com/fsnotify/fsnotify"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
+	uuid2 "github.com/peter-mount/go.uuid"
 	"github.com/peter-mount/piweather.center/tools/weathercenter"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
@@ -41,19 +42,17 @@ func (s *Service) Start() error {
 	// Load existing dashboards
 	err := walk.NewPathWalker().
 		Then(func(path string, info os.FileInfo) error {
-			log.Printf("path %q n %q", path, s.stripPath(path))
 			b, err := os.ReadFile(path)
-			if err == nil {
-				o := s.factory()
-				err = registry.Unmarshal(b, o)
-				if err == nil {
-					s.setDashboard(s.stripPath(path), o.(*model.Dashboard))
-				}
-				if err != nil {
-					return err
-				}
+			if err != nil {
+				return err
 			}
-			return nil
+
+			o := s.factory()
+			err = s.unmarshalDashboard(b, o)
+			if err == nil {
+				s.setDashboard(s.stripPath(path), o.(*model.Dashboard))
+			}
+			return err
 		}).
 		PathHasSuffix(fileSuffix).
 		IsFile().
@@ -63,11 +62,28 @@ func (s *Service) Start() error {
 	}
 
 	// start watching for changes
-	s.Config.WatchDirectory(dashDir, s.factory, s.updateDashboard, registry.Unmarshal)
+	s.Config.WatchDirectory(dashDir, s.factory, s.updateDashboard, s.unmarshalDashboard)
 
 	// Service dashboards
 	s.Rest.Handle(webPath, s.show).Methods("GET")
 
+	return nil
+}
+
+func (s *Service) unmarshalDashboard(b []byte, o any) error {
+	err := registry.Unmarshal(b, o)
+	if err != nil {
+		return err
+	}
+
+	h := sha1.Sum(b)
+	uuid, err := uuid2.FromBytes(h[:16])
+	if err != nil {
+		return err
+	}
+
+	d := o.(*model.Dashboard)
+	d.Init(uuid)
 	return nil
 }
 

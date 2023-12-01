@@ -81,8 +81,6 @@ func (s *Live) newDashboard(d *model.Dashboard) {
 
 // Populate the dashboard with current data
 func (s *Live) initDashboard() {
-	s.dashboard.Init()
-
 	latest := s.server.Server.Latest
 	r := &model.Response{}
 	for _, n := range latest.Metrics() {
