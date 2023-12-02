@@ -6,6 +6,7 @@
 {{- $axis := genAxis $min $max $ticks 180 -}}
 <svg viewBox="0 0 250 250" role="img"
      id="{{$.ID}}.svg"
+     {{- range $i,$m := $.Metric}} data-metric{{$i}}="{{$m.Value.Float}}"{{end}}
      data-min="{{$min}}"
      data-max="{{$max}}"
      data-delta="{{$axis.Delta}}">
@@ -16,7 +17,7 @@
         <g id="h1" stroke="red" stroke-width="3px">
             <path d="M0,0 l0,-70"/>
         </g>
-        <g id="h2" stroke="black" stroke-width="2px">
+        <g id="h2" stroke="blue" stroke-width="2px">
             <path d="M0 0 l0 -60"/>
         </g>
         <g id="h3" stroke="green" stroke-width="1px">
@@ -41,6 +42,7 @@
         {{- end -}}
         {{- range $i,$m := $.Metric -}}
         <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90}})">
+            {{- /* min 3 here so we limit the href to h0 h1 h2 h3 defined in defs */ -}}
             <use xlink:href="#h{{min 3 $i}}"/>
         </g>
         {{- end -}}

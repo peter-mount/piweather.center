@@ -1,17 +1,17 @@
-window.addEventListener("load", wsListener )
+window.addEventListener("load", wsListener)
 
 function wsListener(evt) {
     let ws = new WebSocket("ws://127.0.0.1:8080/live/dash/{{$.dash}}"),
-         dashUuid = "{{$.board.Uuid}}";
+        dashUuid = "{{$.board.Uuid}}";
 
-    ws.onopen = function(evt) {
+    ws.onopen = function (evt) {
         console.log("WS Open")
     }
 
     ws.onclose = function (evt) {
         ws = null;
         console.log("WS Closed")
-        setTimeout(wsListener,2000)
+        setTimeout(wsListener, 2000)
     }
 
     ws.onerror = function (evt) {
@@ -19,7 +19,7 @@ function wsListener(evt) {
     }
 
     ws.onmessage = function (evt) {
-        let msg = JSON.parse(evt.data), m=msg.metric,acts=msg.actions
+        let msg = JSON.parse(evt.data), m = msg.metric, acts = msg.actions
 
         // Reload the page if the uuid's differ
         if (msg.uuid !== dashUuid) {
@@ -53,4 +53,8 @@ function setText(id, i, t) {
     if (e !== null) {
         e.textContent = t
     }
+}
+
+function ensureWithin(v, min, max) {
+    return Math.max(min, Math.min(v, max))
 }
