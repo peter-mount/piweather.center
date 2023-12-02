@@ -7,9 +7,9 @@
 </div>{{- with .Title -}}</div>{{- end -}}
 {{- end -}}
 
-{{- template "layout/default-start.html" $ -}}
+{{- template "layout/plain-start.html" $ -}}
 <div class="dashboard-outer">{{- showComponent .board -}}</div>
-{{- template "layout/default-end.html" $ -}}
+{{- template "layout/plain-end.html" $ -}}
 
 {{- with .board.Live -}}
 <script>
