@@ -1,8 +1,10 @@
 window.addEventListener("load", wsListener)
 
 function wsListener(evt) {
-    let ws = new WebSocket("ws://127.0.0.1:8080/live/dash/{{$.dash}}"),
-        dashUuid = "{{$.board.Uuid}}";
+    let pt = location.port,
+        url=(location.protocol === "http:" ? "ws" : "wss") + "://" + location.host + "/live/dash/{{$.dash}}",
+        dashUuid = "{{$.board.Uuid}}",
+        ws = new WebSocket(url);
 
     ws.onopen = function (evt) {
         console.log("WS Open")
