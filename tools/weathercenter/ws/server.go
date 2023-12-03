@@ -16,9 +16,17 @@ type Server struct {
 }
 
 func NewServer() *Server {
-	return &Server{
+	s := &Server{
 		ch: make(chan []byte),
 	}
+
+	// Required to allow websockets to work over a proxy
+	s.upgrader.CheckOrigin = func(r *http.Request) bool {
+		// TODO add a check here to allow specific domains to work rather than everyone
+		return true
+	}
+
+	return s
 }
 
 // Run performs the main loop for the WebSocket server.
