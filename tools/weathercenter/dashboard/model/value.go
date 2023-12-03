@@ -2,16 +2,15 @@ package model
 
 import (
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
 func init() {
-	f := func() registry.Component { return &Value{} }
-	registry.Register("compass", f)
-	registry.Register("gauge", f)
-	registry.Register("rain-gauge", f)
-	registry.Register("value", f)
+	f := func() Instance { return &Value{} }
+	Register("compass", f)
+	Register("gauge", f)
+	Register("rain-gauge", f)
+	Register("value", f)
 }
 
 // Value represents a distinct component displaying values

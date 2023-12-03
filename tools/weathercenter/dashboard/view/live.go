@@ -3,7 +3,6 @@ package view
 import (
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/ws"
 	"sort"
 	"sync"
@@ -99,7 +98,7 @@ func (s *Live) initDashboard() {
 }
 
 // Update the list of javascript templates
-func (s *Live) updateJs(c registry.Component) {
+func (s *Live) updateJs(c model.Instance) {
 	t := c.GetType()
 	n := "dash/" + t + ".js"
 	if s.server.Template.HasTemplate(n) {

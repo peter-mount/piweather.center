@@ -1,4 +1,4 @@
-package registry
+package model
 
 import (
 	"fmt"
@@ -8,14 +8,14 @@ import (
 )
 
 // Factory returns a new struct of the appropriate type
-type Factory func() Component
+type Factory func() Instance
 
-type Component interface {
+type Instance interface {
 	GetType() string
 	Accept(Visitor) error
 }
 
-type Visitor func(Component) error
+type Visitor func(Instance) error
 
 var (
 	components = map[string]Factory{}
@@ -53,7 +53,7 @@ func Unmarshal(b []byte, o any) error {
 }
 
 // Decode a yaml.Node and return either the correct type based on the Type field or an error
-func Decode(n yaml.Node) (Component, error) {
+func Decode(n yaml.Node) (Instance, error) {
 	// decode the node to get the Type
 	comp := struct {
 		Type string `yaml:"type"`

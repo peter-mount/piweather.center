@@ -1,14 +1,11 @@
 package view
 
 import (
-	"crypto/sha1"
 	"github.com/fsnotify/fsnotify"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	uuid2 "github.com/peter-mount/go.uuid"
 	"github.com/peter-mount/piweather.center/tools/weathercenter"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/util/config"
 	"net/http"
@@ -47,8 +44,8 @@ func (s *Service) Start() error {
 				return err
 			}
 
-			o := s.factory()
-			err = s.unmarshalDashboard(b, o)
+			o := model.DashboardFactory()
+			err = model.UnmarshalDashboard(b, o)
 			if err == nil {
 				s.setDashboard(s.stripPath(path), o.(*model.Dashboard))
 			}
@@ -62,33 +59,12 @@ func (s *Service) Start() error {
 	}
 
 	// start watching for changes
-	s.Config.WatchDirectory(dashDir, s.factory, s.updateDashboard, s.unmarshalDashboard)
+	s.Config.WatchDirectory(dashDir, model.DashboardFactory, s.updateDashboard, model.UnmarshalDashboard)
 
 	// Service dashboards
 	s.Rest.Handle(webPath, s.show).Methods("GET")
 
 	return nil
-}
-
-func (s *Service) unmarshalDashboard(b []byte, o any) error {
-	err := registry.Unmarshal(b, o)
-	if err != nil {
-		return err
-	}
-
-	h := sha1.Sum(b)
-	uuid, err := uuid2.FromBytes(h[:16])
-	if err != nil {
-		return err
-	}
-
-	d := o.(*model.Dashboard)
-	d.Init(uuid)
-	return nil
-}
-
-func (s *Service) factory() any {
-	return &model.Dashboard{}
 }
 
 func (s *Service) stripPath(n string) string {

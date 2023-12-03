@@ -3,28 +3,22 @@ window.addEventListener("load", wsListener)
 function wsListener(evt) {
     let pt = location.port,
         url=(location.protocol === "http:" ? "ws" : "wss") + "://" + location.host + "/live/dash/{{$.dash}}",
-        dashUuid = "{{$.board.Uuid}}",
+        dashUid = "{{$.board.Uid}}",
         ws = new WebSocket(url);
 
-    ws.onopen = function (evt) {
-        console.log("WS Open")
-    }
+    ws.onopen = function (evt) {}
 
     ws.onclose = function (evt) {
         ws = null;
-        console.log("WS Closed")
         setTimeout(wsListener, 2000)
     }
 
-    ws.onerror = function (evt) {
-        //console.log("WS Error", evt)
-    }
+    ws.onerror = function (evt) {}
 
     ws.onmessage = function (evt) {
         let msg = JSON.parse(evt.data), m = msg.metric, acts = msg.actions
 
-        // Reload the page if the uuid's differ
-        if (msg.uuid !== dashUuid) {
+        if (msg.uid !== dashUid) {
             location.reload()
             return
         }

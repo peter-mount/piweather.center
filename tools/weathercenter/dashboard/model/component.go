@@ -1,46 +1,14 @@
 package model
 
 import (
-	uuid "github.com/peter-mount/go.uuid"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/registry"
 	"gopkg.in/yaml.v3"
-	"strconv"
 )
 
 func init() {
-	f := func() registry.Component { return &Container{} }
-	registry.Register("container", f)
-	registry.Register("row", f)
-}
-
-// Dashboard is the top level Component representing an entire dashboard.
-// Initially it's the same as Container, however it will have additional fields in the future.
-type Dashboard struct {
-	Container `yaml:",inline"`
-	Live      bool   `yaml:"live,omitempty"` // If true then dashboard can have live updates
-	Uuid      string `yaml:"-"`              // Uuid of dashboard - generated
-	idSeq     int    // Used in initialising the ID's
-	uuid      uuid.UUID
-}
-
-func (c *Dashboard) Init(uuid uuid.UUID) {
-	c.uuid = uuid
-	c.Uuid = uuid.String()
-	c.idSeq = 0
-	c.Container.init(c)
-}
-
-func (c *Dashboard) NextId() string {
-	c.idSeq++
-	return uuid.NewV3(c.uuid, strconv.Itoa(c.idSeq)).String()
-}
-
-func (c *Dashboard) Process(m api.Metric, r *Response) {
-	// Set the response Uuid to the Dashboard.
-	// This allows the front end to detect a dashboard change.
-	r.Uuid = c.Uuid
-	c.Container.Process(m, r)
+	f := func() Instance { return &Container{} }
+	Register("container", f)
+	Register("row", f)
 }
 
 // Container represents a collection of Components that will be rendered together
@@ -101,7 +69,7 @@ func (c *Component) GetType() string {
 	return c.Type
 }
 
-func (c *Component) Accept(v registry.Visitor) error {
+func (c *Component) Accept(v Visitor) error {
 	if v == nil {
 		return nil
 	}
@@ -111,7 +79,7 @@ func (c *Component) Accept(v registry.Visitor) error {
 // ComponentList holds a list of dynamic Component implementations.
 // When a ComponentList is unmarshalled from the yaml, the components are of the correct type
 // based on the Component Type field.
-type ComponentList []registry.Component
+type ComponentList []Instance
 
 func (c *ComponentList) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	types := make([]yaml.Node, 0)
@@ -121,7 +89,7 @@ func (c *ComponentList) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	for _, n := range types {
-		o, err := registry.Decode(n)
+		o, err := Decode(n)
 		if err != nil {
 			return err
 		}
