@@ -44,7 +44,7 @@ func genAxis(min, max, num, ang float64) Axis {
 	}
 
 	r := Axis{
-		Delta:  da,
+		Delta:  ang / dmm,
 		Num:    num,
 		Format: f,
 	}
