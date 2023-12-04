@@ -7,7 +7,7 @@ import (
 
 func init() {
 	Radian = value.NewUnit("Radian", "Radians", " rad", 4)
-	Degree = value.NewUnit("Degree", "Degrees", "°", 3)
+	Degree = value.NewUnit("Degree", "Degrees", "°", 1)
 	ArcMinute = value.NewUnit("ArcMinute", "Arc Minute", "'", 3)
 	ArcSecond = value.NewUnit("ArcSecond", "Arc Second", "\"", 3)
 	Gradian = value.NewUnit("Gradian", "Gradian", " grad", 3)
