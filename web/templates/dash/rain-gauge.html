@@ -28,7 +28,7 @@
             {{- with .Label -}}
             <text>{{.}}</text>
             {{- end -}}
-            <text y="15">{{$m.String}}</text>
+            <text y="15" id="{{$.ID}}.txt">{{$m.String}}</text>
         </g>
     </g>
 </svg>

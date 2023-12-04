@@ -15,5 +15,6 @@ function update_rain_gauge(m, id, idx) {
         let e = document.getElementById(id + ".rect")
         e.setAttribute("y",height-y)
         e.setAttribute("height",y)
+        setText(id,idx,m.formatted)
     })
 }
