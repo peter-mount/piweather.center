@@ -85,14 +85,14 @@ func (s *Live) initDashboard() {
 	for _, n := range latest.Metrics() {
 		m, exists := latest.Latest(n)
 		if exists {
-			r.Metric = api.Metric{
+			metric := api.Metric{
 				Metric:    n,
 				Time:      m.Time,
 				Unit:      m.Value.Unit().ID(),
 				Value:     m.Value.Float(),
 				Formatted: m.Value.String(),
 			}
-			s.dashboard.Process(r.Metric, r)
+			s.dashboard.Process(metric, r)
 		}
 	}
 }
@@ -122,7 +122,7 @@ func (s *Live) notify(m api.Metric) {
 	if m.IsValid() {
 		d := s.getDashboard()
 		if d != nil {
-			r := &model.Response{Metric: m}
+			r := &model.Response{}
 
 			d.Process(m, r)
 

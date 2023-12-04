@@ -88,7 +88,14 @@ func (c *Value) Process(m api.Metric, r *Response) {
 			if e.Accept(m.Metric) {
 				e.setValue(m)
 				if e.Value.IsValid() {
-					a = a.Add(i)
+					a = a.Add(i, api.Metric{
+						Metric:    m.Metric,
+						Time:      m.Time,
+						Unit:      e.Value.Unit().ID(),
+						Value:     e.Value.Float(),
+						Formatted: e.Value.String(),
+						Unix:      m.Unix,
+					})
 				}
 
 				// required as e is not a pointer

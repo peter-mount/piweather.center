@@ -16,7 +16,7 @@ function wsListener(evt) {
     ws.onerror = function (evt) {}
 
     ws.onmessage = function (evt) {
-        let msg = JSON.parse(evt.data), m = msg.metric, acts = msg.actions
+        let msg = JSON.parse(evt.data), acts = msg.actions
 
         if (msg.uid !== dashUid) {
             location.reload()
@@ -28,7 +28,7 @@ function wsListener(evt) {
             if (f) {
                 let ids = acts[k]
                 Object.keys(ids).forEach(id => {
-                    f(m, id, ids[id])
+                    f(id, ids[id])
                 })
             }
         })
@@ -40,9 +40,12 @@ function wsListener(evt) {
 function setRotate(id, i, ang) {
     let e = document.getElementById(id + ".ptr" + i)
     if (e !== null) {
-        let from=e.getAttribute("to")
-        e.setAttribute("from",from-(Math.abs(from-ang)>180?360:0))
-        e.setAttribute("to",ang)
+        let from=e.getAttribute("to"),
+            d=Math.abs(from-ang)>180,
+            td=d && from<ang,
+            fd=d && from>ang
+        e.setAttribute("from",from-(fd?360:0))
+        e.setAttribute("to",ang-(td?360:0))
         e.beginElement()
     }
 }

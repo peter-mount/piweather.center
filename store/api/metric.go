@@ -8,9 +8,9 @@ import (
 )
 
 type Metric struct {
-	Metric    string    `json:"metric" xml:"metric,attr"`
-	Time      time.Time `json:"time" xml:"time,attr"`
-	Unit      string    `json:"unit" xml:"unit,attr"`
+	Metric    string    `json:"metric" xml:"metric,attr,omitempty"`
+	Time      time.Time `json:"time" xml:"time,attr,omitempty"`
+	Unit      string    `json:"unit" xml:"unit,attr,omitempty"`
 	Value     float64   `json:"value" xml:",chardata"`
 	Formatted string    `json:"formatted,omitempty" xml:"formatted,attr,omitempty"`
 	Unix      int64     `json:"unix,omitempty" xml:"unix,attr,omitempty"`

@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"github.com/peter-mount/piweather.center/store/api"
+	"strconv"
 )
 
 // Processor represents a type that can process an api.Metric
@@ -11,33 +12,35 @@ type Processor interface {
 }
 
 type Response struct {
-	Uid     string                      `json:"uid"`     // UID of Dashboard
-	Metric  api.Metric                  `json:"metric"`  // Inbound metric
-	Actions map[string]map[string][]int `json:"actions"` // Actions for this metric
+	Uid     string                                      `json:"uid"`     // UID of Dashboard
+	Actions map[string]map[string]map[string]api.Metric `json:"actions"` // Actions for this metric
 }
 
 type Action struct {
-	ID    string `json:"id"`
-	Index []int  `json:"index"`
+	ID    string                `json:"id"`
+	Index map[string]api.Metric `json:"index"`
 }
 
 func (a Action) IsValid() bool {
-	return a.ID != "" && len(a.Index) > 0
+	return a.ID != "" && a.Index != nil && len(a.Index) > 0
 }
 
-func (a Action) Add(i int) Action {
-	a.Index = append(a.Index, i)
+func (a Action) Add(i int, m api.Metric) Action {
+	if a.Index == nil {
+		a.Index = make(map[string]api.Metric)
+	}
+	a.Index[strconv.Itoa(i)] = m
 	return a
 }
 
 func (r *Response) Add(t string, a Action) {
 	if a.IsValid() {
 		if r.Actions == nil {
-			r.Actions = make(map[string]map[string][]int)
+			r.Actions = make(map[string]map[string]map[string]api.Metric)
 		}
 		id := r.Actions[t]
 		if id == nil {
-			id = make(map[string][]int)
+			id = make(map[string]map[string]api.Metric)
 		}
 		id[a.ID] = a.Index
 		r.Actions[t] = id
