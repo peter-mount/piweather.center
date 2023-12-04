@@ -41,10 +41,9 @@ function setRotate(id, i, ang) {
     let e = document.getElementById(id + ".ptr" + i)
     if (e !== null) {
         let from=e.getAttribute("to")
-        e.setAttribute("from",from)
-        e.setAttribute("to",ang-(Math.abs(from-ang)>180?360:0))
+        e.setAttribute("from",from-(Math.abs(from-ang)>180?360:0))
+        e.setAttribute("to",ang)
         e.beginElement()
-        //e.setAttribute("transform", 'rotate(' + ang + ')')
     }
 }
 
