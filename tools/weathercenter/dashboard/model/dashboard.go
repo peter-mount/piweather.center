@@ -72,14 +72,14 @@ func compress(b []byte) []byte {
 	// Now compress by xor each 2 bytes into 1. Do this multiple times to create a short
 	// final uid that should be unique but not take up much space as this
 	// will be sent on every metric update, so we don't want it to be too long.
-	for j := 0; len(b) > 8; j++ {
+	for len(b) > 8 {
 		var c []byte
 		l := len(b)
 		for i := 0; i < l; i += 2 {
 			if (i + 1) < l {
 				c = append(c, b[i]^b[i+1])
 			} else {
-				b = append(c, b[i])
+				c = append(c, b[i])
 			}
 		}
 		b = c
