@@ -42,7 +42,7 @@
         {{- end -}}
         {{- range $i,$m := $.Metric -}}
         {{- $ang := subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90 -}}
-        <g transform="rotate($ang)">
+        <g>
             {{- /* min 3 here so we limit the href to h0 h1 h2 h3 defined in defs */ -}}
             <use xlink:href="#h{{min 3 $i}}">
                 <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="-90" to="{{$ang}}" dur="1s" fill="freeze"/>
