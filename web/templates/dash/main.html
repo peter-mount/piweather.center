@@ -9,7 +9,6 @@
 
 {{- template "layout/plain-start.html" $ -}}
 <div class="dashboard-outer">{{- showComponent .board -}}</div>
-{{- template "layout/plain-end.html" $ -}}
 
 {{- with .board.Live -}}
 <script>
@@ -18,3 +17,5 @@
     {{- range $c := $.js}}{{showJs $c $}}{{end -}}
 </script>
 {{- end -}}
+
+{{- template "layout/plain-end.html" $ -}}
