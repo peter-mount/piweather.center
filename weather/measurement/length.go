@@ -3,10 +3,10 @@ package measurement
 import "github.com/peter-mount/piweather.center/weather/value"
 
 func init() {
-	Meters = value.NewLowerBoundUnit("Meters", "Meters", " m", 3, 0)
-	Kilometers = value.NewLowerBoundUnit("Kilometers", "Kilometers", " km", 3, 0)
-	CentiMeters = value.NewLowerBoundUnit("CentiMeters", "CentiMeters", " cm", 3, 0)
-	MilliMeters = value.NewLowerBoundUnit("MilliMeters", "MilliMeters", " mm", 3, 0)
+	Meters = value.NewLowerBoundUnit("Meters", "Meters", " m", 1, 0)
+	Kilometers = value.NewLowerBoundUnit("Kilometers", "Kilometers", " km", 1, 0)
+	CentiMeters = value.NewLowerBoundUnit("CentiMeters", "CentiMeters", " cm", 1, 0)
+	MilliMeters = value.NewLowerBoundUnit("MilliMeters", "MilliMeters", " mm", 1, 0)
 	Inches = value.NewLowerBoundUnit("Inches", "Inches", " in", 3, 0)
 	Feet = value.NewLowerBoundUnit("Feet", "Feet", " ft", 3, 0)
 	Yard = value.NewLowerBoundUnit("Yard", "Yard", " yd", 3, 0)
