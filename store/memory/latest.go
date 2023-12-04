@@ -3,6 +3,7 @@ package memory
 import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/file/record"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"sync"
 	"time"
 )
@@ -53,6 +54,14 @@ func (l *latest) Append(metric string, rec record.Record) bool {
 	// Keep latest time value to most recent timestamp
 	if rec.Time.After(l.latestTime) {
 		l.latestTime = rec.Time
+	}
+
+	// If we have an old value then compare the two.
+	// If they do not equal each other, or the transform fails due to change of unit
+	// then return true to indicate the value has changed.
+	if exists {
+		notSame, err := old.Value.Compare(rec.Value, value.NotEqual)
+		return err != nil || notSame
 	}
 
 	return true
