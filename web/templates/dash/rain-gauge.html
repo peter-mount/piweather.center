@@ -9,9 +9,13 @@
 {{- $max := max $val (defVal .Max 100) -}}
 {{- /* Axes sequence */ -}}
 {{- $axis := autoScale $min $max (subtract $height 10) -}}
-<svg viewBox="0 0 150 250" role="img" id="{{$.ID}}">
+<svg viewBox="0 0 150 250" role="img" id="{{$.ID}}.svg"
+     data-min="{{$min}}"
+     data-max="{{$max}}"
+     data-scale="{{$axis.Scale}}"
+     data-height="{{$height}}">
     {{- $valOff := multiply $axis.Scale (subtract $val $axis.Min) -}}
-    <rect x="20" y="{{subtract $height $valOff}}" width="80" height="{{$valOff}}" fill="lightblue"/>
+    <rect id="{{$.ID}}.rect" x="20" y="{{subtract $height $valOff}}" width="80" height="{{$valOff}}" fill="lightblue"/>
     <path d="{{- range $v := $axis.Points }}M100,{{subtract $height $v}} l10,0 {{end -}}" fill="none" stroke="black" stroke-width="1px"/>
     <path d="M10,10 l10,0 l0,{{subtract $height 10}} l80,0 l0,{{subtract 10 $height}} l10,0" fill="none" stroke="black" stroke-width="3px"/>
     <g dominant-baseline="middle">
