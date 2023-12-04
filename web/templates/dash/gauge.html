@@ -41,9 +41,12 @@
         <text y="55" font-size="150%">{{$.Label}}</text>
         {{- end -}}
         {{- range $i,$m := $.Metric -}}
-        <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90}})">
+        {{- $ang := subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90 -}}
+        <g transform="rotate($ang)">
             {{- /* min 3 here so we limit the href to h0 h1 h2 h3 defined in defs */ -}}
-            <use xlink:href="#h{{min 3 $i}}"/>
+            <use xlink:href="#h{{min 3 $i}}">
+                <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="-90" to="{{$ang}}" dur="1s" fill="freeze"/>
+            </use>
         </g>
         {{- end -}}
         <circle r="10" fill="black"/>
