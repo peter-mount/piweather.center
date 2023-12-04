@@ -14,6 +14,9 @@
                 <text y="-110">{{$l}}</text>
             </g>
             {{- end -}}
+            {{- with $.Label -}}
+                <text y="-45" font-size="150%">{{.}}</text>
+            {{- end -}}
             {{- range $i,$m := $.Metric -}}
                 {{- if eq $i 0 -}}
                     <text id="{{$.ID}}.txt{{$i}}" y="45" font-size="150%">{{printf "%.0f" $m.Value.Float}}°</text>
