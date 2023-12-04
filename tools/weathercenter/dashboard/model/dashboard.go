@@ -98,12 +98,9 @@ func encode(b []byte) []byte {
 	l := len(b)
 	for i := 0; i < l; i += 8 {
 		var n uint64
-		for j := 0; j < 8; j++ {
+		for j := 0; j < 8 && (i+j) < l; j++ {
 			n <<= 8
-			ij := i + j
-			if ij < l {
-				n |= uint64(b[ij])
-			}
+			n |= uint64(b[i+j])
 		}
 
 		for n > 0 {
@@ -118,7 +115,7 @@ func encode(b []byte) []byte {
 
 func (c *Dashboard) NextId() string {
 	c.idSeq++
-	return string(encode([]byte{byte(c.idSeq & 0xcff), byte((c.idSeq >> 8) & 0xcff)}))
+	return string(encode([]byte{uid[0], uid[1], byte(c.idSeq & 0xcff), byte((c.idSeq >> 8) & 0xcff)}))
 }
 
 func (c *Dashboard) Process(m api.Metric, r *Response) {
