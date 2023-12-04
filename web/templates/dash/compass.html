@@ -1,6 +1,8 @@
 {{- /* simple compass usually used to show wind direction */ -}}
 {{- template "componentStart" . -}}
-<svg viewBox="0 0 250 250" role="img" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg viewBox="0 0 250 250" role="img" xmlns:xlink="http://www.w3.org/1999/xlink"
+     id="{{$.ID}}.svg"
+     {{- range $i,$m := $.Metric}} data-metric{{$i}}="{{$m.Value.Float}}" data-d{{$i}}="{{$m.Value.Float}}"{{end}}>
     <g transform="translate(125,125)" stroke-width="3px">
         <circle r="100" fill="none" stroke="black"/>
         {{- range $d := sequence 0 360 22.5 -}}
@@ -25,10 +27,10 @@
         </g>
         {{- range $i,$m := $.Metric -}}
         {{- $ang := $m.Value.Float -}}
-        <g fill="red">
+        <g fill="red" transform="rotate({{$ang}})">
             <circle r="15"/>
             <path d="M-15 0 l30 0 l-15 -80 z">
-                <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="{{$ang}}" dur="1s" fill="freeze"/>
+                <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>
             </path>
         </g>
         {{- end -}}
