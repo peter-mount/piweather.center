@@ -174,15 +174,28 @@ func (v *visitor) QueryRange(b *QueryRange) error {
 				return nil
 			}
 		}
+
+		// AT x
 		if err == nil {
 			err = v.Time(b.At)
 		}
+
+		// FROM x FOR x
+		if err == nil {
+			err = v.Time(b.From)
+		}
+		if err == nil {
+			err = v.Duration(b.For)
+		}
+
+		// BETWEEN x AND x
 		if err == nil {
 			err = v.Time(b.Start)
 		}
 		if err == nil {
 			err = v.Time(b.End)
 		}
+
 		if err == nil {
 			err = v.Duration(b.Every)
 		}

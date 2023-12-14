@@ -101,6 +101,8 @@ type QueryRange struct {
 	Pos lexer.Position
 
 	At       *Time         `parser:"( 'AT' @@"`       // AT time for a specific time
+	From     *Time         `parser:"| 'FROM' @@"`     // FROM time
+	For      *Duration     `parser:"  'FOR' @@ "`     // Duration from FROM
 	Start    *Time         `parser:"| 'BETWEEN' @@"`  // Between a start time
 	End      *Time         `parser:"  'AND' @@ )"`    // and an end time
 	Every    *Duration     `parser:"( 'EVERY' @@ )?"` // Every duration time
@@ -128,6 +130,7 @@ func queryRangeInit(_ Visitor, q *QueryRange) error {
 
 	return nil
 }
+
 func (a *QueryRange) Accept(v Visitor) error {
 	return v.QueryRange(a)
 }
@@ -138,6 +141,9 @@ func (a *QueryRange) Range() Range {
 		switch {
 		case a.At != nil:
 			r = RangeAt(a.At.Time)
+
+		case a.From != nil && a.For != nil:
+			r = RangeFrom(a.From.Time, a.For.Duration)
 
 		case a.Start != nil && a.End != nil:
 			r = RangeBetween(a.Start.Time, a.End.Time)
