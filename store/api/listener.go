@@ -5,7 +5,7 @@ import "sync"
 // Listener provides a thread safe pool of Handlers which can listen for metrics,
 // usually provided by a single data source like RabbitMQ.
 //
-// To use, create an instance using NewListener(), then call `go Run()` so that the
+// End use, create an instance using NewListener(), then call `go Run()` so that the
 // listener runs in its own goroutine.
 //
 // Then add Handler's at any time and Notify() to send a Metric to all of them.

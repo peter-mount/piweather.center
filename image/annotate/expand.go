@@ -65,7 +65,7 @@ func Crop(srcImage image.Image, bounds image.Rectangle) image.Image {
 // Edge cases for s and sep (for example, empty strings) are handled
 // as described in the documentation for Split.
 //
-// To split around the first instance of a separator, see Cut.
+// End split around the first instance of a separator, see Cut.
 func ParseCoordinates(s string, n int) ([]int, error) {
 	var i []int
 	// Slice removing any whitespace, wrapping () and changing , or x to space as delimiters

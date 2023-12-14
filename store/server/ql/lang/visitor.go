@@ -178,10 +178,10 @@ func (v *visitor) QueryRange(b *QueryRange) error {
 			err = v.Time(b.At)
 		}
 		if err == nil {
-			err = v.Time(b.From)
+			err = v.Time(b.Start)
 		}
 		if err == nil {
-			err = v.Time(b.To)
+			err = v.Time(b.End)
 		}
 		if err == nil {
 			err = v.Duration(b.Every)

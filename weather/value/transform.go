@@ -222,7 +222,7 @@ func getTransforms() []string {
 }
 
 // GetTransforms returns a slice of TransformDef representing the defined transforms.
-// The result will be sorted by From and then by To.
+// The result will be sorted by Start and then by End.
 func GetTransforms() map[string][]string {
 	m := make(map[string][]string)
 

@@ -34,7 +34,7 @@ func GetRequest(r *rest.Rest) Request {
 	}
 
 	if !req.From.IsZero() {
-		// To provided but not a valid time, try parsing it as a duration
+		// End provided but not a valid time, try parsing it as a duration
 		if to != "" && req.To.IsZero() {
 			d, err := time.ParseDuration(to)
 			if err == nil {
