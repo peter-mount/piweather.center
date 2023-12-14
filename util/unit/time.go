@@ -82,10 +82,10 @@ func ParseTime(s string) time.Time {
 	case "now":
 		return time.Now()
 
-	case "midnight":
+	case "midnight", "today":
 		return time2.LocalMidnight(time.Now())
 
-	case "midnightutc":
+	case "midnightutc", "todayutc":
 		return time2.LocalMidnight(time.Now().UTC())
 
 	case "yesterday":

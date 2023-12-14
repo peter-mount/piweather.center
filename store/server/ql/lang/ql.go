@@ -151,16 +151,9 @@ func (a *QueryRange) Range() Range {
 }
 
 type Time struct {
-	Pos          lexer.Position
-	Now          bool      `parser:"( @'NOW'"`          // The current time
-	Today        bool      `parser:"| @'TODAY'"`        // Midnight today
-	Tomorrow     bool      `parser:"| @'TOMORROW'"`     // Midnight tomorrow
-	Yesterday    bool      `parser:"| @'YESTERDAY'"`    // Midnight yesterday
-	TodayUTC     bool      `parser:"| @'TODAYUTC'"`     // Midnight today UTC
-	TomorrowUTC  bool      `parser:"| @'TOMORROWUTC'"`  // Midnight tomorrow UTC
-	YesterdayUTC bool      `parser:"| @'YESTERDAYUTC'"` // Midnight yesterday UTC
-	Def          string    `parser:"| @String )"`       // Time definition
-	Time         time.Time // The parsed time
+	Pos  lexer.Position
+	Def  string    `parser:"@String"` // Time definition
+	Time time.Time // The parsed time
 }
 
 func (a *Time) Accept(v Visitor) error {
@@ -170,25 +163,6 @@ func (a *Time) Accept(v Visitor) error {
 func timeInit(_ Visitor, t *Time) error {
 	if t == nil {
 		return nil
-	}
-
-	// As these are aliases for how ParseTime works just translate them
-	switch {
-	case t.Now:
-		t.Def = "now"
-	case t.Today:
-		t.Def = "midnight"
-	case t.TodayUTC:
-		t.Def = "midnightutc"
-	case t.Tomorrow:
-		t.Def = "tomorrow"
-	case t.TomorrowUTC:
-		t.Def = "tomorrowutc"
-	case t.Yesterday:
-		t.Def = "yesterday"
-	case t.YesterdayUTC:
-		t.Def = "yesterdayutc"
-	default:
 	}
 
 	t.Time = unit.ParseTime(t.Def)
