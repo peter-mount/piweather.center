@@ -1,18 +1,18 @@
 package exec
 
-func (ex *executor) resetStack() {
+func (ex *Executor) resetStack() {
 	ex.stack = nil
 }
 
-func (ex *executor) stackEmpty() bool {
+func (ex *Executor) stackEmpty() bool {
 	return len(ex.stack) == 0
 }
 
-func (ex *executor) push(v Value) {
+func (ex *Executor) push(v Value) {
 	ex.stack = append(ex.stack, v)
 }
 
-func (ex *executor) pop() (Value, bool) {
+func (ex *Executor) pop() (Value, bool) {
 	if ex.stackEmpty() {
 		return Value{}, false
 	}

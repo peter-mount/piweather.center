@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type executor struct {
+type Executor struct {
 	qp          *QueryPlan         // QueryPlan to execute
 	result      *api.Result        // Query Results
 	table       *api.Table         // Current table
@@ -22,7 +22,7 @@ type executor struct {
 }
 
 func (qp *QueryPlan) Execute() (*api.Result, error) {
-	ex := &executor{
+	ex := &Executor{
 		qp:          qp,
 		result:      &api.Result{},
 		metrics:     make(map[string][]Value),
@@ -39,7 +39,7 @@ func (qp *QueryPlan) Execute() (*api.Result, error) {
 	return ex.result, nil
 }
 
-func (ex *executor) run() error {
+func (ex *Executor) run() error {
 	qp := ex.qp
 
 	for m, _ := range qp.metrics {
@@ -66,7 +66,7 @@ func (ex *executor) run() error {
 	return nil
 }
 
-func (ex *executor) selectStatement(v lang.Visitor, s *lang.Select) error {
+func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	ex.table = ex.result.NewTable()
 
 	if s.Expression != nil {
@@ -95,12 +95,12 @@ func (ex *executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	return lang.VisitorStop
 }
 
-func (ex *executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) error {
+func (ex *Executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) error {
 	ex.row = ex.table.NewRow()
 	return nil
 }
 
-func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {
+func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {
 	ex.resetStack()
 
 	err := v.Expression(s.Expression)

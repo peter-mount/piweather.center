@@ -25,7 +25,7 @@ func FromRecord(r record.Record) Value {
 	}
 }
 
-func (ex *executor) metric(_ lang.Visitor, s *lang.Metric) error {
+func (ex *Executor) metric(_ lang.Visitor, s *lang.Metric) error {
 	r := lang.RangeFrom(ex.time, ex.timeRange.Every)
 	vals := ex.findMetrics(s.Name, r)
 
@@ -44,7 +44,7 @@ func (ex *executor) metric(_ lang.Visitor, s *lang.Metric) error {
 	return nil
 }
 
-func (ex *executor) findMetrics(n string, times lang.Range) []Value {
+func (ex *Executor) findMetrics(n string, times lang.Range) []Value {
 	var r []Value
 
 	recs := ex.metrics[n]

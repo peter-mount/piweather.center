@@ -10,13 +10,16 @@ import (
 	"sync"
 )
 
-func (ex *executor) function(v lang.Visitor, f *lang.Function) error {
+func (ex *Executor) function(v lang.Visitor, f *lang.Function) error {
 	switch {
 	case f.TimeOf:
 		return ex.funcTimeOf(v, f)
 	default:
 		if af, exists := aggregators.GetAggregator(f.Name); exists {
 			return ex.runAggregator(v, f, af)
+		}
+		if af, exists := aggregators.GetFunction(f.Name); exists {
+			return ex.runFunction(v, f, af)
 		}
 		return fmt.Errorf("unknown function %q", f.Name)
 	}
@@ -29,9 +32,12 @@ type AggregatorFunction struct {
 	Aggregator  func(l int, a Value) Value // l=number of entries in set, return Value based on l and result
 }
 
+type Function func(*Executor, lang.Visitor, []Value) error
+
 type FunctionMap struct {
 	mutex       sync.Mutex
 	aggregators map[string]AggregatorFunction
+	functions   map[string]Function
 }
 
 func (f *FunctionMap) AddAggregator(n string, ag AggregatorFunction) {
@@ -51,6 +57,26 @@ func (f *FunctionMap) GetAggregator(n string) (AggregatorFunction, bool) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	ag, exists := f.aggregators[n]
+	return ag, exists
+}
+
+func (f *FunctionMap) AddFunction(n string, ag Function) {
+	n = strings.ToLower(n)
+
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	if _, exists := f.functions[n]; exists {
+		panic(fmt.Errorf("function %q already defined", n))
+	}
+	f.functions[n] = ag
+}
+
+func (f *FunctionMap) GetFunction(n string) (Function, bool) {
+	n = strings.ToLower(n)
+
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	ag, exists := f.functions[n]
 	return ag, exists
 }
 
@@ -79,7 +105,7 @@ var aggregators = FunctionMap{
 	},
 }
 
-func (ex *executor) runAggregator(v lang.Visitor, f *lang.Function, agg AggregatorFunction) error {
+func (ex *Executor) runAggregator(v lang.Visitor, f *lang.Function, agg AggregatorFunction) error {
 	return ex.funcEval1(v, f, func(v lang.Visitor, f *lang.Function, val Value) (Value, error) {
 		var a Value
 
@@ -166,7 +192,7 @@ func InitialLast(v Value) Value {
 
 type funcEvaluator func(v lang.Visitor, f *lang.Function, val Value) (Value, error)
 
-func (ex *executor) funcEval1(v lang.Visitor, f *lang.Function, h funcEvaluator) error {
+func (ex *Executor) funcEval1(v lang.Visitor, f *lang.Function, h funcEvaluator) error {
 	err := assertExpressions(f.Pos, f.Expressions, 1, 1)
 
 	if err == nil {
@@ -206,7 +232,7 @@ func assertExpressions(p lexer.Position, e []*lang.Expression, min, max int) err
 }
 
 // funcTimeOf implements TIMEOF which marks the value as requiring the TIME not the Value of a metric
-func (ex *executor) funcTimeOf(v lang.Visitor, f *lang.Function) error {
+func (ex *Executor) funcTimeOf(v lang.Visitor, f *lang.Function) error {
 	if err := assertExpressions(f.Pos, f.Expressions, 0, 1); err != nil {
 		return err
 	}
@@ -227,5 +253,22 @@ func (ex *executor) funcTimeOf(v lang.Visitor, f *lang.Function) error {
 			ex.push(r)
 		}
 	}
+	return lang.VisitorStop
+}
+
+func (ex *Executor) runFunction(v lang.Visitor, f *lang.Function, agg Function) error {
+	var params []Value
+	for _, e := range f.Expressions {
+		if err := v.Expression(e); err != nil {
+			return err
+		}
+		r, _ := ex.pop()
+		params = append(params, r)
+	}
+
+	if err := agg(ex, v, params); err != nil {
+		return err
+	}
+
 	return lang.VisitorStop
 }
