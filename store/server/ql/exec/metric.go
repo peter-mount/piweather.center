@@ -1,7 +1,6 @@
 package exec
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -28,7 +27,6 @@ func (ex *executor) metric(_ lang.Visitor, s *lang.Metric) error {
 	r := lang.RangeFrom(ex.time, ex.timeRange.Every)
 	vals := ex.findMetrics(s.Name, r)
 
-	log.Printf("metric %q %d", s.Name, len(vals))
 	// No results then push null
 	if len(vals) == 0 {
 		ex.push(Value{IsNull: true})

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
@@ -16,67 +15,84 @@ func (ex *executor) function(v lang.Visitor, f *lang.Function) error {
 	case f.TimeOf:
 		return ex.funcTimeOf(v, f)
 	default:
-		af, exists := functions.Get(f.Name)
-		if !exists {
-			return fmt.Errorf("unknown function %q", f.Name)
+		if af, exists := aggregators.GetAggregator(f.Name); exists {
+			return ex.runAggregator(v, f, af)
 		}
-		return ex.runAggregator(v, f, af)
+		return fmt.Errorf("unknown function %q", f.Name)
 	}
 }
 
 type AggregatorFunction struct {
-	Initial    func(Value) Value          // Get initial value, nil for first entry
-	Reducer    value.Comparator           // reducer(a,b) true take a, false take b
-	Aggregator func(l int, a Value) Value // l=number of entries in set, return Value based on l and result
+	Initial     func(Value) Value          // Get initial value, nil for first entry
+	Reducer     value.Comparator           // reducer(a,b) returns true then take a, false take b
+	Calculation value.Calculation          // calculation of a and b
+	Aggregator  func(l int, a Value) Value // l=number of entries in set, return Value based on l and result
 }
 
 type FunctionMap struct {
-	mutex sync.Mutex
-	funcs map[string]AggregatorFunction
+	mutex       sync.Mutex
+	aggregators map[string]AggregatorFunction
 }
 
-func (f *FunctionMap) Add(n string, ag AggregatorFunction) {
+func (f *FunctionMap) AddAggregator(n string, ag AggregatorFunction) {
 	n = strings.ToLower(n)
 
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
-	if _, exists := f.funcs[n]; exists {
+	if _, exists := f.aggregators[n]; exists {
 		panic(fmt.Errorf("function %q already defined", n))
 	}
-	f.funcs[n] = ag
+	f.aggregators[n] = ag
 }
 
-func (f *FunctionMap) Get(n string) (AggregatorFunction, bool) {
+func (f *FunctionMap) GetAggregator(n string) (AggregatorFunction, bool) {
 	n = strings.ToLower(n)
 
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
-	ag, exists := f.funcs[n]
+	ag, exists := f.aggregators[n]
 	return ag, exists
 }
 
-var functions = FunctionMap{
-	funcs: map[string]AggregatorFunction{
-		"min":    {Reducer: value.LessThan},
-		"max":    {Reducer: value.GreaterThan},
-		"latest": {Initial: InitialLast},
-		"first":  {Initial: InitialFirst},
+var aggregators = FunctionMap{
+	aggregators: map[string]AggregatorFunction{
+		"avg": {
+			Calculation: value.Add,
+			Aggregator: func(l int, a Value) Value {
+				if a.Value.IsValid() {
+					a.Value = a.Value.Unit().Value(a.Value.Float() / float64(l))
+					a.IsNull = !a.Value.IsValid()
+				}
+				return a
+			}},
+		"count": {
+			Aggregator: func(l int, a Value) Value {
+				// Return l as a value with the unit of "integer"
+				u, _ := value.GetUnit("integer")
+				a.Value = u.Value(float64(l))
+				return a
+			}},
+		"first": {Initial: InitialFirst},
+		"last":  {Initial: InitialLast},
+		"min":   {Reducer: value.LessThan},
+		"max":   {Reducer: value.GreaterThan},
+		"sum":   {Calculation: value.Add},
 	},
 }
 
 func (ex *executor) runAggregator(v lang.Visitor, f *lang.Function, agg AggregatorFunction) error {
 	return ex.funcEval1(v, f, func(v lang.Visitor, f *lang.Function, val Value) (Value, error) {
-		log.Printf("func %q", f.Name)
 		var a Value
+
 		if agg.Initial == nil {
 			a = InitialFirst(val)
 		} else {
-			a = agg.Initial(a)
+			a = agg.Initial(val)
 		}
 
 		l := len(val.Values)
-		log.Printf("%s(%d) -> %s %v", f.Name, l, a.Value, a.IsNull)
-		if agg.Reducer != nil {
+		switch {
+		case agg.Reducer != nil:
 			for _, b := range val.Values {
 				af := a.Value.Float()
 
@@ -97,6 +113,23 @@ func (ex *executor) runAggregator(v lang.Visitor, f *lang.Function, agg Aggregat
 					}
 				}
 			}
+
+		case agg.Calculation != nil:
+			for _, b := range val.Values {
+				// Only check if b is valid
+				if b.Value.IsValid() {
+					// If a is invalid then take b otherwise pass to the reducer
+					if !a.Value.IsValid() {
+						a = b
+					} else {
+						nv, err := a.Value.Calculate(b.Value, agg.Calculation)
+						if err != nil {
+							return Value{}, err
+						}
+						a.Value = nv
+					}
+				}
+			}
 		}
 
 		// Ensure we have 1 entry - e.g. prevent divide by zero
@@ -109,7 +142,6 @@ func (ex *executor) runAggregator(v lang.Visitor, f *lang.Function, agg Aggregat
 		}
 
 		a.IsNull = !a.Value.IsValid()
-		log.Printf("%s(%d) -> %s %v", f.Name, l, a.Value, a.IsNull)
 		return a, nil
 	})
 }
