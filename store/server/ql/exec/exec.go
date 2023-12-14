@@ -153,6 +153,7 @@ type colResolver struct {
 func newColResolver() *colResolver {
 	r := &colResolver{}
 	r.visitor = lang.NewBuilder().
+		AliasedExpression(r.aliasedExpression).
 		Function(r.function).
 		Metric(r.metric).
 		Build()
@@ -160,35 +161,43 @@ func newColResolver() *colResolver {
 	return r
 }
 
+func (r *colResolver) append(s ...string) {
+	r.path = append(r.path, s...)
+}
+
 func (r *colResolver) resolveColumn(v *lang.AliasedExpression) api.Column {
 	return api.Column{Name: r.resolveName(v)}
 }
 
 func (r *colResolver) resolveName(v *lang.AliasedExpression) string {
-	if v.As != "" {
-		return v.As
-	}
-
 	r.path = nil
 	_ = r.visitor.AliasedExpression(v)
 	return strings.Join(r.path, "")
 }
 
+func (r *colResolver) aliasedExpression(v lang.Visitor, f *lang.AliasedExpression) error {
+	if f.As != "" {
+		r.append(f.As)
+		return lang.VisitorStop
+	}
+	return nil
+}
+
 func (r *colResolver) function(v lang.Visitor, f *lang.Function) error {
-	r.path = append(r.path, f.Name, "(")
+	r.append(f.Name, "(")
 	for i, e := range f.Expressions {
 		if i > 0 {
-			r.path = append(r.path, ",")
+			r.append(",")
 		}
 		if err := v.Expression(e); err != nil {
 			return err
 		}
 	}
-	r.path = append(r.path, ")")
-	return nil
+	r.append(")")
+	return lang.VisitorStop
 }
 
 func (r *colResolver) metric(_ lang.Visitor, f *lang.Metric) error {
-	r.path = append(r.path, f.Name)
+	r.append(f.Name)
 	return nil
 }
