@@ -109,6 +109,13 @@ func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 	err := v.Expression(s.Expression)
 
 	val, ok := ex.pop()
+
+	// If invalid but have values attached then get the last value in the set.
+	// Required with metrics without an aggregation function around them
+	if !val.Value.IsValid() && len(val.Values) > 0 {
+		val = InitialLast(val)
+	}
+
 	switch {
 	case err == nil && !ok,
 		val.IsNull:
