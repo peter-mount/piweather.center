@@ -55,7 +55,11 @@ var timeFormats = []string{
 //
 // "yesterday" - midnight in the local timezone of the start of yesterday
 //
-// "yesterdayutc" - midnight in UTC  of the start of yesterday
+// "yesterdayutc" - midnight in UTC of the start of yesterday
+//
+// "tomorrow" - midnight in the local timezone of the start of tomorrow
+//
+// "tomorrowutc" - midnight in UTC of the local timezone of the start of tomorrow
 //
 // # If not it will attempt to parse the time based on common formats used by various systems:
 //
@@ -89,6 +93,12 @@ func ParseTime(s string) time.Time {
 
 	case "yesterdayutc":
 		return time2.LocalMidnight(time.Now().UTC().Add(-24 * time.Hour))
+
+	case "tomorrow":
+		return time2.LocalMidnight(time.Now().Add(24 * time.Hour))
+
+	case "tomorrowutc":
+		return time2.LocalMidnight(time.Now().UTC().Add(24 * time.Hour))
 
 	default:
 		// Parse time using one of our formats

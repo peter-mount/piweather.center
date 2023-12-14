@@ -64,6 +64,8 @@ func (s *Server) PostInit() error {
 	s.Web.Handle(metricPrefix+metricPattern, s.queryMetricAt).Queries(AT, "").Methods(GET)
 	s.Web.Handle(metricPrefix+metricPattern, s.queryBetween).Queries(FROM, "", TO, "").Methods(GET)
 
+	s.Web.Handle("/query", s.query).Methods(POST)
+
 	// record a metric over http - not normally used as amqp is normally used
 	s.Web.Handle("/record", s.record).Methods(POST)
 	s.Web.Handle("/recordMultiple", s.recordMultiple).Methods(POST)

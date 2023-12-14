@@ -1,12 +1,61 @@
 package server
 
 import (
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
+	"github.com/peter-mount/piweather.center/store/server/ql/exec"
+	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"io"
 	"net/http"
 	"time"
 )
+
+func (s *Server) query(r *rest.Rest) error {
+	br, err := r.BodyReader()
+	if err != nil {
+		return err
+	}
+	b, err := io.ReadAll(br)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Query: %q", string(b))
+
+	q, err := lang.New().ParseBytes("", b)
+	if err != nil {
+		return err
+	}
+
+	qp, err := exec.NewQueryPlan(s.Store, s.Latest, q)
+	if err != nil {
+		return err
+	}
+	log.Println(qp)
+
+	result, err := qp.Execute()
+	if err != nil {
+		return err
+	}
+
+	// Technically accept is a comma separated list of acceptable mime types for the response
+	accept := r.GetHeader("accept")
+	if accept == "" {
+		accept = r.GetHeader("content-type")
+	}
+	if accept == "plain/text" {
+		r.Value([]byte(result.String()))
+	} else {
+		r.Value(result)
+	}
+
+	r.Status(http.StatusOK).
+		ContentType(accept)
+
+	return nil
+}
 
 func (s *Server) queryMetricToday(r *rest.Rest) error {
 	return s.queryMetric(r, r.Var(METRIC), func(b file.QueryBuilder) {

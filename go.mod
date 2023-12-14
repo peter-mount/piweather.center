@@ -3,6 +3,7 @@ module github.com/peter-mount/piweather.center
 go 1.20
 
 require (
+	github.com/alecthomas/participle/v2 v2.1.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/gorilla/websocket v1.5.0
@@ -26,7 +27,6 @@ require (
 )
 
 require (
-	github.com/alecthomas/participle/v2 v2.1.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/creack/goselect v0.1.2 // indirect
 	github.com/deepmap/oapi-codegen v1.12.4 // indirect
