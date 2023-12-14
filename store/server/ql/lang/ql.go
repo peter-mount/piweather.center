@@ -72,7 +72,7 @@ type Function struct {
 
 	TimeOf      bool          `parser:"( @'TIMEOF'"`
 	Name        string        `parser:"| @Ident"`
-	Expressions []*Expression `parser:") '(' @@ (',' @@)* ')'"`
+	Expressions []*Expression `parser:") '(' (@@ (',' @@)*)? ')'"`
 }
 
 func (a *Function) Accept(v Visitor) error {
@@ -100,10 +100,10 @@ func metricInit(_ Visitor, b *Metric) error {
 type QueryRange struct {
 	Pos lexer.Position
 
-	At       *Time         `parser:"( ( 'AT' @@"`        // AT time for a specific time
-	From     *Time         `parser:"  | 'BETWEEN' @@"`   // Between a start time
-	To       *Time         `parser:"    'AND' @@ )"`     // and an end time
-	Every    *Duration     `parser:"| ( 'EVERY' @@ ) )"` // Every duration time
+	At       *Time         `parser:"( 'AT' @@"`       // AT time for a specific time
+	From     *Time         `parser:"| 'BETWEEN' @@"`  // Between a start time
+	To       *Time         `parser:"  'AND' @@ )"`    // and an end time
+	Every    *Duration     `parser:"( 'EVERY' @@ )?"` // Every duration time
 	StepSize time.Duration // The required step size
 }
 
@@ -137,15 +137,10 @@ func (a *QueryRange) Range() Range {
 	if a != nil {
 		switch {
 		case a.At != nil:
-			r = Range{
-				From: a.At.Time,
-				To:   a.At.Time,
-			}
+			r = RangeAt(a.At.Time)
+
 		case a.From != nil && a.To != nil:
-			r = Range{
-				From: a.From.Time,
-				To:   a.To.Time,
-			}
+			r = RangeBetween(a.From.Time, a.To.Time)
 		}
 
 		if a.Every != nil {
@@ -153,28 +148,6 @@ func (a *QueryRange) Range() Range {
 		}
 	}
 	return r
-}
-
-type Range struct {
-	From  time.Time     // Start time
-	To    time.Time     // End time
-	Every time.Duration // Step duration
-}
-
-func (r Range) String() string {
-	return fmt.Sprintf("%s to %s every %s",
-		r.From.Format(time.RFC3339),
-		r.To.Format(time.RFC3339),
-		r.Every.String(),
-	)
-}
-
-func (r Range) IsValid() bool {
-	return !(r.From.IsZero() || r.To.IsZero() || r.From.After(r.To))
-}
-
-func (r Range) Equals(b Range) bool {
-	return r.IsValid() && b.IsValid() && r.From == b.From && r.To == b.To
 }
 
 type Time struct {

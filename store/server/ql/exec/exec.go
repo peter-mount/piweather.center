@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
@@ -14,6 +15,8 @@ type executor struct {
 	table       *api.Table         // Current table
 	row         *api.Row           // Current row
 	metrics     map[string][]Value // Collected data for each metric
+	time        time.Time          // Query time
+	timeRange   lang.Range         // Query range
 	stack       []Value            // Stack for expressions
 	colResolver *colResolver       // Used when resolving columns
 }
@@ -24,6 +27,7 @@ func (qp *QueryPlan) Execute() (*api.Result, error) {
 		result:      &api.Result{},
 		metrics:     make(map[string][]Value),
 		colResolver: newColResolver(),
+		timeRange:   qp._range,
 	}
 
 	if err := ex.run(); err != nil {
@@ -56,7 +60,6 @@ func (ex *executor) run() error {
 		Select(ex.selectStatement).
 		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
-		Expression(ex.expression).
 		Function(ex.function).
 		Metric(ex.metric).
 		Build()); err != nil {
@@ -72,14 +75,19 @@ func (ex *executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	if s.Expression != nil {
 		if s.Expression.All {
 			// TODO handle this if we keep it
+			return participle.Errorf(s.Pos, "Select * unsupported")
 		} else {
 			// Create the required columns
 			for _, ae := range s.Expression.Expressions {
 				ex.table.AddColumn(ex.colResolver.resolveColumn(ae))
 			}
+		}
 
-			// Now the row data
-			// TODO scan the time range here
+		// Now the row data
+		it := ex.timeRange.Iterator()
+		for it.HasNext() {
+			ex.time = it.Next()
+
 			if err := v.SelectExpression(s.Expression); err != nil {
 				return err
 			}
@@ -96,8 +104,6 @@ func (ex *executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) e
 }
 
 func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {
-	log.Printf("ae %v", s)
-
 	ex.resetStack()
 
 	err := v.Expression(s.Expression)
@@ -137,10 +143,6 @@ func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 	}
 
 	return lang.VisitorStop
-}
-
-func (ex *executor) expression(v lang.Visitor, s *lang.Expression) error {
-	return nil
 }
 
 type colResolver struct {

@@ -162,15 +162,23 @@ func (v *visitor) Metric(b *Metric) error {
 func (v *visitor) QueryRange(b *QueryRange) error {
 	var err error
 	if b != nil {
-		err = v.Time(b.At)
+		if v.queryRange != nil {
+			err = v.queryRange(v, b)
+			if IsVisitorStop(err) {
+				return nil
+			}
+		}
+		if err == nil {
+			err = v.Time(b.At)
+		}
 		if err == nil {
 			err = v.Time(b.From)
 		}
 		if err == nil {
 			err = v.Time(b.To)
 		}
-		if err == nil && v.queryRange != nil {
-			err = v.queryRange(v, b)
+		if err == nil {
+			err = v.Duration(b.Every)
 		}
 	}
 	return err
