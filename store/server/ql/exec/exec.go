@@ -1,27 +1,29 @@
 package exec
 
 import (
-	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"strings"
 	"time"
 )
 
 type executor struct {
-	qp      *QueryPlan         // QueryPlan to execute
-	result  *api.Result        // Query Results
-	table   *api.Table         // Current table
-	row     *api.Row           // Current row
-	metrics map[string][]Value // Collected data for each metric
-	stack   []Value            // Stack for expressions
+	qp          *QueryPlan         // QueryPlan to execute
+	result      *api.Result        // Query Results
+	table       *api.Table         // Current table
+	row         *api.Row           // Current row
+	metrics     map[string][]Value // Collected data for each metric
+	stack       []Value            // Stack for expressions
+	colResolver *colResolver       // Used when resolving columns
 }
 
 func (qp *QueryPlan) Execute() (*api.Result, error) {
 	ex := &executor{
-		qp:      qp,
-		result:  &api.Result{},
-		metrics: make(map[string][]Value),
+		qp:          qp,
+		result:      &api.Result{},
+		metrics:     make(map[string][]Value),
+		colResolver: newColResolver(),
 	}
 
 	if err := ex.run(); err != nil {
@@ -72,15 +74,8 @@ func (ex *executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 			// TODO handle this if we keep it
 		} else {
 			// Create the required columns
-			for i, ae := range s.Expression.Expressions {
-				c := api.Column{}
-				if ae.As != "" {
-					c.Name = ae.As
-				} else {
-					// FIXME resolve the src metric name or based on function like postgresql does
-					c.Name = fmt.Sprintf("col%d", i)
-				}
-				ex.table.AddColumn(c)
+			for _, ae := range s.Expression.Expressions {
+				ex.table.AddColumn(ex.colResolver.resolveColumn(ae))
 			}
 
 			// Now the row data
@@ -106,9 +101,6 @@ func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 	ex.resetStack()
 
 	err := v.Expression(s.Expression)
-	if err != nil {
-		log.Printf("ae err %v", err)
-	}
 
 	val, ok := ex.pop()
 	switch {
@@ -148,6 +140,53 @@ func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 }
 
 func (ex *executor) expression(v lang.Visitor, s *lang.Expression) error {
-	log.Printf("ex %v", s)
+	return nil
+}
+
+type colResolver struct {
+	visitor lang.Visitor
+	path    []string
+}
+
+func newColResolver() *colResolver {
+	r := &colResolver{}
+	r.visitor = lang.NewBuilder().
+		Function(r.function).
+		Metric(r.metric).
+		Build()
+
+	return r
+}
+
+func (r *colResolver) resolveColumn(v *lang.AliasedExpression) api.Column {
+	return api.Column{Name: r.resolveName(v)}
+}
+
+func (r *colResolver) resolveName(v *lang.AliasedExpression) string {
+	if v.As != "" {
+		return v.As
+	}
+
+	r.path = nil
+	_ = r.visitor.AliasedExpression(v)
+	return strings.Join(r.path, "")
+}
+
+func (r *colResolver) function(v lang.Visitor, f *lang.Function) error {
+	r.path = append(r.path, f.Name, "(")
+	for i, e := range f.Expressions {
+		if i > 0 {
+			r.path = append(r.path, ",")
+		}
+		if err := v.Expression(e); err != nil {
+			return err
+		}
+	}
+	r.path = append(r.path, ")")
+	return nil
+}
+
+func (r *colResolver) metric(_ lang.Visitor, f *lang.Metric) error {
+	r.path = append(r.path, f.Name)
 	return nil
 }

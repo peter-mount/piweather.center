@@ -141,7 +141,12 @@ func (v *visitor) Function(b *Function) error {
 			return nil
 		}
 		if err == nil {
-			err = v.Expression(b.Expression)
+			for _, ex := range b.Expressions {
+				err = v.Expression(ex)
+				if err != nil {
+					break
+				}
+			}
 		}
 	}
 	return err
