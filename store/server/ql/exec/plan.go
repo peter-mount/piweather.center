@@ -19,16 +19,16 @@ func (qp *QueryPlan) String() string {
 	var s []string
 	s = append(s,
 		"QueryPlan:",
-		"    Range:"+qp._range.String())
+		"    Range: "+qp._range.String())
 
-	m := "  Metrics: "
+	m := "  Metrics:"
 	ml := len(m)
 	for k, _ := range qp.metrics {
-		m = m + " " + k
-		if len(k) > 80 {
+		if len(m)+len(k) > 80 {
 			s = append(s, m)
 			m = strings.Repeat(" ", ml)
 		}
+		m = m + " " + k
 	}
 	if len(m) > ml {
 		s = append(s, m)

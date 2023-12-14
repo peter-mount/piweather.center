@@ -51,8 +51,14 @@ func (s *Server) query(r *rest.Rest) error {
 
 		// If debug enabled then include query in output
 		query := r.Request().URL.Query()
-		if _, debug := query["debug"]; debug {
-			rs = strings.Trim(string(b), "\n") + "\n" + rs
+		_, debug := query["debug"]
+		_, debugQl := query["ql"]
+		_, debugQp := query["qp"]
+		if debug || debugQp {
+			rs = strings.Trim(qp.String(), "\n") + "\n\n" + rs
+		}
+		if debug || debugQl {
+			rs = strings.Trim(string(b), "\n") + "\n\n" + rs
 		}
 
 		r.Value([]byte(rs))
