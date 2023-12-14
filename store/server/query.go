@@ -9,6 +9,7 @@ import (
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -46,7 +47,15 @@ func (s *Server) query(r *rest.Rest) error {
 		accept = r.GetHeader("content-type")
 	}
 	if accept == "plain/text" {
-		r.Value([]byte(result.String()))
+		rs := result.String()
+
+		// If debug enabled then include query in output
+		query := r.Request().URL.Query()
+		if _, debug := query["debug"]; debug {
+			rs = strings.Trim(string(b), "\n") + "\n" + rs
+		}
+
+		r.Value([]byte(rs))
 	} else {
 		r.Value(result)
 	}
