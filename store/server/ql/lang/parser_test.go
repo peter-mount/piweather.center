@@ -12,23 +12,23 @@ func Test_Parser(t *testing.T) {
 	}{
 		{
 			name:  "AT NOW",
-			query: `SELECT garden.cps AT "now"`,
+			query: `AT "now" SELECT garden.cps`,
 		},
 		{
 			name:  "AT 12:00",
-			query: `SELECT garden.cps AT "2023-12-13T12:00"`,
+			query: `AT "2023-12-13T12:00" SELECT garden.cps`,
 		},
 		{
 			name:  "AT Today",
-			query: `SELECT garden.cps AT "today"`,
+			query: `AT "today" SELECT garden.cps`,
 		},
 		{
 			name:  "AT Tomorrow",
-			query: `SELECT garden.cps AT "TOMORROW"`,
+			query: `AT "TOMORROW" SELECT garden.cps`,
 		},
 		{
 			name:  "AT Yesterday",
-			query: `SELECT garden.cps AT "YESTERDAY"`,
+			query: `AT "YESTERDAY" SELECT garden.cps`,
 		},
 	}
 	for _, tt := range tests {

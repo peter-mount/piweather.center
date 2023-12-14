@@ -12,8 +12,8 @@ import (
 type Query struct {
 	Pos lexer.Position
 
-	Select     *Select     `parser:"( @@"`
-	QueryRange *QueryRange `parser:") ( @@ )?"`
+	QueryRange *QueryRange `parser:"@@"`
+	Select     []*Select   `parser:"( @@ )+"`
 }
 
 func (a *Query) Accept(v Visitor) error {

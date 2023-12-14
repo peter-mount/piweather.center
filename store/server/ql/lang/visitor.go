@@ -50,11 +50,17 @@ func (v *visitor) Query(b *Query) error {
 		// Process QueryRange first
 		err = v.QueryRange(b.QueryRange)
 
-		if err == nil {
-			err = v.Select(b.Select)
-		}
 		if err == nil && v.query != nil {
 			err = v.query(v, b)
+		}
+		if IsVisitorStop(err) {
+			return nil
+		}
+
+		for _, sel := range b.Select {
+			if err == nil {
+				err = v.Select(sel)
+			}
 		}
 	}
 	return err
