@@ -71,8 +71,7 @@ type TimeIterator struct {
 }
 
 func (it *TimeIterator) HasNext() bool {
-	// do not use Before() as Before != !After as we want to allow s==e
-	return !it.t.After(it.e)
+	return it.t.Before(it.e)
 }
 
 func (it *TimeIterator) Next() time.Time {
