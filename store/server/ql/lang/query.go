@@ -25,6 +25,7 @@ func (a *Query) String() string {
 		Select(qp.selectStatement).
 		SelectExpression(qp.selectExpression).
 		AliasedExpression(qp.aliasedExpression).
+		Expression(qp.expression).
 		Metric(qp.metric).
 		Function(qp.function).
 		Build().
