@@ -9,17 +9,6 @@ import (
 	"time"
 )
 
-type Query struct {
-	Pos lexer.Position
-
-	QueryRange *QueryRange `parser:"@@"`
-	Select     []*Select   `parser:"( @@ )+"`
-}
-
-func (a *Query) Accept(v Visitor) error {
-	return v.Query(a)
-}
-
 type Select struct {
 	Pos lexer.Position
 

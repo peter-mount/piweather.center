@@ -58,7 +58,7 @@ func (s *Server) query(r *rest.Rest) error {
 			rs = strings.Trim(qp.String(), "\n") + "\n\n" + rs
 		}
 		if debug || debugQl {
-			rs = strings.Trim(string(b), "\n") + "\n\n" + rs
+			rs = q.String() + "\n\n" + rs
 		}
 
 		r.Value([]byte(rs))
