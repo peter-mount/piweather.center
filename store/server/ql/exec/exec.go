@@ -57,6 +57,7 @@ func (ex *Executor) run() error {
 		Select(ex.selectStatement).
 		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
+		Expression(ex.expression).
 		Function(ex.function).
 		Metric(ex.metric).
 		Build()); err != nil {
@@ -100,9 +101,7 @@ func (ex *Executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) e
 	return nil
 }
 
-func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {
-	ex.resetStack()
-
+func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 	// If offset defined, temporarily adjust the current time by that offset
 	if s.Offset != nil {
 		old := ex.time
@@ -111,6 +110,25 @@ func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 			ex.time = old
 		}()
 	}
+
+	var err error
+
+	switch {
+	case s.Metric != nil:
+		err = v.Metric(s.Metric)
+	case s.Function != nil:
+		err = v.Function(s.Function)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return lang.VisitorStop
+}
+
+func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {
+	ex.resetStack()
 
 	err := v.Expression(s.Expression)
 

@@ -164,14 +164,29 @@ func (qp *queryPrinter) aliasedExpression(v Visitor, b *AliasedExpression) error
 
 	_ = v.Expression(b.Expression)
 
-	if b.Offset != nil {
-		qp.append("OFFSET")
-		_ = v.Duration(b.Offset)
-	}
-
 	if b.As != "" {
 		qp.append("AS")
 		qp.appendString(b.As)
+	}
+
+	qp.restore()
+	return VisitorStop
+}
+
+func (qp *queryPrinter) expression(v Visitor, b *Expression) error {
+	qp.save()
+
+	switch {
+	case b.Metric != nil:
+		_ = v.Metric(b.Metric)
+
+	case b.Function != nil:
+		_ = v.Function(b.Function)
+	}
+
+	if b.Offset != nil {
+		qp.append("OFFSET")
+		_ = v.Duration(b.Offset)
 	}
 
 	qp.restore()

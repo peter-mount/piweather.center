@@ -36,7 +36,6 @@ type AliasedExpression struct {
 	Pos lexer.Position
 
 	Expression *Expression `parser:"@@"`
-	Offset     *Duration   `parser:"( 'OFFSET' @@ )?"`
 	As         string      `parser:"( 'AS' @Ident )?"`
 }
 
@@ -50,6 +49,7 @@ type Expression struct {
 
 	Function *Function `parser:"( @@"`
 	Metric   *Metric   `parser:"| @@ )"`
+	Offset   *Duration `parser:"( 'OFFSET' @@ )?"`
 }
 
 func (a *Expression) Accept(v Visitor) error {
