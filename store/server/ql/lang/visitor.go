@@ -204,10 +204,22 @@ func (v *visitor) QueryRange(b *QueryRange) error {
 }
 
 func (v *visitor) Time(b *Time) error {
-	if b != nil && v.time != nil {
-		return v.time(v, b)
+	var err error
+	if b != nil {
+		if v.time != nil {
+			err = v.time(v, b)
+		}
+		if IsVisitorStop(err) {
+			return nil
+		}
+		if err == nil {
+			err = v.Duration(b.Add)
+		}
+		if err == nil {
+			err = v.Duration(b.Truncate)
+		}
 	}
-	return nil
+	return err
 }
 
 func (v *visitor) Duration(b *Duration) error {

@@ -157,16 +157,18 @@ func (a *QueryRange) Range() Range {
 }
 
 type Time struct {
-	Pos  lexer.Position
-	Def  string    `parser:"@String"` // Time definition
-	Time time.Time // The parsed time
+	Pos      lexer.Position
+	Time     time.Time // The parsed time
+	Def      string    `parser:"@String"`            // Time definition
+	Add      *Duration `parser:"( 'ADD' @@ )?"`      // Add duration to time
+	Truncate *Duration `parser:"( 'TRUNCATE' @@ )?"` // truncate time
 }
 
 func (a *Time) Accept(v Visitor) error {
 	return v.Time(a)
 }
 
-func timeInit(_ Visitor, t *Time) error {
+func timeInit(v Visitor, t *Time) error {
 	if t == nil {
 		return nil
 	}
@@ -175,13 +177,28 @@ func timeInit(_ Visitor, t *Time) error {
 	if t.Time.IsZero() {
 		return participle.Errorf(t.Pos, "invalid datetime")
 	}
+
+	if t.Add != nil {
+		if err := v.Duration(t.Add); err != nil {
+			return err
+		}
+		t.Time = t.Time.Add(t.Add.Duration)
+	}
+
+	if t.Truncate != nil {
+		if err := v.Duration(t.Truncate); err != nil {
+			return err
+		}
+		t.Time = t.Time.Truncate(t.Truncate.Duration)
+	}
+
 	return nil
 }
 
 type Duration struct {
 	Pos      lexer.Position
-	Def      string        `parser:"@String"` // Duration definition
 	Duration time.Duration // Parsed duration
+	Def      string        `parser:"@String"` // Duration definition
 }
 
 func durationInit(_ Visitor, d *Duration) error {
