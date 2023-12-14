@@ -14,7 +14,7 @@ func (ex *executor) push(v Value) {
 
 func (ex *executor) pop() (Value, bool) {
 	if ex.stackEmpty() {
-		return Value{IsNull: true}, false
+		return Value{}, false
 	}
 	sl := len(ex.stack) - 1
 	r := ex.stack[sl]

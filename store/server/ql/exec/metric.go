@@ -12,14 +12,16 @@ type Value struct {
 	Value  value.Value
 	Values []Value
 	IsTime bool
-	IsNull bool
+}
+
+func (v Value) IsNull() bool {
+	return !(v.IsTime || v.Value.IsValid())
 }
 
 func FromRecord(r record.Record) Value {
 	return Value{
-		Time:   r.Time,
-		Value:  r.Value,
-		IsNull: !r.IsValid(),
+		Time:  r.Time,
+		Value: r.Value,
 	}
 }
 
@@ -29,7 +31,7 @@ func (ex *executor) metric(_ lang.Visitor, s *lang.Metric) error {
 
 	// No results then push null
 	if len(vals) == 0 {
-		ex.push(Value{IsNull: true})
+		ex.push(Value{})
 		return nil
 	}
 

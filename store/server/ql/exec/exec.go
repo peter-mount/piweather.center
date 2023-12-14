@@ -42,7 +42,6 @@ func (qp *QueryPlan) Execute() (*api.Result, error) {
 func (ex *executor) run() error {
 	qp := ex.qp
 
-	log.Printf("Retrieving data")
 	for m, _ := range qp.metrics {
 		var e []Value
 		q := qp.store.Query(m).
@@ -52,10 +51,8 @@ func (ex *executor) run() error {
 			e = append(e, FromRecord(q.Next()))
 		}
 		ex.metrics[m] = e
-		log.Printf("%q got %d", m, len(e))
 	}
 
-	log.Printf("Querying data")
 	if err := qp.query.Accept(lang.NewBuilder().
 		Select(ex.selectStatement).
 		SelectExpression(ex.selectExpression).
@@ -112,41 +109,29 @@ func (ex *executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 
 	// If invalid but have values attached then get the last value in the set.
 	// Required with metrics without an aggregation function around them
-	if !val.Value.IsValid() && len(val.Values) > 0 {
+	if !val.IsTime && !val.Value.IsValid() && len(val.Values) > 0 {
 		val = InitialLast(val)
 	}
 
 	switch {
-	case err == nil && !ok,
-		val.IsNull:
-		ex.row.Add(api.Cell{Type: api.CellNull})
+	case err != nil:
+		log.Println(err)
+		ex.row.AddNull()
 
-	case err == nil && val.IsTime:
-		ex.row.Add(api.Cell{
-			Type:   api.CellString,
-			Time:   val.Time,
-			String: val.Time.Format(time.RFC3339),
-		})
+	case !ok,
+		val.IsNull():
+		ex.row.AddNull()
 
-	case err == nil:
+	case val.IsTime:
+		ex.row.AddDynamic(val.Time, val.Time.Format(time.RFC3339))
+
+	default:
 		col := ex.table.Columns[len(ex.row.Columns)]
 		val1, err := col.Transform(val.Value)
 		if err != nil {
 			return err
-		} else {
-			ex.row.Add(api.Cell{
-				Type:   api.CellString,
-				Time:   val.Time,
-				String: val1.PlainString(),
-			})
 		}
-
-	case err != nil:
-		log.Println(err)
-		ex.row.Add(api.Cell{
-			Type:   api.CellNull,
-			String: "???",
-		})
+		ex.row.AddValue(val.Time, val1)
 	}
 
 	return lang.VisitorStop

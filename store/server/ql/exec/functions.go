@@ -61,7 +61,6 @@ var aggregators = FunctionMap{
 			Aggregator: func(l int, a Value) Value {
 				if a.Value.IsValid() {
 					a.Value = a.Value.Unit().Value(a.Value.Float() / float64(l))
-					a.IsNull = !a.Value.IsValid()
 				}
 				return a
 			}},
@@ -132,16 +131,9 @@ func (ex *executor) runAggregator(v lang.Visitor, f *lang.Function, agg Aggregat
 			}
 		}
 
-		// Ensure we have 1 entry - e.g. prevent divide by zero
-		if l < 1 {
-			l = 1
-		}
-
-		if agg.Aggregator != nil {
+		if a.Value.IsValid() && agg.Aggregator != nil {
 			a = agg.Aggregator(l, a)
 		}
-
-		a.IsNull = !a.Value.IsValid()
 		return a, nil
 	})
 }

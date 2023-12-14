@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -54,30 +53,38 @@ func (t *Table) CurrentRow() *Row {
 	return t.Rows[len(t.Rows)-1]
 }
 
+// Finalise ensures all columns are defined and filters out rows with no data in them
 func (t *Table) Finalise() {
+	var tr []*Row
+
 	// Ensure each column width is set to contain all values
 	for _, r := range t.Rows {
-
-		// If row is shorter than columns add null columns to the table
-		for len(r.Columns) < len(t.Columns) {
-			r.Columns = append(r.Columns, Cell{Type: CellNull})
-		}
-
-		// now ensure column widths are wide enough
-		for i, c := range r.Columns {
-			// If we have more entries in the row and columns then add a new one to the table
-			for len(t.Columns) <= i {
-				t.Columns = append(t.Columns, &Column{Name: fmt.Sprintf("Col%d", len(t.Columns)+1)})
+		if r.IsValid() {
+			// If row is shorter than columns add null columns to the table
+			for len(r.Columns) < len(t.Columns) {
+				r.Columns = append(r.Columns, Cell{Type: CellNull})
 			}
 
-			// Ensure the column width is wide enough - but do not change fixed width columns
-			cw := len(c.String)
-			col := t.Columns[i]
-			if !col.IsFixed() && cw > col.Width {
-				col.Width = cw
+			// now ensure column widths are wide enough
+			for i, c := range r.Columns {
+				// If we have more entries in the row and columns then add a new one to the table
+				for len(t.Columns) <= i {
+					t.Columns = append(t.Columns, &Column{Name: fmt.Sprintf("Col%d", len(t.Columns)+1)})
+				}
+
+				// Ensure the column width is wide enough - but do not change fixed width columns
+				cw := len(c.String)
+				col := t.Columns[i]
+				if !col.IsFixed() && cw > col.Width {
+					col.Width = cw
+				}
 			}
+
+			tr = append(tr, r)
 		}
 	}
+
+	t.Rows = tr
 }
 
 type Column struct {
@@ -164,62 +171,70 @@ type Row struct {
 	Columns []Cell `json:"columns" xml:"columns" yaml:"columns"` // Individual columns
 }
 
-func (r *Row) Add(c Cell) *Row {
+func (r *Row) add(c Cell) *Row {
 	r.Columns = append(r.Columns, c)
 	return r
 }
 
-func (r *Row) AddFloat(t time.Time, f float64) *Row {
-	return r.Add(Cell{
-		Type:   CellFloat,
-		Time:   t,
-		Float:  f,
-		String: strconv.FormatFloat(f, 'f', 3, 64),
-	})
+// AddValue adds a CellString cell to the row based on the value.Value.
+// If the value is not valid then a CellNull cell is added instead.
+func (r *Row) AddValue(t time.Time, v value.Value) *Row {
+	if v.IsValid() {
+		r.AddString(t, v.PlainString())
+	} else {
+		r.AddNull()
+	}
+	return r
 }
 
-func (r *Row) AddInt(t time.Time, i int64) *Row {
-	return r.Add(Cell{
-		Type:   CellInt,
-		Time:   t,
-		Int:    i,
-		String: strconv.FormatInt(i, 64),
-	})
-}
-
+// AddString adds a CellString cell with the supplied value
 func (r *Row) AddString(t time.Time, s string) *Row {
-	return r.Add(Cell{
+	return r.add(Cell{
 		Type:   CellString,
 		Time:   t,
 		String: s,
 	})
 }
 
+// AddDynamic adds a CellDynamic cell with the supplied value.
+func (r *Row) AddDynamic(t time.Time, s string) *Row {
+	return r.add(Cell{
+		Type:   CellDynamic,
+		Time:   t,
+		String: s,
+	})
+}
+
+// AddNull adds a CellNull cell to the row.
 func (r *Row) AddNull() *Row {
-	return r.Add(Cell{Type: CellNull})
+	return r.add(Cell{Type: CellNull})
+}
+
+// IsValid returns true of the row contains at least one cell not CellNull or CellDynamic
+func (r *Row) IsValid() bool {
+	for _, c := range r.Columns {
+		if !(c.Type == CellNull || c.Type == CellDynamic) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Cell represents an individual cell within a Table's Row
 type Cell struct {
-	Type   CellType  `json:"type,omitempty" xml:"type,attr,omitempty" yaml:"type,omitempty"`    // Type of cell
-	Time   time.Time `json:"time,omitempty" xml:"time,attr,omitempty" yaml:"time,omitempty"`    // Time of value in cell, IsZero()==true if unknown or text
-	Float  float64   `json:"float,omitempty" xml:"float,attr,omitempty" yaml:"float,omitempty"` // Float value
-	Int    int64     `json:"int,omitempty" xml:"int,attr,omitempty" yaml:"int,omitempty"`       // Int64 value
-	String string    `json:"string" xml:",cdata" yaml:"string"`                                 // String value, always present as formatted by Unit if Float or Int
+	Type   CellType  `json:"type,omitempty" xml:"type,attr,omitempty" yaml:"type,omitempty"` // Type of cell
+	Time   time.Time `json:"time,omitempty" xml:"time,attr,omitempty" yaml:"time,omitempty"` // Time of value in cell, IsZero()==true if unknown or text
+	String string    `json:"string" xml:",cdata" yaml:"string"`                              // String value, always present as formatted by Unit if Float or Int
 }
-
-func (c Cell) IsNull() bool { return c.Type == CellNull }
-
-func (c Cell) HasTime() bool { return !(c.IsNull() || c.Time.IsZero()) }
 
 // CellType defines the type of cell
 type CellType uint8
 
 const (
-	CellString CellType = iota // Cell is a String
-	CellFloat                  // Cell is a Float
-	CellInt                    // Cell is an Int
-	CellNull                   // Cell is not present, String="" but treat like a SQL Null
+	CellString  CellType = iota // Cell is a String
+	CellNull                    // Cell is not present, String="" but treat like a SQL Null
+	CellDynamic                 // Same as CellString but acts like CellNull, e.g. when determining if a row is empty
 )
 
 func (r *Result) String() string {
@@ -235,24 +250,34 @@ func (r *Result) String() string {
 }
 
 func (t *Table) String(b []string) []string {
-	// Create line break
+	// Create line separator
 	var s0, s1 []string
 	for _, col := range t.Columns {
 		s0 = append(s0, strings.Repeat("-", col.Width))
 		s1 = append(s1, fmt.Sprintf(fmt.Sprintf("%%%d.%ds", col.Width, col.Width), col.Name))
 	}
+	head := "+" + strings.Join(s0, "+") + "+"
 	sep := "|" + strings.Join(s0, "|") + "|"
 
 	// Add table header
-	b = append(b, sep, "|"+strings.Join(s1, "|")+"|", sep)
+	b = append(b, head, "|"+strings.Join(s1, "|")+"|")
 
-	for _, r := range t.Rows {
+	for i, r := range t.Rows {
+		if i == 0 {
+			b = append(b, sep)
+		}
 		s1 = nil
 		for i, c := range r.Columns {
 			s1 = append(s1, t.Columns[i].String(c.String))
 		}
 		b = append(b, "|"+strings.Join(s1, "|")+"|")
 	}
+
+	rc := len(t.Rows)
+	if rc > 0 {
+		b = append(b, head)
+	}
+	b = append(b, fmt.Sprintf("Rows: %d", rc))
 
 	return b
 }
