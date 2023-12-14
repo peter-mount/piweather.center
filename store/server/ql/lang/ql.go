@@ -36,6 +36,7 @@ type AliasedExpression struct {
 	Pos lexer.Position
 
 	Expression *Expression `parser:"@@"`
+	Offset     *Duration   `parser:"( 'OFFSET' @@ )?"`
 	As         string      `parser:"( 'AS' @Ident )?"`
 }
 

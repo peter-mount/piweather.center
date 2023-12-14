@@ -161,11 +161,19 @@ func (qp *queryPrinter) selectExpression(v Visitor, b *SelectExpression) error {
 
 func (qp *queryPrinter) aliasedExpression(v Visitor, b *AliasedExpression) error {
 	qp.save()
+
 	_ = v.Expression(b.Expression)
+
+	if b.Offset != nil {
+		qp.append("OFFSET")
+		_ = v.Duration(b.Offset)
+	}
+
 	if b.As != "" {
 		qp.append("AS")
 		qp.appendString(b.As)
 	}
+
 	qp.restore()
 	return VisitorStop
 }

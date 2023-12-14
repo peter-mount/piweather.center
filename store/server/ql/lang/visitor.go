@@ -112,6 +112,9 @@ func (v *visitor) AliasedExpression(b *AliasedExpression) error {
 			return nil
 		}
 		if err == nil {
+			err = v.Duration(b.Offset)
+		}
+		if err == nil {
 			err = v.Expression(b.Expression)
 		}
 	}

@@ -103,6 +103,15 @@ func (ex *Executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) e
 func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {
 	ex.resetStack()
 
+	// If offset defined, temporarily adjust the current time by that offset
+	if s.Offset != nil {
+		old := ex.time
+		ex.time = ex.time.Add(s.Offset.Duration)
+		defer func() {
+			ex.time = old
+		}()
+	}
+
 	err := v.Expression(s.Expression)
 
 	val, ok := ex.pop()
