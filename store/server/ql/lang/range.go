@@ -27,7 +27,7 @@ func RangeFrom(s time.Time, d time.Duration) Range {
 }
 
 func (r Range) Contains(t time.Time) bool {
-	return !(r.From.After(t) || r.To.Before(t))
+	return !t.Before(r.From) && t.Before(r.To)
 }
 
 func (r Range) String() string {
