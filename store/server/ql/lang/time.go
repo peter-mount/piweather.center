@@ -8,15 +8,20 @@ import (
 )
 
 type Time struct {
-	Pos      lexer.Position
-	Time     time.Time // The parsed time
-	Def      string    `parser:"@String"`            // Time definition
-	Add      *Duration `parser:"( 'ADD' @@ )?"`      // Add duration to time
-	Truncate *Duration `parser:"( 'TRUNCATE' @@ )?"` // truncate time
+	Pos        lexer.Position
+	Time       time.Time         // The parsed time
+	Def        string            `parser:"@String"` // Time definition
+	Expression []*TimeExpression `parser:"(@@)*"`
 }
 
 func (a *Time) Accept(v Visitor) error {
 	return v.Time(a)
+}
+
+type TimeExpression struct {
+	Pos      lexer.Position
+	Add      *Duration `parser:"( 'ADD' @@"`        // Add duration to time
+	Truncate *Duration `parser:"| 'TRUNCATE' @@ )"` // truncate time
 }
 
 func timeInit(v Visitor, t *Time) error {
@@ -29,21 +34,23 @@ func timeInit(v Visitor, t *Time) error {
 		return participle.Errorf(t.Pos, "invalid datetime")
 	}
 
-	if t.Add != nil {
-		if err := v.Duration(t.Add); err != nil {
-			return err
+	for _, e := range t.Expression {
+		switch {
+		case e.Add != nil:
+			if err := v.Duration(e.Add); err != nil {
+				return err
+			}
+			t.Time = t.Time.Add(e.Add.Duration)
+
+		case e.Truncate != nil:
+			if err := v.Duration(e.Truncate); err != nil {
+				return err
+			}
+			t.Time = t.Time.Truncate(e.Truncate.Duration)
 		}
-		t.Time = t.Time.Add(t.Add.Duration)
 	}
 
-	if t.Truncate != nil {
-		if err := v.Duration(t.Truncate); err != nil {
-			return err
-		}
-		t.Time = t.Time.Truncate(t.Truncate.Duration)
-	}
-
-	return nil
+	return VisitorStop
 }
 
 type Duration struct {

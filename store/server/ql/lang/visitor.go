@@ -229,11 +229,13 @@ func (v *visitor) Time(b *Time) error {
 		if IsVisitorStop(err) {
 			return nil
 		}
-		if err == nil {
-			err = v.Duration(b.Add)
-		}
-		if err == nil {
-			err = v.Duration(b.Truncate)
+		for _, e := range b.Expression {
+			if err == nil {
+				err = v.Duration(e.Add)
+			}
+			if err == nil {
+				err = v.Duration(e.Truncate)
+			}
 		}
 	}
 	return err

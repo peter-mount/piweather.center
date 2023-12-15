@@ -137,14 +137,16 @@ func (qp *queryPrinter) time(v Visitor, b *Time) error {
 
 	qp.appendString(b.Def)
 
-	if b.Add != nil {
-		qp.append("ADD")
-		_ = v.Duration(b.Add)
-	}
+	for _, e := range b.Expression {
+		switch {
+		case e.Add != nil:
+			qp.append("ADD")
+			_ = v.Duration(e.Add)
 
-	if b.Truncate != nil {
-		qp.append("TRUNCATE")
-		_ = v.Duration(b.Truncate)
+		case e.Truncate != nil:
+			qp.append("TRUNCATE")
+			_ = v.Duration(e.Truncate)
+		}
 	}
 
 	qp.restore()
