@@ -53,7 +53,6 @@ func NewQueryPlan(s file.Store, l memory.Latest, q *lang.Query) (*QueryPlan, err
 	}
 
 	if err := q.Accept(lang.NewBuilder().
-		SelectExpression(qp.addSelectExpression).
 		AliasedExpression(qp.aliasedExpression).
 		Metric(qp.addMetric).
 		QueryRange(qp.setQueryRange).
@@ -65,16 +64,6 @@ func NewQueryPlan(s file.Store, l memory.Latest, q *lang.Query) (*QueryPlan, err
 	qp.scanRange = qp.queryRange.Expand(qp.minOffset, qp.maxOffset)
 
 	return qp, nil
-}
-
-func (qp *QueryPlan) addSelectExpression(_ lang.Visitor, m *lang.SelectExpression) error {
-	// If we have all set then include all metrics
-	if m.All {
-		for _, n := range qp.latest.Metrics() {
-			qp.metrics[n] = nil
-		}
-	}
-	return nil
 }
 
 func (qp *QueryPlan) aliasedExpression(v lang.Visitor, m *lang.AliasedExpression) error {

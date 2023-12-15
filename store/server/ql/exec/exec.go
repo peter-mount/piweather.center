@@ -1,7 +1,6 @@
 package exec
 
 import (
-	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
@@ -87,14 +86,9 @@ func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	}
 
 	if s.Expression != nil {
-		if s.Expression.All {
-			// TODO handle this if we keep it
-			return participle.Errorf(s.Pos, "Select * unsupported")
-		} else {
-			// Create the required columns
-			for _, ae := range s.Expression.Expressions {
-				ex.table.AddColumn(ex.colResolver.resolveColumn(ae))
-			}
+		// Create the required columns
+		for _, ae := range s.Expression.Expressions {
+			ex.table.AddColumn(ex.colResolver.resolveColumn(ae))
 		}
 
 		// Now the row data

@@ -27,8 +27,7 @@ func (a *Select) Accept(v Visitor) error {
 type SelectExpression struct {
 	Pos lexer.Position
 
-	All         bool                 `parser:"( @'*'"`
-	Expressions []*AliasedExpression `parser:"| @@ ( ',' @@ )* )"`
+	Expressions []*AliasedExpression `parser:"@@ ( ',' @@ )*"`
 }
 
 func (a *SelectExpression) Accept(v Visitor) error {
