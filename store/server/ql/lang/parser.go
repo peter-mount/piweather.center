@@ -9,6 +9,7 @@ import (
 
 var (
 	scriptLexer = lexer.MustSimple([]lexer.SimpleRule{
+		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|EVERY|FOR|FROM|LIMIT|OFFSET|SELECT|TRUNCATE)\b`},
 		{"hashComment", `#.*`},
 		{"sheBang", `#\!.*`},
 		{"comment", `//.*|/\*.*?\*/`},
@@ -25,12 +26,14 @@ var (
 		{"NewLine", `[\n\r]+`},
 		{"Comma", `,`},
 		{"Query", `\?`},
+		//{"Select", `"SELECT"`},
 	})
 
 	scriptParser = participle.MustBuild[Query](
 		participle.Lexer(scriptLexer),
 		participle.UseLookahead(2),
 		participle.Unquote("String"),
+		participle.CaseInsensitive("Keyword"),
 	)
 )
 

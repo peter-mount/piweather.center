@@ -10,6 +10,9 @@ func Test_Parser(t *testing.T) {
 		query   string
 		wantErr bool
 	}{
+		// ============================================================
+		// Standard UPPER case
+		// ============================================================
 		{
 			name:  "AT NOW",
 			query: `AT "now" SELECT garden.cps`,
@@ -29,6 +32,29 @@ func Test_Parser(t *testing.T) {
 		{
 			name:  "AT Yesterday",
 			query: `AT "YESTERDAY" SELECT garden.cps`,
+		},
+		// ============================================================
+		// Tests lower case to ensure the parser is case insensitive
+		// ============================================================
+		{
+			name:  "Case at NOW",
+			query: `at "now" select garden.cps`,
+		},
+		{
+			name:  "Case at 12:00",
+			query: `at "2023-12-13T12:00" select garden.cps`,
+		},
+		{
+			name:  "Case at Today",
+			query: `at "today" select garden.cps`,
+		},
+		{
+			name:  "Case at Tomorrow",
+			query: `at "TOMORROW" select garden.cps`,
+		},
+		{
+			name:  "Case at Yesterday",
+			query: `at "YESTERDAY" select garden.cps`,
 		},
 	}
 	for _, tt := range tests {
