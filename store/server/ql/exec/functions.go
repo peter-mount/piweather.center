@@ -83,9 +83,10 @@ func (f *FunctionMap) GetFunction(n string) (Function, bool) {
 var aggregators = FunctionMap{
 	aggregators: map[string]AggregatorFunction{
 		"avg": {
+			Initial:     InitialInvalid,
 			Calculation: value.Add,
 			Aggregator: func(l int, a Value) Value {
-				if a.Value.IsValid() {
+				if a.Value.IsValid() && l > 0 {
 					a.Value = a.Value.Unit().Value(a.Value.Float() / float64(l))
 				}
 				return a
@@ -101,7 +102,7 @@ var aggregators = FunctionMap{
 		"last":  {Initial: InitialLast},
 		"min":   {Reducer: value.LessThan},
 		"max":   {Reducer: value.GreaterThan},
-		"sum":   {Calculation: value.Add},
+		"sum":   {Initial: InitialInvalid, Calculation: value.Add},
 	},
 }
 
@@ -164,6 +165,8 @@ func (ex *Executor) runAggregator(v lang.Visitor, f *lang.Function, agg Aggregat
 	})
 }
 
+// InitialFirst returns the first valid metric in a Value.
+// If the Value has no valid metrics then it returns the original value.
 func InitialFirst(v Value) Value {
 	if len(v.Values) > 0 {
 		for i := 0; i < len(v.Values); i++ {
@@ -177,6 +180,8 @@ func InitialFirst(v Value) Value {
 	return v
 }
 
+// InitialLast returns the last valid metric in a Value.
+// If the Value has no valid metrics then it returns the original value.
 func InitialLast(v Value) Value {
 	if len(v.Values) > 0 {
 		for i := len(v.Values) - 1; i >= 0; i-- {
@@ -188,6 +193,13 @@ func InitialLast(v Value) Value {
 		return v.Values[len(v.Values)-1]
 	}
 	return v
+}
+
+// InitialInvalid returns an invalid Value.
+// It's used for functions using Calculation's, where we want to start the aggregation
+// without an initial starting value.
+func InitialInvalid(_ Value) Value {
+	return Value{}
 }
 
 type funcEvaluator func(v lang.Visitor, f *lang.Function, val Value) (Value, error)
