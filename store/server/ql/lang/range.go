@@ -2,7 +2,6 @@ package lang
 
 import (
 	"fmt"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"time"
 )
 
@@ -31,10 +30,6 @@ func (r Range) Contains(t time.Time) bool {
 	return !(r.From.After(t) || r.To.Before(t))
 }
 
-func (r Range) Add(t time.Time) time.Time {
-	return t.Add(r.Every)
-}
-
 func (r Range) String() string {
 	return fmt.Sprintf("%s to %s every %s",
 		r.From.Format(time.RFC3339),
@@ -60,30 +55,36 @@ func expand(t time.Time, d time.Duration, f func(time.Time) bool) time.Time {
 }
 
 func (r Range) Expand(min, max time.Duration) Range {
-	log.Printf("Expand %v %v", min, max)
 	r.From = expand(r.From, min, r.From.After)
 	r.To = expand(r.To, max, r.To.Before)
 	return r
 }
 
 func (r Range) Iterator() *TimeIterator {
-	if r.Every == 0 {
-		r.Every = time.Minute
-	}
-	if r.Every < time.Second {
-		r.Every = time.Second
-	}
-	return &TimeIterator{
-		t: r.From,
-		e: r.To,
-		s: r.Every,
-	}
+	return Iterate(r.From, r.To, r.Every)
 }
 
 type TimeIterator struct {
 	t time.Time
 	e time.Time
 	s time.Duration
+}
+
+func Iterate(t, e time.Time, s time.Duration) *TimeIterator {
+	if t.After(e) {
+		t, e = e, t
+	}
+
+	if s < 0 {
+		s = -s
+	}
+	if s == 0 {
+		s = time.Minute
+	}
+	if s < time.Second {
+		s = time.Second
+	}
+	return &TimeIterator{t: t, e: e, s: s}
 }
 
 func (it *TimeIterator) HasNext() bool {

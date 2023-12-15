@@ -90,35 +90,67 @@ func metricInit(_ Visitor, b *Metric) error {
 type QueryRange struct {
 	Pos lexer.Position
 
-	At       *Time         `parser:"( 'AT' @@"`       // AT time for a specific time
-	From     *Time         `parser:"| 'FROM' @@"`     // FROM time
-	For      *Duration     `parser:"  'FOR' @@ "`     // Duration from FROM
-	Start    *Time         `parser:"| 'BETWEEN' @@"`  // Between a start time
-	End      *Time         `parser:"  'AND' @@ )"`    // and an end time
-	Every    *Duration     `parser:"( 'EVERY' @@ )?"` // Every duration time
-	StepSize time.Duration // The required step size
+	At    *Time     `parser:"( 'AT' @@"`       // AT time for a specific time
+	From  *Time     `parser:"| 'FROM' @@"`     // FROM time
+	For   *Duration `parser:"  'FOR' @@ "`     // Duration from FROM
+	Start *Time     `parser:"| 'BETWEEN' @@"`  // Between a start time
+	End   *Time     `parser:"  'AND' @@ )"`    // and an end time
+	Every *Duration `parser:"( 'EVERY' @@ )?"` // Every duration time
 }
 
-func queryRangeInit(_ Visitor, q *QueryRange) error {
-	if q.Every != nil {
-		q.StepSize = q.Every.Duration
+func queryRangeInit(v Visitor, q *QueryRange) error {
+	// If no Every statement then set it to 1 minute
+	if q.Every == nil {
+		q.Every = &Duration{
+			Pos:      q.Pos,
+			Duration: time.Minute,
+			Def:      "1m",
+		}
 	}
 
-	// Ensure we have a valid positive step size.
-	// If not defined then default to 1 minute,
-	// otherwise set minimum of 1 second as that is our db resolution
-	switch {
-	case q.StepSize < 0:
-		return fmt.Errorf("invalid step size %v", q.StepSize)
-
-	case q.StepSize == 0:
-		q.StepSize = time.Minute
-
-	case q.StepSize < time.Second:
-		q.StepSize = time.Second
+	if err := v.Duration(q.Every); err != nil {
+		return err
 	}
 
-	return nil
+	if q.At != nil {
+		if err := v.Time(q.At); err != nil {
+			return err
+		}
+	}
+
+	if q.From != nil {
+		if err := v.Time(q.From); err != nil {
+			return err
+		}
+	}
+
+	if q.For != nil {
+		if err := v.Duration(q.For); err != nil {
+			return err
+		}
+	}
+
+	if q.Start != nil {
+		if err := v.Time(q.Start); err != nil {
+			return err
+		}
+	}
+
+	if q.End != nil {
+		if err := v.Time(q.End); err != nil {
+			return err
+		}
+	}
+
+	// Negative duration for Every is invalid
+	if q.Every.Duration < 0 {
+		return fmt.Errorf("invalid step size %v", q.Every.Duration)
+	}
+
+	// The DB has a second resolution so any Every less than that defaults to 1 s
+	q.Every.Set(q.Every.Duration.Truncate(time.Second))
+
+	return VisitorStop
 }
 
 func (a *QueryRange) Accept(v Visitor) error {
@@ -210,4 +242,9 @@ func durationInit(_ Visitor, d *Duration) error {
 	}
 
 	return nil
+}
+
+func (a *Duration) Set(d time.Duration) {
+	a.Duration = d
+	a.Def = d.String()
 }
