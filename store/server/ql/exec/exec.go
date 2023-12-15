@@ -27,7 +27,7 @@ func (qp *QueryPlan) Execute() (*api.Result, error) {
 		result:      &api.Result{},
 		metrics:     make(map[string][]Value),
 		colResolver: newColResolver(),
-		timeRange:   qp._range,
+		timeRange:   qp.queryRange,
 	}
 
 	if err := ex.run(); err != nil {
@@ -43,14 +43,7 @@ func (ex *Executor) run() error {
 	qp := ex.qp
 
 	for m, _ := range qp.metrics {
-		var e []Value
-		q := qp.store.Query(m).
-			Between(qp._range.From, qp._range.To).
-			Build()
-		for q.HasNext() {
-			e = append(e, FromRecord(q.Next()))
-		}
-		ex.metrics[m] = e
+		ex.metrics[m] = qp.GetMetric(m)
 	}
 
 	if err := qp.query.Accept(lang.NewBuilder().

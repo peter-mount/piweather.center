@@ -2,6 +2,7 @@ package lang
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"time"
 )
 
@@ -48,6 +49,21 @@ func (r Range) IsValid() bool {
 
 func (r Range) Equals(b Range) bool {
 	return r.IsValid() && b.IsValid() && r.From == b.From && r.To == b.To
+}
+
+func expand(t time.Time, d time.Duration, f func(time.Time) bool) time.Time {
+	nt := t.Add(d)
+	if f(nt) {
+		return nt
+	}
+	return t
+}
+
+func (r Range) Expand(min, max time.Duration) Range {
+	log.Printf("Expand %v %v", min, max)
+	r.From = expand(r.From, min, r.From.After)
+	r.To = expand(r.To, max, r.To.Before)
+	return r
 }
 
 func (r Range) Iterator() *TimeIterator {
