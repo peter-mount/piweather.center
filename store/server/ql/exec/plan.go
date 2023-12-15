@@ -15,7 +15,7 @@ type QueryPlan struct {
 	query      *lang.Query            // Queries for this plan that share the Range
 	store      file.Store             // The actual file Store
 	latest     memory.Latest          // Needed when selecting all (*)
-	// Used to handle expression offsets so we can expand the queryRange to get aggregated metrics
+	// Used to handle expression offsets, so we can expand the queryRange to get aggregated metrics
 	offset    time.Duration
 	minOffset time.Duration
 	maxOffset time.Duration

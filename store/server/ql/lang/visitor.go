@@ -17,10 +17,22 @@ type Visitor interface {
 	Duration(*Duration) error
 }
 
+// VisitorStop is an error which causes the current step in a Visitor to stop processing.
+// It's used to enable a Visitor to handle all processing of a node within itself rather
+// than the Visitor proceeding to any child nodes of that node.
 var VisitorStop = errors.New("visitor stop")
 
 func IsVisitorStop(err error) bool {
 	return err != nil && errors.Is(err, VisitorStop)
+}
+
+// VisitorExit is an error which will terminate the Visitor.
+// This is the same as any error occurring within a Visitor except that the final error
+// returned from specific handlers will become nil.
+var VisitorExit = errors.New("visitor exit")
+
+func IsVisitorExit(err error) bool {
+	return err != nil && errors.Is(err, VisitorExit)
 }
 
 type Visitable interface {
@@ -53,7 +65,7 @@ func (v *visitor) Query(b *Query) error {
 		if err == nil && v.query != nil {
 			err = v.query(v, b)
 		}
-		if IsVisitorStop(err) {
+		if IsVisitorStop(err) || IsVisitorExit(err) {
 			return nil
 		}
 
@@ -71,7 +83,7 @@ func (v *visitor) Select(b *Select) error {
 	if b != nil {
 		if v._select != nil {
 			err = v._select(v, b)
-			if IsVisitorStop(err) {
+			if IsVisitorStop(err) || IsVisitorExit(err) {
 				return nil
 			}
 		}
@@ -92,10 +104,12 @@ func (v *visitor) SelectExpression(b *SelectExpression) error {
 				return nil
 			}
 		}
-		for _, e := range b.Expressions {
-			err = v.AliasedExpression(e)
-			if err != nil {
-				break
+		if err == nil {
+			for _, e := range b.Expressions {
+				err = v.AliasedExpression(e)
+				if err != nil {
+					break
+				}
 			}
 		}
 	}

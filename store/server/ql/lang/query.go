@@ -1,7 +1,9 @@
 package lang
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"strconv"
 	"strings"
 )
 
@@ -9,7 +11,18 @@ type Query struct {
 	Pos lexer.Position
 
 	QueryRange *QueryRange `parser:"@@"`
+	Limit      int         `parser:"( 'LIMIT' @Int )?"`
 	Select     []*Select   `parser:"( @@ )+"`
+}
+
+func assertLimit(p lexer.Position, l int) error {
+	if l < 0 {
+		return participle.Errorf(p, "invalid LIMIT %d", l)
+	}
+	return nil
+}
+func queryInit(_ Visitor, s *Query) error {
+	return assertLimit(s.Pos, s.Limit)
 }
 
 func (a *Query) Accept(v Visitor) error {
@@ -145,7 +158,18 @@ func (qp *queryPrinter) duration(_ Visitor, b *Duration) error {
 
 func (qp *queryPrinter) selectStatement(v Visitor, b *Select) error {
 	qp.append("SELECT")
-	return nil
+
+	if b.Expression != nil {
+		if err := v.SelectExpression(b.Expression); err != nil {
+			return err
+		}
+	}
+
+	if b.Limit > 0 {
+		qp.append("    LIMIT", strconv.Itoa(b.Limit))
+	}
+
+	return VisitorStop
 }
 
 func (qp *queryPrinter) selectExpression(v Visitor, b *SelectExpression) error {

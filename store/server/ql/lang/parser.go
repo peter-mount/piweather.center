@@ -77,7 +77,9 @@ func (p *defaultParser) ParseFile(fileName string, opts ...participle.ParseOptio
 func (p *defaultParser) init(q *Query, err error) (*Query, error) {
 	if err == nil {
 		err = q.Accept(NewBuilder().
+			Query(queryInit).
 			QueryRange(queryRangeInit).
+			Select(selectInit).
 			Metric(metricInit).
 			Time(timeInit).
 			Duration(durationInit).

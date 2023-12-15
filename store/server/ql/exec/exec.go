@@ -19,6 +19,7 @@ type Executor struct {
 	timeRange   lang.Range         // Query range
 	stack       []Value            // Stack for expressions
 	colResolver *colResolver       // Used when resolving columns
+	selectLimit int                // Max number of rows to return in a query
 }
 
 func (qp *QueryPlan) Execute() (*api.Result, error) {
@@ -47,6 +48,7 @@ func (ex *Executor) run() error {
 	}
 
 	if err := qp.query.Accept(lang.NewBuilder().
+		Query(ex.query).
 		Select(ex.selectStatement).
 		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
@@ -60,8 +62,29 @@ func (ex *Executor) run() error {
 	return nil
 }
 
+func (ex *Executor) query(_ lang.Visitor, s *lang.Query) error {
+	ex.setSelectLimit(s.Limit)
+	return nil
+}
+
+func (ex *Executor) setSelectLimit(l int) {
+	ex.selectLimit = l
+	if ex.selectLimit < 0 {
+		ex.selectLimit = 0
+	}
+}
+
 func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	ex.table = ex.result.NewTable()
+
+	// Select has its own LIMIT defined
+	if s.Limit > 0 {
+		oldLimit := ex.selectLimit
+		defer func() {
+			ex.setSelectLimit(oldLimit)
+		}()
+		ex.setSelectLimit(s.Limit)
+	}
 
 	if s.Expression != nil {
 		if s.Expression.All {
@@ -90,6 +113,13 @@ func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 }
 
 func (ex *Executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) error {
+	ex.table.PruneCurrentRow()
+
+	// If we have exceeded the selectLimit then stop here
+	if ex.selectLimit > 0 && ex.table.RowCount() >= ex.selectLimit {
+		return lang.VisitorExit
+	}
+
 	ex.row = ex.table.NewRow()
 	return nil
 }

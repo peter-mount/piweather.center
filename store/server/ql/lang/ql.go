@@ -13,7 +13,11 @@ type Select struct {
 	Pos lexer.Position
 
 	Expression *SelectExpression `parser:"'SELECT' @@"`
-	//Limit      *Expression       `( "LIMIT" @@ )?`
+	Limit      int               `parser:"( 'LIMIT' @Int )?"`
+}
+
+func selectInit(_ Visitor, s *Select) error {
+	return assertLimit(s.Pos, s.Limit)
 }
 
 func (a *Select) Accept(v Visitor) error {

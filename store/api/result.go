@@ -38,12 +38,15 @@ func (t *Table) AddColumn(c Column) *Table {
 	return t
 }
 
+// NewRow adds a new row to the Table
 func (t *Table) NewRow() *Row {
 	r := &Row{}
 	t.Rows = append(t.Rows, r)
 	return r
 }
 
+// CurrentRow returns the current (last) Row in the table.
+// If the Table is empty then a new row will be returned.
 func (t *Table) CurrentRow() *Row {
 	// If called before NewRow() then implicitly call it
 	if len(t.Rows) == 0 {
@@ -51,6 +54,24 @@ func (t *Table) CurrentRow() *Row {
 	}
 	// Return the last row in the table
 	return t.Rows[len(t.Rows)-1]
+}
+
+// PruneCurrentRow will remove the last row in the table if it's not valid
+func (t *Table) PruneCurrentRow() *Table {
+	if t.CurrentRowPrunable() {
+		t.Rows = t.Rows[:len(t.Rows)-1]
+	}
+	return t
+}
+
+// CurrentRowPrunable will return true if  the table is not empty and the
+// current (last) row is not valid.
+func (t *Table) CurrentRowPrunable() bool {
+	return len(t.Rows) > 0 && !t.Rows[len(t.Rows)-1].IsValid()
+}
+
+func (t *Table) RowCount() int {
+	return len(t.Rows)
 }
 
 // Finalise ensures all columns are defined and filters out rows with no data in them
