@@ -114,6 +114,14 @@ func queryRangeInit(v Visitor, q *QueryRange) error {
 		return err
 	}
 
+	// Negative duration for Every is invalid
+	if q.Every.Duration < 0 {
+		return fmt.Errorf("invalid step size %v", q.Every.Duration)
+	}
+
+	// The DB has a second resolution so any Every less than that defaults to 1 s
+	q.Every.Set(q.Every.Duration.Truncate(time.Second))
+
 	if q.At != nil {
 		if err := v.Time(q.At); err != nil {
 			return err
@@ -143,14 +151,6 @@ func queryRangeInit(v Visitor, q *QueryRange) error {
 			return err
 		}
 	}
-
-	// Negative duration for Every is invalid
-	if q.Every.Duration < 0 {
-		return fmt.Errorf("invalid step size %v", q.Every.Duration)
-	}
-
-	// The DB has a second resolution so any Every less than that defaults to 1 s
-	q.Every.Set(q.Every.Duration.Truncate(time.Second))
 
 	return VisitorStop
 }
