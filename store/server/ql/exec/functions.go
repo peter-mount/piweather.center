@@ -33,7 +33,7 @@ type Function struct {
 
 	// Initial is a function to be called to get the initial valur for an aggregator.
 	// If not set then InitialFirst is used.
-	Initial func(Value) Value
+	Initial FunctionInitialiser
 
 	// Reducer is a value.Comparator used to determine which value to keep.
 	// If comparator(a,b) returns true then a is used, otherwise b.
@@ -57,6 +57,8 @@ type Function struct {
 	// This only applies if Function is set.
 	AggregateArguments bool
 }
+
+type FunctionInitialiser func(Value) Value
 
 // IsAggregator returns true if one of Reducer, Calculation or Aggregator is defined.
 func (f Function) IsAggregator() bool {
@@ -104,6 +106,16 @@ var functions = FunctionMap{
 				}
 				return a
 			}},
+		// ceil returns the least integer value greater than or equal to x
+		"ceil": {
+			Args: 1,
+			Initial: ValuesInitialHandler(func(v Value) Value {
+				if v.Value.IsValid() {
+					v.Value = v.Value.Unit().Value(math.Ceil(v.Value.Float()))
+				}
+				return v
+			}),
+		},
 		// count(metric) the number of entries in the metrics set
 		"count": {
 			Args: 1,
@@ -117,6 +129,16 @@ var functions = FunctionMap{
 		"first": {
 			Args:    1,
 			Initial: InitialFirst,
+		},
+		// floor returns the greatest integer value less than or equal to x
+		"floor": {
+			Args: 1,
+			Initial: ValuesInitialHandler(func(v Value) Value {
+				if v.Value.IsValid() {
+					v.Value = v.Value.Unit().Value(math.Floor(v.Value.Float()))
+				}
+				return v
+			}),
 		},
 		// last(metric) the last valid entry in the metrics set
 		"last": {
@@ -145,6 +167,15 @@ var functions = FunctionMap{
 			MinArg:   0,
 			MaxArg:   1,
 			Function: funcTimeOf,
+		},
+		// trend takes two values and returns the trend between them:
+		// 0 = steady
+		// 1 = rising
+		// -1 = falling
+		// null = invalid or no data
+		"trend": {
+			Args:     2,
+			Function: funcTrend,
 		},
 	},
 }
@@ -269,6 +300,7 @@ func (ex *Executor) runAggregator(agg Function, val Value) (Value, error) {
 	if a.Value.IsValid() && agg.Aggregator != nil {
 		a = agg.Aggregator(l, a)
 	}
+
 	return a, nil
 }
 
@@ -360,4 +392,60 @@ func funcTimeOf(ex *Executor, v lang.Visitor, f *lang.Function, args []Value) er
 	}
 
 	return lang.VisitorStop
+}
+
+func funcTrend(ex *Executor, _ lang.Visitor, _ *lang.Function, args []Value) error {
+	r := Value{Time: ex.time}
+
+	if len(args) == 2 {
+		r1, r2 := args[0], args[1]
+
+		// Ensure r1 is temporally before r2
+		if r1.Time.After(r2.Time) {
+			r1, r2 = r2, r1
+		}
+
+		// Ensure we have a single and not a set Value.
+		// If you want to use First instead then declare that in the ql
+		r1 = InitialLast(r1)
+		r2 = InitialLast(r2)
+
+		// If both are still valid then do r2-r1 and set the Value to:
+		// 0 if both are the same - e.g. steady
+		// 1 if r2 is greater than r1 - e.g. trending up
+		// -1 if r2 is less than r1 - e.g. trending down
+		if r1.Value.IsValid() && r2.Value.IsValid() {
+			d, err := r2.Value.Subtract(r1.Value)
+			df := d.Float()
+			if err == nil {
+				switch {
+				case value.IsZero(df):
+					r.Value = value.Integer.Value(0)
+				case value.IsNegative(df):
+					r.Value = value.Integer.Value(-1)
+				default:
+					r.Value = value.Integer.Value(1)
+				}
+			}
+		}
+	}
+
+	ex.push(r)
+
+	return lang.VisitorStop
+}
+
+// ValuesInitialHandler wraps a FunctionInitialiser so that it's applied against each
+// Value within the Values set, and if no set against the value.
+func ValuesInitialHandler(fi FunctionInitialiser) func(Value) Value {
+	return func(v Value) Value {
+		if len(v.Values) > 0 {
+			for i, e := range v.Values {
+				v.Values[i] = fi(e)
+			}
+			return v
+		}
+
+		return fi(v)
+	}
 }

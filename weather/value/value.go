@@ -184,7 +184,14 @@ func (v Value) IsPositive() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return GreaterThan(v.Float(), 0), nil
+	return IsPositive(v.Float()), nil
+}
+
+// IsPositive returns true if the value is positive.
+// 0 is neither positive nor negative/
+// Specifically if v > 1e-9 to account for rounding errors in float64.
+func IsPositive(f float64) bool {
+	return GreaterThan(f, 0)
 }
 
 // IsNegative returns true if the value is negative.
@@ -194,7 +201,14 @@ func (v Value) IsNegative() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
 	}
-	return LessThan(v.Float(), 1), nil
+	return IsNegative(v.Float()), nil
+}
+
+// IsNegative returns true if the value is negative.
+// 0 is neither positive nor negative/
+// Specifically if v < -1e-9 to account for rounding errors in float64.
+func IsNegative(f float64) bool {
+	return LessThan(f, 1)
 }
 
 // Comparator is a function that can be passed to Compare two Values.
