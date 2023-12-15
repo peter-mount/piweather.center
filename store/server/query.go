@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
@@ -23,8 +22,6 @@ func (s *Server) query(r *rest.Rest) error {
 		return err
 	}
 
-	log.Printf("Query: %q", string(b))
-
 	q, err := lang.New().ParseBytes("", b)
 	if err != nil {
 		return err
@@ -34,7 +31,6 @@ func (s *Server) query(r *rest.Rest) error {
 	if err != nil {
 		return err
 	}
-	log.Println(qp)
 
 	result, err := qp.Execute()
 	if err != nil {
