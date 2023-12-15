@@ -6,58 +6,69 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"math"
 	"strings"
 	"sync"
 )
 
 func (ex *Executor) function(v lang.Visitor, f *lang.Function) error {
-	switch {
-	case f.TimeOf:
-		return ex.funcTimeOf(v, f)
-	default:
-		if af, exists := aggregators.GetAggregator(f.Name); exists {
-			return ex.runAggregator(v, f, af)
-		}
-		if af, exists := aggregators.GetFunction(f.Name); exists {
-			return ex.runFunction(v, f, af)
-		}
-		return fmt.Errorf("unknown function %q", f.Name)
+	if af, exists := functions.GetFunction(f.Name); exists {
+		return ex.runFunction(v, f, af)
 	}
+	return fmt.Errorf("unknown function %q", f.Name)
 }
 
-type AggregatorFunction struct {
-	Initial     func(Value) Value          // Get initial value, nil for first entry
-	Reducer     value.Comparator           // reducer(a,b) returns true then take a, false take b
-	Calculation value.Calculation          // calculation of a and b
-	Aggregator  func(l int, a Value) Value // l=number of entries in set, return Value based on l and result
+type Function struct {
+	// Args is the number of arguments a Function requires.
+	// This overrides MinArg and MaxArg if MinArg < Args > MaxArg
+	Args int
+
+	// MinArg is the minimum number of arguments a Function accepts.
+	// Default 0
+	MinArg int
+
+	// MaxArg is the maximum number of arguments a Function accepts.
+	// Default 0, if this is less than MinArg then the function supports MaxInt arguments
+	MaxArg int
+
+	// Initial is a function to be called to get the initial valur for an aggregator.
+	// If not set then InitialFirst is used.
+	Initial func(Value) Value
+
+	// Reducer is a value.Comparator used to determine which value to keep.
+	// If comparator(a,b) returns true then a is used, otherwise b.
+	Reducer value.Comparator
+
+	// Calculation is a value.Calculation which performs an operation against two Value's
+	// returning a new one.
+	Calculation value.Calculation // calculation of a and b
+
+	// Aggregator is a function which will convert a Value based on the number of values
+	// passed through the aggregator.
+	//
+	// l=number of entries in set, return Value based on l and result
+	Aggregator func(l int, a Value) Value
+
+	// Function is called after any aggregations have been performed.
+	Function FunctionHandler // Handler for specific functions
+
+	// AggregateArguments if set will apply the aggregator against the arguments before passing
+	// the single result to the Function.
+	// This only applies if Function is set.
+	AggregateArguments bool
 }
 
-type Function func(*Executor, lang.Visitor, []Value) error
+// IsAggregator returns true if one of Reducer, Calculation or Aggregator is defined.
+func (f Function) IsAggregator() bool {
+	// Note: Initial is not checked as it's valid to be nil as it will default to InitialFirst
+	return f.Reducer != nil || f.Calculation != nil || f.Aggregator != nil
+}
+
+type FunctionHandler func(*Executor, lang.Visitor, *lang.Function, []Value) error
 
 type FunctionMap struct {
-	mutex       sync.Mutex
-	aggregators map[string]AggregatorFunction
-	functions   map[string]Function
-}
-
-func (f *FunctionMap) AddAggregator(n string, ag AggregatorFunction) {
-	n = strings.ToLower(n)
-
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-	if _, exists := f.aggregators[n]; exists {
-		panic(fmt.Errorf("function %q already defined", n))
-	}
-	f.aggregators[n] = ag
-}
-
-func (f *FunctionMap) GetAggregator(n string) (AggregatorFunction, bool) {
-	n = strings.ToLower(n)
-
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-	ag, exists := f.aggregators[n]
-	return ag, exists
+	mutex     sync.Mutex
+	functions map[string]Function
 }
 
 func (f *FunctionMap) AddFunction(n string, ag Function) {
@@ -80,9 +91,11 @@ func (f *FunctionMap) GetFunction(n string) (Function, bool) {
 	return ag, exists
 }
 
-var aggregators = FunctionMap{
-	aggregators: map[string]AggregatorFunction{
+var functions = FunctionMap{
+	functions: map[string]Function{
+		// average - avg(metric) or avg(metric, ...)
 		"avg": {
+			MinArg:      1,
 			Initial:     InitialInvalid,
 			Calculation: value.Add,
 			Aggregator: func(l int, a Value) Value {
@@ -91,78 +104,172 @@ var aggregators = FunctionMap{
 				}
 				return a
 			}},
+		// count(metric) the number of entries in the metrics set
 		"count": {
+			Args: 1,
 			Aggregator: func(l int, a Value) Value {
 				// Return l as a value with the unit of "integer"
 				u, _ := value.GetUnit("integer")
 				a.Value = u.Value(float64(l))
 				return a
 			}},
-		"first": {Initial: InitialFirst},
-		"last":  {Initial: InitialLast},
-		"min":   {Reducer: value.LessThan},
-		"max":   {Reducer: value.GreaterThan},
-		"sum":   {Initial: InitialInvalid, Calculation: value.Add},
+		// first(metric) the first valid entry in the metrics set
+		"first": {
+			Args:    1,
+			Initial: InitialFirst,
+		},
+		// last(metric) the last valid entry in the metrics set
+		"last": {
+			Args:    1,
+			Initial: InitialLast,
+		},
+		// minimum - min(metric) or min(metric, ...)
+		"min": {
+			MinArg:  1,
+			Reducer: value.LessThan,
+		},
+		// maximum - max(metric) or max(metric, ...)
+		"max": {
+			MinArg:  1,
+			Reducer: value.GreaterThan,
+		},
+		// sum - sum(metric) or sum(metric, ...)
+		"sum": {
+			Args:    1,
+			Initial: InitialInvalid, Calculation: value.Add,
+		},
+		// timeof metric
+		// timeof() sets the value to be the time of the row
+		// timeof(metric) sets the value to that of the metric
+		"timeof": {
+			MinArg:   0,
+			MaxArg:   1,
+			Function: funcTimeOf,
+		},
 	},
 }
 
-func (ex *Executor) runAggregator(v lang.Visitor, f *lang.Function, agg AggregatorFunction) error {
-	return ex.funcEval1(v, f, func(v lang.Visitor, f *lang.Function, val Value) (Value, error) {
-		var a Value
+func (ex *Executor) runFunction(v lang.Visitor, f *lang.Function, agg Function) error {
 
-		if agg.Initial == nil {
-			a = InitialFirst(val)
+	if err := assertExpressions(f.Pos, f.Name, f.Expressions, agg); err != nil {
+		return err
+	}
+
+	// Process the arguments, applying any aggregator against each one
+	var args []Value
+	for _, e := range f.Expressions {
+		err := v.Expression(e)
+		if err != nil {
+			return err
+		}
+
+		val, _ := ex.pop()
+		if agg.IsAggregator() {
+			val, err = ex.runAggregator(agg, val)
+			if err != nil {
+				return err
+			}
+		}
+
+		args = append(args, val)
+	}
+
+	// We have a function so call it with the arguments
+	if agg.Function != nil {
+		if agg.AggregateArguments {
+			val, err := ex.runAggregator(agg, Value{Time: ex.time, Values: args})
+			if err == nil {
+				err = agg.Function(ex, v, f, []Value{val})
+			}
+			if err != nil {
+				return err
+			}
 		} else {
-			a = agg.Initial(val)
+			if err := agg.Function(ex, v, f, args); err != nil {
+				return err
+			}
 		}
+	}
 
-		l := len(val.Values)
-		switch {
-		case agg.Reducer != nil:
-			for _, b := range val.Values {
-				af := a.Value.Float()
+	// No function but we are an Aggregator then ensure we push a result
+	if agg.Function == nil && agg.IsAggregator() {
+		switch len(args) {
+		// No args then push null
+		case 0:
+			ex.push(Value{Time: ex.time})
 
-				// Only check if b is valid
-				if b.Value.IsValid() {
-					// If a is invalid then take b otherwise pass to the reducer
-					if !a.Value.IsValid() {
+		// 1 arg so use it
+		case 1:
+			ex.push(args[0])
+
+		// Aggregate the args to get the final result
+		default:
+			val, err := ex.runAggregator(agg, Value{Time: ex.time, Values: args})
+			if err != nil {
+				return err
+			}
+			ex.push(val)
+		}
+	}
+
+	return lang.VisitorStop
+}
+
+func (ex *Executor) runAggregator(agg Function, val Value) (Value, error) {
+	var a Value
+
+	if agg.Initial == nil {
+		a = InitialFirst(val)
+	} else {
+		a = agg.Initial(val)
+	}
+
+	l := len(val.Values)
+	switch {
+	case agg.Reducer != nil:
+		for _, b := range val.Values {
+			af := a.Value.Float()
+
+			// Only check if b is valid
+			if b.Value.IsValid() {
+				// If a is invalid then take b otherwise pass to the reducer
+				if !a.Value.IsValid() {
+					a = b
+				} else {
+					bf, err := b.Value.As(a.Value.Unit())
+					if err != nil {
+						return Value{}, err
+					}
+
+					if !agg.Reducer(af, bf.Float()) {
 						a = b
-					} else {
-						bf, err := b.Value.As(a.Value.Unit())
-						if err != nil {
-							return Value{}, err
-						}
-
-						if !agg.Reducer(af, bf.Float()) {
-							a = b
-						}
 					}
 				}
 			}
+		}
 
-		case agg.Calculation != nil:
-			for _, b := range val.Values {
-				// Only check if b is valid
-				if b.Value.IsValid() {
-					// If a is invalid then take b otherwise pass to the reducer
-					if !a.Value.IsValid() {
-						a = b
-					} else {
-						nv, err := a.Value.Calculate(b.Value, agg.Calculation)
-						if err != nil {
-							return Value{}, err
-						}
-						a.Value = nv
+	case agg.Calculation != nil:
+		for _, b := range val.Values {
+			// Only check if b is valid
+			if b.Value.IsValid() {
+				// If a is invalid then take b otherwise pass to the reducer
+				if !a.Value.IsValid() {
+					a = b
+				} else {
+					nv, err := a.Value.Calculate(b.Value, agg.Calculation)
+					if err != nil {
+						return Value{}, err
 					}
+					a.Value = nv
 				}
 			}
 		}
+	}
 
-		if a.Value.IsValid() && agg.Aggregator != nil {
-			a = agg.Aggregator(l, a)
-		}
-		return a, nil
-	})
+	if a.Value.IsValid() && agg.Aggregator != nil {
+		a = agg.Aggregator(l, a)
+	}
+	return a, nil
 }
 
 // InitialFirst returns the first valid metric in a Value.
@@ -202,59 +309,42 @@ func InitialInvalid(_ Value) Value {
 	return Value{}
 }
 
-type funcEvaluator func(v lang.Visitor, f *lang.Function, val Value) (Value, error)
-
-func (ex *Executor) funcEval1(v lang.Visitor, f *lang.Function, h funcEvaluator) error {
-	err := assertExpressions(f.Pos, f.Expressions, 1, 1)
-
-	if err == nil {
-		err = v.Expression(f.Expressions[0])
+func assertExpressions(p lexer.Position, n string, e []*lang.Expression, agg Function) error {
+	// Here start with MinArg & MaxArg.
+	// Override with Args if it's greater than either of them.
+	// Enforce min>=0 but if max<min or negative then set max to MaxInt
+	min, max := agg.MinArg, agg.MaxArg
+	if agg.Args > min && agg.Args > max {
+		min, max = agg.Args, agg.Args
+	}
+	if min < 0 {
+		min = 0
+	}
+	if max < min || max < 0 {
+		max = math.MaxInt
 	}
 
-	if err == nil {
-		r, ok := ex.pop()
-		// Apply reduction if a valid Value but an invalid singular value
-		if ok && !r.Value.IsValid() {
-			r, err = h(v, f, r)
-		}
-		if err == nil {
-			ex.push(r)
-		}
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return lang.VisitorStop
-}
-
-func assertExpressions(p lexer.Position, e []*lang.Expression, min, max int) error {
-	if min > max {
-		min, max = max, min
-	}
 	l := len(e)
 	if l < min || l > max {
 		if min == max {
-			return participle.Errorf(p, "require %d expressions", min)
+			return participle.Errorf(p, "%s require %d expressions", n, min)
 		}
-		return participle.Errorf(p, "require %d..%d expressions", min, max)
+		return participle.Errorf(p, "%s require %d..%d expressions", n, min, max)
 	}
+
 	return nil
 }
 
 // funcTimeOf implements TIMEOF which marks the value as requiring the TIME not the Value of a metric
-func (ex *Executor) funcTimeOf(v lang.Visitor, f *lang.Function) error {
-	if err := assertExpressions(f.Pos, f.Expressions, 0, 1); err != nil {
-		return err
-	}
-
-	if len(f.Expressions) == 0 {
+func funcTimeOf(ex *Executor, v lang.Visitor, f *lang.Function, args []Value) error {
+	switch len(args) {
+	case 0:
 		ex.push(Value{
 			Time:   ex.time,
 			IsTime: true,
 		})
-	} else {
+
+	case 1:
 		if err := v.Expression(f.Expressions[0]); err != nil {
 			return err
 		}
@@ -264,22 +354,9 @@ func (ex *Executor) funcTimeOf(v lang.Visitor, f *lang.Function) error {
 			r.IsTime = true
 			ex.push(r)
 		}
-	}
-	return lang.VisitorStop
-}
 
-func (ex *Executor) runFunction(v lang.Visitor, f *lang.Function, agg Function) error {
-	var params []Value
-	for _, e := range f.Expressions {
-		if err := v.Expression(e); err != nil {
-			return err
-		}
-		r, _ := ex.pop()
-		params = append(params, r)
-	}
-
-	if err := agg(ex, v, params); err != nil {
-		return err
+	default:
+		return participle.Errorf(f.Pos, "Invalid state %d args expected 0..1", len(args))
 	}
 
 	return lang.VisitorStop

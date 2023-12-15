@@ -225,12 +225,7 @@ func (qp *queryPrinter) metric(v Visitor, b *Metric) error {
 
 func (qp *queryPrinter) function(v Visitor, b *Function) error {
 	qp.save()
-	switch {
-	case b.TimeOf:
-		qp.append("TIMEOF")
-	default:
-		qp.append(b.Name)
-	}
+	qp.append(b.Name)
 	qp.append("(")
 
 	qp.save()

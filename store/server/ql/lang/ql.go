@@ -64,9 +64,8 @@ func (a *Expression) Accept(v Visitor) error {
 type Function struct {
 	Pos lexer.Position
 
-	TimeOf      bool          `parser:"( @'TIMEOF'"`
-	Name        string        `parser:"| @Ident"`
-	Expressions []*Expression `parser:") '(' (@@ (',' @@)*)? ')'"`
+	Name        string        `parser:"@Ident"`
+	Expressions []*Expression `parser:"'(' (@@ (',' @@)*)? ')'"`
 }
 
 func (a *Function) Accept(v Visitor) error {
