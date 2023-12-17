@@ -222,7 +222,7 @@ func (v Value) IsNegative() (bool, error) {
 // 0 is neither positive nor negative/
 // Specifically if v < -1e-9 to account for rounding errors in float64.
 func IsNegative(f float64) bool {
-	return LessThan(f, 1)
+	return LessThan(f, 0)
 }
 
 // Comparator is a function that can be passed to Compare two Values.
