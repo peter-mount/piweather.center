@@ -116,9 +116,10 @@ var functions = FunctionMap{
 		},
 		// ceil returns the least integer value greater than or equal to x
 		"ceil": {
-			Args:       1,
-			Initial:    ValuesInitialMathOperation(math.Ceil),
-			Aggregator: NullAggregator,
+			// Here reduce to get the current max value, then aggregate to the ceiling
+			MinArg:     1,
+			Reducer:    value.GreaterThan,
+			Aggregator: MathAggregator(math.Ceil),
 		},
 		// count(metric) the number of entries in the metrics set
 		"count": {
@@ -137,9 +138,10 @@ var functions = FunctionMap{
 		},
 		// floor returns the greatest integer value less than or equal to x
 		"floor": {
-			Args:       1,
-			Initial:    ValuesInitialMathOperation(math.Floor),
-			Aggregator: NullAggregator,
+			// Here reduce to get the current min value, then aggregate to the floor
+			MinArg:     1,
+			Reducer:    value.LessThan,
+			Aggregator: MathAggregator(math.Floor),
 		},
 		// last(metric) the last valid entry in the metrics set
 		"last": {
@@ -437,30 +439,14 @@ func funcTrend(ex *Executor, _ lang.Visitor, _ *lang.Function, args []Value) err
 	return lang.VisitorStop
 }
 
-// ValuesInitialHandler wraps a FunctionInitialiser so that it's applied against each
-// Value within the Values set, and if no set against the value.
-func ValuesInitialHandler(fi FunctionInitialiser) FunctionInitialiser {
-	return func(v Value) Value {
-		if len(v.Values) > 0 {
-			for i, e := range v.Values {
-				v.Values[i] = fi(e)
-			}
-			return v
-		}
-
-		return fi(v)
-	}
-}
-
 type SingleMathOperation func(float64) float64
 
-// ValuesInitialMathOperation returns a FunctionInitialiser which applies a mathematical operation
-// against the initial value
-func ValuesInitialMathOperation(o SingleMathOperation) FunctionInitialiser {
-	return ValuesInitialHandler(func(v Value) Value {
+// MathAggregator applies a SingleMathOperation against the result
+func MathAggregator(o SingleMathOperation) Aggregator {
+	return func(_ int, v Value) Value {
 		if v.Value.IsValid() {
 			v.Value = v.Value.Value(o(v.Value.Float()))
 		}
 		return v
-	})
+	}
 }
