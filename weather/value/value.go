@@ -350,6 +350,6 @@ func (v Value) Calculate(b Value, f Calculation) (Value, error) {
 		return Value{}, err
 	}
 
-	r := v.Unit().Value(f(v.Float(), c.Float()))
+	r := v.Value(f(v.Float(), c.Float()))
 	return r, r.BoundsError()
 }

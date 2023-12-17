@@ -102,7 +102,7 @@ var functions = FunctionMap{
 			Calculation: value.Add,
 			Aggregator: func(l int, a Value) Value {
 				if a.Value.IsValid() && l > 0 {
-					a.Value = a.Value.Unit().Value(a.Value.Float() / float64(l))
+					a.Value = a.Value.Value(a.Value.Float() / float64(l))
 				}
 				return a
 			}},
@@ -111,7 +111,7 @@ var functions = FunctionMap{
 			Args: 1,
 			Initial: ValuesInitialHandler(func(v Value) Value {
 				if v.Value.IsValid() {
-					v.Value = v.Value.Unit().Value(math.Ceil(v.Value.Float()))
+					v.Value = v.Value.Value(math.Ceil(v.Value.Float()))
 				}
 				return v
 			}),
@@ -121,8 +121,7 @@ var functions = FunctionMap{
 			Args: 1,
 			Aggregator: func(l int, a Value) Value {
 				// Return l as a value with the unit of "integer"
-				u, _ := value.GetUnit("integer")
-				a.Value = u.Value(float64(l))
+				a.Value = value.Integer.Value(float64(l))
 				return a
 			}},
 		// first(metric) the first valid entry in the metrics set
@@ -136,7 +135,7 @@ var functions = FunctionMap{
 			Args: 1,
 			Initial: ValuesInitialHandler(func(v Value) Value {
 				if v.Value.IsValid() {
-					v.Value = v.Value.Unit().Value(math.Floor(v.Value.Float()))
+					v.Value = v.Value.Value(math.Floor(v.Value.Float()))
 				}
 				return v
 			}),
@@ -159,8 +158,9 @@ var functions = FunctionMap{
 		},
 		// sum - sum(metric) or sum(metric, ...)
 		"sum": {
-			Args:    1,
-			Initial: InitialInvalid, Calculation: value.Add,
+			Args:        1,
+			Initial:     InitialInvalid,
+			Calculation: value.Add,
 		},
 		// timeof metric
 		// timeof() sets the value to be the time of the row
