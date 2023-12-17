@@ -129,6 +129,7 @@ var functions = FunctionMap{
 		"first": {
 			Args:    1,
 			Initial: InitialFirst,
+			Reducer: value.TrueComparator,
 		},
 		// floor returns the greatest integer value less than or equal to x
 		"floor": {
@@ -144,6 +145,7 @@ var functions = FunctionMap{
 		"last": {
 			Args:    1,
 			Initial: InitialLast,
+			Reducer: value.FalseComparator,
 		},
 		// minimum - min(metric) or min(metric, ...)
 		"min": {
@@ -259,20 +261,19 @@ func (ex *Executor) runAggregator(agg Function, val Value) (Value, error) {
 	switch {
 	case agg.Reducer != nil:
 		for _, b := range val.Values {
-			af := a.Value.Float()
-
 			// Only check if b is valid
 			if b.Value.IsValid() {
 				// If a is invalid then take b otherwise pass to the reducer
 				if !a.Value.IsValid() {
 					a = b
 				} else {
-					bf, err := b.Value.As(a.Value.Unit())
-					if err != nil {
+					c, err := a.Value.Compare(b.Value, agg.Reducer)
+					switch {
+					case err != nil:
 						return Value{}, err
-					}
 
-					if !agg.Reducer(af, bf.Float()) {
+					// If false then use b, if true keep a
+					case !c:
 						a = b
 					}
 				}
