@@ -93,6 +93,20 @@ func (v Value) AsGuard(to *Unit) Value {
 	return n
 }
 
+// Value returns a new Value with the same unit as this one.
+// This is the same as v.Unit().Value(f).
+//
+// If the value has no Unit then this returns an invalid Unit.
+//
+// If the value of the new unit is outside its bounds,
+// it will still be returned however it will indicate it's not valid.
+func (v Value) Value(f float64) Value {
+	if v.Unit() == nil {
+		return Value{}
+	}
+	return v.Unit().Value(f)
+}
+
 // Equals returns true if both values are Equal. This accounts for differing units.
 // Returns an error if either value is invalid or if it's not possible to transform
 // b to the same unit as v.
