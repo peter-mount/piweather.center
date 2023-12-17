@@ -60,11 +60,6 @@ type Function struct {
 
 type Aggregator func(l int, a Value) Value
 
-// NullAggregator is an Aggregator which simply returns the value unchanged.
-func NullAggregator(_ int, a Value) Value {
-	return a
-}
-
 type FunctionInitialiser func(Value) Value
 
 // IsAggregator returns true if one of Reducer, Calculation or Aggregator is defined.
@@ -409,11 +404,6 @@ func funcTrend(ex *Executor, _ lang.Visitor, _ *lang.Function, args []Value) err
 	if len(args) == 2 {
 		r1, r2 := args[0], args[1]
 
-		// Ensure r1 is temporally before r2
-		if r1.Time.After(r2.Time) {
-			r1, r2 = r2, r1
-		}
-
 		// Ensure we have a single and not a set Value.
 		// If you want to use First instead then declare that in the ql
 		r1 = InitialLast(r1)
@@ -424,6 +414,12 @@ func funcTrend(ex *Executor, _ lang.Visitor, _ *lang.Function, args []Value) err
 		// 1 if r2 is greater than r1 - e.g. trending up
 		// -1 if r2 is less than r1 - e.g. trending down
 		if r1.Value.IsValid() && r2.Value.IsValid() {
+
+			// Ensure r1 is temporally before r2
+			if r1.Time.After(r2.Time) {
+				r1, r2 = r2, r1
+			}
+
 			d, err := r2.Value.Subtract(r1.Value)
 			df := d.Float()
 			if err == nil {
