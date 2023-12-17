@@ -47,7 +47,7 @@ type Function struct {
 	// passed through the aggregator.
 	//
 	// l=number of entries in set, return Value based on l and result
-	Aggregator func(l int, a Value) Value
+	Aggregator Aggregator
 
 	// Function is called after any aggregations have been performed.
 	Function FunctionHandler // Handler for specific functions
@@ -56,6 +56,13 @@ type Function struct {
 	// the single result to the Function.
 	// This only applies if Function is set.
 	AggregateArguments bool
+}
+
+type Aggregator func(l int, a Value) Value
+
+// NullAggregator is an Aggregator which simply returns the value unchanged.
+func NullAggregator(_ int, a Value) Value {
+	return a
 }
 
 type FunctionInitialiser func(Value) Value
@@ -105,16 +112,13 @@ var functions = FunctionMap{
 					a.Value = a.Value.Value(a.Value.Float() / float64(l))
 				}
 				return a
-			}},
+			},
+		},
 		// ceil returns the least integer value greater than or equal to x
 		"ceil": {
-			Args: 1,
-			Initial: ValuesInitialHandler(func(v Value) Value {
-				if v.Value.IsValid() {
-					v.Value = v.Value.Value(math.Ceil(v.Value.Float()))
-				}
-				return v
-			}),
+			Args:       1,
+			Initial:    ValuesInitialMathOperation(math.Ceil),
+			Aggregator: NullAggregator,
 		},
 		// count(metric) the number of entries in the metrics set
 		"count": {
@@ -123,7 +127,8 @@ var functions = FunctionMap{
 				// Return l as a value with the unit of "integer"
 				a.Value = value.Integer.Value(float64(l))
 				return a
-			}},
+			},
+		},
 		// first(metric) the first valid entry in the metrics set
 		"first": {
 			Args:    1,
@@ -132,13 +137,9 @@ var functions = FunctionMap{
 		},
 		// floor returns the greatest integer value less than or equal to x
 		"floor": {
-			Args: 1,
-			Initial: ValuesInitialHandler(func(v Value) Value {
-				if v.Value.IsValid() {
-					v.Value = v.Value.Value(math.Floor(v.Value.Float()))
-				}
-				return v
-			}),
+			Args:       1,
+			Initial:    ValuesInitialMathOperation(math.Floor),
+			Aggregator: NullAggregator,
 		},
 		// last(metric) the last valid entry in the metrics set
 		"last": {
@@ -438,7 +439,7 @@ func funcTrend(ex *Executor, _ lang.Visitor, _ *lang.Function, args []Value) err
 
 // ValuesInitialHandler wraps a FunctionInitialiser so that it's applied against each
 // Value within the Values set, and if no set against the value.
-func ValuesInitialHandler(fi FunctionInitialiser) func(Value) Value {
+func ValuesInitialHandler(fi FunctionInitialiser) FunctionInitialiser {
 	return func(v Value) Value {
 		if len(v.Values) > 0 {
 			for i, e := range v.Values {
@@ -449,4 +450,17 @@ func ValuesInitialHandler(fi FunctionInitialiser) func(Value) Value {
 
 		return fi(v)
 	}
+}
+
+type SingleMathOperation func(float64) float64
+
+// ValuesInitialMathOperation returns a FunctionInitialiser which applies a mathematical operation
+// against the initial value
+func ValuesInitialMathOperation(o SingleMathOperation) FunctionInitialiser {
+	return ValuesInitialHandler(func(v Value) Value {
+		if v.Value.IsValid() {
+			v.Value = v.Value.Value(o(v.Value.Float()))
+		}
+		return v
+	})
 }
