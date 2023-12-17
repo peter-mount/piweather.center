@@ -215,6 +215,12 @@ func IsNegative(f float64) bool {
 // It is guaranteed that the values supplied to it will be of the same Unit.
 type Comparator func(a, b float64) bool
 
+// TrueComparator is a Comparator that always returns true
+func TrueComparator(_, _ float64) bool { return true }
+
+// FalseComparator is a Comparator that always returns false
+func FalseComparator(_, _ float64) bool { return false }
+
 // Compare will return the result of a Comparator when it's passed values from v and b.
 // It will transform b to the same unit as v before passing it to the Comparator.
 // An error will be returned if either value is invalid or it's not possible to transform
