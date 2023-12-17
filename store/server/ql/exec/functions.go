@@ -387,7 +387,12 @@ func funcTimeOf(ex *Executor, v lang.Visitor, f *lang.Function, args []Value) er
 
 		r, ok := ex.pop()
 		if ok {
-			r.IsTime = true
+			// if an invalid time then return nul
+			if r.Time.IsZero() {
+				r.Value = value.Value{}
+			} else {
+				r.IsTime = true
+			}
 			ex.push(r)
 		}
 
