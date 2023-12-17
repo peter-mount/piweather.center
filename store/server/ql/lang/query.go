@@ -32,6 +32,7 @@ func (a *Query) Accept(v Visitor) error {
 func (a *Query) String() string {
 	qp := queryPrinter{}
 	_ = NewBuilder().
+		Query(qp.query).
 		QueryRange(qp.queryRange).
 		Time(qp.time).
 		Duration(qp.duration).
@@ -99,6 +100,13 @@ func (qp *queryPrinter) popDuration(v Visitor, d *Duration) string {
 	return qp.pop(func() {
 		_ = v.Duration(d)
 	})
+}
+
+func (qp *queryPrinter) query(_ Visitor, b *Query) error {
+	if b.Limit > 0 {
+		qp.append("LIMIT", strconv.Itoa(b.Limit))
+	}
+	return nil
 }
 
 func (qp *queryPrinter) queryRange(v Visitor, b *QueryRange) error {
