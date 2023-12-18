@@ -11,13 +11,25 @@ import (
 	"sync"
 )
 
+// function executes the provided function.
 func (ex *Executor) function(v lang.Visitor, f *lang.Function) error {
 	if af, exists := functions.GetFunction(f.Name); exists {
 		return ex.runFunction(v, f, af)
 	}
-	return fmt.Errorf("unknown function %q", f.Name)
+	// Should never occur as we check this when building the query plan
+	return participle.Errorf(f.Pos, "unknown function %q", f.Name)
 }
 
+// function tests that the named Function exists. Will return an error if it does not.
+// This is tested in the Query plan so that we fail early.
+func (qp *QueryPlan) function(_ lang.Visitor, f *lang.Function) error {
+	if functions.HasFunction(f.Name) {
+		return nil
+	}
+	return participle.Errorf(f.Pos, "unknown function %q", f.Name)
+}
+
+// Function definition
 type Function struct {
 	// Args is the number of arguments a Function requires.
 	// This overrides MinArg and MaxArg if MinArg < Args > MaxArg
@@ -86,6 +98,11 @@ func (f *FunctionMap) AddFunction(n string, ag Function) {
 	f.functions[n] = ag
 }
 
+func (f *FunctionMap) HasFunction(n string) bool {
+	_, exists := f.GetFunction(n)
+	return exists
+}
+
 func (f *FunctionMap) GetFunction(n string) (Function, bool) {
 	n = strings.ToLower(n)
 
@@ -113,6 +130,15 @@ var functions = FunctionMap{
 		"ceil": {
 			// Here reduce to get the current max value, then aggregate to the ceiling
 			MinArg:     1,
+			Initial:    InitialLast,
+			Aggregator: MathAggregator(math.Ceil),
+		},
+		// ceil returns the least integer value greater than or equal to x
+		// Unlike ceil() this will return the ceil of the highest value in the set.
+		// e.g. ceilAll(metric) is the same as ceil(max(metric))
+		"ceilall": {
+			// Here reduce to get the current max value, then aggregate to the ceiling
+			MinArg:     1,
 			Reducer:    value.GreaterThan,
 			Aggregator: MathAggregator(math.Ceil),
 		},
@@ -121,8 +147,10 @@ var functions = FunctionMap{
 			Args: 1,
 			Aggregator: func(l int, a Value) Value {
 				// Return l as a value with the unit of "integer"
-				a.Value = value.Integer.Value(float64(l))
-				return a
+				return Value{
+					Time:  a.Time,
+					Value: value.Integer.Value(float64(l)),
+				}
 			},
 		},
 		// first(metric) the first valid entry in the metrics set
@@ -133,6 +161,15 @@ var functions = FunctionMap{
 		},
 		// floor returns the greatest integer value less than or equal to x
 		"floor": {
+			// Here reduce to get the current min value, then aggregate to the floor
+			MinArg:     1,
+			Initial:    InitialLast,
+			Aggregator: MathAggregator(math.Floor),
+		},
+		// floorAll returns the greatest integer value less than or equal to x.
+		// Unlike floor() this will return the floor of the lowest value in the set.
+		// e.g. floorAll(metric) is the same as floor(min(metric))
+		"floorall": {
 			// Here reduce to get the current min value, then aggregate to the floor
 			MinArg:     1,
 			Reducer:    value.LessThan,
@@ -195,6 +232,7 @@ func (ex *Executor) runFunction(v lang.Visitor, f *lang.Function, agg Function) 
 		}
 
 		val, _ := ex.pop()
+
 		if agg.IsAggregator() {
 			val, err = ex.runAggregator(agg, val)
 			if err != nil {
@@ -207,18 +245,18 @@ func (ex *Executor) runFunction(v lang.Visitor, f *lang.Function, agg Function) 
 
 	// We have a function so call it with the arguments
 	if agg.Function != nil {
+
+		// Aggregate the arguments into a single value
 		if agg.AggregateArguments {
 			val, err := ex.runAggregator(agg, Value{Time: ex.time, Values: args})
-			if err == nil {
-				err = agg.Function(ex, v, f, []Value{val})
-			}
 			if err != nil {
 				return err
 			}
-		} else {
-			if err := agg.Function(ex, v, f, args); err != nil {
-				return err
-			}
+			args = []Value{val}
+		}
+
+		if err := agg.Function(ex, v, f, args); err != nil {
+			return err
 		}
 	}
 
@@ -307,8 +345,7 @@ func (ex *Executor) runAggregator(agg Function, val Value) (Value, error) {
 // If the Value has no valid metrics then it returns the original value.
 func InitialFirst(v Value) Value {
 	if len(v.Values) > 0 {
-		for i := 0; i < len(v.Values); i++ {
-			e := v.Values[i]
+		for _, e := range v.Values {
 			if e.Value.IsValid() {
 				return e
 			}
@@ -388,8 +425,8 @@ func funcTimeOf(ex *Executor, v lang.Visitor, f *lang.Function, args []Value) er
 			} else {
 				r.IsTime = true
 			}
-			ex.push(r)
 		}
+		ex.push(r)
 
 	default:
 		return participle.Errorf(f.Pos, "Invalid state %d args expected 0..1", len(args))

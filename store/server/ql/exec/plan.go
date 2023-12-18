@@ -57,6 +57,7 @@ func NewQueryPlan(s file.Store, l memory.Latest, q *lang.Query) (*QueryPlan, err
 		Metric(qp.addMetric).
 		QueryRange(qp.setQueryRange).
 		Expression(qp.expression).
+		Function(qp.function).
 		Build()); err != nil {
 		return nil, err
 	}
