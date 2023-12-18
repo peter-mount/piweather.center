@@ -65,22 +65,23 @@ func durationInit(_ Visitor, d *Duration) error {
 		if err != nil {
 			return err
 		}
-		d.Duration = v
-
-		// Ensure we keep within sensible ranges
-		switch {
-		case d.Duration > 0 && d.Duration < time.Second:
-			d.Duration = time.Second
-
-		case d.Duration < 0 && d.Duration > time.Second:
-			d.Duration = -time.Second
-		}
+		d.Set(v)
 	}
 
 	return nil
 }
 
 func (a *Duration) Set(d time.Duration) {
+	d = d.Truncate(time.Second)
+
+	switch {
+	case d > 0 && d < time.Second:
+		d = time.Second
+
+	case d < 0 && d > -time.Second:
+		d = -time.Second
+	}
+
 	a.Duration = d
 	a.Def = d.String()
 }
