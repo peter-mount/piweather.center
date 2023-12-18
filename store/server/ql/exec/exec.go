@@ -79,9 +79,7 @@ func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	// Select has its own LIMIT defined
 	if s.Limit > 0 {
 		oldLimit := ex.selectLimit
-		defer func() {
-			ex.setSelectLimit(oldLimit)
-		}()
+		defer ex.setSelectLimit(oldLimit)
 		ex.setSelectLimit(s.Limit)
 	}
 
@@ -122,10 +120,10 @@ func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 	// If offset defined, temporarily adjust the current time by that offset
 	if s.Offset != nil {
 		old := ex.time
-		ex.time = ex.time.Add(s.Offset.Duration)
 		defer func() {
 			ex.time = old
 		}()
+		ex.time = ex.time.Add(s.Offset.Duration)
 	}
 
 	var err error
