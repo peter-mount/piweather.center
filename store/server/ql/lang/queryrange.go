@@ -1,9 +1,7 @@
 package lang
 
 import (
-	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
-	"time"
 )
 
 // QueryRange defines the time range to query
@@ -16,46 +14,6 @@ type QueryRange struct {
 	Start *Time     `parser:"| 'BETWEEN' @@"`  // Between a start time
 	End   *Time     `parser:"  'AND' @@ )"`    // and an end time
 	Every *Duration `parser:"( 'EVERY' @@ )?"` // Every duration time
-}
-
-func queryRangeInit(v Visitor, q *QueryRange) error {
-	// If no Every statement then set it to 1 minute
-	if q.Every == nil {
-		q.Every = &Duration{
-			Pos:      q.Pos,
-			Duration: time.Minute,
-			Def:      "1m",
-		}
-	}
-
-	if err := v.Duration(q.Every); err != nil {
-		return err
-	}
-
-	// Negative duration for Every is invalid
-	if q.Every.Duration < time.Second {
-		return fmt.Errorf("invalid step size %v", q.Every.Duration)
-	}
-
-	if err := v.Time(q.At); err != nil {
-		return err
-	}
-
-	if err := v.Time(q.From); err != nil {
-		return err
-	}
-	if err := v.Duration(q.For); err != nil {
-		return err
-	}
-
-	if err := v.Time(q.Start); err != nil {
-		return err
-	}
-	if err := v.Time(q.End); err != nil {
-		return err
-	}
-
-	return VisitorStop
 }
 
 func (a *QueryRange) Accept(v Visitor) error {

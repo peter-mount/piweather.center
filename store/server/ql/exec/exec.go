@@ -3,29 +3,35 @@ package exec
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
+	"github.com/peter-mount/piweather.center/store/server/ql"
+	"github.com/peter-mount/piweather.center/store/server/ql/functions"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"strings"
 	"time"
 )
 
 type Executor struct {
-	qp          *QueryPlan         // QueryPlan to execute
-	result      *api.Result        // Query Results
-	table       *api.Table         // Current table
-	row         *api.Row           // Current row
-	metrics     map[string][]Value // Collected data for each metric
-	time        time.Time          // Query time
-	timeRange   lang.Range         // Query range
-	stack       []Value            // Stack for expressions
-	colResolver *colResolver       // Used when resolving columns
-	selectLimit int                // Max number of rows to return in a query
+	qp          *QueryPlan            // QueryPlan to execute
+	result      *api.Result           // Query Results
+	table       *api.Table            // Current table
+	row         *api.Row              // Current row
+	metrics     map[string][]ql.Value // Collected data for each metric
+	time        time.Time             // Query time
+	timeRange   lang.Range            // Query range
+	stack       []ql.Value            // Stack for expressions
+	colResolver *colResolver          // Used when resolving columns
+	selectLimit int                   // Max number of rows to return in a query
+}
+
+func (ex *Executor) Time() time.Time {
+	return ex.time
 }
 
 func (qp *QueryPlan) Execute() (*api.Result, error) {
 	ex := &Executor{
 		qp:          qp,
 		result:      &api.Result{},
-		metrics:     make(map[string][]Value),
+		metrics:     make(map[string][]ql.Value),
 		colResolver: newColResolver(),
 		timeRange:   qp.queryRange,
 	}
@@ -147,12 +153,12 @@ func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 
 	err := v.Expression(s.Expression)
 
-	val, ok := ex.pop()
+	val, ok := ex.Pop()
 
 	// If invalid but have values attached then get the last value in the set.
 	// Required with metrics without an aggregation function around them
 	if !val.IsTime && !val.Value.IsValid() && len(val.Values) > 0 {
-		val = InitialLast(val)
+		val = functions.InitialLast(val)
 	}
 
 	switch {

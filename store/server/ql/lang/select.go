@@ -2,7 +2,6 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"strings"
 )
 
 type Select struct {
@@ -10,10 +9,6 @@ type Select struct {
 
 	Expression *SelectExpression `parser:"'SELECT' @@"`
 	Limit      int               `parser:"( 'LIMIT' @Int )?"`
-}
-
-func selectInit(_ Visitor, s *Select) error {
-	return assertLimit(s.Pos, s.Limit)
 }
 
 func (a *Select) Accept(v Visitor) error {
@@ -77,9 +72,4 @@ type Metric struct {
 
 func (a *Metric) Accept(v Visitor) error {
 	return v.Metric(a)
-}
-
-func metricInit(_ Visitor, b *Metric) error {
-	b.Name = strings.Join(b.Metric, ".")
-	return nil
 }

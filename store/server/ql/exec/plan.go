@@ -3,6 +3,7 @@ package exec
 import (
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/store/server/ql"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"strings"
 	"time"
@@ -57,7 +58,6 @@ func NewQueryPlan(s file.Store, l memory.Latest, q *lang.Query) (*QueryPlan, err
 		Metric(qp.addMetric).
 		QueryRange(qp.setQueryRange).
 		Expression(qp.expression).
-		Function(qp.function).
 		Build()); err != nil {
 		return nil, err
 	}
@@ -118,13 +118,13 @@ func (qp *QueryPlan) expression(v lang.Visitor, m *lang.Expression) error {
 	return lang.VisitorStop
 }
 
-func (qp *QueryPlan) GetMetric(m string) []Value {
-	var e []Value
+func (qp *QueryPlan) GetMetric(m string) []ql.Value {
+	var e []ql.Value
 	q := qp.store.Query(m).
 		Between(qp.scanRange.From, qp.scanRange.To).
 		Build()
 	for q.HasNext() {
-		e = append(e, FromRecord(q.Next()))
+		e = append(e, ql.FromRecord(q.Next()))
 	}
 	return e
 }

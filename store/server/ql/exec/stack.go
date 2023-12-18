@@ -1,5 +1,7 @@
 package exec
 
+import "github.com/peter-mount/piweather.center/store/server/ql"
+
 func (ex *Executor) resetStack() {
 	ex.stack = nil
 }
@@ -8,13 +10,13 @@ func (ex *Executor) stackEmpty() bool {
 	return len(ex.stack) == 0
 }
 
-func (ex *Executor) push(v Value) {
+func (ex *Executor) Push(v ql.Value) {
 	ex.stack = append(ex.stack, v)
 }
 
-func (ex *Executor) pop() (Value, bool) {
+func (ex *Executor) Pop() (ql.Value, bool) {
 	if ex.stackEmpty() {
-		return Value{}, false
+		return ql.Value{}, false
 	}
 	sl := len(ex.stack) - 1
 	r := ex.stack[sl]

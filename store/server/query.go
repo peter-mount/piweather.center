@@ -5,7 +5,7 @@ import (
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/server/ql/exec"
-	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"github.com/peter-mount/piweather.center/store/server/ql/parser"
 	"io"
 	"net/http"
 	"strings"
@@ -22,7 +22,7 @@ func (s *Server) query(r *rest.Rest) error {
 		return err
 	}
 
-	q, err := lang.New().ParseBytes("", b)
+	q, err := parser.New().ParseBytes("", b)
 	if err != nil {
 		return err
 	}

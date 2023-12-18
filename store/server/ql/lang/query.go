@@ -1,7 +1,6 @@
 package lang
 
 import (
-	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"strconv"
 	"strings"
@@ -13,16 +12,6 @@ type Query struct {
 	QueryRange *QueryRange `parser:"@@"`
 	Limit      int         `parser:"( 'LIMIT' @Int )?"`
 	Select     []*Select   `parser:"( @@ )+"`
-}
-
-func assertLimit(p lexer.Position, l int) error {
-	if l < 0 {
-		return participle.Errorf(p, "invalid LIMIT %d", l)
-	}
-	return nil
-}
-func queryInit(_ Visitor, s *Query) error {
-	return assertLimit(s.Pos, s.Limit)
 }
 
 func (a *Query) Accept(v Visitor) error {
