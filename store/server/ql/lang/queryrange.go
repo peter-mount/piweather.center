@@ -2,6 +2,7 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/piweather.center/store/api"
 )
 
 // QueryRange defines the time range to query
@@ -20,18 +21,18 @@ func (a *QueryRange) Accept(v Visitor) error {
 	return v.QueryRange(a)
 }
 
-func (a *QueryRange) Range() Range {
-	var r Range
+func (a *QueryRange) Range() api.Range {
+	var r api.Range
 	if a != nil {
 		switch {
 		case a.At != nil:
-			r = RangeAt(a.At.Time)
+			r = api.RangeAt(a.At.Time)
 
 		case a.From != nil && a.For != nil:
-			r = RangeFrom(a.From.Time, a.For.Duration)
+			r = api.RangeFrom(a.From.Time, a.For.Duration)
 
 		case a.Start != nil && a.End != nil:
-			r = RangeBetween(a.Start.Time, a.End.Time)
+			r = api.RangeBetween(a.Start.Time, a.End.Time)
 		}
 
 		if a.Every != nil {

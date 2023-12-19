@@ -5,10 +5,8 @@ import (
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/server/ql/exec"
-	"github.com/peter-mount/piweather.center/store/server/ql/parser"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -22,20 +20,15 @@ func (s *Server) query(r *rest.Rest) error {
 		return err
 	}
 
-	q, err := parser.New().ParseBytes("", b)
-	if err != nil {
-		return err
-	}
+	query := r.Request().URL.Query()
+	_, debug := query["debug"]
+	_, debugQl := query["ql"]
+	_, debugQp := query["qp"]
+	var opts []exec.QueryOption
+	opts = exec.OptQueryPlan.AppendIf(opts, debug || debugQp)
+	opts = exec.OptQuery.AppendIf(opts, debug || debugQl)
 
-	qp, err := exec.NewQueryPlan(s.Store, s.Latest, q)
-	if err != nil {
-		return err
-	}
-
-	result, err := qp.Execute()
-	if err != nil {
-		return err
-	}
+	result, _ := exec.Query(s.Store, "", b, opts...)
 
 	// Technically accept is a comma separated list of acceptable mime types for the response
 	accept := r.GetHeader("accept")
@@ -43,26 +36,12 @@ func (s *Server) query(r *rest.Rest) error {
 		accept = r.GetHeader("content-type")
 	}
 	if accept == "plain/text" {
-		rs := result.String()
-
-		// If debug enabled then include query in output
-		query := r.Request().URL.Query()
-		_, debug := query["debug"]
-		_, debugQl := query["ql"]
-		_, debugQp := query["qp"]
-		if debug || debugQp {
-			rs = strings.Trim(qp.String(), "\n") + "\n\n" + rs
-		}
-		if debug || debugQl {
-			rs = q.String() + "\n\n" + rs
-		}
-
-		r.Value([]byte(rs))
+		r.Value([]byte(result.String()))
 	} else {
 		r.Value(result)
 	}
 
-	r.Status(http.StatusOK).
+	r.Status(result.Status).
 		ContentType(accept)
 
 	return nil

@@ -1,4 +1,4 @@
-package lang
+package api
 
 import (
 	"fmt"
@@ -6,9 +6,12 @@ import (
 )
 
 type Range struct {
-	From  time.Time     // Start time
-	To    time.Time     // End time
-	Every time.Duration // Step duration
+	// Start time
+	From time.Time `json:"from"`
+	// End time
+	To time.Time `json:"to"`
+	// Step duration
+	Every time.Duration `json:"every"`
 }
 
 func RangeBetween(s, e time.Time) Range {

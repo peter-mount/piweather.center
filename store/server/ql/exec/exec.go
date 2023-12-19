@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/piweather.center/store/server/ql"
 	"github.com/peter-mount/piweather.center/store/server/ql/functions"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -17,7 +18,7 @@ type Executor struct {
 	row         *api.Row              // Current row
 	metrics     map[string][]ql.Value // Collected data for each metric
 	time        time.Time             // Query time
-	timeRange   lang.Range            // Query range
+	timeRange   api.Range             // Query range
 	stack       []ql.Value            // Stack for expressions
 	colResolver *colResolver          // Used when resolving columns
 	selectLimit int                   // Max number of rows to return in a query
@@ -27,30 +28,33 @@ func (ex *Executor) Time() time.Time {
 	return ex.time
 }
 
-func (qp *QueryPlan) Execute() (*api.Result, error) {
+func (qp *QueryPlan) Execute(result *api.Result) error {
 	ex := &Executor{
 		qp:          qp,
-		result:      &api.Result{},
+		result:      result,
 		metrics:     make(map[string][]ql.Value),
 		colResolver: newColResolver(),
-		timeRange:   qp.queryRange,
+		timeRange:   qp.QueryRange,
 	}
 
-	if err := ex.run(); err != nil {
-		return nil, err
+	err := ex.run()
+
+	if err == nil {
+		ex.result.Finalise()
+	} else {
+		ex.result.Status = http.StatusInternalServerError
+		ex.result.Message = err.Error()
+		// Remove all results as we are failing
+		ex.result.Table = nil
 	}
 
-	ex.result.Finalise()
-
-	return ex.result, nil
+	return err
 }
 
 func (ex *Executor) run() error {
 	qp := ex.qp
 
-	for m, _ := range qp.metrics {
-		ex.metrics[m] = qp.GetMetric(m)
-	}
+	_ = qp.Metrics.ForEach(ex.getMetric)
 
 	if err := qp.query.Accept(lang.NewBuilder().
 		Query(ex.query).
@@ -64,6 +68,11 @@ func (ex *Executor) run() error {
 		return err
 	}
 
+	return nil
+}
+
+func (ex *Executor) getMetric(m string) error {
+	ex.metrics[m] = ex.qp.GetMetric(m)
 	return nil
 }
 
@@ -110,7 +119,7 @@ func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	return lang.VisitorStop
 }
 
-func (ex *Executor) selectExpression(v lang.Visitor, s *lang.SelectExpression) error {
+func (ex *Executor) selectExpression(_ lang.Visitor, _ *lang.SelectExpression) error {
 	ex.table.PruneCurrentRow()
 
 	// If we have exceeded the selectLimit then stop here
@@ -215,7 +224,7 @@ func (r *colResolver) resolveName(v *lang.AliasedExpression) string {
 	return strings.Join(r.path, "")
 }
 
-func (r *colResolver) aliasedExpression(v lang.Visitor, f *lang.AliasedExpression) error {
+func (r *colResolver) aliasedExpression(_ lang.Visitor, f *lang.AliasedExpression) error {
 	if f.As != "" {
 		r.append(f.As)
 		return lang.VisitorStop

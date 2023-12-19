@@ -8,7 +8,23 @@ import (
 )
 
 type Result struct {
-	Table []*Table `json:"table" xml:"table" yaml:"table"`
+	// Status of the result
+	Status int `json:"status"`
+	// Additional metadata from the query
+	Meta map[string]interface{} `json:"meta,omitempty"`
+	// Optional message from status
+	Message string `json:"message,omitempty"`
+	// Range of the data
+	Range *Range `json:"range,omitempty"`
+	// Results
+	Table []*Table `json:"table"`
+}
+
+func (r *Result) AddMeta(k string, v interface{}) {
+	if r.Meta == nil {
+		r.Meta = make(map[string]interface{})
+	}
+	r.Meta[k] = v
 }
 
 func (r *Result) NewTable() *Table {
@@ -254,9 +270,17 @@ func (r *Result) String() string {
 	}
 
 	var b []string
+
+	if r.Meta != nil {
+		for k, v := range r.Meta {
+			b = append(b, fmt.Sprintf("%q = %v", k, v))
+		}
+	}
+
 	for _, t := range r.Table {
 		b = t.String(b)
 	}
+
 	return strings.Join(b, "\n") + "\n"
 }
 

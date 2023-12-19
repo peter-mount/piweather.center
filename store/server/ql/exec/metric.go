@@ -1,12 +1,13 @@
 package exec
 
 import (
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/server/ql"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 )
 
 func (ex *Executor) metric(_ lang.Visitor, s *lang.Metric) error {
-	r := lang.RangeFrom(ex.time, ex.timeRange.Every)
+	r := api.RangeFrom(ex.time, ex.timeRange.Every)
 	vals := ex.findMetrics(s.Name, r)
 
 	// No results then Push null
@@ -24,7 +25,7 @@ func (ex *Executor) metric(_ lang.Visitor, s *lang.Metric) error {
 	return nil
 }
 
-func (ex *Executor) findMetrics(n string, times lang.Range) []ql.Value {
+func (ex *Executor) findMetrics(n string, times api.Range) []ql.Value {
 	var r []ql.Value
 
 	recs := ex.metrics[n]
