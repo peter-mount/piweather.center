@@ -145,6 +145,9 @@ func (v *visitor) Expression(b *Expression) error {
 			err = v.Duration(b.Offset)
 		}
 		if err == nil {
+			err = v.QueryRange(b.Range)
+		}
+		if err == nil {
 			err = v.Function(b.Function)
 		}
 		if err == nil {

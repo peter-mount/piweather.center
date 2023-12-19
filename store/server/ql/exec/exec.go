@@ -12,18 +12,33 @@ import (
 )
 
 type Executor struct {
+	state
 	qp          *QueryPlan            // QueryPlan to execute
 	result      *api.Result           // Query Results
 	table       *api.Table            // Current table
 	row         *api.Row              // Current row
 	metrics     map[string][]ql.Value // Collected data for each metric
-	time        time.Time             // Query time
-	timeRange   api.Range             // Query range
 	stack       []ql.Value            // Stack for expressions
 	colResolver *colResolver          // Used when resolving columns
-	selectLimit int                   // Max number of rows to return in a query
 }
 
+type state struct {
+	time        time.Time // Query time
+	timeRange   api.Range // Query range
+	selectLimit int       // Max number of rows to return in a query
+	prevState   *state    // link to previous state
+}
+
+func (ex *Executor) save() {
+	old := ex.state
+	ex.state.prevState = &old
+}
+
+func (ex *Executor) restore() {
+	if ex.state.prevState != nil {
+		ex.state = *ex.state.prevState
+	}
+}
 func (ex *Executor) Time() time.Time {
 	return ex.time
 }
@@ -34,7 +49,9 @@ func (qp *QueryPlan) Execute(result *api.Result) error {
 		result:      result,
 		metrics:     make(map[string][]ql.Value),
 		colResolver: newColResolver(),
-		timeRange:   qp.QueryRange,
+		state: state{
+			timeRange: qp.QueryRange,
+		},
 	}
 
 	err := ex.run()
@@ -93,8 +110,8 @@ func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 
 	// Select has its own LIMIT defined
 	if s.Limit > 0 {
-		oldLimit := ex.selectLimit
-		defer ex.setSelectLimit(oldLimit)
+		ex.save()
+		defer ex.restore()
 		ex.setSelectLimit(s.Limit)
 	}
 
@@ -133,12 +150,19 @@ func (ex *Executor) selectExpression(_ lang.Visitor, _ *lang.SelectExpression) e
 
 func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 	// If offset defined, temporarily adjust the current time by that offset
-	if s.Offset != nil {
-		old := ex.time
-		defer func() {
-			ex.time = old
-		}()
-		ex.time = ex.time.Add(s.Offset.Duration)
+	if s.Offset != nil || s.Range != nil {
+		ex.save()
+		defer ex.restore()
+
+		if s.Offset != nil {
+			ex.time = ex.time.Add(s.Offset.Duration)
+		}
+
+		if s.Range != nil {
+			r := s.Range.Range()
+			ex.time = r.From
+			ex.timeRange.Every = r.Duration()
+		}
 	}
 
 	var err error

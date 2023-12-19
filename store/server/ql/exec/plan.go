@@ -37,7 +37,7 @@ func NewQueryPlan(s file.Store, q *lang.Query) (*QueryPlan, error) {
 		return nil, err
 	}
 
-	qp.ScanRange = qp.QueryRange.Expand(qp.minOffset, qp.maxOffset)
+	qp.ScanRange = qp.ScanRange.Add(qp.QueryRange.Expand(qp.minOffset, qp.maxOffset))
 
 	return qp, nil
 }
@@ -75,6 +75,10 @@ func (qp *QueryPlan) expression(v lang.Visitor, m *lang.Expression) error {
 		defer func() {
 			qp.offset = old
 		}()
+	}
+
+	if m.Range != nil {
+		qp.ScanRange = qp.ScanRange.Add(m.Range.Range())
 	}
 
 	var err error

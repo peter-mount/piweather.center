@@ -14,6 +14,7 @@ type Range struct {
 	Every time.Duration `json:"every"`
 }
 
+// RangeBetween returns a Range between two Times
 func RangeBetween(s, e time.Time) Range {
 	if s.After(e) {
 		s, e = e, s
@@ -21,16 +22,49 @@ func RangeBetween(s, e time.Time) Range {
 	return Range{From: s, To: e}
 }
 
+// RangeAt returns a Range consisting of a single Time.
 func RangeAt(s time.Time) Range {
 	return RangeBetween(s, s)
 }
 
+// RangeFrom returns a Range from one time and a duration from it.
 func RangeFrom(s time.Time, d time.Duration) Range {
 	return RangeBetween(s, s.Add(d))
 }
 
+// Contains returns true if the Range contains a specific time.
 func (r Range) Contains(t time.Time) bool {
 	return !t.Before(r.From) && t.Before(r.To)
+}
+
+// Duration returns the duration of the Range between the Start and End times
+func (r Range) Duration() time.Duration {
+	return r.To.Sub(r.From)
+}
+
+// IsZero returns true if either of the From or To times IsZero
+func (r Range) IsZero() bool {
+	return r.From.IsZero() || r.To.IsZero()
+}
+
+// Add adds two ranges together so that the new Range will contain both Ranges.
+// If they do not intersect, the new Range will contain all time between them.
+// If the Range being added is zero this is a no-operation.
+// If the source Range is zero then the Range being added will be returned.
+func (r Range) Add(b Range) Range {
+	if r.IsZero() {
+		return b
+	}
+	if b.IsZero() {
+		return r
+	}
+	if b.From.Before(r.From) {
+		r.From = b.From
+	}
+	if b.To.After(r.To) {
+		r.To = b.To
+	}
+	return r
 }
 
 func (r Range) String() string {
