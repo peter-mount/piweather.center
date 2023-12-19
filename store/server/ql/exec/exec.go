@@ -174,7 +174,7 @@ func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression)
 		ex.row.AddDynamic(val.Time, val.Time.Format(time.RFC3339))
 
 	default:
-		col := ex.table.Columns[len(ex.row.Columns)]
+		col := ex.table.Columns[ex.row.Size()]
 		val1, err := col.Transform(val.Value)
 		if err != nil {
 			return err

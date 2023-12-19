@@ -82,12 +82,12 @@ func (t *Table) Finalise() {
 	for _, r := range t.Rows {
 		if r.IsValid() {
 			// If row is shorter than columns add null columns to the table
-			for len(r.Columns) < len(t.Columns) {
-				r.Columns = append(r.Columns, Cell{Type: CellNull})
+			for r.Size() < len(t.Columns) {
+				*r = append(*r, Cell{Type: CellNull})
 			}
 
 			// now ensure column widths are wide enough
-			for i, c := range r.Columns {
+			for i, c := range *r {
 				// If we have more entries in the row and columns then add a new one to the table
 				for len(t.Columns) <= i {
 					t.Columns = append(t.Columns, &Column{Name: fmt.Sprintf("Col%d", len(t.Columns)+1)})
@@ -188,12 +188,10 @@ func (c *Column) pad(s string, l, e int) string {
 }
 
 // Row Holds details about an individual
-type Row struct {
-	Columns []Cell `json:"columns" xml:"columns" yaml:"columns"` // Individual columns
-}
+type Row []Cell // Individual columns
 
 func (r *Row) add(c Cell) *Row {
-	r.Columns = append(r.Columns, c)
+	*r = append(*r, c)
 	return r
 }
 
@@ -201,7 +199,11 @@ func (r *Row) add(c Cell) *Row {
 // If the value is not valid then a CellNull cell is added instead.
 func (r *Row) AddValue(t time.Time, v value.Value) *Row {
 	if v.IsValid() {
-		r.AddString(t, v.PlainString())
+		return r.add(Cell{
+			Type:   CellNumeric,
+			Time:   t,
+			String: v.PlainString(),
+		})
 	} else {
 		r.AddNull()
 	}
@@ -233,7 +235,7 @@ func (r *Row) AddNull() *Row {
 
 // IsValid returns true of the row contains at least one cell not CellNull or CellDynamic
 func (r *Row) IsValid() bool {
-	for _, c := range r.Columns {
+	for _, c := range *r {
 		if !(c.Type == CellNull || c.Type == CellDynamic) {
 			return true
 		}
@@ -242,21 +244,9 @@ func (r *Row) IsValid() bool {
 	return false
 }
 
-// Cell represents an individual cell within a Table's Row
-type Cell struct {
-	Type   CellType  `json:"type,omitempty" xml:"type,attr,omitempty" yaml:"type,omitempty"` // Type of cell
-	Time   time.Time `json:"time,omitempty" xml:"time,attr,omitempty" yaml:"time,omitempty"` // Time of value in cell, IsZero()==true if unknown or text
-	String string    `json:"string" xml:",cdata" yaml:"string"`                              // String value, always present as formatted by Unit if Float or Int
+func (r *Row) Size() int {
+	return len(*r)
 }
-
-// CellType defines the type of cell
-type CellType uint8
-
-const (
-	CellString  CellType = iota // Cell is a String
-	CellNull                    // Cell is not present, String="" but treat like a SQL Null
-	CellDynamic                 // Same as CellString but acts like CellNull, e.g. when determining if a row is empty
-)
 
 func (r *Result) String() string {
 	if r == nil {
@@ -288,7 +278,7 @@ func (t *Table) String(b []string) []string {
 			b = append(b, sep)
 		}
 		s1 = nil
-		for i, c := range r.Columns {
+		for i, c := range *r {
 			s1 = append(s1, t.Columns[i].String(c.String))
 		}
 		b = append(b, "|"+strings.Join(s1, "|")+"|")
