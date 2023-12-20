@@ -2,6 +2,7 @@ package exec
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/ql"
@@ -83,11 +84,27 @@ func (qp *QueryPlan) setQueryRange(_ lang.Visitor, m *lang.QueryRange) error {
 }
 
 func (qp *QueryPlan) expression(v lang.Visitor, m *lang.Expression) error {
-	if m.Modifier != nil {
+
+	// Check for modifiers, looking them up if m.Using is set
+	mods := m.Modifier
+	if m.Using != "" && qp.query.Using != nil {
+		for _, def := range qp.query.Using.Defs {
+			if def.Name == m.Using {
+				mods = def.Modifier
+			}
+		}
+
+		// Should not happen
+		if mods == nil {
+			return errors.Errorf(m.Pos, "%q is undefined", m.Using)
+		}
+	}
+
+	if mods != nil {
 		qp.save()
 		defer qp.restore()
 
-		for _, e := range m.Modifier {
+		for _, e := range mods {
 			if e.Offset != nil {
 				qp.offset = qp.offset + e.Offset.Duration(0)
 
