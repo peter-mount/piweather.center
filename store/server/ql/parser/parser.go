@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/store/server/ql/functions"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/unit"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
@@ -17,7 +18,7 @@ import (
 
 var (
 	scriptLexer = lexer.MustSimple([]lexer.SimpleRule{
-		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|EVERY|FOR|FROM|LIMIT|OFFSET|SELECT|TRUNCATE|UNIT)\b`},
+		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|DECLARE|EVERY|FOR|FROM|LIMIT|OFFSET|SELECT|TRUNCATE|UNIT|USING)\b`},
 		{"hashComment", `#.*`},
 		{"sheBang", `#\!.*`},
 		{"comment", `//.*|/\*.*?\*/`},
@@ -87,11 +88,15 @@ func (p *defaultParser) ParseFile(fileName string, opts ...participle.ParseOptio
 
 func (p *defaultParser) init(q *lang.Query, err error) (*lang.Query, error) {
 	if err == nil {
+		parserState := &parserState{usingNames: util.NewStringSet()}
 		err = q.Accept(lang.NewBuilder().
 			Query(queryInit).
 			QueryRange(queryRangeInit).
+			UsingDefinition(parserState.usingDefinitionInit).
 			Select(selectInit).
 			AliasedExpression(aliasedExpressionInit).
+			Expression(parserState.expressionInit).
+			ExpressionModifier(parserState.expressionModifierInit).
 			Function(functionInit).
 			Metric(metricInit).
 			Time(timeInit).
@@ -197,4 +202,35 @@ func durationInit(_ lang.Visitor, d *lang.Duration) error {
 	}
 
 	return nil
+}
+
+type parserState struct {
+	usingNames util.StringSet
+}
+
+func (p *parserState) usingDefinitionInit(v lang.Visitor, u *lang.UsingDefinition) error {
+	if !p.usingNames.Add(u.Name) {
+		return errors.Errorf(u.Pos, "alias %q already defined", u.Name)
+	}
+	for _, e := range u.Modifier {
+		if err := v.ExpressionModifier(e); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *parserState) expressionInit(_ lang.Visitor, s *lang.Expression) error {
+	if s.Using != "" && !p.usingNames.Contains(s.Using) {
+		return errors.Errorf(s.Pos, "%q undefined", s.Using)
+	}
+	return nil
+}
+
+func (p *parserState) expressionModifierInit(v lang.Visitor, s *lang.ExpressionModifier) error {
+	err := v.QueryRange(s.Range)
+	if err == nil {
+		err = v.Duration(s.Offset)
+	}
+	return err
 }

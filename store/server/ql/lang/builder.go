@@ -6,11 +6,14 @@ type Builder interface {
 	SelectExpression(func(Visitor, *SelectExpression) error) Builder
 	AliasedExpression(func(Visitor, *AliasedExpression) error) Builder
 	Expression(func(Visitor, *Expression) error) Builder
+	ExpressionModifier(func(Visitor, *ExpressionModifier) error) Builder
 	Function(func(Visitor, *Function) error) Builder
 	Metric(func(Visitor, *Metric) error) Builder
 	QueryRange(func(Visitor, *QueryRange) error) Builder
 	Time(func(Visitor, *Time) error) Builder
 	Duration(func(Visitor, *Duration) error) Builder
+	UsingDefinitions(func(Visitor, *UsingDefinitions) error) Builder
+	UsingDefinition(func(Visitor, *UsingDefinition) error) Builder
 	Build() Visitor
 }
 
@@ -53,6 +56,11 @@ func (b *builder) Expression(f func(Visitor, *Expression) error) Builder {
 	return b
 }
 
+func (b *builder) ExpressionModifier(f func(Visitor, *ExpressionModifier) error) Builder {
+	b.common.expressionModifier = f
+	return b
+}
+
 func (b *builder) Function(f func(Visitor, *Function) error) Builder {
 	b.common.function = f
 	return b
@@ -75,5 +83,15 @@ func (b *builder) Time(f func(Visitor, *Time) error) Builder {
 
 func (b *builder) Duration(f func(Visitor, *Duration) error) Builder {
 	b.common.duration = f
+	return b
+}
+
+func (b *builder) UsingDefinitions(f func(Visitor, *UsingDefinitions) error) Builder {
+	b.common.usingDefinitions = f
+	return b
+}
+
+func (b *builder) UsingDefinition(f func(Visitor, *UsingDefinition) error) Builder {
+	b.common.usingDefinition = f
 	return b
 }

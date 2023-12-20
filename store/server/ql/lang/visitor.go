@@ -10,11 +10,14 @@ type Visitor interface {
 	SelectExpression(*SelectExpression) error
 	AliasedExpression(*AliasedExpression) error
 	Expression(*Expression) error
+	ExpressionModifier(*ExpressionModifier) error
 	Function(*Function) error
 	Metric(*Metric) error
 	QueryRange(*QueryRange) error
 	Time(*Time) error
 	Duration(*Duration) error
+	UsingDefinitions(definitions *UsingDefinitions) error
+	UsingDefinition(definitions *UsingDefinition) error
 }
 
 // VisitorStop is an error which causes the current step in a Visitor to stop processing.
@@ -44,16 +47,19 @@ type visitor struct {
 }
 
 type common struct {
-	query             func(Visitor, *Query) error
-	_select           func(Visitor, *Select) error
-	selectExpression  func(Visitor, *SelectExpression) error
-	aliasedExpression func(Visitor, *AliasedExpression) error
-	expression        func(Visitor, *Expression) error
-	function          func(Visitor, *Function) error
-	metric            func(Visitor, *Metric) error
-	queryRange        func(Visitor, *QueryRange) error
-	time              func(Visitor, *Time) error
-	duration          func(Visitor, *Duration) error
+	query              func(Visitor, *Query) error
+	_select            func(Visitor, *Select) error
+	selectExpression   func(Visitor, *SelectExpression) error
+	aliasedExpression  func(Visitor, *AliasedExpression) error
+	expression         func(Visitor, *Expression) error
+	expressionModifier func(Visitor, *ExpressionModifier) error
+	function           func(Visitor, *Function) error
+	metric             func(Visitor, *Metric) error
+	queryRange         func(Visitor, *QueryRange) error
+	time               func(Visitor, *Time) error
+	duration           func(Visitor, *Duration) error
+	usingDefinitions   func(Visitor, *UsingDefinitions) error
+	usingDefinition    func(Visitor, *UsingDefinition) error
 }
 
 func (v *visitor) Query(b *Query) error {
@@ -69,9 +75,15 @@ func (v *visitor) Query(b *Query) error {
 			return nil
 		}
 
-		for _, sel := range b.Select {
-			if err == nil {
-				err = v.Select(sel)
+		if err == nil {
+			err = v.UsingDefinitions(b.Using)
+		}
+
+		if err == nil {
+			for _, sel := range b.Select {
+				if err == nil {
+					err = v.Select(sel)
+				}
 			}
 		}
 	}
@@ -138,6 +150,35 @@ func (v *visitor) Expression(b *Expression) error {
 		if v.expression != nil {
 			err = v.expression(v, b)
 		}
+
+		if IsVisitorStop(err) {
+			return nil
+		}
+
+		for _, e := range b.Modifier {
+			if err == nil {
+				err = v.ExpressionModifier(e)
+			}
+		}
+
+		if err == nil {
+			err = v.Function(b.Function)
+		}
+
+		if err == nil {
+			err = v.Metric(b.Metric)
+		}
+	}
+
+	return err
+}
+
+func (v *visitor) ExpressionModifier(b *ExpressionModifier) error {
+	var err error
+	if b != nil {
+		if v.expressionModifier != nil {
+			err = v.expressionModifier(v, b)
+		}
 		if IsVisitorStop(err) {
 			return nil
 		}
@@ -146,12 +187,6 @@ func (v *visitor) Expression(b *Expression) error {
 		}
 		if err == nil {
 			err = v.QueryRange(b.Range)
-		}
-		if err == nil {
-			err = v.Function(b.Function)
-		}
-		if err == nil {
-			err = v.Metric(b.Metric)
 		}
 	}
 	return err
@@ -247,6 +282,33 @@ func (v *visitor) Time(b *Time) error {
 func (v *visitor) Duration(b *Duration) error {
 	if b != nil && v.duration != nil {
 		return v.duration(v, b)
+	}
+	return nil
+}
+
+func (v *visitor) UsingDefinitions(b *UsingDefinitions) error {
+	var err error
+
+	if b != nil {
+		if v.usingDefinitions != nil {
+			err = v.usingDefinitions(v, b)
+		}
+		if IsVisitorStop(err) {
+			return nil
+		}
+		if err == nil {
+			for _, e := range b.Defs {
+				err = v.UsingDefinition(e)
+			}
+		}
+	}
+
+	return err
+}
+
+func (v *visitor) UsingDefinition(b *UsingDefinition) error {
+	if b != nil && v.usingDefinition != nil {
+		return v.usingDefinition(v, b)
 	}
 	return nil
 }

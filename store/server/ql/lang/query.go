@@ -7,11 +7,11 @@ import (
 )
 
 type Query struct {
-	Pos lexer.Position
-
-	QueryRange *QueryRange `parser:"@@"`
-	Limit      int         `parser:"( 'LIMIT' @Int )?"`
-	Select     []*Select   `parser:"( @@ )+"`
+	Pos        lexer.Position
+	QueryRange *QueryRange       `parser:"@@"`
+	Using      *UsingDefinitions `parser:"(@@)?"`
+	Limit      int               `parser:"( 'LIMIT' @Int )?"`
+	Select     []*Select         `parser:"( @@ )+"`
 }
 
 func (a *Query) Accept(v Visitor) error {
@@ -23,12 +23,14 @@ func (a *Query) String() string {
 	_ = NewBuilder().
 		Query(qp.query).
 		QueryRange(qp.queryRange).
+		UsingDefinitions(qp.usingDefinitions).
 		Time(qp.time).
 		Duration(qp.duration).
 		Select(qp.selectStatement).
 		SelectExpression(qp.selectExpression).
 		AliasedExpression(qp.aliasedExpression).
 		Expression(qp.expression).
+		ExpressionModifier(qp.expressionModifier).
 		Metric(qp.metric).
 		Function(qp.function).
 		Build().
@@ -129,6 +131,23 @@ func (qp *queryPrinter) queryRange(v Visitor, b *QueryRange) error {
 	return VisitorStop
 }
 
+func (qp *queryPrinter) usingDefinitions(v Visitor, b *UsingDefinitions) error {
+	qp.append("DECLARE")
+	qp.save()
+	for _, e := range b.Defs {
+		qp.save()
+		qp.append("      ")
+		qp.appendString(e.Name)
+		qp.append("AS")
+		for _, m := range e.Modifier {
+			_ = v.ExpressionModifier(m)
+		}
+		qp.restore(" ")
+	}
+	qp.restore(",\n")
+	return VisitorStop
+}
+
 func (qp *queryPrinter) time(v Visitor, b *Time) error {
 	qp.save()
 
@@ -213,6 +232,20 @@ func (qp *queryPrinter) expression(v Visitor, b *Expression) error {
 		_ = v.Function(b.Function)
 	}
 
+	if b.Using != "" {
+		qp.append("USING")
+		qp.appendString(b.Using)
+	} else {
+		for _, e := range b.Modifier {
+			_ = v.ExpressionModifier(e)
+		}
+	}
+
+	qp.restore()
+	return VisitorStop
+}
+
+func (qp *queryPrinter) expressionModifier(v Visitor, b *ExpressionModifier) error {
 	_ = v.QueryRange(b.Range)
 
 	if b.Offset != nil {
@@ -220,7 +253,6 @@ func (qp *queryPrinter) expression(v Visitor, b *Expression) error {
 		_ = v.Duration(b.Offset)
 	}
 
-	qp.restore()
 	return VisitorStop
 }
 

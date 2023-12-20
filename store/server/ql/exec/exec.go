@@ -2,6 +2,7 @@ package exec
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/server/ql"
 	"github.com/peter-mount/piweather.center/store/server/ql/functions"
@@ -13,13 +14,14 @@ import (
 
 type Executor struct {
 	exState
-	qp          *QueryPlan            // QueryPlan to execute
-	result      *api.Result           // Query Results
-	table       *api.Table            // Current table
-	row         *api.Row              // Current row
-	metrics     map[string][]ql.Value // Collected data for each metric
-	stack       []ql.Value            // Stack for expressions
-	colResolver *colResolver          // Used when resolving columns
+	qp          *QueryPlan                       // QueryPlan to execute
+	result      *api.Result                      // Query Results
+	table       *api.Table                       // Current table
+	row         *api.Row                         // Current row
+	metrics     map[string][]ql.Value            // Collected data for each metric
+	stack       []ql.Value                       // Stack for expressions
+	using       map[string]*lang.UsingDefinition // Using aliases
+	colResolver *colResolver                     // Used when resolving columns
 }
 
 type exState struct {
@@ -49,6 +51,7 @@ func (qp *QueryPlan) Execute(result *api.Result) error {
 		qp:          qp,
 		result:      result,
 		metrics:     make(map[string][]ql.Value),
+		using:       make(map[string]*lang.UsingDefinition),
 		colResolver: newColResolver(),
 		exState: exState{
 			timeRange: qp.QueryRange,
@@ -74,19 +77,17 @@ func (ex *Executor) run() error {
 
 	_ = qp.Metrics.ForEach(ex.getMetric)
 
-	if err := qp.query.Accept(lang.NewBuilder().
+	return qp.query.Accept(lang.NewBuilder().
 		Query(ex.query).
+		UsingDefinitions(ex.usingDefinitions).
 		Select(ex.selectStatement).
 		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
 		Expression(ex.expression).
+		ExpressionModifier(ex.expressionModifier).
 		Function(ex.function).
 		Metric(ex.metric).
-		Build()); err != nil {
-		return err
-	}
-
-	return nil
+		Build())
 }
 
 func (ex *Executor) getMetric(m string) error {
@@ -104,6 +105,17 @@ func (ex *Executor) setSelectLimit(l int) {
 	if ex.selectLimit < 0 {
 		ex.selectLimit = 0
 	}
+}
+
+func (ex *Executor) usingDefinitions(v lang.Visitor, s *lang.UsingDefinitions) error {
+	for _, e := range s.Defs {
+		// Ensure the definition is valid
+		if err := e.Accept(v); err != nil {
+			return err
+		}
+		ex.using[e.Name] = e
+	}
+	return lang.VisitorStop
 }
 
 func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
@@ -155,22 +167,25 @@ func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 	var err error
 
 	// If offset defined, temporarily adjust the current time by that offset
-	if s.Offset != nil || s.Range != nil {
+	if s.Using != "" || s.Modifier != nil {
 		ex.save()
 		defer ex.restore()
 
-		if s.Offset != nil {
-			ex.time = ex.time.Add(s.Offset.Duration(ex.timeRange.Every))
+		// Resolve the modifier if we are declaring using
+		mod := s.Modifier
+		if s.Using != "" {
+			uDef, exists := ex.using[s.Using]
+			if !exists {
+				// Should not happen as we checked before running
+				return errors.Errorf(s.Pos, "panic: %q missing", s.Using)
+			}
+			mod = uDef.Modifier
 		}
 
-		if s.Range != nil {
-			if s.Range.IsRow() {
-				err = s.Range.SetTime(ex.time, ex.timeRange.Every, v)
+		for _, e := range mod {
+			if err == nil {
+				err = v.ExpressionModifier(e)
 			}
-
-			r := s.Range.Range()
-			ex.time = r.From
-			ex.timeRange.Every = r.Duration()
 		}
 	}
 
@@ -188,6 +203,26 @@ func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 	}
 
 	return lang.VisitorStop
+}
+
+func (ex *Executor) expressionModifier(v lang.Visitor, s *lang.ExpressionModifier) error {
+	var err error
+
+	if s.Offset != nil {
+		ex.time = ex.time.Add(s.Offset.Duration(ex.timeRange.Every))
+	}
+
+	if s.Range != nil {
+		if s.Range.IsRow() {
+			err = s.Range.SetTime(ex.time, ex.timeRange.Every, v)
+		}
+
+		r := s.Range.Range()
+		ex.time = r.From
+		ex.timeRange.Every = r.Duration()
+	}
+
+	return err
 }
 
 func (ex *Executor) aliasedExpression(v lang.Visitor, s *lang.AliasedExpression) error {

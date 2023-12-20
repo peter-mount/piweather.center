@@ -11,10 +11,14 @@ func NewStringSet() StringSet {
 	return make(map[string]interface{})
 }
 
-func (a *StringSet) Add(s string) {
+func (a *StringSet) Add(s string) bool {
 	if a != nil {
-		(*a)[s] = true
+		if _, exists := (*a)[s]; !exists {
+			(*a)[s] = true
+			return true
+		}
 	}
+	return false
 }
 
 func (a *StringSet) AddAll(s ...string) {

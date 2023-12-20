@@ -53,16 +53,21 @@ func (a *AliasedExpression) SetUnit(u *value.Unit) {
 
 // Expression handles function calls or direct metric values
 type Expression struct {
-	Pos lexer.Position
-
-	Function *Function   `parser:"( @@"`
-	Metric   *Metric     `parser:"| @@ )"`
-	Range    *QueryRange `parser:"( @@ )?"`
-	Offset   *Duration   `parser:"( 'OFFSET' @@ )?"`
+	Pos      lexer.Position
+	Function *Function             `parser:"( @@"`
+	Metric   *Metric               `parser:"| @@ )"`
+	Using    string                `parser:"( 'USING' @String"`
+	Modifier []*ExpressionModifier `parser:"| (@@)+ )?"`
 }
 
 func (a *Expression) Accept(v Visitor) error {
 	return v.Expression(a)
+}
+
+type ExpressionModifier struct {
+	Pos    lexer.Position
+	Range  *QueryRange `parser:"( @@"`
+	Offset *Duration   `parser:"| 'OFFSET' @@ )"`
 }
 
 // Function handles function calls

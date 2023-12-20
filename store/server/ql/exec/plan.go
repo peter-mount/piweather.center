@@ -83,23 +83,27 @@ func (qp *QueryPlan) setQueryRange(_ lang.Visitor, m *lang.QueryRange) error {
 }
 
 func (qp *QueryPlan) expression(v lang.Visitor, m *lang.Expression) error {
-	if m.Offset != nil {
+	if m.Modifier != nil {
 		qp.save()
 		defer qp.restore()
 
-		qp.offset = qp.offset + m.Offset.Duration(0)
+		for _, e := range m.Modifier {
+			if e.Offset != nil {
+				qp.offset = qp.offset + e.Offset.Duration(0)
 
-		if qp.offset < qp.minOffset {
-			qp.minOffset = qp.offset
+				if qp.offset < qp.minOffset {
+					qp.minOffset = qp.offset
+				}
+
+				if qp.offset > qp.maxOffset {
+					qp.maxOffset = qp.offset
+				}
+			}
+
+			if e.Range != nil {
+				qp.ScanRange = qp.ScanRange.Add(e.Range.Range())
+			}
 		}
-
-		if qp.offset > qp.maxOffset {
-			qp.maxOffset = qp.offset
-		}
-	}
-
-	if m.Range != nil {
-		qp.ScanRange = qp.ScanRange.Add(m.Range.Range())
 	}
 
 	var err error
