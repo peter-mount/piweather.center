@@ -2,6 +2,7 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/piweather.center/weather/value"
 )
 
 type Select struct {
@@ -30,11 +31,24 @@ type AliasedExpression struct {
 	Pos lexer.Position
 
 	Expression *Expression `parser:"@@"`
+	Unit       string      `parser:"( 'UNIT' @String )?"`
 	As         string      `parser:"( 'AS' @Ident )?"`
+	unit       *value.Unit
 }
 
 func (a *AliasedExpression) Accept(v Visitor) error {
 	return v.AliasedExpression(a)
+}
+
+func (a *AliasedExpression) GetUnit() *value.Unit {
+	if a == nil {
+		return nil
+	}
+	return a.unit
+}
+
+func (a *AliasedExpression) SetUnit(u *value.Unit) {
+	a.unit = u
 }
 
 // Expression handles function calls or direct metric values

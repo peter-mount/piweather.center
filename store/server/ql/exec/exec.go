@@ -119,7 +119,9 @@ func (ex *Executor) selectStatement(v lang.Visitor, s *lang.Select) error {
 	if s.Expression != nil {
 		// Create the required columns
 		for _, ae := range s.Expression.Expressions {
-			ex.table.AddColumn(ex.colResolver.resolveColumn(ae))
+			col := ex.colResolver.resolveColumn(ae)
+			col.SetUnit(ae.GetUnit())
+			ex.table.AddColumn(col)
 		}
 
 		// Now the row data
@@ -245,8 +247,8 @@ func (r *colResolver) append(s ...string) {
 	r.path = append(r.path, s...)
 }
 
-func (r *colResolver) resolveColumn(v *lang.AliasedExpression) api.Column {
-	return api.Column{Name: r.resolveName(v)}
+func (r *colResolver) resolveColumn(v *lang.AliasedExpression) *api.Column {
+	return &api.Column{Name: r.resolveName(v)}
 }
 
 func (r *colResolver) resolveName(v *lang.AliasedExpression) string {

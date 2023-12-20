@@ -8,6 +8,7 @@ import (
 	"github.com/peter-mount/piweather.center/store/server/ql/functions"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"github.com/peter-mount/piweather.center/util/unit"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
 	"os"
 	"strings"
@@ -16,7 +17,7 @@ import (
 
 var (
 	scriptLexer = lexer.MustSimple([]lexer.SimpleRule{
-		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|EVERY|FOR|FROM|LIMIT|OFFSET|SELECT|TRUNCATE)\b`},
+		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|EVERY|FOR|FROM|LIMIT|OFFSET|SELECT|TRUNCATE|UNIT)\b`},
 		{"hashComment", `#.*`},
 		{"sheBang", `#\!.*`},
 		{"comment", `//.*|/\*.*?\*/`},
@@ -90,6 +91,7 @@ func (p *defaultParser) init(q *lang.Query, err error) (*lang.Query, error) {
 			Query(queryInit).
 			QueryRange(queryRangeInit).
 			Select(selectInit).
+			AliasedExpression(aliasedExpressionInit).
 			Function(functionInit).
 			Metric(metricInit).
 			Time(timeInit).
@@ -148,6 +150,17 @@ func queryRangeInit(v lang.Visitor, q *lang.QueryRange) error {
 
 func selectInit(_ lang.Visitor, s *lang.Select) error {
 	return assertLimit(s.Pos, s.Limit)
+}
+
+func aliasedExpressionInit(_ lang.Visitor, s *lang.AliasedExpression) error {
+	if s.Unit != "" {
+		u, exists := value.GetUnit(s.Unit)
+		if !exists {
+			return errors.Errorf(s.Pos, "unsupported unit %q", s.Unit)
+		}
+		s.SetUnit(u)
+	}
+	return nil
 }
 
 func functionInit(_ lang.Visitor, b *lang.Function) error {

@@ -44,13 +44,12 @@ type Table struct {
 	Rows    []*Row    `json:"rows" xml:"rows" yaml:"rows"`
 }
 
-func (t *Table) AddColumn(c Column) *Table {
-	// TODO should we enforce column width to the name length or just default to this if Width==0?
+func (t *Table) AddColumn(c *Column) *Table {
 	if c.Width < len(c.Name) {
 		c.Width = len(c.Name)
 	}
 
-	t.Columns = append(t.Columns, &c)
+	t.Columns = append(t.Columns, c)
 	return t
 }
 
@@ -140,16 +139,18 @@ func (c *Column) IsLeft() bool    { return c != nil && (c.Type&ColumnCenter) == 
 func (c *Column) IsRight() bool   { return c != nil && (c.Type&ColumnCenter) == ColumnRight }
 func (c *Column) IsCenter() bool  { return c != nil && (c.Type&ColumnCenter) == ColumnCenter }
 
-func (c *Column) SetUnit(u value.Value) {
-	if u.IsValid() && c.unit == nil {
-		c.unit = u.Unit()
+func (c *Column) SetUnit(u *value.Unit) {
+	c.unit = u
+	if u == nil {
+		c.Unit = ""
+	} else {
 		c.Unit = c.unit.Name()
 	}
 }
 
 func (c *Column) Transform(v value.Value) (value.Value, error) {
-	if c.unit == nil {
-		c.SetUnit(v)
+	if c.unit == nil && v.IsValid() {
+		c.SetUnit(v.Unit())
 	}
 	if c.unit != nil {
 		return v.As(c.unit)
