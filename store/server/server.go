@@ -9,6 +9,7 @@ import (
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/store/ql/service"
 )
 
 type Server struct {
@@ -17,6 +18,7 @@ type Server struct {
 	Store          file.Store            `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
+	QueryService   service.Service       `kernel:"inject"`
 	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.ingress"`
 	mqQueue        *amqp.Queue
 }

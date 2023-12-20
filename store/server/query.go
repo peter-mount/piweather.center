@@ -28,7 +28,7 @@ func (s *Server) query(r *rest.Rest) error {
 	opts = exec.OptQueryPlan.AppendIf(opts, debug || debugQp)
 	opts = exec.OptQuery.AppendIf(opts, debug || debugQl)
 
-	result, _ := exec.Query(s.Store, "", b, opts...)
+	result := s.QueryService.Query("", b, opts...)
 
 	// Technically accept is a comma separated list of acceptable mime types for the response
 	accept := r.GetHeader("accept")
