@@ -3,6 +3,7 @@ package lang
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/store/api"
+	"time"
 )
 
 // QueryRange defines the time range to query
@@ -40,4 +41,22 @@ func (a *QueryRange) Range() api.Range {
 		}
 	}
 	return r
+}
+
+func (a *QueryRange) IsRow() bool {
+	return a.At.IsRow() || a.From.IsRow() || a.Start.IsRow() || a.End.IsRow()
+}
+
+func (a *QueryRange) SetTime(t time.Time, v Visitor) error {
+	err := a.At.SetTime(t, v)
+	if err == nil {
+		err = a.From.SetTime(t, v)
+	}
+	if err == nil {
+		err = a.Start.SetTime(t, v)
+	}
+	if err == nil {
+		err = a.End.SetTime(t, v)
+	}
+	return err
 }

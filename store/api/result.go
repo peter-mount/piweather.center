@@ -271,6 +271,11 @@ func (r *Result) String() string {
 
 	var b []string
 
+	b = append(b, fmt.Sprintf("Status: %d", r.Status))
+	if r.Message != "" {
+		b = append(b, r.Message)
+	}
+
 	if r.Meta != nil {
 		for k, v := range r.Meta {
 			b = append(b, fmt.Sprintf("%q = %v", k, v))

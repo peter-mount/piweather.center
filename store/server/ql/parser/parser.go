@@ -170,25 +170,8 @@ func timeInit(v lang.Visitor, t *lang.Time) error {
 		return nil
 	}
 
-	t.Time = unit.ParseTime(t.Def)
-	if t.Time.IsZero() {
-		return participle.Errorf(t.Pos, "invalid datetime")
-	}
-
-	for _, e := range t.Expression {
-		switch {
-		case e.Add != nil:
-			if err := v.Duration(e.Add); err != nil {
-				return err
-			}
-			t.Time = t.Time.Add(e.Add.Duration)
-
-		case e.Truncate != nil:
-			if err := v.Duration(e.Truncate); err != nil {
-				return err
-			}
-			t.Time = t.Time.Truncate(e.Truncate.Duration)
-		}
+	if err := t.SetTime(unit.ParseTime(t.Def), v); err != nil {
+		return err
 	}
 
 	return lang.VisitorStop

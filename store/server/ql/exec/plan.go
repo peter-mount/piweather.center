@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/server/ql"
@@ -22,6 +23,12 @@ type QueryPlan struct {
 }
 
 func NewQueryPlan(s file.Store, q *lang.Query) (*QueryPlan, error) {
+
+	// We must have a QueryRange, and it cannot reference "row"
+	if q.QueryRange == nil || q.QueryRange.IsRow() {
+		return nil, participle.Errorf(q.Pos, "invalid QueryRange")
+	}
+
 	qp := &QueryPlan{
 		query:   q,
 		Metrics: util.NewStringSet(),

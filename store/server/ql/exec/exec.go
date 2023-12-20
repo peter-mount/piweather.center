@@ -149,6 +149,8 @@ func (ex *Executor) selectExpression(_ lang.Visitor, _ *lang.SelectExpression) e
 }
 
 func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
+	var err error
+
 	// If offset defined, temporarily adjust the current time by that offset
 	if s.Offset != nil || s.Range != nil {
 		ex.save()
@@ -159,19 +161,23 @@ func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 		}
 
 		if s.Range != nil {
+			if s.Range.IsRow() {
+				err = s.Range.SetTime(ex.time, v)
+			}
+
 			r := s.Range.Range()
 			ex.time = r.From
 			ex.timeRange.Every = r.Duration()
 		}
 	}
 
-	var err error
-
-	switch {
-	case s.Metric != nil:
-		err = v.Metric(s.Metric)
-	case s.Function != nil:
-		err = v.Function(s.Function)
+	if err == nil {
+		switch {
+		case s.Metric != nil:
+			err = v.Metric(s.Metric)
+		case s.Function != nil:
+			err = v.Function(s.Function)
+		}
 	}
 
 	if err != nil {
