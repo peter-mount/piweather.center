@@ -11,15 +11,31 @@ import (
 )
 
 type QueryPlan struct {
+	qpState
 	QueryRange api.Range      `json:"queryRange"` // Time range for results
 	ScanRange  api.Range      `json:"scanRange"`  // Time range to scan for metrics
 	Metrics    util.StringSet `json:"metrics"`    // Set of Metrics we require
 	query      *lang.Query    // Queries for this plan that share the Range
 	store      file.Store     // The actual file Store
 	// Used to handle expression offsets, so we can expand the QueryRange to get aggregated Metrics
-	offset    time.Duration
 	minOffset time.Duration
 	maxOffset time.Duration
+}
+
+type qpState struct {
+	prevState *qpState
+	offset    time.Duration
+}
+
+func (qp *QueryPlan) save() {
+	old := qp.qpState
+	qp.qpState.prevState = &old
+}
+
+func (qp *QueryPlan) restore() {
+	if qp.qpState.prevState != nil {
+		qp.qpState = *qp.prevState
+	}
 }
 
 func NewQueryPlan(s file.Store, q *lang.Query) (*QueryPlan, error) {
@@ -68,8 +84,10 @@ func (qp *QueryPlan) setQueryRange(_ lang.Visitor, m *lang.QueryRange) error {
 
 func (qp *QueryPlan) expression(v lang.Visitor, m *lang.Expression) error {
 	if m.Offset != nil {
-		old := qp.offset
-		qp.offset = qp.offset + m.Offset.Duration
+		qp.save()
+		defer qp.restore()
+
+		qp.offset = qp.offset + m.Offset.Duration(0)
 
 		if qp.offset < qp.minOffset {
 			qp.minOffset = qp.offset
@@ -78,10 +96,6 @@ func (qp *QueryPlan) expression(v lang.Visitor, m *lang.Expression) error {
 		if qp.offset > qp.maxOffset {
 			qp.maxOffset = qp.offset
 		}
-
-		defer func() {
-			qp.offset = old
-		}()
 	}
 
 	if m.Range != nil {
