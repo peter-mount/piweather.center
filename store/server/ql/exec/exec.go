@@ -12,7 +12,7 @@ import (
 )
 
 type Executor struct {
-	state
+	exState
 	qp          *QueryPlan            // QueryPlan to execute
 	result      *api.Result           // Query Results
 	table       *api.Table            // Current table
@@ -22,23 +22,24 @@ type Executor struct {
 	colResolver *colResolver          // Used when resolving columns
 }
 
-type state struct {
+type exState struct {
+	prevState   *exState  // link to previous state
 	time        time.Time // Query time
 	timeRange   api.Range // Query range
 	selectLimit int       // Max number of rows to return in a query
-	prevState   *state    // link to previous state
 }
 
 func (ex *Executor) save() {
-	old := ex.state
-	ex.state.prevState = &old
+	old := ex.exState
+	ex.exState.prevState = &old
 }
 
 func (ex *Executor) restore() {
-	if ex.state.prevState != nil {
-		ex.state = *ex.state.prevState
+	if ex.exState.prevState != nil {
+		ex.exState = *ex.exState.prevState
 	}
 }
+
 func (ex *Executor) Time() time.Time {
 	return ex.time
 }
@@ -49,7 +50,7 @@ func (qp *QueryPlan) Execute(result *api.Result) error {
 		result:      result,
 		metrics:     make(map[string][]ql.Value),
 		colResolver: newColResolver(),
-		state: state{
+		exState: exState{
 			timeRange: qp.QueryRange,
 		},
 	}
@@ -157,12 +158,12 @@ func (ex *Executor) expression(v lang.Visitor, s *lang.Expression) error {
 		defer ex.restore()
 
 		if s.Offset != nil {
-			ex.time = ex.time.Add(s.Offset.Duration)
+			ex.time = ex.time.Add(s.Offset.Duration(ex.timeRange.Every))
 		}
 
 		if s.Range != nil {
 			if s.Range.IsRow() {
-				err = s.Range.SetTime(ex.time, v)
+				err = s.Range.SetTime(ex.time, ex.timeRange.Every, v)
 			}
 
 			r := s.Range.Range()

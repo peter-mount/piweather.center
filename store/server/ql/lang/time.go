@@ -3,6 +3,7 @@ package lang
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/piweather.center/util"
 	"strings"
 	"time"
 )
@@ -22,7 +23,7 @@ func (a *Time) IsRow() bool {
 	return a != nil && strings.ToLower(a.Def) == "row"
 }
 
-func (a *Time) SetTime(t time.Time, v Visitor) error {
+func (a *Time) SetTime(t time.Time, every time.Duration, v Visitor) error {
 	if a == nil {
 		return nil
 	}
@@ -39,13 +40,13 @@ func (a *Time) SetTime(t time.Time, v Visitor) error {
 			if err := v.Duration(e.Add); err != nil {
 				return err
 			}
-			a.Time = a.Time.Add(e.Add.Duration)
+			a.Time = a.Time.Add(e.Add.Duration(every))
 
 		case e.Truncate != nil:
 			if err := v.Duration(e.Truncate); err != nil {
 				return err
 			}
-			a.Time = a.Time.Truncate(e.Truncate.Duration)
+			a.Time = a.Time.Truncate(e.Truncate.Duration(every))
 		}
 	}
 
@@ -60,8 +61,19 @@ type TimeExpression struct {
 
 type Duration struct {
 	Pos      lexer.Position
-	Duration time.Duration // Parsed duration
+	duration time.Duration // Parsed duration
 	Def      string        `parser:"@String"` // Duration definition
+}
+
+func (a *Duration) IsEvery() bool {
+	return a != nil && util.In(a.Def, "every", "step")
+}
+
+func (a *Duration) Duration(every time.Duration) time.Duration {
+	if a.IsEvery() {
+		return every
+	}
+	return a.duration
 }
 
 func (a *Duration) Set(d time.Duration) {
@@ -75,6 +87,5 @@ func (a *Duration) Set(d time.Duration) {
 		d = -time.Second
 	}
 
-	a.Duration = d
-	a.Def = d.String()
+	a.duration = d
 }

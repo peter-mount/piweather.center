@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/store/server/ql/functions"
 	"github.com/peter-mount/piweather.center/store/server/ql/lang"
 	"github.com/peter-mount/piweather.center/util/unit"
@@ -100,7 +101,7 @@ func (p *defaultParser) init(q *lang.Query, err error) (*lang.Query, error) {
 
 func assertLimit(p lexer.Position, l int) error {
 	if l < 0 {
-		return participle.Errorf(p, "invalid LIMIT %d", l)
+		return errors.Errorf(p, "invalid LIMIT %d", l)
 	}
 	return nil
 }
@@ -112,11 +113,7 @@ func queryInit(_ lang.Visitor, s *lang.Query) error {
 func queryRangeInit(v lang.Visitor, q *lang.QueryRange) error {
 	// If no Every statement then set it to 1 minute
 	if q.Every == nil {
-		q.Every = &lang.Duration{
-			Pos:      q.Pos,
-			Duration: time.Minute,
-			Def:      "1m",
-		}
+		q.Every = &lang.Duration{Pos: q.Pos, Def: "1m"}
 	}
 
 	if err := v.Duration(q.Every); err != nil {
@@ -124,8 +121,8 @@ func queryRangeInit(v lang.Visitor, q *lang.QueryRange) error {
 	}
 
 	// Negative duration for Every is invalid
-	if q.Every.Duration < time.Second {
-		return fmt.Errorf("invalid step size %v", q.Every.Duration)
+	if q.Every.Duration(0) < time.Second {
+		return fmt.Errorf("invalid step size %v", q.Every.Duration(0))
 	}
 
 	if err := v.Time(q.At); err != nil {
@@ -157,7 +154,7 @@ func functionInit(_ lang.Visitor, b *lang.Function) error {
 	if functions.HasFunction(b.Name) {
 		return nil
 	}
-	return participle.Errorf(b.Pos, "unknown function %q", b.Name)
+	return errors.Errorf(b.Pos, "unknown function %q", b.Name)
 }
 
 func metricInit(_ lang.Visitor, b *lang.Metric) error {
@@ -170,7 +167,7 @@ func timeInit(v lang.Visitor, t *lang.Time) error {
 		return nil
 	}
 
-	if err := t.SetTime(unit.ParseTime(t.Def), v); err != nil {
+	if err := t.SetTime(unit.ParseTime(t.Def), 0, v); err != nil {
 		return err
 	}
 
@@ -178,10 +175,10 @@ func timeInit(v lang.Visitor, t *lang.Time) error {
 }
 
 func durationInit(_ lang.Visitor, d *lang.Duration) error {
-	if d.Def != "" {
+	if d.Def != "" && !d.IsEvery() {
 		v, err := time.ParseDuration(d.Def)
 		if err != nil {
-			return err
+			return errors.Error(d.Pos, err)
 		}
 		d.Set(v)
 	}
