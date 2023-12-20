@@ -107,6 +107,11 @@ type TimeIterator struct {
 	s time.Duration
 }
 
+// Iterate returns a TimeIterator which will iterate between two time.Time's with the
+// specified time.Duration between each step.
+//
+// This implementation will only include whole step's in its run.
+// If the last step is shorter than the step size it will not be included.
 func Iterate(t, e time.Time, s time.Duration) *TimeIterator {
 	if t.After(e) {
 		t, e = e, t
@@ -124,10 +129,12 @@ func Iterate(t, e time.Time, s time.Duration) *TimeIterator {
 	return &TimeIterator{t: t, e: e, s: s}
 }
 
+// HasNext returns true if the iterator has not completed.
 func (it *TimeIterator) HasNext() bool {
-	return it.t.Before(it.e)
+	return it.t.Add(it.s).Before(it.e)
 }
 
+// Next returns the next time.Time in the iteration.
 func (it *TimeIterator) Next() time.Time {
 	t := it.t
 	it.t = it.t.Add(it.s)
