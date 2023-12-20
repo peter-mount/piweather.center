@@ -4,7 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
-	"github.com/peter-mount/piweather.center/store/server/ql/exec"
+	"github.com/peter-mount/piweather.center/store/ql/exec"
 	"io"
 	"net/http"
 	"time"

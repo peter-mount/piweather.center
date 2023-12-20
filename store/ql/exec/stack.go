@@ -1,6 +1,6 @@
 package exec
 
-import "github.com/peter-mount/piweather.center/store/server/ql"
+import "github.com/peter-mount/piweather.center/store/ql"
 
 func (ex *Executor) resetStack() {
 	ex.stack = nil

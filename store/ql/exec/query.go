@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
-	"github.com/peter-mount/piweather.center/store/server/ql/parser"
+	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"net/http"
 	"strings"
 )

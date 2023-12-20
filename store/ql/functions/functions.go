@@ -1,7 +1,7 @@
 package functions
 
 import (
-	"github.com/peter-mount/piweather.center/store/server/ql"
+	"github.com/peter-mount/piweather.center/store/ql"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )

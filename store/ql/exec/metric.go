@@ -2,8 +2,8 @@ package exec
 
 import (
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/store/server/ql"
-	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"github.com/peter-mount/piweather.center/store/ql"
+	"github.com/peter-mount/piweather.center/store/ql/lang"
 )
 
 func (ex *Executor) metric(_ lang.Visitor, s *lang.Metric) error {

@@ -4,8 +4,8 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
-	"github.com/peter-mount/piweather.center/store/server/ql"
-	"github.com/peter-mount/piweather.center/store/server/ql/lang"
+	"github.com/peter-mount/piweather.center/store/ql"
+	"github.com/peter-mount/piweather.center/store/ql/lang"
 	"github.com/peter-mount/piweather.center/util"
 	"time"
 )
