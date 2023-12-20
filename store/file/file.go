@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 )
@@ -32,6 +33,10 @@ func (f *File) Expired(t time.Time) bool {
 func (f *File) Close() error {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
+	return f.close()
+}
+
+func (f *File) close() error {
 
 	if f.file != nil {
 		defer func() {
@@ -79,7 +84,14 @@ func (f *File) size() (int, error) {
 
 // EntryCount returns the number of metrics in the file
 func (f *File) EntryCount() (int, error) {
-	s, err := f.Size()
+	return f.entryCountImpl(f.Size())
+}
+
+func (f *File) entryCount() (int, error) {
+	return f.entryCountImpl(f.size())
+}
+
+func (f *File) entryCountImpl(s int, err error) (int, error) {
 	if err == nil && s > f.header.Size {
 		return (s - f.header.Size) / f.header.RecordLength, nil
 	}
@@ -105,14 +117,9 @@ func (f *File) append(rec record.Record, sync bool) error {
 	// Touch the file as we are modifying it
 	f.touch()
 
-	b := f.handler.Append(nil, rec)
-
-	// Seek to the end of the file
-	offset, err := f.file.Seek(0, io.SeekEnd)
-
 	// Check the file length is at an expected record start location.
 	// If it is not, for now just remove the last partial record
-	// TODO implement WAL and restore here?
+	offset, err := f.file.Seek(0, io.SeekEnd)
 	if err == nil {
 		// Test the file end is at the end of a record.
 		lastRecSize := (int(offset) - f.header.Size) % f.header.RecordLength
@@ -131,21 +138,39 @@ func (f *File) append(rec record.Record, sync bool) error {
 		}
 	}
 
-	// Write the record
+	var latestRecord record.Record
 	if err == nil {
-		n, err1 := f.file.Write(b)
+		latestRecord, err = f.getLatestRecord()
+	}
+
+	if err == nil {
 		switch {
-		case err1 != nil:
-			err = err1
-		case n != len(b):
-			err = fmt.Errorf("%s: wrote %d/%d bytes", f.header.Name, n, len(b))
+		// Write the record if it's due to go to the end of the file
+		case !latestRecord.IsValid(), latestRecord.Time.Before(rec.Time):
+			b := f.handler.Append(nil, rec)
+
+			n, err1 := f.file.Write(b)
+			switch {
+			case err1 != nil:
+				err = err1
+			case n != len(b):
+				err = fmt.Errorf("%s: wrote %d/%d bytes", f.header.Name, n, len(b))
+			default:
+				f.latest = rec
+			}
+
+		case latestRecord.Time.Equal(rec.Time):
+			// Do nothing, duplicate entry - always keep first one
+			return nil
+
+		// new record is before last one so rebuild the file, inserting the record in the correct place
 		default:
-			f.latest = rec
+			return f.insertRecord(rec)
 		}
 	}
 
 	// Force the data to disk
-	if sync && err == nil {
+	if sync && err == nil && f.isOpen() {
 		err = f.file.Sync()
 	}
 
@@ -165,7 +190,10 @@ func (f *File) Sync() error {
 func (f *File) GetLatestRecord() (record.Record, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
+	return f.getLatestRecord()
+}
 
+func (f *File) getLatestRecord() (record.Record, error) {
 	if f.latest.IsValid() {
 		return f.latest, nil
 	}
@@ -186,6 +214,10 @@ func (f *File) GetLatestRecord() (record.Record, error) {
 func (f *File) GetRecord(i int) (record.Record, error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
+	return f.getRecord(i)
+}
+
+func (f *File) getRecord(i int) (record.Record, error) {
 
 	var rec record.Record
 	recordSize := f.header.RecordLength
@@ -303,4 +335,127 @@ func createFile(name, metric string) (*File, error) {
 	}
 
 	return file, nil
+}
+
+// insertRecord inserts a record into the File.
+// This is usually called when the record being inserted is older than the
+// latest entry, so we have to rebuild the file
+func (f *File) insertRecord(rec record.Record) error {
+	r, err := f.readAllRecords()
+
+	if err == nil {
+		r = f.insertRecords(r, rec)
+	}
+
+	if err == nil {
+		err = f.writeAllRecords(r)
+	}
+
+	return err
+}
+
+// readAllRecords will real all records in the File into a slice.
+func (f *File) readAllRecords() ([]record.Record, error) {
+	var r []record.Record
+
+	entryCount, err := f.entryCount()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < entryCount; i++ {
+		rec, err := f.getRecord(i)
+		if err != nil {
+			return nil, err
+		}
+		r = append(r, rec)
+	}
+
+	// Whilst here, sort into time order
+	sort.SliceStable(r, func(i, j int) bool {
+		return r[i].Time.Before(r[j].Time)
+	})
+
+	return r, nil
+}
+
+// insertRecords inserts a Record into a slice at the correct position in the slice
+func (f *File) insertRecords(r []record.Record, rec record.Record) []record.Record {
+	// No records so create a single entry
+	if len(r) == 0 {
+		return []record.Record{rec}
+	}
+
+	l := len(r)
+	t0 := rec.Time
+	for i := 0; i < l; i++ {
+		if r[i].Time.After(t0) {
+			switch {
+			case i == 0:
+				r = append([]record.Record{rec}, r...)
+			case i == (l - 1):
+				r = append(r, rec)
+			default:
+				r = append(append(r[:i], rec), r[i:]...)
+			}
+		}
+	}
+
+	// Simple append
+	return append(r, rec)
+}
+
+// writeAllRecords writes all records into the File.
+//
+// This works by creating a temporary file containing the new data then
+// renames the new file over the original one.
+//
+// As the File instance is locked, this should be atomic as far as the
+// database engine is concerned.
+func (f *File) writeAllRecords(recs []record.Record) error {
+	tmpName := f.name + ".tmp"
+	defer os.Remove(tmpName)
+
+	if err := f.writeTmpFile(tmpName, recs); err != nil {
+		return err
+	}
+
+	// Close the db file, but kept under lock.
+	// We will reopen as needed after the lock is released
+	if err := f.close(); err != nil {
+		return err
+	}
+
+	if err := os.Rename(tmpName, f.name); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// writeTmpFile writes a sloce of records into a new temporary file
+func (f *File) writeTmpFile(tmpName string, recs []record.Record) error {
+	nf, err := os.Create(tmpName)
+	if err != nil {
+		return err
+	}
+	defer nf.Close()
+
+	err = f.header.Write(nf)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range recs {
+		b := f.handler.Append(nil, r)
+		n, err := nf.Write(b)
+		if err != nil {
+			return err
+		}
+		if n != len(b) {
+			return fmt.Errorf("%s: wrote %d/%d bytes", f.header.Name, n, len(b))
+		}
+	}
+
+	return nil
 }
