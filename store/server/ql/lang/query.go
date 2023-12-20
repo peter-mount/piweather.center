@@ -188,6 +188,11 @@ func (qp *queryPrinter) aliasedExpression(v Visitor, b *AliasedExpression) error
 
 	_ = v.Expression(b.Expression)
 
+	if b.Unit != "" {
+		qp.append("UNIT")
+		qp.appendString(b.Unit)
+	}
+
 	if b.As != "" {
 		qp.append("AS")
 		qp.appendString(b.As)
@@ -207,6 +212,8 @@ func (qp *queryPrinter) expression(v Visitor, b *Expression) error {
 	case b.Function != nil:
 		_ = v.Function(b.Function)
 	}
+
+	_ = v.QueryRange(b.Range)
 
 	if b.Offset != nil {
 		qp.append("OFFSET")
