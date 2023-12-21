@@ -305,6 +305,10 @@ func openFile(name string) (*File, error) {
 	// If we have an error then close the underlying file before returning the error
 	if err != nil {
 		_ = f.Close()
+		if err == io.EOF {
+			_, _ = fmt.Fprintf(os.Stderr, "EOF on open, corrupt file? %q\n", name)
+			return nil, nil
+		}
 		return nil, err
 	}
 

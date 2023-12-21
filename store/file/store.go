@@ -124,7 +124,7 @@ func (s *store) Sync(metric string) error {
 func (s *store) GetRecord(metric string, date time.Time, num int) (record.Record, error) {
 	var rec record.Record
 	file, err := s.openFile(metric, date)
-	if err == nil {
+	if err == nil && file != nil {
 		rec, err = file.GetRecord(num)
 	}
 	return rec, err
@@ -132,7 +132,7 @@ func (s *store) GetRecord(metric string, date time.Time, num int) (record.Record
 
 func (s *store) NumRecords(metric string, date time.Time) (int, error) {
 	file, err := s.openFile(metric, date)
-	if err == nil {
+	if err == nil && file != nil {
 		return file.EntryCount()
 	}
 	return -1, err
@@ -141,7 +141,7 @@ func (s *store) NumRecords(metric string, date time.Time) (int, error) {
 func (s *store) GetLatestRecord(metric string, date time.Time) (record.Record, error) {
 	var rec record.Record
 	file, err := s.openFile(metric, date)
-	if err == nil {
+	if err == nil && file != nil {
 		rec, err = file.GetLatestRecord()
 	}
 	return rec, err
