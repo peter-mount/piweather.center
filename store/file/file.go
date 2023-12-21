@@ -117,6 +117,9 @@ func (f *File) append(rec record.Record, sync bool) error {
 	// Touch the file as we are modifying it
 	f.touch()
 
+	// Get the latest record in this file if we don't already have it cached
+	latestRecord, err := f.getLatestRecord()
+
 	// Check the file length is at an expected record start location.
 	// If it is not, for now just remove the last partial record
 	offset, err := f.file.Seek(0, io.SeekEnd)
@@ -136,11 +139,6 @@ func (f *File) append(rec record.Record, sync bool) error {
 				}
 			}
 		}
-	}
-
-	var latestRecord record.Record
-	if err == nil {
-		latestRecord, err = f.getLatestRecord()
 	}
 
 	if err == nil {
@@ -198,12 +196,26 @@ func (f *File) getLatestRecord() (record.Record, error) {
 		return f.latest, nil
 	}
 
-	// Seek to start of most recent record
-	offset, err := f.file.Seek(-int64(f.header.RecordLength), io.SeekEnd)
-	if err == nil && offset >= int64(f.header.Size) {
-		// We have a valid entry
-		f.latest, err = f.readRecord()
-	} else {
+	// Get current position
+	pos, err := f.file.Seek(0, io.SeekCurrent)
+	if err == nil {
+		// Seek to start of most recent record
+		offset, err1 := f.file.Seek(-int64(f.header.RecordLength), io.SeekEnd)
+		if err1 != nil {
+			err = err1
+		} else if offset >= int64(f.header.Size) {
+			// We have a valid entry
+			f.latest, err = f.readRecord()
+		}
+	}
+
+	// Restore previous position otherwise we could corrupt the database
+	_, err1 := f.file.Seek(pos, io.SeekStart)
+	if err1 != nil && err == nil {
+		err = err1
+	}
+
+	if err != nil {
 		// Replace with an invalid entry
 		f.latest = record.Record{}
 	}
@@ -350,6 +362,9 @@ func (f *File) insertRecord(rec record.Record) error {
 	if err == nil {
 		err = f.writeAllRecords(r)
 	}
+
+	// Invalidate the latest record cache
+	f.latest = record.Record{}
 
 	return err
 }
