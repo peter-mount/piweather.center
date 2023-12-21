@@ -62,3 +62,14 @@ func AppendValue(b []byte, v value.Value) []byte {
 	}
 	return b
 }
+
+func AppendString(b []byte, s string) []byte {
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(s)))
+	return append(b, s...)
+}
+
+func ReadString(b []byte) (string, []byte) {
+	l := int(binary.LittleEndian.Uint16(b[0:2]))
+	s := string(b[2 : 2+l])
+	return s, b[2+l:]
+}

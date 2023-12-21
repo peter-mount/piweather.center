@@ -17,8 +17,7 @@ const (
 	headerVersionOffset      = headerSizeOffset + 2         // 2 bytes
 	headerFileVersionOffset  = headerVersionOffset + 2      // 2 bytes
 	headerRecordLengthOffset = headerFileVersionOffset + 2  // 2 bytes
-	headerMetricLengthOffset = headerRecordLengthOffset + 2 // 2 bytes
-	headerMetricOffset       = headerMetricLengthOffset + 2 // Offset of metric
+	headerMetricOffset       = headerRecordLengthOffset + 2 // 2 bytes
 )
 
 var (
@@ -29,7 +28,7 @@ var (
 )
 
 func NewFileHeader(metric string) FileHeader {
-	size, _ := headerSize(metric)
+	size := headerSize(metric)
 	return FileHeader{
 		Name:          metric,
 		Size:          size,
@@ -51,6 +50,17 @@ type FileHeader struct {
 	Name          string // Name of metric this file contains
 }
 
+func (h *FileHeader) String() string {
+	return fmt.Sprintf(
+		"FileHeader[size=%d,headerVersion=%d,recordVersion=%d,recordLength=%d,name=%q]",
+		h.Size,
+		h.HeaderVersion,
+		h.RecordVersion,
+		h.RecordLength,
+		h.Name,
+	)
+}
+
 func (h *FileHeader) GetRecordHandler() (RecordHandler, error) {
 	if h.RecordVersion == 0 {
 		h.RecordVersion = currentFileVersion
@@ -63,25 +73,24 @@ func (h *FileHeader) GetRecordHandler() (RecordHandler, error) {
 	}
 }
 
-func headerSize(metric string) (int, int) {
+func headerSize(metric string) int {
 	name := []byte(metric)
 	nameLen := len(name)
 
 	// Calculate header size, pad to nearest 16 byte boundary
 	size := headerMetricOffset + nameLen
-	return size + 16 - (size & 0x0f), nameLen
+	return size + 16 - (size & 0x0f)
 }
 
 func (h *FileHeader) Write(w io.Writer) error {
-	size, nameLen := headerSize(h.Name)
+	size := headerSize(h.Name)
 
 	b := append([]byte{}, headerMagic...) // 8 bytes
 	b = binary.LittleEndian.AppendUint16(b, uint16(size))
 	b = binary.LittleEndian.AppendUint16(b, uint16(h.HeaderVersion))
 	b = binary.LittleEndian.AppendUint16(b, uint16(h.RecordVersion))
 	b = binary.LittleEndian.AppendUint16(b, uint16(h.RecordLength))
-	b = binary.LittleEndian.AppendUint16(b, uint16(nameLen))
-	b = append(b, h.Name...)
+	b = util.AppendString(b, h.Name)
 
 	// pad to fit expected size as we keep records working on a 16 byte boundary
 	b, err := util.PadToLength(b, size)
@@ -96,7 +105,7 @@ func (h *FileHeader) Write(w io.Writer) error {
 
 	n, err := w.Write(b)
 	if err == nil && n != len(b) {
-		return fmt.Errorf("failed to write header for %q", h.Name)
+		err = fmt.Errorf("failed to write header for %q", h.Name)
 	}
 	return err
 }
@@ -124,18 +133,19 @@ func (h *FileHeader) Read(r io.Reader) error {
 	h.HeaderVersion = int(binary.LittleEndian.Uint16(b[headerVersionOffset : headerVersionOffset+2]))
 	h.RecordVersion = int(binary.LittleEndian.Uint16(b[headerFileVersionOffset : headerFileVersionOffset+2]))
 	h.RecordLength = int(binary.LittleEndian.Uint16(b[headerRecordLengthOffset : headerRecordLengthOffset+2]))
-	nameLen := int(binary.LittleEndian.Uint16(b[headerMetricLengthOffset : headerMetricLengthOffset+2]))
 
 	// Now read in the metric name
-	b = make([]byte, nameLen)
+	hs := h.Size - headerMetricOffset
+	b = make([]byte, hs)
 	n, err = r.Read(b)
 	if err != nil {
 		return err
 	}
-	if n != nameLen {
-		return fmt.Errorf("invalid header, expected %d bytes got %d", nameLen, n)
+	if n != hs {
+		return fmt.Errorf("invalid header, expected %d bytes got %d", hs, n)
 	}
-	h.Name = string(b)
+
+	h.Name, _ = util.ReadString(b)
 
 	return nil
 }
