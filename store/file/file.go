@@ -220,6 +220,10 @@ func (f *File) getLatestRecord() (record.Record, error) {
 		f.latest = record.Record{}
 	}
 
+	if err == io.EOF {
+		err = nil
+	}
+
 	return f.latest, err
 }
 
