@@ -75,7 +75,7 @@ func (h *FileHeader) GetRecordHandler() (RecordHandler, error) {
 
 func headerSize(metric string) int {
 	name := []byte(metric)
-	nameLen := len(name)
+	nameLen := len(name) + 2 // +2 for the length
 
 	// Calculate header size, pad to nearest 16 byte boundary
 	size := headerMetricOffset + nameLen
