@@ -32,7 +32,7 @@ type AliasedExpression struct {
 
 	Expression *Expression `parser:"@@"`
 	Unit       string      `parser:"( 'UNIT' @String )?"`
-	As         string      `parser:"( 'AS' @Ident )?"`
+	As         string      `parser:"( 'AS' @String )?"`
 	unit       *value.Unit
 }
 
