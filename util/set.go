@@ -44,6 +44,18 @@ func (a *StringSet) Size() int {
 	return len(*a)
 }
 
+func (a *StringSet) IsEmpty() bool {
+	return a == nil || len(*a) == 0
+}
+
+func (a *StringSet) Entries() []string {
+	var r []string
+	for k, _ := range *a {
+		r = append(r, k)
+	}
+	return r
+}
+
 func (a *StringSet) ForEach(f func(string) error) error {
 	if a != nil {
 		for k, _ := range *a {

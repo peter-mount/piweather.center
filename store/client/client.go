@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -35,4 +36,23 @@ func (c *Client) get(path string, v interface{}) (bool, error) {
 			return err == nil, err
 		}
 	}
+}
+
+func (c *Client) post(path string, req []byte, v interface{}) (bool, error) {
+	resp, err := http.Post(c.Url+path, "application/json", bytes.NewReader(req))
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 404 {
+		return false, nil
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	return true, json.Unmarshal(body, v)
 }
