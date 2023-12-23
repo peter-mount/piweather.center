@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"github.com/peter-mount/piweather.center/util"
 	"sort"
 	"strings"
@@ -9,9 +10,9 @@ import (
 
 type Query struct {
 	post    *Post
-	ranges  util.StringSet
-	columns util.StringMap
+	columns map[string]column
 	colKeys util.StringSet
+	parser  parser.ExpressionParser
 	Query   string
 }
 
@@ -23,13 +24,18 @@ var (
 	}
 )
 
+type column struct {
+	expression string // Expression used
+	name       string // Name of column
+}
+
 // ParsePost parses a Post to form a query to issue to weatherdb
 func ParsePost(post *Post) (*Query, error) {
 	q := &Query{
 		post:    post,
-		ranges:  util.NewStringSet(),
-		columns: util.NewStringMap(),
+		columns: make(map[string]column),
 		colKeys: util.NewStringSet(),
+		parser:  parser.NewExpressionParser(),
 	}
 	err := q.parsePost()
 	if err == nil {
@@ -62,39 +68,55 @@ func (q *Query) parseRow(r *Row) error {
 			return err
 		}
 	}
+
+	for _, w := range r.When {
+		err := q.parseValue(w.Value)
+		if err == nil {
+			err = q.parseValue(w.LessThan)
+		}
+		if err == nil {
+			err = q.parseValue(w.LessThanEqual)
+		}
+		if err == nil {
+			err = q.parseValue(w.Equal)
+		}
+		if err == nil {
+			err = q.parseValue(w.NotEqual)
+		}
+		if err == nil {
+			err = q.parseValue(w.GreaterThanEqual)
+		}
+		if err == nil {
+			err = q.parseValue(w.GreaterThan)
+		}
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (q *Query) parseValue(v Value) error {
-	var a []string
-
-	switch {
-	case v.Type != "" && v.Sensor != "":
-		a = append(a, v.Type, "(", v.Sensor, ")")
-	case v.Type != "":
-		a = append(a, v.Type, "()")
-	case v.Sensor != "":
-		a = append(a, v.Sensor)
-	default:
-		// No type or sensor then ignore the value
+func (q *Query) parseValue(v *Value) error {
+	if v == nil || v.Query == "" {
 		return nil
 	}
 
-	if v.Range != "" {
-		a = append(a, ` USING "`, v.Range, `"`)
-		q.ranges.Add(v.Range)
+	// Verify expression is valid
+	_, err := q.parser.Parse(v.Query)
+	if err != nil {
+		return fmt.Errorf("error in %s: %s", v.Query, err.Error())
 	}
 
-	if v.Unit.Unit != "" {
-		a = append(a, ` UNIT "`, v.Unit.Unit, `"`)
-	}
-
-	l := strings.Join(a, "")
-	if q.colKeys.Add(l) {
+	if q.colKeys.Add(v.Query) {
 		colName := fmt.Sprintf(`col%03d`, len(q.colKeys))
 
 		// Using a Set means we only include a query once
-		q.columns.Add(colName, l+` AS "`+colName+`"`)
+		q.columns[colName] = column{
+			expression: v.Query,
+			name:       colName,
+		}
+
+		v.Col = colName
 	}
 	return nil
 }
@@ -107,27 +129,30 @@ func (q *Query) generateQuery() string {
 		`BETWEEN "now" TRUNCATE "10m" ADD "-10m" AND "now" ADD "1m"`,
 		`EVERY "10m"`)
 
-	if !q.ranges.IsEmpty() {
-		var d []string
-		for _, k := range q.ranges.Entries() {
-			if len(d) > 0 {
-				d = append(d, ",\n")
-			}
-			d = append(d, `  "`, k, `" AS `, ranges[k])
+	var d []string
+	for k, v := range ranges {
+		if len(d) > 0 {
+			d = append(d, ",\n")
 		}
-		a = append(a, "DECLARE", strings.Join(d, ""))
+		d = append(d, `  "`, k, `" AS `, v)
 	}
+	a = append(a, "DECLARE", strings.Join(d, ""))
 
-	columns := q.columns.Keys()
+	var columns []string
+	for k, _ := range q.columns {
+		columns = append(columns, k)
+	}
 	sort.SliceStable(columns, func(i, j int) bool {
 		return columns[i] < columns[j]
 	})
+
 	var s []string
 	for _, k := range columns {
 		if len(s) > 0 {
 			s = append(s, ",\n")
 		}
-		s = append(s, "  ", q.columns.Get(k))
+		c := q.columns[k]
+		s = append(s, "  ", c.expression, ` AS "`, c.name, `"`)
 	}
 	a = append(a, "SELECT", strings.Join(s, ""))
 

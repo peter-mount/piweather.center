@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/peter-mount/piweather.center/weather/value"
 	"strconv"
 	"strings"
 	"time"
@@ -8,10 +9,11 @@ import (
 
 // Cell represents an individual cell within a Table's Row
 type Cell struct {
-	Type   CellType  // Type of cell
-	Time   time.Time // Time of value in cell, IsZero()==true if unknown or text
-	String string    // String value, always present as formatted by Unit if Float or Int
-	Float  float64   // float64 value, only set when unmarshalling from JSON
+	Type   CellType    // Type of cell
+	Time   time.Time   // Time of value in cell, IsZero()==true if unknown or text
+	String string      // String value, always present as formatted by Unit if Float or Int
+	Float  float64     // float64 value, only set when unmarshalling from JSON
+	Value  value.Value // Converted value
 }
 
 // CellType defines the type of cell

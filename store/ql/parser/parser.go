@@ -46,6 +46,7 @@ var (
 	)
 )
 
+// Parser allows a full Query to be parsed with it fully initialised
 type Parser interface {
 	Parse(fileName string, r io.Reader, opts ...participle.ParseOption) (*lang.Query, error)
 	ParseBytes(fileName string, b []byte, opts ...participle.ParseOption) (*lang.Query, error)

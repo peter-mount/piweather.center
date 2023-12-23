@@ -22,13 +22,13 @@ type Thread struct {
 
 // Row of data within a Thread
 type Row struct {
-	Format string  `yaml:"format"`         // Format for this row
-	Values []Value `yaml:"values"`         // Values to pass to the format
-	When   []When  `yaml:"when,omitempty"` // Define conditions to show this Row
+	Format string   `yaml:"format"`         // Format for this row
+	Values []*Value `yaml:"values"`         // Values to pass to the format
+	When   []When   `yaml:"when,omitempty"` // Define conditions to show this Row
 }
 
 type When struct {
-	Value            Value  `yaml:"value"`
+	Value            *Value `yaml:"value"`
 	LessThan         *Value `yaml:"lessThan"`
 	LessThanEqual    *Value `yaml:"lessThanEqual"`
 	Equal            *Value `yaml:"equal"`
@@ -39,12 +39,11 @@ type When struct {
 
 // Value in a Row that will provide data for the Row formatter
 type Value struct {
-	Sensor string   `yaml:"sensor"`          // Sensor to inject
-	Type   string   `yaml:"type"`            // Type of result expected
-	Factor float64  `yaml:"factor"`          // Factor to apply to value
-	Unit   Unit     `yaml:"unit"`            // Units to use
-	Range  string   `yaml:"range,omitempty"` // The state.Value range to use, default current10
-	Value  *float64 `yaml:"value"`
+	Query  string   `yaml:"query"`  // QL Expression
+	Factor float64  `yaml:"factor"` // Factor to apply to value
+	Unit   Unit     `yaml:"unit"`   // Units to use
+	Value  *float64 `yaml:"value"`  // Explicit value to use
+	Col    string   `yaml:"-"`      // Internal used to match from the result
 }
 
 func (v Value) GetValue(src value.Value) (value.Value, error) {

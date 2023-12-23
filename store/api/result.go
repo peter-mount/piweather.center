@@ -20,6 +20,20 @@ type Result struct {
 	Table []*Table `json:"table"`
 }
 
+func (r *Result) Init() {
+	for _, t := range r.Table {
+		for _, r := range t.Rows {
+			for i, c := range *r {
+				if c.Type == CellNumeric {
+					v, _ := t.Columns[i].Value(c.Float)
+					c.Value = v
+					(*r)[i] = c
+				}
+			}
+		}
+	}
+}
+
 func (r *Result) AddMeta(k string, v interface{}) {
 	if r.Meta == nil {
 		r.Meta = make(map[string]interface{})
@@ -120,14 +134,40 @@ func (t *Table) Finalise() {
 		}
 	}
 
+	for i, c := range t.Columns {
+		c.Index = i
+	}
+
 	t.Rows = tr
 }
 
+func (t *Table) GetColumn(n string) *Column {
+	for _, c := range t.Columns {
+		if n == c.Name {
+			return c
+		}
+	}
+	return nil
+}
+
+func (t *Table) GetCell(n string, r *Row) Cell {
+	for i, c := range t.Columns {
+		if n == c.Name {
+			if i < len(*r) {
+				return (*r)[i]
+			}
+			break
+		}
+	}
+	return Cell{Type: CellNull}
+}
+
 type Column struct {
-	Name  string      `json:"name" xml:",chardata" yaml:"name"`                                  // Name of column
-	Type  ColumnType  `json:"type,omitempty" xml:"type,attr,omitempty" yaml:"type,omitempty"`    // Type of column
-	Width int         `json:"width,omitempty" xml:"width,omitempty,attr" yaml:"width,omitempty"` // Width in characters, 0=unknown
-	Unit  string      `json:"unit,omitempty" xml:"unit,omitempty,attr" yaml:"unit,omitempty"`    // Unit of column, ""=unknown or text
+	Index int         `json:"index"`           // Index of column in Row
+	Name  string      `json:"name"`            // Name of column
+	Type  ColumnType  `json:"type,omitempty"`  // Type of column
+	Width int         `json:"width,omitempty"` // Width in characters, 0=unknown
+	Unit  string      `json:"unit,omitempty"`  // Unit of column, ""=unknown or text
 	unit  *value.Unit // resolved unit
 }
 
@@ -144,7 +184,7 @@ func (c *Column) SetUnit(u *value.Unit) {
 	if u == nil {
 		c.Unit = ""
 	} else {
-		c.Unit = c.unit.Name()
+		c.Unit = c.unit.ID()
 	}
 }
 
@@ -156,6 +196,20 @@ func (c *Column) Transform(v value.Value) (value.Value, error) {
 		return v.As(c.unit)
 	}
 	return v, nil
+}
+
+func (c *Column) Value(f float64) (value.Value, error) {
+	if c.unit == nil {
+		u, ok := value.GetUnit(c.Unit)
+		if !ok {
+			return value.Value{}, fmt.Errorf("unknown unit %q", c.Unit)
+		}
+		c.SetUnit(u)
+	}
+	if c.unit != nil {
+		return c.unit.Value(f), nil
+	}
+	return value.Value{}, nil
 }
 
 // ColumnType defines the Column type. This is a bit field so each value defines the type of each bit.

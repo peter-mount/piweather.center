@@ -47,12 +47,23 @@ func (t *Bot) Start() error {
 		return err
 	}
 
+	// Hack, only keep the last row in the results, as we sometimes get 2
+	// rows
+	for _, table := range t.result.Table {
+		if len(table.Rows) > 1 {
+			table.Rows = table.Rows[len(table.Rows)-1:]
+		}
+	}
+
+	// Ensure cells have Value's populated
+	t.result.Init()
+
 	log.Println(t.result)
 
-	//err = t.postText()
-	//if err != nil {
-	//	return err
-	//}
+	err = t.postText()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

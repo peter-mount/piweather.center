@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-mastodon"
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/weather/state"
-	value2 "github.com/peter-mount/piweather.center/weather/value"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 )
 
@@ -91,8 +91,8 @@ func (t *Bot) processRow(row *Row) (string, error) {
 
 	var a []interface{}
 
-	for _, value := range row.Values {
-		v, err := t.GetValue(value)
+	for _, val := range row.Values {
+		v, err := t.GetValue(val)
 		if err != nil {
 			return "", err
 		}
@@ -108,25 +108,25 @@ func (t *Bot) when(when When) (bool, error) {
 		return false, err
 	}
 
-	if val, ok := v.(value2.Value); ok {
+	if val, ok := v.(value.Value); ok {
 		switch {
 		case when.LessThan != nil:
-			return t.compare(val, *when.LessThan, value2.LessThan)
+			return t.compare(val, when.LessThan, value.LessThan)
 
 		case when.LessThanEqual != nil:
-			return t.compare(val, *when.LessThanEqual, value2.LessThanEqual)
+			return t.compare(val, when.LessThanEqual, value.LessThanEqual)
 
 		case when.Equal != nil:
-			return t.compare(val, *when.Equal, value2.Equal)
+			return t.compare(val, when.Equal, value.Equal)
 
 		case when.NotEqual != nil:
-			return t.compare(val, *when.NotEqual, value2.NotEqual)
+			return t.compare(val, when.NotEqual, value.NotEqual)
 
 		case when.GreaterThanEqual != nil:
-			return t.compare(val, *when.GreaterThanEqual, value2.GreaterThanEqual)
+			return t.compare(val, when.GreaterThanEqual, value.GreaterThanEqual)
 
 		case when.GreaterThan != nil:
-			return t.compare(val, *when.GreaterThan, value2.GreaterThan)
+			return t.compare(val, when.GreaterThan, value.GreaterThan)
 
 		}
 	}
@@ -134,114 +134,43 @@ func (t *Bot) when(when When) (bool, error) {
 	return false, nil
 }
 
-func (t *Bot) compare(val1 value2.Value, value Value, comp value2.Comparator) (bool, error) {
-	v, err := t.GetValue(value)
+func (t *Bot) compare(val1 value.Value, val *Value, comp value.Comparator) (bool, error) {
+	v, err := t.GetValue(val)
 	if err != nil {
 		return false, err
 	}
-	if val2, ok := v.(value2.Value); ok {
+	if val2, ok := v.(value.Value); ok {
 		return val1.Compare(val2, comp)
 	}
 	return false, nil
 }
 
-func (t *Bot) GetValue(value Value) (interface{}, error) {
-	if value.Value != nil {
-		f := *value.Value
-		if value.Unit.Unit != "" {
-			u, ok := value2.GetUnit(value.Unit.Unit)
+func (t *Bot) GetValue(val *Value) (interface{}, error) {
+	if val.Value != nil {
+		f := *val.Value
+		if val.Unit.Unit != "" {
+			u, ok := value.GetUnit(val.Unit.Unit)
 			if !ok {
 				return f, nil
 			}
-			return value.GetValue(u.Value(f))
+			return val.GetValue(u.Value(f))
 		}
 	}
 
-	var v interface{}
-	switch value.Type {
-	case ValueTime:
-		return t.station.Meta.Time.Format("2006 Jan 02 15:04 MST"), nil
+	table := t.result.Table[0]
+	cell := table.GetCell(val.Col, table.Rows[0])
 
-	case ValueStationName:
-		return t.station.Meta.Name, nil
-
+	switch cell.Type {
+	case api.CellNull:
+		return "", nil
+	case api.CellString:
+		return cell.String, nil
+	case api.CellNumeric:
+		if cell.Value.IsValid() {
+			return cell.Value, nil
+		}
+		return cell.Float, nil
 	default:
-		m := t.getMeasurement(value.Sensor)
-		if m == nil {
-			return fmt.Sprintf("sensor %q missing", value.Sensor), nil
-		}
-
-		valueRange := m.Current10
-		switch value.Range {
-		case RangeCurrent, "":
-			valueRange = m.Current10
-		case RangePrevious:
-			valueRange = m.Previous10
-		case RangeHour:
-			valueRange = m.Hour
-		case RangeHour24:
-			valueRange = m.Hour24
-		case RangeToday:
-			valueRange = m.Today
-		}
-
-		var f state.RoundedFloat
-		switch value.Type {
-		case "", ValueLatest:
-			f = m.Current.Value
-
-		case ValuePrevious:
-			f = m.Previous.Value
-
-		case ValueTrend:
-			v = m.Trends.Current.Char
-
-		case ValueMin:
-			f = valueRange.Min
-
-		case ValueMax:
-			f = valueRange.Max
-
-		case ValueMean:
-			f = valueRange.Mean
-
-		case ValueTotal:
-			f = valueRange.Total
-
-		case ValueCount:
-			f = state.RoundedFloat(valueRange.Count)
-
-		default:
-			return "", fmt.Errorf("unsupported type %q for sensor %q", value.Type, value.Sensor)
-		}
-
-		// v not set (see ValueTrend) then use f
-		if v == nil {
-			// Apply Factor if present
-			if value.Factor != 0.0 {
-				f = f * state.RoundedFloat(value.Factor)
-			}
-
-			// Handle units, src is from Measurement, dest from Value
-			if src, srcOk := value2.GetUnit(m.Unit); srcOk {
-				v0 := src.Value(float64(f))
-				if v1, err := value.GetValue(v0); err != nil {
-					// Cannot transform between requested units
-					v = err.Error()
-				} else {
-
-					v = v1
-				}
-			} else {
-				v = f
-			}
-		}
-
-		// Handle "state.RoundedFloat=0" error when using %f
-		if rf, ok := v.(state.RoundedFloat); ok {
-			v = float64(rf)
-		}
-
-		return v, nil
+		return "", nil
 	}
 }
