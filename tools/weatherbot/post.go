@@ -171,7 +171,7 @@ func (t *Bot) GetValue(val *Value) (interface{}, error) {
 		return val.Cell.String(), nil
 	case api.CellNumeric:
 		if val.Cell.Value.IsValid() {
-			return val.Cell.Value, nil
+			return val.GetValue(val.Cell.Value)
 		}
 		return val.Cell.Float(), nil
 	default:
