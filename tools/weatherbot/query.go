@@ -11,7 +11,7 @@ import (
 type Query struct {
 	post    *Post
 	columns map[string]column
-	colKeys util.StringSet
+	colKeys util.StringMap
 	parser  parser.ExpressionParser
 	Query   string
 }
@@ -34,7 +34,7 @@ func ParsePost(post *Post) (*Query, error) {
 	q := &Query{
 		post:    post,
 		columns: make(map[string]column),
-		colKeys: util.NewStringSet(),
+		colKeys: util.NewStringMap(),
 		parser:  parser.NewExpressionParser(),
 	}
 	err := q.parsePost()
@@ -107,16 +107,22 @@ func (q *Query) parseValue(v *Value) error {
 		return fmt.Errorf("error in %s: %s", v.Query, err.Error())
 	}
 
-	if q.colKeys.Add(v.Query) {
+	// Using a Set means we only include a query once
+	if q.colKeys.Contains(v.Query) {
+		// Just set the shared column name
+		v.Col = q.colKeys.Get(v.Query)
+	} else {
+		// New entry
 		colName := fmt.Sprintf(`col%03d`, len(q.colKeys))
 
-		// Using a Set means we only include a query once
 		q.columns[colName] = column{
 			expression: v.Query,
 			name:       colName,
 		}
 
 		v.Col = colName
+
+		q.colKeys.Add(v.Query, colName)
 	}
 	return nil
 }

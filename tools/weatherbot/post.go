@@ -155,6 +155,7 @@ func (t *Bot) GetValue(val *Value) (interface{}, error) {
 			}
 			return val.GetValue(u.Value(f))
 		}
+		return "", nil
 	}
 
 	if val.Cell == nil {

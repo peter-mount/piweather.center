@@ -1,8 +1,10 @@
 package bot
 
 import (
+	"fmt"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"strings"
 )
 
 // Post represents the weatherbot config for a specific weather.Station
@@ -38,6 +40,29 @@ type When struct {
 	GreaterThan      *Value `yaml:"greaterThan"`
 }
 
+func (w When) String() string {
+	s := []string{"When["}
+	if w.Value != nil {
+		s = append(s, w.Value.String())
+		switch {
+		case w.LessThan != nil:
+			s = append(s, "<", w.LessThan.String())
+		case w.LessThanEqual != nil:
+			s = append(s, "<=", w.LessThanEqual.String())
+		case w.Equal != nil:
+			s = append(s, "==", w.Equal.String())
+		case w.NotEqual != nil:
+			s = append(s, "!=", w.NotEqual.String())
+		case w.GreaterThanEqual != nil:
+			s = append(s, ">=", w.GreaterThanEqual.String())
+		case w.GreaterThan != nil:
+			s = append(s, ">", w.GreaterThan.String())
+		}
+	}
+
+	return strings.Join(append(s, "]"), " ")
+}
+
 // Value in a Row that will provide data for the Row formatter
 type Value struct {
 	Query  string    `yaml:"query"`  // QL Expression
@@ -46,6 +71,13 @@ type Value struct {
 	Value  *float64  `yaml:"value"`  // Explicit value to use
 	Col    string    `yaml:"-"`      // Internal used to match from the result
 	Cell   *api.Cell `yaml:"-"`      // Cell of the result
+}
+
+func (v Value) String() string {
+	if v.Value != nil {
+		return fmt.Sprintf("Value[value=%f]", *v.Value)
+	}
+	return fmt.Sprintf("Value[query=%q]", v.Query)
 }
 
 func (v Value) GetValue(src value.Value) (value.Value, error) {

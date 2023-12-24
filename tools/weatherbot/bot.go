@@ -40,6 +40,8 @@ func (t *Bot) Start() error {
 		return err
 	}
 
+	log.Println(query.Query)
+
 	t.result, err = t.dbClient.Query(query.Query)
 	if err != nil {
 		return err
