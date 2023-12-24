@@ -40,8 +40,6 @@ func (t *Bot) Start() error {
 		return err
 	}
 
-	log.Println(query.Query)
-
 	t.result, err = t.dbClient.Query(query.Query)
 	if err != nil {
 		return err
@@ -57,8 +55,6 @@ func (t *Bot) Start() error {
 
 	// Ensure cells have Value's populated
 	t.result.Init()
-
-	log.Println(t.result)
 
 	err = t.postText()
 	if err != nil {

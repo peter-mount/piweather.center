@@ -25,7 +25,7 @@ func (r *Result) Init() {
 		for _, r := range t.Rows {
 			for i, c := range *r {
 				if c.Type == CellNumeric {
-					v, _ := t.Columns[i].Value(c.Float)
+					v, _ := t.Columns[i].Value(c.Float())
 					c.Value = v
 					(*r)[i] = c
 				}
@@ -123,7 +123,7 @@ func (t *Table) Finalise() {
 				}
 
 				// Ensure the column width is wide enough - but do not change fixed width columns
-				cw := len(c.String)
+				cw := len(c.String())
 				col := t.Columns[i]
 				if !col.IsFixed() && cw > col.Width {
 					col.Width = cw
@@ -269,39 +269,22 @@ func (r *Row) add(c Cell) *Row {
 // AddValue adds a CellString cell to the row based on the value.Value.
 // If the value is not valid then a CellNull cell is added instead.
 func (r *Row) AddValue(t time.Time, v value.Value) *Row {
-	if v.IsValid() {
-		return r.add(Cell{
-			Type:   CellNumeric,
-			Time:   t,
-			String: v.PlainString(),
-		})
-	} else {
-		r.AddNull()
-	}
-	return r
+	return r.add(NewValueCell(t, v))
 }
 
 // AddString adds a CellString cell with the supplied value
 func (r *Row) AddString(t time.Time, s string) *Row {
-	return r.add(Cell{
-		Type:   CellString,
-		Time:   t,
-		String: s,
-	})
+	return r.add(NewStringCell(t, s))
 }
 
 // AddDynamic adds a CellDynamic cell with the supplied value.
 func (r *Row) AddDynamic(t time.Time, s string) *Row {
-	return r.add(Cell{
-		Type:   CellDynamic,
-		Time:   t,
-		String: s,
-	})
+	return r.add(NewDynamicCell(t, s))
 }
 
 // AddNull adds a CellNull cell to the row.
 func (r *Row) AddNull() *Row {
-	return r.add(Cell{Type: CellNull})
+	return r.add(NewNullCell())
 }
 
 // IsValid returns true of the row contains at least one cell not CellNull or CellDynamic
@@ -363,7 +346,7 @@ func (t *Table) String(b []string) []string {
 		}
 		s1 = nil
 		for i, c := range *r {
-			s1 = append(s1, t.Columns[i].String(c.String))
+			s1 = append(s1, t.Columns[i].String(c.String()))
 		}
 		b = append(b, "|"+strings.Join(s1, "|")+"|")
 	}

@@ -36,6 +36,8 @@ const (
 //
 // %s	String value
 //
+// %t   Trend, show ↓ → or ↑ depending on the trend value
+//
 // %T   Integer value in unix seconds - returns as "Jan 02 15:04:05 MST"
 //
 // %u 	Unit value with unit suffix
@@ -61,14 +63,14 @@ func Sprintf(f string, args ...interface{}) string {
 
 			case strings.HasPrefix(f, "%d"):
 				arg, args = getArg(args)
-				if arg != nil {
+				if isNull(arg) {
+					r = append(r, na)
+				} else {
 					if i, err := calculator.GetInt(arg); err != nil {
 						r = append(r, err.Error())
 					} else {
 						r = append(r, strconv.Itoa(i))
 					}
-				} else {
-					r = append(r, na)
 				}
 				f = f[2:]
 
@@ -92,26 +94,42 @@ func Sprintf(f string, args ...interface{}) string {
 				f = a[1]
 
 				arg, args = getArg(args)
-				if arg != nil {
+				if isNull(arg) {
+					r = append(r, na)
+				} else {
 					if fv, err := calculator.GetFloat(arg); err != nil {
 						r = append(r, err.Error())
 					} else {
 						r = append(r, fmt.Sprintf(format, fv))
 					}
-				} else {
-					r = append(r, na)
 				}
 
 			case strings.HasPrefix(f, "%s"):
 				arg, args = getArg(args)
-				if arg != nil {
+				if isNull(arg) {
+					r = append(r, na)
+				} else {
 					s, err := calculator.GetString(arg)
 					if err != nil {
 						s = err.Error()
 					}
 					r = append(r, s)
-				} else {
-					r = append(r, na)
+				}
+				f = f[2:]
+
+			case strings.HasPrefix(f, "%t"):
+				arg, args = getArg(args)
+				if !isNull(arg) {
+					if fv, err := calculator.GetFloat(arg); err == nil {
+						switch {
+						case value.Equal(fv, 0):
+							r = append(r, "→")
+						case value.GreaterThan(fv, 0):
+							r = append(r, "↑")
+						default:
+							r = append(r, "↓")
+						}
+					}
 				}
 				f = f[2:]
 
@@ -154,4 +172,16 @@ func getArg(args []interface{}) (interface{}, []interface{}) {
 		return args[0], args[1:]
 	}
 	return nil, nil
+}
+
+func isNull(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+
+	if s, ok := v.(string); ok {
+		return s == ""
+	}
+
+	return false
 }

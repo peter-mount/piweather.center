@@ -157,19 +157,22 @@ func (t *Bot) GetValue(val *Value) (interface{}, error) {
 		}
 	}
 
-	table := t.result.Table[0]
-	cell := table.GetCell(val.Col, table.Rows[0])
+	if val.Cell == nil {
+		table := t.result.Table[0]
+		cell := table.GetCell(val.Col, table.Rows[0])
+		val.Cell = &cell
+	}
 
-	switch cell.Type {
+	switch val.Cell.Type {
 	case api.CellNull:
 		return "", nil
 	case api.CellString:
-		return cell.String, nil
+		return val.Cell.String, nil
 	case api.CellNumeric:
-		if cell.Value.IsValid() {
-			return cell.Value, nil
+		if val.Cell.Value.IsValid() {
+			return val.Cell.Value, nil
 		}
-		return cell.Float, nil
+		return val.Cell.Float, nil
 	default:
 		return "", nil
 	}

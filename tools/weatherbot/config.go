@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -39,11 +40,12 @@ type When struct {
 
 // Value in a Row that will provide data for the Row formatter
 type Value struct {
-	Query  string   `yaml:"query"`  // QL Expression
-	Factor float64  `yaml:"factor"` // Factor to apply to value
-	Unit   Unit     `yaml:"unit"`   // Units to use
-	Value  *float64 `yaml:"value"`  // Explicit value to use
-	Col    string   `yaml:"-"`      // Internal used to match from the result
+	Query  string    `yaml:"query"`  // QL Expression
+	Factor float64   `yaml:"factor"` // Factor to apply to value
+	Unit   Unit      `yaml:"unit"`   // Units to use
+	Value  *float64  `yaml:"value"`  // Explicit value to use
+	Col    string    `yaml:"-"`      // Internal used to match from the result
+	Cell   *api.Cell `yaml:"-"`      // Cell of the result
 }
 
 func (v Value) GetValue(src value.Value) (value.Value, error) {
