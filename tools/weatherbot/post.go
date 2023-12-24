@@ -168,12 +168,12 @@ func (t *Bot) GetValue(val *Value) (interface{}, error) {
 	case api.CellNull:
 		return "", nil
 	case api.CellString:
-		return val.Cell.String, nil
+		return val.Cell.String(), nil
 	case api.CellNumeric:
 		if val.Cell.Value.IsValid() {
 			return val.Cell.Value, nil
 		}
-		return val.Cell.Float, nil
+		return val.Cell.Float(), nil
 	default:
 		return "", nil
 	}
