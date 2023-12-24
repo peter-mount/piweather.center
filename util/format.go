@@ -43,6 +43,8 @@ const (
 // %u 	Unit value with unit suffix
 //
 // %v	interface value
+//
+// %W   Wind direction
 func Sprintf(f string, args ...interface{}) string {
 	var r []string
 	var arg interface{}
@@ -154,6 +156,17 @@ func Sprintf(f string, args ...interface{}) string {
 			case strings.HasPrefix(f, "%v"):
 				arg, args = getArg(args)
 				r = append(r, fmt.Sprintf("%v", arg))
+				f = f[2:]
+
+			case strings.HasPrefix(f, "%W"):
+				arg, args = getArg(args)
+				if !isNull(arg) {
+					if i, err := calculator.GetInt(arg); err != nil {
+						r = append(r, err.Error())
+					} else {
+						r = append(r, WindCompassDirection(float64(i)))
+					}
+				}
 				f = f[2:]
 
 			default:
