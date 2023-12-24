@@ -19,6 +19,7 @@ type Query struct {
 
 var (
 	ranges = util.StringMap{
+		"yesterday":  `between "midnight" add "-24h" and "midnight"`,
 		"today":      `between "midnight" and "now"`,
 		"hour":       `between "row" truncate "1h" and "row" add "every"`,
 		"trendLimit": `offset "-10m"`,
