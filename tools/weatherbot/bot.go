@@ -40,7 +40,7 @@ func (t *Bot) Start() error {
 		return err
 	}
 
-	log.Println(query.Query)
+	//log.Println(query.Query)
 
 	t.result, err = t.dbClient.Query(query.Query)
 	if err != nil {
@@ -50,7 +50,11 @@ func (t *Bot) Start() error {
 	// Hack, only keep the last row in the results, as we sometimes get 2
 	// rows
 	for _, table := range t.result.Table {
-		if len(table.Rows) > 1 {
+		switch len(table.Rows) {
+		case 0:
+			// No rows then stop right here
+			return nil
+		default:
 			table.Rows = table.Rows[len(table.Rows)-1:]
 		}
 	}
