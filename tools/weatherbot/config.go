@@ -11,6 +11,7 @@ import (
 type Post struct {
 	Name      string    `yaml:"name"`      // Name of the post
 	StationId string    `yaml:"stationId"` // StationId for this post
+	Range     string    `yaml:"range"`     // Query range
 	Threads   []*Thread `yaml:"thread"`    // Threads to generate
 }
 

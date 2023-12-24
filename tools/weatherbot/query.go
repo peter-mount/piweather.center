@@ -9,11 +9,12 @@ import (
 )
 
 type Query struct {
-	post    *Post
-	columns map[string]column
-	colKeys util.StringMap
-	parser  parser.ExpressionParser
-	Query   string
+	post       *Post
+	columns    map[string]column
+	colKeys    util.StringMap
+	parser     parser.ExpressionParser
+	Query      string
+	queryRange string
 }
 
 var (
@@ -32,10 +33,11 @@ type column struct {
 // ParsePost parses a Post to form a query to issue to weatherdb
 func ParsePost(post *Post) (*Query, error) {
 	q := &Query{
-		post:    post,
-		columns: make(map[string]column),
-		colKeys: util.NewStringMap(),
-		parser:  parser.NewExpressionParser(),
+		post:       post,
+		columns:    make(map[string]column),
+		colKeys:    util.NewStringMap(),
+		parser:     parser.NewExpressionParser(),
+		queryRange: post.Range,
 	}
 	err := q.parsePost()
 	if err == nil {
@@ -129,11 +131,11 @@ func (q *Query) parseValue(v *Value) error {
 
 func (q *Query) generateQuery() string {
 	var a []string
-	// TODO range
-	//a = append(a, `BETWEEN "midnight" AND "now"`)
-	a = append(a,
-		`BETWEEN "now" TRUNCATE "10m" ADD "-10m" AND "now" ADD "1m"`,
-		`EVERY "10m"`)
+
+	if q.queryRange == "" {
+		q.queryRange = `BETWEEN "now" TRUNCATE "10m" ADD "-10m" AND "now" ADD "1m" EVERY "10m"`
+	}
+	a = append(a, q.queryRange)
 
 	var d []string
 	for k, v := range ranges {
