@@ -26,13 +26,13 @@
         </g>
     </defs>
     <g transform="translate(145,145)" dominant-baseline="middle" text-anchor="middle">
-        <!--
+        {{- /*
         We need an arc that's part of a circle, so the best way is to use a circle with a stroke-dasharray.
         Here we need to calculate the dash in drawing units. 1 unit = 2πr/360 so here 2π*90/360=1.57
 
         As the arc starts clockwise from the East position, we start with 22.5° which is 22.5*1.57=35.
         Then we skip the next 134° (212 units) and then draw for another 224° (353 units).
-         -->
+        */ -}}
         <circle cx="0" cy="0" r="90" fill="none" stroke="black" stroke-width="3px" stroke-dasharray="35,212,353"/>
         {{- range $a := $axis.Ticks -}}
         <g transform="rotate({{subtract $a.Angle 112.5}})">
