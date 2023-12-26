@@ -52,6 +52,7 @@
 
 .dash-text,
 .dash-gauge,
+.dash-barometer,
 .dash-compass,
 .dash-value,
 .dash-rain-gauge {
@@ -87,6 +88,7 @@
     width: 5em;
 }
 
+.dash-barometer,
 .dash-gauge,
 .dash-compass {
     width: 10em;

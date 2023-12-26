@@ -7,6 +7,7 @@ import (
 
 func init() {
 	f := func() Instance { return &Value{} }
+	Register("barometer", f)
 	Register("compass", f)
 	Register("gauge", f)
 	Register("rain-gauge", f)
