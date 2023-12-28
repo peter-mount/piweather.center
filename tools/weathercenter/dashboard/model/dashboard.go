@@ -22,7 +22,7 @@ func init() {
 	}
 
 	// Generate a compressed uid string
-	uids = string(encode(compress(append([]byte{}, uid...))))
+	uids = string(encode(compress(uid)))
 }
 
 func UID() string {
