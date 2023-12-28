@@ -1,5 +1,7 @@
 {{- template "componentStart" . }}
-{{- with .Label}}<span class="label"><span>{{.}}</span></span>{{end -}}
+{{- with .Label}}<span class="label">
+{{- range split "_" .}}<span>{{.}}</span>{{end -}}
+</span>{{end -}}
 <span class="metric">
 {{- range $i,$m := .Metric -}}<span id="{{$.ID}}.txt{{$i}}">{{$m.String}}</span>{{- end -}}
 </span>
