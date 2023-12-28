@@ -1,0 +1,5 @@
+{{- template "componentStart" . }}
+{{ range $c := .Components -}}
+{{- showComponent $c -}}
+{{- end }}
+{{- template "componentEnd" . -}}

@@ -7,6 +7,7 @@ import (
 
 func init() {
 	f := func() Instance { return &Container{} }
+	Register("col", f)
 	Register("container", f)
 	Register("row", f)
 }

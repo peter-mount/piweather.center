@@ -1,6 +1,6 @@
 {{- template "componentStart" . }}
-{{- with .Label}}<span class="label">{{.}}</span>{{end -}}
-{{- range $i,$m := .Metric -}}
-<span class="metric" id="{{$.ID}}.txt{{$i}}">{{$m.String}}</span>
-{{- end -}}
+{{- with .Label}}<span class="label"><span>{{.}}</span></span>{{end -}}
+<span class="metric">
+{{- range $i,$m := .Metric -}}<span id="{{$.ID}}.txt{{$i}}">{{$m.String}}</span>{{- end -}}
+</span>
 {{- template "componentEnd" . -}}
