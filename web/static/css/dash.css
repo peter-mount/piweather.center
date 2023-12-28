@@ -32,9 +32,16 @@
     display: block;
 }
 
+.dash-row {
+    display: block;
+}
+
+.dash-container {
+    display: inline-block;
+}
+
 .dash-row,
 .dash-container {
-    display: block;
     width: fit-content;
     height: fit-content;
 }
@@ -44,13 +51,13 @@
 .dash-row,
 .dash-title-box {
     vertical-align: top;
-    float: left;
 }
 
 .dash-col {
     display: inline-block;
     width: 10em;
     max-width: 10em;
+    float: left;
 }
 .dash-col > .dash-container,
 .dash-col > .dash-title-box {
@@ -115,4 +122,20 @@
 .dash-gauge,
 .dash-compass {
     width: 10em;
+}
+
+/* customisation styles */
+.col-bordered {
+    border: 1px solid black;
+    padding: 1px;
+    width: 10.2em;
+    max-width: 10.2em;
+}
+.col-bordered .dash-value {
+    border: 0;
+    margin-right: 0;
+    margin-left: 0;
+}
+.col-bordered .dash-value:not(:last-child) {
+    border-bottom: 1px solid black;
 }
