@@ -47,6 +47,7 @@ func (m *Manager) PostInit() error {
 		//"getReadingHistory": m.Latest.GetHistory,
 		"getReading":           m.getReading,
 		"getLatestReadingTime": m.getLatestReadingTime,
+		"instanceUid":          model.UID,
 	}
 	return nil
 }

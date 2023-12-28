@@ -9,7 +9,10 @@ import (
 )
 
 // Unique ID for this instance, changes every time the application runs
-var uid []byte
+var (
+	uid  []byte
+	uids string
+)
 
 func init() {
 	// Generate a unique id for this instance
@@ -17,6 +20,13 @@ func init() {
 	if _, err := rand.Read(uid); err != nil {
 		panic(err)
 	}
+
+	// Generate a compressed uid string
+	uids = string(encode(compress(append([]byte{}, uid...))))
+}
+
+func UID() string {
+	return uids
 }
 
 // Dashboard is the top level Component representing an entire dashboard.

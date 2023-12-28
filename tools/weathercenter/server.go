@@ -9,6 +9,7 @@ import (
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
 	_ "github.com/peter-mount/piweather.center/tools/weathercenter/menu"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/view"
@@ -38,7 +39,7 @@ func (s *Server) Start() error {
 	rootDir := filepath.Dir(s.Templates.GetRootDir())
 	staticDir := filepath.Join(rootDir, "static")
 	log.Printf("Static content: %s", staticDir)
-	s.Rest.Static("/static", staticDir)
+	s.Rest.Static("/"+model.UID(), staticDir)
 
 	// The listener handler
 	s.listener = api.NewListener()
