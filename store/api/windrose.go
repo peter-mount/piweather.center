@@ -27,6 +27,7 @@ func (s WindRoseStep) contains(f float64) bool {
 type WindRoseBucket struct {
 	Index  int       `json:"index"` // Index of bucket
 	Count  int       `json:"count"` // Number of values in this bucket
+	Max    float64   `json:"max"`   // Max value in bucket
 	Steps  []int     `json:"steps"` // Number of entries per step
 	Values []float64 `json:"-"`     // Values within this bucket
 }
@@ -81,6 +82,9 @@ func (w *WindRose) Add(degree, speed float64) {
 func (b *WindRoseBucket) Add(speed float64) {
 	b.Values = append(b.Values, speed)
 	b.Count++
+	if speed > b.Max {
+		b.Max = speed
+	}
 }
 
 func (w *WindRose) Finalise() {

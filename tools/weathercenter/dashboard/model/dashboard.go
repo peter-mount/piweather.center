@@ -35,7 +35,10 @@ type Dashboard struct {
 	Container `yaml:",inline"`
 	Live      bool   `yaml:"live,omitempty"`    // If true then dashboard can have live updates
 	Refresh   int    `yaml:"refresh,omitempty"` // Refresh the page in seconds. 0 = no refresh unless live requests it
+	Update    string `yaml:"update,omitempty"`  // Cron string to refresh the data periodically
 	Uid       string `yaml:"-"`                 // Uuid of dashboard - generated
+	CronId    int    `yaml:"-"`                 // Used for auto refresh
+	CronSeq   int    `yaml:"-"`                 // Used to make dash board id's unique on client after CronId refresh
 	idSeq     int16  // Used in initialising the ID's
 }
 

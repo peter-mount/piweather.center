@@ -2,6 +2,8 @@ package template
 
 import (
 	"errors"
+	util2 "github.com/peter-mount/go-anim/util"
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
 	"github.com/peter-mount/piweather.center/util"
@@ -31,6 +33,10 @@ func (m *Manager) PostInit() error {
 		"subtract":       genCalc(value.Subtract),
 		"multiply":       genCalc(value.Multiply),
 		"divide":         genCalc(value.Divide),
+		"sin":            math.Sin,
+		"cos":            math.Cos,
+		"tan":            math.Tan,
+		"circlePos":      circlePos,
 		"sequence":       sequence,
 		"array":          array,
 		"defVal":         defVal,
@@ -48,6 +54,7 @@ func (m *Manager) PostInit() error {
 		"getReading":           m.getReading,
 		"getLatestReadingTime": m.getLatestReadingTime,
 		"instanceUid":          model.UID,
+		"maxRowValue":          maxRowValue,
 	}
 	return nil
 }
@@ -197,4 +204,32 @@ func (s *Manager) showComponent(c model.Instance) (template.HTML, error) {
 func (s *Manager) showJs(n string, d any) (template.JS, error) {
 	h, e := s.Template("dash/"+n+".js", d)
 	return template.JS(h), e
+}
+
+func maxRowValue(r *api.Row) value.Value {
+	var v value.Value
+	for _, c := range *r {
+		if c.Value.IsValid() {
+			if v.IsValid() {
+				if ok, err := c.Value.GreaterThan(v); err == nil && ok {
+					v = c.Value
+				}
+			} else {
+				v = c.Value
+			}
+		}
+	}
+	return v
+}
+
+type CirclePos struct {
+	X, Y float64
+}
+
+func circlePos(r, a float64) CirclePos {
+	d := a * util2.ToRad
+	return CirclePos{
+		X: r * math.Sin(d),
+		Y: r * math.Cos(d),
+	}
 }

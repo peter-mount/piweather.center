@@ -74,6 +74,7 @@
 .dash-barometer,
 .dash-compass,
 .dash-value,
+.dash-wind-rose,
 .dash-rain-gauge {
     display: inline-block;
     font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
@@ -120,7 +121,8 @@
 
 .dash-barometer,
 .dash-gauge,
-.dash-compass {
+.dash-compass,
+.dash-wind-rose {
     width: 10em;
 }
 

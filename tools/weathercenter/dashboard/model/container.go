@@ -38,6 +38,14 @@ func (c *Container) Process(m api.Metric, r *Response) {
 	}
 }
 
+func (c *Container) Init(db string) {
+	for _, e := range c.Components {
+		if d, ok := e.(Init); ok {
+			d.Init(db)
+		}
+	}
+}
+
 // ComponentList holds a list of dynamic Component implementations.
 // When a ComponentList is unmarshalled from the yaml, the components are of the correct type
 // based on the Component Type field.

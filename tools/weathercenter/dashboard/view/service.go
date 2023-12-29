@@ -2,12 +2,15 @@ package view
 
 import (
 	"github.com/fsnotify/fsnotify"
+	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/tools/weathercenter"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/util/config"
+	cron2 "gopkg.in/robfig/cron.v2"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,6 +20,7 @@ import (
 )
 
 type Service struct {
+	Cron       *cron.CronService     `kernel:"inject"`
 	Rest       *rest.Server          `kernel:"inject"`
 	Config     config.Manager        `kernel:"inject"`
 	Template   *template.Manager     `kernel:"inject"`
@@ -24,6 +28,7 @@ type Service struct {
 	mutex      sync.Mutex
 	dashDir    string
 	dashboards map[string]*Live // loaded dashboard instances
+	cronIds    map[string]int   // Map of cron ids
 }
 
 const (
@@ -34,6 +39,7 @@ const (
 
 func (s *Service) Start() error {
 	s.dashboards = make(map[string]*Live)
+	s.cronIds = make(map[string]int)
 
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 
@@ -94,8 +100,32 @@ func (s *Service) setDashboard(n string, d *model.Dashboard) {
 		d.Type = "dashboard"
 	}
 
+	d.Init(*s.Server.DBServer)
+
+	if d.Update != "" {
+		id, err := s.Cron.AddFunc(d.Update, func() {
+			d.Init(*s.Server.DBServer)
+			// Make a new Uid so client refreshes
+			d.CronSeq++
+			uid := strings.Split(d.Uid, "-")
+			d.Uid = uid[0] + "-" + strconv.Itoa(d.CronSeq)
+		})
+		if err == nil {
+			d.CronId = int(id)
+			log.Printf("Cron: Adding %q %d", n, d.CronId)
+		}
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+
+	if oid, exists := s.cronIds[n]; exists {
+		defer func() {
+			log.Printf("Cron: Removing %q %d", n, oid)
+			s.Cron.Remove(cron2.EntryID(oid))
+		}()
+	}
+	s.cronIds[n] = d.CronId
 
 	l := s.dashboards[n]
 	if l == nil {

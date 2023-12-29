@@ -11,6 +11,10 @@ type Processor interface {
 	Process(api.Metric, *Response)
 }
 
+type Init interface {
+	Init(db string)
+}
+
 type Response struct {
 	Uid     string                                      `json:"uid"`     // UID of Dashboard
 	Actions map[string]map[string]map[string]api.Metric `json:"actions"` // Actions for this metric
