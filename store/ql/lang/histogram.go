@@ -17,7 +17,7 @@ type WindRose struct {
 
 	Degrees *Expression      `parser:"'WINDROSE' @@"`
 	Speed   *Expression      `parser:"',' @@"`
-	Options []WindRoseOption `parser:"('AS' @@ (',' @@)+ )?"`
+	Options []WindRoseOption `parser:"('AS' @@ (',' @@)* )?"`
 }
 
 type WindRoseOption struct {
