@@ -236,8 +236,11 @@ func (qp *queryPrinter) windRose(v Visitor, b *WindRose) error {
 		case e.Rose:
 			qp.append("ROSE")
 
-		case e.Table:
-			qp.append("TABLE")
+		case e.Count:
+			qp.append("COUNT")
+
+		case e.Max:
+			qp.append("MAX")
 		}
 		qp.restore("")
 	}

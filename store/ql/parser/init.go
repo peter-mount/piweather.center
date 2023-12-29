@@ -164,12 +164,9 @@ func (p *parserState) expressionModifierInit(v lang.Visitor, s *lang.ExpressionM
 }
 
 func windRoseInit(_ lang.Visitor, s *lang.WindRose) error {
-	fmt.Printf("rose opts %d\n", len(s.Options))
 	// Ensure we have a default option of Rose if none set
 	if len(s.Options) == 0 {
 		s.Options = append(s.Options, lang.WindRoseOption{Rose: true})
 	}
-
-	fmt.Printf("rose opts %d\n", len(s.Options))
 	return nil
 }

@@ -23,7 +23,8 @@ type WindRose struct {
 type WindRoseOption struct {
 	Pos   lexer.Position
 	Rose  bool `parser:"( @'ROSE'"`
-	Table bool `parser:"| @'TABLE')"`
+	Count bool `parser:"| @'COUNT'"`
+	Max   bool `parser:"| @'MAX')"`
 }
 
 func (a *WindRose) Accept(v Visitor) error {

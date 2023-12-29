@@ -37,20 +37,15 @@ func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
 		case opt.Rose:
 			ex.result.AddWindRose(wr)
 
-		case opt.Table:
-			t := ex.result.NewTable()
-			for i := 0; i < len(wr.Buckets); i++ {
-				t.AddColumn(&api.Column{
-					Index: i,
-					Name:  "b" + strconv.Itoa(i),
-					Unit:  "Integer",
-				})
-			}
+		case opt.Count:
+			ex.windRoseTable(wr, func(bucket *api.WindRoseBucket) float64 {
+				return float64(bucket.Count)
+			})
 
-			r := t.NewRow()
-			for i := 0; i < len(wr.Buckets); i++ {
-				r.AddValue(ex.time, value.Integer.Value(float64(wr.Buckets[i].Count)))
-			}
+		case opt.Max:
+			ex.windRoseTable(wr, func(bucket *api.WindRoseBucket) float64 {
+				return bucket.Max
+			})
 
 		}
 
@@ -58,6 +53,22 @@ func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
 
 	// Tell the visitor to stop processing this Histogram statement
 	return lang.VisitorStop
+}
+
+func (ex *Executor) windRoseTable(wr *api.WindRose, f func(*api.WindRoseBucket) float64) {
+	t := ex.result.NewTable()
+	for i := 0; i < len(wr.Buckets); i++ {
+		t.AddColumn(&api.Column{
+			Index: i,
+			Name:  "b" + strconv.Itoa(i),
+			Unit:  "Integer",
+		})
+	}
+
+	r := t.NewRow()
+	for i := 0; i < len(wr.Buckets); i++ {
+		r.AddValue(ex.time, value.Integer.Value(f(wr.Buckets[i])))
+	}
 }
 
 func (ex *Executor) windRoseExpression(v lang.Visitor, s *lang.Expression, u *value.Unit) (float64, bool, error) {
