@@ -33,8 +33,9 @@ func UID() string {
 // Initially it's the same as Container, however it will have additional fields in the future.
 type Dashboard struct {
 	Container `yaml:",inline"`
-	Live      bool   `yaml:"live,omitempty"` // If true then dashboard can have live updates
-	Uid       string `yaml:"-"`              // Uuid of dashboard - generated
+	Live      bool   `yaml:"live,omitempty"`    // If true then dashboard can have live updates
+	Refresh   int    `yaml:"refresh,omitempty"` // Refresh the page in seconds. 0 = no refresh unless live requests it
+	Uid       string `yaml:"-"`                 // Uuid of dashboard - generated
 	idSeq     int16  // Used in initialising the ID's
 }
 

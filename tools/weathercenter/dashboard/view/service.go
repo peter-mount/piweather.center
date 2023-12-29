@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -132,6 +133,10 @@ func (s *Service) show(r *rest.Rest) error {
 	if live == nil {
 		r.Status(http.StatusNotFound)
 		return nil
+	}
+
+	if live.getDashboard().Refresh > 0 {
+		r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
 	}
 
 	return s.Template.ExecuteTemplate(r, "dash/main.html", live.getData())
