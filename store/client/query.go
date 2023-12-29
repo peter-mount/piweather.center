@@ -9,6 +9,7 @@ func (c *Client) Query(s string) (*api.Result, error) {
 	if found, err := c.post("/query", []byte(s), resp); err != nil {
 		return nil, err
 	} else if found {
+		resp.Init()
 		return resp, nil
 	} else {
 		return nil, nil
