@@ -10,7 +10,7 @@ import (
 
 var (
 	scriptLexer = lexer.MustSimple([]lexer.SimpleRule{
-		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|DECLARE|EVERY|FOR|FROM|HISTOGRAM|LIMIT|OFFSET|SELECT|TRUNCATE|UNIT|USING|WINDROSE)\b`},
+		{"Keyword", `(?i)\b(ADD|AND|AS|AT|BETWEEN|DECLARE|EVERY|FOR|FROM|HISTOGRAM|LIMIT|OFFSET|ROSE|SELECT|TABLE|TRUNCATE|UNIT|USING|WINDROSE)\b`},
 		{"hashComment", `#.*`},
 		{"sheBang", `#\!.*`},
 		{"comment", `//.*|/\*.*?\*/`},

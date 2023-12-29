@@ -28,6 +28,7 @@ func (p *defaultParser) init(q *lang.Query, err error) (*lang.Query, error) {
 			Metric(metricInit).
 			Time(timeInit).
 			Duration(durationInit).
+			WindRose(windRoseInit).
 			Build())
 	}
 	return q, err
@@ -160,4 +161,15 @@ func (p *parserState) expressionModifierInit(v lang.Visitor, s *lang.ExpressionM
 		err = v.Duration(s.Offset)
 	}
 	return err
+}
+
+func windRoseInit(_ lang.Visitor, s *lang.WindRose) error {
+	fmt.Printf("rose opts %d\n", len(s.Options))
+	// Ensure we have a default option of Rose if none set
+	if len(s.Options) == 0 {
+		s.Options = append(s.Options, lang.WindRoseOption{Rose: true})
+	}
+
+	fmt.Printf("rose opts %d\n", len(s.Options))
+	return nil
 }

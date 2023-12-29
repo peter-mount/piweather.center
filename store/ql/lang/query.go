@@ -211,7 +211,10 @@ func (qp *queryPrinter) windRose(v Visitor, b *WindRose) error {
 
 	qp.save()
 
+	qp.save()
+	qp.append("       ")
 	err := v.Expression(b.Degrees)
+	qp.restore("")
 
 	if err == nil {
 		err = v.Expression(b.Speed)
@@ -221,6 +224,23 @@ func (qp *queryPrinter) windRose(v Visitor, b *WindRose) error {
 		return err
 	}
 
+	qp.restore(",\n       ")
+
+	qp.append("    AS")
+
+	qp.save()
+	for _, e := range b.Options {
+		qp.save()
+		qp.append("       ")
+		switch {
+		case e.Rose:
+			qp.append("ROSE")
+
+		case e.Table:
+			qp.append("TABLE")
+		}
+		qp.restore("")
+	}
 	qp.restore(",\n")
 
 	return VisitorStop

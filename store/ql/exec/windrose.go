@@ -2,14 +2,16 @@ package exec
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 	"github.com/peter-mount/piweather.center/store/ql/lang"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"strconv"
 )
 
 func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
-	wr := ex.result.NewWindRose()
+	wr := api.NewWindRose()
 
 	it := ex.timeRange.Iterator()
 	for it.HasNext() {
@@ -28,6 +30,30 @@ func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
 		if b0 && b1 {
 			wr.Add(degrees, speed)
 		}
+	}
+
+	for _, opt := range s.Options {
+		switch {
+		case opt.Rose:
+			ex.result.AddWindRose(wr)
+
+		case opt.Table:
+			t := ex.result.NewTable()
+			for i := 0; i < len(wr.Buckets); i++ {
+				t.AddColumn(&api.Column{
+					Index: i,
+					Name:  "b" + strconv.Itoa(i),
+					Unit:  "Integer",
+				})
+			}
+
+			r := t.NewRow()
+			for i := 0; i < len(wr.Buckets); i++ {
+				r.AddValue(ex.time, value.Integer.Value(float64(wr.Buckets[i].Count)))
+			}
+
+		}
+
 	}
 
 	// Tell the visitor to stop processing this Histogram statement

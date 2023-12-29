@@ -6,11 +6,12 @@ import (
 )
 
 type WindRose struct {
-	Count   int               `json:"count"`   // Total number of entries
-	Min     float64           `json:"min"`     // Min speed
-	Max     float64           `json:"max"`     // Max speed
-	Steps   []*WindRoseStep   `json:"steps"`   // step for each compass point
-	Buckets []*WindRoseBucket `json:"buckets"` // bucket for each compass point
+	Count        int               `json:"count"`        // Total number of entries
+	Min          float64           `json:"min"`          // Min speed
+	Max          float64           `json:"max"`          // Max speed
+	MaxPerBucket int               `json:"maxPerBucket"` // Max count in each bucket
+	Steps        []*WindRoseStep   `json:"steps"`        // step for each compass point
+	Buckets      []*WindRoseBucket `json:"buckets"`      // bucket for each compass point
 }
 
 type WindRoseStep struct {
@@ -30,7 +31,11 @@ type WindRoseBucket struct {
 	Values []float64 `json:"-"`     // Values within this bucket
 }
 
-func (r *Result) NewWindRose() *WindRose {
+func (r *Result) AddWindRose(wr *WindRose) {
+	r.WindRose = append(r.WindRose, wr)
+}
+
+func NewWindRose() *WindRose {
 	// Note: we have 6 steps but 7 here to account for fence post problem
 	w := &WindRose{}
 
@@ -42,7 +47,6 @@ func (r *Result) NewWindRose() *WindRose {
 		w.Buckets = append(w.Buckets, &WindRoseBucket{Index: i})
 	}
 
-	r.WindRose = append(r.WindRose, w)
 	return w
 }
 
@@ -93,6 +97,10 @@ func (w *WindRose) Finalise() {
 	// Now finalise each bucket
 	for i := 0; i < len(w.Buckets); i++ {
 		w.Buckets[i].finalise(i, w)
+
+		if w.Buckets[i].Count > w.MaxPerBucket {
+			w.MaxPerBucket = w.Buckets[i].Count
+		}
 	}
 
 	// Finalise the steps

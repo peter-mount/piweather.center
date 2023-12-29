@@ -346,7 +346,7 @@ func (v *visitor) Histogram(b *Histogram) error {
 func (v *visitor) WindRose(b *WindRose) error {
 	var err error
 	if b != nil {
-		if v.histogram != nil {
+		if v.windRose != nil {
 			err = v.windRose(v, b)
 			if IsVisitorStop(err) || IsVisitorExit(err) {
 				return nil
