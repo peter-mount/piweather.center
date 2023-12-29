@@ -6,6 +6,7 @@ import (
 
 type Visitor interface {
 	Query(*Query) error
+
 	Select(*Select) error
 	SelectExpression(*SelectExpression) error
 	AliasedExpression(*AliasedExpression) error
@@ -18,6 +19,9 @@ type Visitor interface {
 	Duration(*Duration) error
 	UsingDefinitions(definitions *UsingDefinitions) error
 	UsingDefinition(definitions *UsingDefinition) error
+
+	Histogram(b *Histogram) error
+	WindRose(b *WindRose) error
 }
 
 // VisitorStop is an error which causes the current step in a Visitor to stop processing.
@@ -60,6 +64,8 @@ type common struct {
 	duration           func(Visitor, *Duration) error
 	usingDefinitions   func(Visitor, *UsingDefinitions) error
 	usingDefinition    func(Visitor, *UsingDefinition) error
+	histogram          func(Visitor, *Histogram) error
+	windRose           func(Visitor, *WindRose) error
 }
 
 func (v *visitor) Query(b *Query) error {
@@ -311,4 +317,36 @@ func (v *visitor) UsingDefinition(b *UsingDefinition) error {
 		return v.usingDefinition(v, b)
 	}
 	return nil
+}
+
+func (v *visitor) Histogram(b *Histogram) error {
+	var err error
+	if b != nil {
+		if v.histogram != nil {
+			err = v.histogram(v, b)
+			if IsVisitorStop(err) || IsVisitorExit(err) {
+				return nil
+			}
+		}
+		if err == nil {
+			err = v.AliasedExpression(b.Expression)
+		}
+	}
+	return err
+}
+
+func (v *visitor) WindRose(b *WindRose) error {
+	var err error
+	if b != nil {
+		if v.histogram != nil {
+			err = v.windRose(v, b)
+			if IsVisitorStop(err) || IsVisitorExit(err) {
+				return nil
+			}
+		}
+		if err == nil {
+			err = v.AliasedExpression(b.Expression)
+		}
+	}
+	return err
 }

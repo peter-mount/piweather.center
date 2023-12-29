@@ -2,6 +2,7 @@ package lang
 
 type Builder interface {
 	Query(func(Visitor, *Query) error) Builder
+
 	Select(func(Visitor, *Select) error) Builder
 	SelectExpression(func(Visitor, *SelectExpression) error) Builder
 	AliasedExpression(func(Visitor, *AliasedExpression) error) Builder
@@ -14,6 +15,10 @@ type Builder interface {
 	Duration(func(Visitor, *Duration) error) Builder
 	UsingDefinitions(func(Visitor, *UsingDefinitions) error) Builder
 	UsingDefinition(func(Visitor, *UsingDefinition) error) Builder
+
+	Histogram(f func(Visitor, *Histogram) error) Builder
+	WindRose(f func(Visitor, *WindRose) error) Builder
+
 	Build() Visitor
 }
 
@@ -93,5 +98,15 @@ func (b *builder) UsingDefinitions(f func(Visitor, *UsingDefinitions) error) Bui
 
 func (b *builder) UsingDefinition(f func(Visitor, *UsingDefinition) error) Builder {
 	b.common.usingDefinition = f
+	return b
+}
+
+func (b *builder) Histogram(f func(Visitor, *Histogram) error) Builder {
+	b.common.histogram = f
+	return b
+}
+
+func (b *builder) WindRose(f func(Visitor, *WindRose) error) Builder {
+	b.common.windRose = f
 	return b
 }

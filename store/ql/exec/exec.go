@@ -80,7 +80,9 @@ func (ex *Executor) run() error {
 	return qp.query.Accept(lang.NewBuilder().
 		Query(ex.query).
 		UsingDefinitions(ex.usingDefinitions).
+		Histogram(ex.histogram).
 		Select(ex.selectStatement).
+		WindRose(ex.windrose).
 		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
 		Expression(ex.expression).

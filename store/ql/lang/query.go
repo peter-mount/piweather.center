@@ -10,8 +10,10 @@ type Query struct {
 	Pos        lexer.Position
 	QueryRange *QueryRange       `parser:"@@"`
 	Using      *UsingDefinitions `parser:"(@@)?"`
-	Limit      int               `parser:"( 'LIMIT' @Int )?"`
-	Select     []*Select         `parser:"( @@ )+"`
+	Histogram  []*Histogram      `parser:"( ( @@ )+"`
+	WindRose   []*WindRose       `parser:"| ( @@ )+"`
+	Limit      int               `parser:"| ( 'LIMIT' @Int )?"`
+	Select     []*Select         `parser:"  ( @@ )+ )"`
 }
 
 func (a *Query) Accept(v Visitor) error {
@@ -26,7 +28,9 @@ func (a *Query) String() string {
 		UsingDefinitions(qp.usingDefinitions).
 		Time(qp.time).
 		Duration(qp.duration).
+		Histogram(qp.histogram).
 		Select(qp.selectStatement).
+		WindRose(qp.windRose).
 		SelectExpression(qp.selectExpression).
 		AliasedExpression(qp.aliasedExpression).
 		Expression(qp.expression).
@@ -174,6 +178,18 @@ func (qp *queryPrinter) duration(_ Visitor, b *Duration) error {
 	return nil
 }
 
+func (qp *queryPrinter) histogram(v Visitor, b *Histogram) error {
+	qp.append("HISTOGRAM")
+
+	if b.Expression != nil {
+		if err := v.AliasedExpression(b.Expression); err != nil {
+			return err
+		}
+	}
+
+	return VisitorStop
+}
+
 func (qp *queryPrinter) selectStatement(v Visitor, b *Select) error {
 	qp.append("SELECT")
 
@@ -185,6 +201,18 @@ func (qp *queryPrinter) selectStatement(v Visitor, b *Select) error {
 
 	if b.Limit > 0 {
 		qp.append("    LIMIT", strconv.Itoa(b.Limit))
+	}
+
+	return VisitorStop
+}
+
+func (qp *queryPrinter) windRose(v Visitor, b *WindRose) error {
+	qp.append("WINDROSE")
+
+	if b.Expression != nil {
+		if err := v.AliasedExpression(b.Expression); err != nil {
+			return err
+		}
 	}
 
 	return VisitorStop
