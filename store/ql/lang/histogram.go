@@ -15,7 +15,8 @@ func (a *Histogram) Accept(v Visitor) error {
 type WindRose struct {
 	Pos lexer.Position
 
-	Expression *AliasedExpression `parser:"'WINDROSE' @@"`
+	Degrees *Expression `parser:"'WINDROSE' @@"`
+	Speed   *Expression `parser:"',' @@"`
 }
 
 func (a *WindRose) Accept(v Visitor) error {

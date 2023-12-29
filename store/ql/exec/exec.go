@@ -82,7 +82,7 @@ func (ex *Executor) run() error {
 		UsingDefinitions(ex.usingDefinitions).
 		Histogram(ex.histogram).
 		Select(ex.selectStatement).
-		WindRose(ex.windrose).
+		WindRose(ex.windRose).
 		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
 		Expression(ex.expression).

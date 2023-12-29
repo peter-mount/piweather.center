@@ -209,11 +209,19 @@ func (qp *queryPrinter) selectStatement(v Visitor, b *Select) error {
 func (qp *queryPrinter) windRose(v Visitor, b *WindRose) error {
 	qp.append("WINDROSE")
 
-	if b.Expression != nil {
-		if err := v.AliasedExpression(b.Expression); err != nil {
-			return err
-		}
+	qp.save()
+
+	err := v.Expression(b.Degrees)
+
+	if err == nil {
+		err = v.Expression(b.Speed)
 	}
+
+	if err != nil {
+		return err
+	}
+
+	qp.restore(",\n")
 
 	return VisitorStop
 }

@@ -92,6 +92,14 @@ func (v *visitor) Query(b *Query) error {
 				}
 			}
 		}
+
+		if err == nil {
+			for _, sel := range b.WindRose {
+				if err == nil {
+					err = v.WindRose(sel)
+				}
+			}
+		}
 	}
 	return err
 }
@@ -345,7 +353,10 @@ func (v *visitor) WindRose(b *WindRose) error {
 			}
 		}
 		if err == nil {
-			err = v.AliasedExpression(b.Expression)
+			err = v.Expression(b.Degrees)
+		}
+		if err == nil {
+			err = v.Expression(b.Speed)
 		}
 	}
 	return err
