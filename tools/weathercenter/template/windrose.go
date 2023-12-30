@@ -1,0 +1,69 @@
+package template
+
+import (
+	util2 "github.com/peter-mount/go-anim/util"
+	"github.com/peter-mount/piweather.center/store/api"
+	"math"
+	"sort"
+)
+
+type CirclePos struct {
+	Deg, Radian float64
+	Radius      float64
+	X, Y        float64
+}
+
+func circlePos(r, a float64) CirclePos {
+	d := a * util2.ToRad
+	return CirclePos{
+		Deg:    a,
+		Radian: d,
+		Radius: r,
+		X:      r * math.Sin(d),
+		Y:      r * math.Cos(d),
+	}
+}
+
+type WindRoseBreakdown struct {
+	C1     CirclePos
+	C2     CirclePos
+	Bucket int
+	Entry  int
+	Radius float64
+}
+
+// Seq returns a plot ordering where we order by compass point and then by reverse order
+// so the larger values are plotted first ensuring smaller entries are not obscured
+func (wrb WindRoseBreakdown) Seq() int {
+	return (wrb.Bucket << 8) + (16 - wrb.Entry)
+}
+
+func windRoseBreakdown(radius, hubRadius float64, wr *api.WindRose) []WindRoseBreakdown {
+	var r []WindRoseBreakdown
+
+	dv := (radius - hubRadius) / wr.MaxValuePerBucket
+
+	for i, b := range wr.Buckets {
+		d := float64(i) * 22.5
+		for j, v := range b.MaxVal {
+			rad := dv * v
+			if rad > 0 /*&& i < 3*/ {
+				wrb := WindRoseBreakdown{
+					C1:     circlePos(rad+hubRadius, d-8),
+					C2:     circlePos(rad+hubRadius, d+8),
+					Bucket: i,
+					Entry:  j,
+					Radius: rad,
+				}
+
+				r = append(r, wrb)
+			}
+		}
+	}
+
+	sort.SliceStable(r, func(i, j int) bool {
+		return r[i].Seq() < r[j].Seq()
+	})
+
+	return r
+}

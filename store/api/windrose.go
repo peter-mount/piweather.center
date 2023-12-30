@@ -6,12 +6,13 @@ import (
 )
 
 type WindRose struct {
-	Count        int               `json:"count"`        // Total number of entries
-	Min          float64           `json:"min"`          // Min speed
-	Max          float64           `json:"max"`          // Max speed
-	MaxPerBucket int               `json:"maxPerBucket"` // Max count in each bucket
-	Steps        []*WindRoseStep   `json:"steps"`        // step for each compass point
-	Buckets      []*WindRoseBucket `json:"buckets"`      // bucket for each compass point
+	Count             int               `json:"count"`             // Total number of entries
+	Min               float64           `json:"min"`               // Min speed
+	Max               float64           `json:"max"`               // Max speed
+	MaxPerBucket      int               `json:"maxPerBucket"`      // Max count in each bucket
+	MaxValuePerBucket float64           `json:"maxValuePerBucket"` // Max value in each bucket
+	Steps             []*WindRoseStep   `json:"steps"`             // step for each compass point
+	Buckets           []*WindRoseBucket `json:"buckets"`           // bucket for each compass point
 }
 
 type WindRoseStep struct {
@@ -25,11 +26,12 @@ func (s WindRoseStep) contains(f float64) bool {
 }
 
 type WindRoseBucket struct {
-	Index  int       `json:"index"` // Index of bucket
-	Count  int       `json:"count"` // Number of values in this bucket
-	Max    float64   `json:"max"`   // Max value in bucket
-	Steps  []int     `json:"steps"` // Number of entries per step
-	Values []float64 `json:"-"`     // Values within this bucket
+	Index  int       `json:"index"`  // Index of bucket
+	Count  int       `json:"count"`  // Number of values in this bucket
+	Max    float64   `json:"max"`    // Max value in bucket
+	Steps  []int     `json:"steps"`  // Number of entries per step
+	MaxVal []float64 `json:"maxVal"` // Max value per step
+	Values []float64 `json:"-"`      // Values within this bucket
 }
 
 func (r *Result) AddWindRose(wr *WindRose) {
@@ -81,10 +83,6 @@ func (w *WindRose) Add(degree, speed float64) {
 
 func (b *WindRoseBucket) Add(speed float64) {
 	b.Values = append(b.Values, speed)
-	b.Count++
-	if speed > b.Max {
-		b.Max = speed
-	}
 }
 
 func (w *WindRose) Finalise() {
@@ -105,6 +103,11 @@ func (w *WindRose) Finalise() {
 		if w.Buckets[i].Count > w.MaxPerBucket {
 			w.MaxPerBucket = w.Buckets[i].Count
 		}
+
+		if w.Buckets[i].Max > w.MaxValuePerBucket {
+			w.MaxValuePerBucket = w.Buckets[i].Max
+		}
+
 	}
 
 	// Finalise the steps
@@ -115,12 +118,18 @@ func (w *WindRose) Finalise() {
 
 func (b *WindRoseBucket) finalise(id int, w *WindRose) {
 	b.Steps = make([]int, len(w.Steps))
+	b.MaxVal = make([]float64, len(w.Steps))
+
+	b.Count = len(b.Values)
 
 	// Allocate each value to it's appropriate step
-	for i := 0; i < len(b.Values); i++ {
-		sid := w.findStep(b.Values[i])
+	for i := 0; i < b.Count; i++ {
+		v := b.Values[i]
+		sid := w.findStep(v)
 		b.Steps[sid]++
 		w.Steps[sid].Count++
+		b.MaxVal[sid] = math.Max(b.Values[i], v)
+		b.Max = math.Max(b.Max, v)
 	}
 }
 

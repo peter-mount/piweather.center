@@ -2,7 +2,6 @@ package template
 
 import (
 	"errors"
-	util2 "github.com/peter-mount/go-anim/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
@@ -17,44 +16,44 @@ import (
 
 func (m *Manager) PostInit() error {
 	m.funcMap = template.FuncMap{
-		"hhmm":           hhmm,
-		"html":           html,
-		"lower":          strings.ToLower,
-		"upper":          strings.ToUpper,
-		"replaceAll":     strings.ReplaceAll,
-		"rfc3339":        rfc3339,
-		"split":          split,
-		"trim":           strings.TrimSpace,
-		"trimPrefix":     trimPrefix,
-		"utc":            utc,
-		"min":            genCalc(math.Min),
-		"max":            genCalc(math.Max),
-		"add":            genCalc(value.Add),
-		"subtract":       genCalc(value.Subtract),
-		"multiply":       genCalc(value.Multiply),
-		"divide":         genCalc(value.Divide),
-		"sin":            math.Sin,
-		"cos":            math.Cos,
-		"tan":            math.Tan,
-		"circlePos":      circlePos,
-		"sequence":       sequence,
-		"array":          array,
-		"defVal":         defVal,
-		"dict":           dict,
-		"js":             js,
-		"decimalAlign":   NewDecimalAlign,
-		"getReadingKeys": m.getReadingKeys,
-		"showJs":         m.showJs,
-		"showComponent":  m.showComponent,
-		"genAxis":        genAxis,
-		"autoScale":      autoScale,
-		"ensureWithin":   ensureWithin,
-		"ReplaceAll":     strings.ReplaceAll,
-		//"getReadingHistory": m.Latest.GetHistory,
+		"hhmm":                 hhmm,
+		"html":                 html,
+		"lower":                strings.ToLower,
+		"upper":                strings.ToUpper,
+		"replaceAll":           strings.ReplaceAll,
+		"rfc3339":              rfc3339,
+		"split":                split,
+		"trim":                 strings.TrimSpace,
+		"trimPrefix":           trimPrefix,
+		"utc":                  utc,
+		"min":                  genCalc(math.Min),
+		"max":                  genCalc(math.Max),
+		"add":                  genCalc(value.Add),
+		"subtract":             genCalc(value.Subtract),
+		"multiply":             genCalc(value.Multiply),
+		"divide":               genCalc(value.Divide),
+		"sin":                  math.Sin,
+		"cos":                  math.Cos,
+		"tan":                  math.Tan,
+		"circlePos":            circlePos,
+		"sequence":             sequence,
+		"array":                array,
+		"defVal":               defVal,
+		"dict":                 dict,
+		"js":                   js,
+		"decimalAlign":         NewDecimalAlign,
+		"getReadingKeys":       m.getReadingKeys,
+		"showJs":               m.showJs,
+		"showComponent":        m.showComponent,
+		"genAxis":              genAxis,
+		"autoScale":            autoScale,
+		"ensureWithin":         ensureWithin,
+		"ReplaceAll":           strings.ReplaceAll,
 		"getReading":           m.getReading,
 		"getLatestReadingTime": m.getLatestReadingTime,
 		"instanceUid":          model.UID,
 		"maxRowValue":          maxRowValue,
+		"windRoseBreakdown":    windRoseBreakdown,
 	}
 	return nil
 }
@@ -220,16 +219,4 @@ func maxRowValue(r *api.Row) value.Value {
 		}
 	}
 	return v
-}
-
-type CirclePos struct {
-	X, Y float64
-}
-
-func circlePos(r, a float64) CirclePos {
-	d := a * util2.ToRad
-	return CirclePos{
-		X: r * math.Sin(d),
-		Y: r * math.Cos(d),
-	}
 }

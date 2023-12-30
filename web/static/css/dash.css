@@ -76,6 +76,7 @@
 .dash-value,
 .dash-wind-rose,
 .dash-wind-rose-line,
+.dash-wind-rose-simple,
 .dash-rain-gauge {
     display: inline-block;
     font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
@@ -124,7 +125,8 @@
 .dash-gauge,
 .dash-compass,
 .dash-wind-rose,
-.dash-wind-rose-line {
+.dash-wind-rose-line,
+.dash-wind-rose-simple {
     width: 10em;
 }
 
@@ -143,3 +145,11 @@
 .col-bordered .dash-value:not(:last-child) {
     border-bottom: 1px solid black;
 }
+
+.wind-rose-step0 {fill:darkcyan}
+.wind-rose-step1 {fill:blue}
+.wind-rose-step2 {fill:green}
+.wind-rose-step3 {fill:lightgreen}
+.wind-rose-step4 {fill:goldenrod}
+.wind-rose-step5 {fill:darkred}
+.wind-rose-step6 {fill:red}

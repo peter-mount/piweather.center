@@ -32,6 +32,9 @@ func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
 		}
 	}
 
+	// Ensure all statistics are correct
+	wr.Finalise()
+
 	for _, opt := range s.Options {
 		switch {
 		case opt.Rose:
@@ -61,13 +64,13 @@ func (ex *Executor) windRoseTable(wr *api.WindRose, f func(*api.WindRoseBucket) 
 		t.AddColumn(&api.Column{
 			Index: i,
 			Name:  "b" + strconv.Itoa(i),
-			Unit:  "Integer",
+			Unit:  "Float",
 		})
 	}
 
 	r := t.NewRow()
 	for i := 0; i < len(wr.Buckets); i++ {
-		r.AddValue(ex.time, value.Integer.Value(f(wr.Buckets[i])))
+		r.AddValue(ex.time, value.Float.Value(f(wr.Buckets[i])))
 	}
 }
 

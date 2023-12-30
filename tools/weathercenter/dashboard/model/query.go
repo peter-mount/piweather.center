@@ -10,6 +10,7 @@ func init() {
 	f := func() Instance { return &Query{} }
 	Register("wind-rose", f)
 	Register("wind-rose-line", f)
+	Register("wind-rose-simple", f)
 }
 
 // Query represents a custom db query
