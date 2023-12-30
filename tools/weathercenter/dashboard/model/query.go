@@ -9,6 +9,7 @@ import (
 func init() {
 	f := func() Instance { return &Query{} }
 	Register("wind-rose", f)
+	Register("wind-rose-line", f)
 }
 
 // Query represents a custom db query
