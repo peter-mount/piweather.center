@@ -98,7 +98,7 @@ func (w *WindRose) Finalise() {
 
 	// Now finalise each bucket
 	for i := 0; i < len(w.Buckets); i++ {
-		w.Buckets[i].finalise(i, w)
+		w.Buckets[i].finalise(w)
 
 		if w.Buckets[i].Count > w.MaxPerBucket {
 			w.MaxPerBucket = w.Buckets[i].Count
@@ -116,7 +116,7 @@ func (w *WindRose) Finalise() {
 	}
 }
 
-func (b *WindRoseBucket) finalise(id int, w *WindRose) {
+func (b *WindRoseBucket) finalise(w *WindRose) {
 	b.Steps = make([]int, len(w.Steps))
 	b.MaxVal = make([]float64, len(w.Steps))
 
