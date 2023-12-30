@@ -7,9 +7,9 @@ import (
 
 type WindRose struct {
 	Count             int               `json:"count"`             // Total number of entries
-	Min               float64           `json:"min"`               // Min speed
-	Max               float64           `json:"max"`               // Max speed
-	MaxPerBucket      int               `json:"maxPerBucket"`      // Max count in each bucket
+	MinSpeed          float64           `json:"minSpeed"`          // Min speed
+	MaxSpeed          float64           `json:"maxSpeed"`          // Max speed
+	MaxCountPerBucket int               `json:"maxCountPerBucket"` // Max count in each bucket
 	MaxValuePerBucket float64           `json:"maxValuePerBucket"` // Max value in each bucket
 	Steps             []*WindRoseStep   `json:"steps"`             // step for each compass point
 	Buckets           []*WindRoseBucket `json:"buckets"`           // bucket for each compass point
@@ -60,12 +60,12 @@ func (w *WindRose) Add(degree, speed float64) {
 		return
 	}
 
-	if speed < w.Min || w.Count == 0 {
-		w.Min = speed
+	if speed < w.MinSpeed || w.Count == 0 {
+		w.MinSpeed = speed
 	}
 
-	if speed > w.Max {
-		w.Max = speed
+	if speed > w.MaxSpeed {
+		w.MaxSpeed = speed
 	}
 
 	w.Count++
@@ -91,7 +91,7 @@ func (w *WindRose) Finalise() {
 	}
 
 	// Set the ranges of each step.
-	stepSize := (w.Max - w.Min) / 6.0
+	stepSize := (w.MaxSpeed - w.MinSpeed) / 6.0
 	for i := 1; i < len(w.Steps); i++ {
 		w.Steps[i].Value = w.Steps[i-1].Value + stepSize
 	}
@@ -100,8 +100,8 @@ func (w *WindRose) Finalise() {
 	for i := 0; i < len(w.Buckets); i++ {
 		w.Buckets[i].finalise(w)
 
-		if w.Buckets[i].Count > w.MaxPerBucket {
-			w.MaxPerBucket = w.Buckets[i].Count
+		if w.Buckets[i].Count > w.MaxCountPerBucket {
+			w.MaxCountPerBucket = w.Buckets[i].Count
 		}
 
 		if w.Buckets[i].Max > w.MaxValuePerBucket {
