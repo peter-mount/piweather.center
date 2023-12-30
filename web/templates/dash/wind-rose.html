@@ -24,7 +24,7 @@
         <g stroke="none" fill="black">
             {{- range $r := .WindRose -}}
             {{- range $w := windRoseBreakdown 90 10 $r -}}
-            <path class="wind-rose-step{{$w.Entry}}" d="M0,0L{{$w.C1.X}},{{$w.C1.Y}}L{{$w.C2.X}},{{$w.C2.Y}}z"/>
+            <path class="wind-rose-step{{$w.Entry}}" d="{{$w.Path}}"/>
             {{- end -}}
             {{- end -}}
         </g>

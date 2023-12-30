@@ -1,6 +1,7 @@
 package template
 
 import (
+	"fmt"
 	util2 "github.com/peter-mount/go-anim/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"math"
@@ -30,6 +31,10 @@ type WindRoseBreakdown struct {
 	Bucket int
 	Entry  int
 	Radius float64
+}
+
+func (wrb WindRoseBreakdown) Path() string {
+	return fmt.Sprintf("M0,0L%.2f,%.2fL%.2f,%.2fz", wrb.C1.X, wrb.C1.Y, wrb.C2.X, wrb.C2.Y)
 }
 
 // Seq returns a plot ordering where we order by compass point and then by reverse order
