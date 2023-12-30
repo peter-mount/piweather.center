@@ -53,7 +53,7 @@ func Unmarshal(b []byte, o any) error {
 }
 
 // Decode a yaml.Node and return either the correct type based on the Type field or an error
-func Decode(n yaml.Node) (Instance, error) {
+func Decode(n *yaml.Node) (Instance, error) {
 	// decode the node to get the Type
 	comp := struct {
 		Type string `yaml:"type"`

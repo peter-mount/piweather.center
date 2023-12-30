@@ -51,14 +51,8 @@ func (c *Container) Init(db string) {
 // based on the Component Type field.
 type ComponentList []Instance
 
-func (c *ComponentList) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	types := make([]yaml.Node, 0)
-	err := unmarshal(&types)
-	if err != nil {
-		return err
-	}
-
-	for _, n := range types {
+func (c *ComponentList) UnmarshalYAML(types *yaml.Node) error {
+	for _, n := range types.Content {
 		o, err := Decode(n)
 		if err != nil {
 			return err
