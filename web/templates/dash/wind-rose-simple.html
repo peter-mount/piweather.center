@@ -30,7 +30,7 @@
             {{- range $i, $c := . -}}
             {{- $a := circlePos (multiply $d $c.Float) (subtract (multiply $i 22.5) 8) -}}
             {{- $b := circlePos (multiply $d $c.Float) (add (multiply $i 22.5) 8) -}}
-            <path d="M0,0L{{$a.X}},{{$a.Y}}L{{$b.X}},{{$b.Y}}z"/>
+            <path d="{{printf "M0,0L%.1f,%.1fL%.1f,%.1fz" $a.X $a.Y $b.X $b.Y}}"/>
             {{- end -}}
             {{- end -}}
 
