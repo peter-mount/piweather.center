@@ -37,6 +37,7 @@ func (t *Bot) Start() error {
 
 	query, err := ParsePost(t.post)
 	if err != nil {
+		log.Println(query.generateQuery())
 		return err
 	}
 
