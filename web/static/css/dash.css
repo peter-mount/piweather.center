@@ -119,6 +119,8 @@
 
 .dash-rain-gauge {
     width: 5em;
+    padding-left: 0;
+    margin-left: 0;
 }
 
 .dash-barometer,

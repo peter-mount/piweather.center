@@ -9,22 +9,22 @@
 {{- $max := max $val (defVal .Max 100) -}}
 {{- /* Axes sequence */ -}}
 {{- $axis := autoScale $min $max (subtract $height 10) -}}
-<svg viewBox="0 0 150 250" role="img" id="{{$.ID}}.svg"
+<svg viewBox="0 0 125 250" role="img" id="{{$.ID}}.svg"
      data-min="{{$min}}"
      data-max="{{$max}}"
      data-scale="{{$axis.Scale}}"
      data-height="{{$height}}">
     {{- $valOff := multiply $axis.Scale (subtract $val $axis.Min) -}}
-    <rect id="{{$.ID}}.rect" x="20" y="{{subtract $height $valOff}}" width="80" height="{{$valOff}}" fill="lightblue"/>
-    <path d="{{- range $v := $axis.Points }}M100,{{subtract $height $v}} l10,0 {{end -}}" fill="none" stroke="black" stroke-width="1px"/>
-    <path d="M10,10 l10,0 l0,{{subtract $height 10}} l80,0 l0,{{subtract 10 $height}} l10,0" fill="none" stroke="black" stroke-width="3px"/>
+    <rect id="{{$.ID}}.rect" x="20" y="{{subtract $height $valOff}}" width="60" height="{{$valOff}}" fill="lightblue"/>
+    <path d="{{- range $v := $axis.Points }}M80,{{subtract $height $v}} l10,0 {{end -}}" fill="none" stroke="black" stroke-width="1px"/>
+    <path d="M10,10 l10,0 l0,{{subtract $height 10}} l60,0 l0,{{subtract 10 $height}} l10,0" fill="none" stroke="black" stroke-width="3px"/>
     <g dominant-baseline="middle">
-        <g transform="translate(115,0)">
+        <g transform="translate(95,0)">
             {{- range $i,$y := $axis.Points -}}
             <text y="{{subtract $height $y}}">{{index $axis.Labels $i}}</text>
             {{- end -}}
         </g>
-        <g transform="translate(60,{{add $height 15}})" text-anchor="middle">
+        <g transform="translate(50,{{add $height 15}})" text-anchor="middle">
             {{- with .Label -}}
             <text>{{.}}</text>
             {{- end -}}
