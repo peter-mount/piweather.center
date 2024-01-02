@@ -23,5 +23,5 @@ go.sum
 /Makefile.gen
 /workConfig/
 /lib/font/
-/documentation/
+/documentation/install.txt
 /query.txt
