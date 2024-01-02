@@ -46,22 +46,33 @@ func (wrb WindRoseBreakdown) Seq() int {
 func windRoseBreakdown(radius, hubRadius float64, wr *api.WindRose) []WindRoseBreakdown {
 	var r []WindRoseBreakdown
 
-	dv := (radius - hubRadius) / wr.MaxValuePerBucket
+	// TODO see why MaxValuePerBucket and v are not the same here?
+	//dv := (radius - hubRadius) / wr.MaxValuePerBucket
+	mv := 0.0
+	for _, b := range wr.Buckets {
+		for _, e := range b.MaxVal {
+			mv = math.Max(mv, e)
+		}
+	}
 
-	for i, b := range wr.Buckets {
-		d := float64(i) * 22.5
-		for j, v := range b.MaxVal {
-			rad := dv * v
-			if rad > 0 /*&& i < 3*/ {
-				wrb := WindRoseBreakdown{
-					C1:     circlePos(rad+hubRadius, d-8),
-					C2:     circlePos(rad+hubRadius, d+8),
-					Bucket: i,
-					Entry:  j,
-					Radius: rad,
+	if mv > 0 {
+		dv := (radius - hubRadius) / mv
+
+		for i, b := range wr.Buckets {
+			d := float64(i) * 22.5
+			for j, v := range b.MaxVal {
+				rad := dv * v
+				if rad > 0 {
+					wrb := WindRoseBreakdown{
+						C1:     circlePos(rad+hubRadius, d-8),
+						C2:     circlePos(rad+hubRadius, d+8),
+						Bucket: i,
+						Entry:  j,
+						Radius: rad,
+					}
+
+					r = append(r, wrb)
 				}
-
-				r = append(r, wrb)
 			}
 		}
 	}

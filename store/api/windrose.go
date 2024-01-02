@@ -60,7 +60,7 @@ func (w *WindRose) Add(degree, speed float64) {
 		return
 	}
 
-	if speed < w.MinSpeed || w.Count == 0 {
+	if w.Count == 0 || speed < w.MinSpeed {
 		w.MinSpeed = speed
 	}
 
@@ -91,7 +91,7 @@ func (w *WindRose) Finalise() {
 	}
 
 	// Set the ranges of each step.
-	stepSize := (w.MaxSpeed - w.MinSpeed) / 6.0
+	stepSize := w.MaxSpeed / 6.0
 	for i := 1; i < len(w.Steps); i++ {
 		w.Steps[i].Value = w.Steps[i-1].Value + stepSize
 	}
