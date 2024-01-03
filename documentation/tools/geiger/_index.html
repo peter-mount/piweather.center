@@ -10,10 +10,58 @@ categories:
     <code>geiger</code> is a standalone application which can connect a Geiger counter to the
     weather station.
 </p>
+<div class="marginNote">
+    Although this tool is specific to a single manufacturer as their protocol handles multiple models,
+    it should be possible to add additional types of Geiger counter in the future.
+</div>
 <p>
-    It's specifically written for the GQ GMS-320Plus Geiger counter, as that unit supports
+    It's specifically written for the GQ GMC-320<em>Plus</em> Geiger counter, as that unit supports
     being connected to the system via USB, and it's protocol is well documented.
 </p>
+<div>
+    <img src="geiger.png" alt="Geiger counter"/>
+    <div><small>A GQ GMC-320<em>plus</em> Geiger counter connected to a Raspberry PI 5B</small></div>
+</div>
+
+<h3 class="paragraph">Setup</h3>
+
 <p>
-    It should be possible to add additional types of Geiger counter to this application in the future.
+    Setting up the Geiger counter is pretty simple.
+    Just connect the Micro-USB cable to a USB port on the host as the unit presents a serial port.
 </p>
+<p>
+    Next locate the port it's connected to, usually it's /dev/ttyUSB0 and use that for the
+    <strong>-geiger-port</strong> parameter.
+</p>
+
+<p>
+    The last part is to give the Geiger counter an ID within the station
+    and optionally set <strong>-rootDir</strong> to point to your station's configuration directory.
+</p>
+
+<h3 class="paragraph">Syntax</h3>
+<pre><strong>geiger</strong> -geiger-id <em>station.geiger</em> -geiger-port <em>/dev/ttyUSB0</em></pre>
+
+<h4 class="paragraph">Options</h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Option</th><th>Description</th><th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>-geiger-id <em>id</em></td><td>Sets the unique id for this sensor</td><td>Required</td></tr>
+    <tr><td>-geiger-port <em>device</em></td><td>Sets the serial port for this sensor</td><td>Required</td></tr>
+    <tr><td>-rootDir <em>path</em></td><td>The location of configuration files</td><td></td></tr>
+    <tr><td>-geiger-baud <em>baudRate</em></td><td>The baud rate to use</td><td>Default: 115200</td></tr>
+    </tbody>
+</table>
+
+<h3 class="paragraph">Example</h3>
+<p>
+    On my system, the counter appears as /dev/ttyUSB0 and gave it the id of <code>garden.geiger</code>.
+    So to run the service:
+</p>
+
+<pre>/usr/local/piweather/bin/geiger -geiger-id garden.geiger -geiger-port /dev/ttyUSB0</pre>
+

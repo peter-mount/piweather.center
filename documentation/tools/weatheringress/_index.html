@@ -11,3 +11,21 @@ categories:
     process them and then pass those readings to <code>RabbitMQ</code> where the other components
     and then use them, primarily <code><a href="../weatherdb/">weatherdb</a></code>.
 </p>
+
+<h3 class="paragraph">Syntax</h3>
+<pre><strong>weatheringress</strong> -rest-port <em>8081</em></pre>
+
+<h4 class="paragraph">Options</h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Option</th><th>Description</th><th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>-rest-port <em>int</em></td><td>Port to use for http</td><td>Yes, default to 8080</td></tr>
+    <tr><td>-rootDir <em>path</em></td><td>The location of configuration files</td><td></td></tr>
+    <tr><td>-archive-dir <em>path</em></td><td>Location to archive inbound requests</td><td></td></tr>
+    <tr><td>-archive-log</td><td>Log messages to stdout</td><td></td></tr>
+    </tbody>
+</table>

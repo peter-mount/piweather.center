@@ -10,3 +10,25 @@ categories:
     <code>weatherdb</code> is the core component which accepts live readings from <code>RabbitMQ</code>
     and records it into a simple time database.
 </p>
+
+<h3 class="paragraph">Syntax</h3>
+<pre><strong>weatherdb</strong> -rest-port 9002</pre>
+
+<h4 class="paragraph">Options</h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Option</th><th>Description</th><th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>-rest-port <em>int</em></td><td>Port to use for http</td><td>Yes, set to 9002</td></tr>
+    <tr><td>-db-max-files <em>int</em></td><td>Max number of open files</td><td>default 1024</td></tr>
+    <tr><td>-metric-db <em>string</em></td><td>Directory for storing metrics</td></tr>
+    <tr><td>-metric-expiry <em>int</em></td><td>Expiry time in minutes</td><td>default 2</td></tr>
+    <tr><td>-metric-import <em>string</em></td><td>Import log archives from directory</td><td></td></tr>
+    <tr><td>-metric-import-recent</td><td>Import last 7 days only</td><td></td></tr>
+    <tr><td>-metric-queue <em>string</em></td><td>DB queue name</td><td>"database.ingress"</td></tr>
+    <tr><td>-query-pool <em>int</em></td><td>Query Pool Size</td><td>default 5</td></tr>
+    </tbody>
+</table>
