@@ -10,3 +10,21 @@ categories:
     <code>weatherbot</code> is a standalone application which, via a simple template,
     generate a post of the weather for a specific time period and post it to a Mastodon account.
 </p>
+
+<h3 class="paragraph">Syntax</h3>
+<pre><strong>weatherbot</strong> -post <em>template</em></pre>
+
+<h4 class="paragraph">Options</h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Option</th><th>Description</th><th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>-post <em>template</em></td><td>Template to post</td><td>Yes</td></tr>
+    <tr><td>-host <em>url</em></td><td>url of weatherdb</td><td>default "http://127.0.0.1:9001"</td></tr>
+    <tr><td>-rootDir <em>path</em></td><td>The location of configuration files</td><td></td></tr>
+    <tr><td>-v -test</td><td>Run in test mode, both parameters are required</td><td></td></tr>
+    </tbody>
+</table>
