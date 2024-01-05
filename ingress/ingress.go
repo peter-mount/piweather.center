@@ -7,7 +7,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/mq/mqtt"
-	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/payload"
 	"github.com/peter-mount/piweather.center/station/service"
@@ -17,6 +16,7 @@ import (
 	_ "github.com/peter-mount/piweather.center/tools/weathercenter/menu"
 	_ "github.com/peter-mount/piweather.center/tools/weathercenter/view"
 	"github.com/peter-mount/piweather.center/util"
+	"github.com/peter-mount/piweather.center/util/endpoint"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"io"
 	"net/http"
@@ -25,14 +25,14 @@ import (
 // Ingress handles the ability to get data into the system, be it via
 // http, amqp, mqtt etc.
 type Ingress struct {
-	Archiver        *log2.Archiver         `kernel:"inject"`
-	Amqp            mq.Pool                `kernel:"inject"`
-	Mqtt            mqtt.Pool              `kernel:"inject"`
-	EndpointManager *api.EndpointManager   `kernel:"inject"`
-	Config          service.Config         `kernel:"inject"`
-	DatabaseBroker  broker.DatabaseBroker  `kernel:"inject"`
-	subContext      context.Context        // Common Context
-	processVisitor  station.VisitorBuilder // Common visitor used by all sources to process data
+	Archiver        *log2.Archiver            `kernel:"inject"`
+	Amqp            mq.Pool                   `kernel:"inject"`
+	Mqtt            mqtt.Pool                 `kernel:"inject"`
+	EndpointManager *endpoint.EndpointManager `kernel:"inject"`
+	Config          service.Config            `kernel:"inject"`
+	DatabaseBroker  broker.DatabaseBroker     `kernel:"inject"`
+	subContext      context.Context           // Common Context
+	processVisitor  station.VisitorBuilder    // Common visitor used by all sources to process data
 }
 
 func (s *Ingress) Start() error {

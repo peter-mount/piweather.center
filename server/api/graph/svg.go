@@ -5,9 +5,9 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/graph/chart/gauge"
 	"github.com/peter-mount/piweather.center/graph/chart/line"
-	"github.com/peter-mount/piweather.center/server/api"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/station/service"
+	"github.com/peter-mount/piweather.center/util/endpoint"
 )
 
 func init() {
@@ -16,7 +16,7 @@ func init() {
 
 // SVG provides the /api/svg endpoint which displays svg graphs for a metric
 type SVG struct {
-	Inbound *api.EndpointManager `kernel:"inject"`
+	Inbound *endpoint.EndpointManager `kernel:"inject"`
 	//Store   store.Store          `kernel:"inject"`
 	Config service.Config `kernel:"inject"`
 }
