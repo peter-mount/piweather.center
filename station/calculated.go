@@ -22,6 +22,10 @@ type CalculatedValue struct {
 	// e.g. the Calculator might return a temperature in Fahrenheit, but we want Celsius.
 	// In that instance Use is "Celsius".
 	Use string `yaml:"use,omitempty"`
+	// Default value on start up
+	Default *float64 `yaml:"default,omitempty"`
+	// UseFirst if set then take the first value instead of calculating it
+	UseFirst bool `yaml:"useFirst,omitempty"`
 	// calculator to use
 	calculator value.Calculator
 	sensors    *Sensors

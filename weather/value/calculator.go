@@ -82,3 +82,17 @@ func Calculator3arg(f func(_, _, _ Value) (Value, error)) Calculator {
 		return f(args[0], args[1], args[2])
 	}
 }
+
+func Basic2ArgCalculator(f func(float64, float64) float64) Calculator {
+	return func(_ Time, value ...Value) (Value, error) {
+		if len(value) != 2 {
+			return Value{}, invalidValue
+		}
+		u1 := value[0].Unit()
+		v2, err := value[1].As(u1)
+		if err != nil {
+			return Value{}, err
+		}
+		return u1.Value(f(value[0].Float(), v2.Float())), nil
+	}
+}
