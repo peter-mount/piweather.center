@@ -15,7 +15,6 @@ require (
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20231109105549-8a9638d5ef94
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
 	github.com/peter-mount/go-script v0.0.0-20231109110021-4f49e1e9fdeb
-	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5
 	github.com/peter-mount/nre-feeds v0.0.0-20230406193040-e2414d2669d1
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -36,6 +35,7 @@ require (
 	github.com/gorilla/handlers v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
+	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect

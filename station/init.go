@@ -13,7 +13,6 @@ func (s *Stations) Init() error {
 		Sensors(s.initSensors).
 		Reading(s.initReading).
 		CalculatedValue(s.initCalculatedValue).
-		Graph(s.initGraph).
 		WithContext(context.Background()).
 		VisitStations(s)
 }
@@ -106,12 +105,5 @@ func (s *Stations) initCalculatedValue(ctx context.Context) error {
 		}
 	}
 
-	return nil
-}
-
-func (s *Stations) initGraph(ctx context.Context) error {
-	g := GraphFromContext(ctx)
-	g.reading = ReadingFromContext(ctx)
-	g.calculatedValue = CalculatedValueFromContext(ctx)
 	return nil
 }

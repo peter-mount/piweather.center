@@ -19,9 +19,6 @@ type Reading struct {
 	// e.g. the device might provide temperature in Fahrenheit, but we want Celsius.
 	// In that instance Type is "Fahrenheit" and Use is "Celsius".
 	Use string `yaml:"use,omitempty"`
-	// Graph is an optional set of graphs to be made available for this reading.
-	// These can only represent this reading. Composite Graphs are defined elsewhere.
-	Graph []*Graph `yaml:"graph,omitempty"`
 	// unit resolved from Type
 	unit *value.Unit
 	// useUnit either unit from Type or resolved from Use if defined.
@@ -58,6 +55,5 @@ func (s *Reading) Sensors() *Sensors { return s.sensors }
 
 func (s *Reading) GetID() string { return s.ID }
 
-func (s *Reading) Graphs() []*Graph   { return s.Graph }
 func (s *Reading) IsCalculated() bool { return false }
 func (s *Reading) IsPseudo() bool     { return false }

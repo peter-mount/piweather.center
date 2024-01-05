@@ -10,7 +10,6 @@ type Sensor interface {
 	Sensors() *Sensors
 	Accept(v Visitor) error
 	GetID() string
-	Graphs() []*Graph
 	IsCalculated() bool
 	IsPseudo() bool
 }

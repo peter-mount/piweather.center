@@ -22,9 +22,6 @@ type CalculatedValue struct {
 	// e.g. the Calculator might return a temperature in Fahrenheit, but we want Celsius.
 	// In that instance Use is "Celsius".
 	Use string `yaml:"use,omitempty"`
-	// Graph is an optional set of graphs to be made available for this calculation.
-	// These can only represent this calculation. Composite Graphs are defined elsewhere.
-	Graph []*Graph `yaml:"graph,omitempty"`
 	// calculator to use
 	calculator value.Calculator
 	sensors    *Sensors
@@ -70,5 +67,3 @@ func (s *CalculatedValue) IsPseudo() bool {
 func (s *CalculatedValue) Sensors() *Sensors { return s.sensors }
 
 func (s *CalculatedValue) GetID() string { return s.ID }
-
-func (s *CalculatedValue) Graphs() []*Graph { return s.Graph }

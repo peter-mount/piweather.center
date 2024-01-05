@@ -104,20 +104,3 @@ func (s *Sensors) CalculationsKeys() []string {
 	}
 	return keys
 }
-
-// GetGraph returns the Graph slice for a specified key.
-// It first looks at Readings and if not found then Calculations.
-// Returns nil if the key is not found
-func (s *Sensors) GetGraph(k string) []*Graph {
-	r := s.Readings[k]
-	if r != nil {
-		return r.Graph
-	}
-
-	c := s.Calculations[k]
-	if c != nil {
-		return c.Graph
-	}
-
-	return nil
-}
