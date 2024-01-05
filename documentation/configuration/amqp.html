@@ -1,0 +1,50 @@
+---
+type: "manual"
+title: "amqp.yaml"
+description: "Define RabbitMQ configuration"
+linkTitle: "amqp.yaml"
+categories:
+    - weather
+    - piweather.center
+---
+
+<p>
+    The <code>amqp.yaml</code> file contains the definition of the amqp brokers to be used
+    by the various components of the weather station.
+</p>
+<div class="marginNote">
+    The default configuration is enough to operate on a single node setup.
+    Look at the clustering section for more information.
+</div>
+<p>
+    The file contains named broker definitions which the various components can then
+    use to gain access to RabbitMQ.
+</p>
+<p>
+    The main one is <code>database</code> which is used by all the components to send data to
+    <code>weatherdb</code>, however additional entries can be made as required
+</p>
+
+<h3 class="paragraph">Example</h3>
+<pre># AMQP message broker definitions
+# database is used by various components to send data to weatherdb.
+# it is also used by weatherdb to receive that data
+database:
+  url: amqp://database:password@127.0.0.1
+  exchange: weather
+</pre>
+
+<p>
+    Here's an example entry for <code>weatheringress</code> to receive data from RabbitMQ.
+    In this instance we want to receive readings from other sources to calculate a new
+    compound reading.
+</p>
+<p>
+    For example, to calculate the Feels Like temperature
+    requires Temperature, Humidity and Wind Speed.
+    If those values are coming from different sources then we need a second entry:
+</p>
+
+<pre>ingress:
+  url: amqp://ingress:password@127.0.0.1
+</pre>

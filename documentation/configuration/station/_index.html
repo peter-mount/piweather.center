@@ -1,0 +1,112 @@
+---
+type: "manual"
+title: "station.yaml"
+description: "Declare station sensors"
+linkTitle: "station.yaml"
+categories:
+    - weather
+    - piweather.center
+---
+
+<p>
+    The <code>station.yaml</code> file contains the definitions of the various sensors within
+    the weather station.
+</p>
+<div class="marginNote">
+    Currently this is a single file.
+    Although the overall format is fixed, this will be changed so that
+    multiple stations can be configured in separate files.
+</div>
+<p>
+    The file is laid out in a simple nested hierarchy formed of:
+</p>
+<ul>
+    <li>Station details</li>
+    <li>Sensor definition's</li>
+    <li>Readings within a Sensor</li>
+</ul>
+<div class="marginNote">
+    Readings are named using a simple convention:
+    <code>station</code>.<code>sensor</code>.<code>reading</code>
+    and directly relate to the stations configuration here.
+</div>
+<h2 class="paragraph">Station details</h2>
+<p>
+    The top level defines the station's name, it's location and the sensor definitions.
+</p>
+
+<p>
+    It consists of three fields:
+</p>
+<ul>
+    <li>name of the station</li>
+    <li>geographic location of the station.</li>
+    <li>sensors within the station.</li>
+</ul>
+
+<pre>home:
+  name: "Example weather station"
+  location:
+    name: Greenwich Observatory
+    latitude: "51:28:40"
+    longitude: "-0:00:05"
+    altitude: 68
+  sensors:
+    # sensor definitions go here
+</pre>
+
+<h3 class="paragraph">Location</h3>
+<p>
+    The location section defines where on the Earth's surface your station is located.
+    It doesn't need to be accurate, but it's used for certain calculations like the
+    Sun's Altitude, or when the Sun rises and sets.
+</p>
+<div class="marginNote">
+    The coordinates can be entered with either "dd:mm:ss", "dd:mm.mm" or "dd.dddd" formats
+</div>
+<div class="marginNote">
+    Longitude here uses the geographic convention of positive East.
+</div>
+
+<p>
+    It consists of four fields:
+</p>
+<ul>
+    <li>name is a more formal name of the location but can be the same as the station's name.</li>
+    <li>latitude of the station - positive North, negative South.</li>
+    <li>longitude of the station - positive East, negative West.</li>
+    <li>altitude above sea level in meters</li>
+</ul>
+
+<h3 class="paragraph">Sensors</h3>
+<p>
+    The sensors entry is a named map defining the sensors within the station.
+</p>
+
+<p>
+    It consists of five fields:
+</p>
+<ul>
+    <li>name of the sensor</li>
+    <li>source of where the data comes from.</li>
+    <li>format of the message.</li>
+    <li>timestamp defines where in the message the readings timestamp is defined</li>
+    <li>readings the sensor provides</li>
+</ul>
+
+<div class="marginNote">
+    This example defines the sensor <code>home</code>.<code>drive</code> which is a
+    Pimoroni Enviro Urban device which supplies multiple readings
+</div>
+<pre>home:
+  # station definition goes here
+  sensors:
+    drive:
+      name: "Driveway Pimoroni Urban"
+      source:
+        # source details go here
+      format: json
+      timestamp: "timestamp"
+      readings:
+        # readings go here
+</pre>
