@@ -148,49 +148,6 @@ func (calc *Calculator) calculate(c *Calculation, post bool) {
 	}
 }
 
-func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time, error) {
-	log.Printf("Calculating %s", c.ID())
-
-	return value.Value{}, time.Time{}, nil
-	//if _, exists := calc.Latest.Latest(c.ID()); !exists && c.src.UseFirst {
-	//	for _, s := range c.src.Source {
-	//		switch s {
-	//		case "current":
-	//		default:
-	//			r, ok := calc.Latest.Latest(s)
-	//			if ok && r.IsValid() {
-	//				return r.Value, r.Time, nil
-	//			}
-	//			return value.Value{}, time.Time{}, nil
-	//		}
-	//	}
-	//
-	//	return value.Value{}, time.Time{}, nil
-	//}
-	//
-	//var t time.Time
-	//var args []value.Value
-	//for _, s := range c.src.Source {
-	//	switch s {
-	//	case "current":
-	//		s = c.ID()
-	//	}
-	//
-	//	r, ok := calc.Latest.Latest(s)
-	//	if !ok {
-	//		return value.Value{}, time.Time{}, nil
-	//	}
-	//	args = append(args, r.Value)
-	//
-	//	if t.IsZero() || t.Before(r.Time) {
-	//		t = r.Time
-	//	}
-	//}
-	//
-	//r, err := c.src.Calculate(c.time.Clone().SetTime(t), args...)
-	//return r, t, err
-}
-
 type Calculation struct {
 	mutex      sync.Mutex
 	src        *lang.Calculation // Link to definition
@@ -210,6 +167,10 @@ type CalculationValue struct {
 
 func (c *Calculation) ID() string {
 	return c.src.Target
+}
+
+func (c *Calculation) Src() *lang.Calculation {
+	return c.src
 }
 
 func (c *Calculation) Accept(metric api.Metric) bool {
