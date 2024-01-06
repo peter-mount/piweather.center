@@ -9,7 +9,7 @@ type Calculations struct {
 	script *lang.Script
 }
 
-func (s *Calculations) PostInit() error {
+func (s *Calculations) Start() error {
 	p := lang.NewParser()
 	script, err := p.ParseFiles(flag.Args()...)
 	if err != nil {
