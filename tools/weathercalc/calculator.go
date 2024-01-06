@@ -1,15 +1,12 @@
 package weathercalc
 
 import (
-	"context"
-	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/tools/weathercalc/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
@@ -21,78 +18,75 @@ import (
 type Calculator struct {
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
-	Config         service.Config        `kernel:"inject"`
+	Calculations   *Calculations         `kernel:"inject"`
 	mutex          sync.Mutex
-	calculations   map[string]*Calculation   // Map of Calculation's by their ID's
 	metrics        map[string][]*Calculation // Map of Calculation's by their dependencies
 }
 
 func (calc *Calculator) Start() error {
-	calc.calculations = make(map[string]*Calculation)
 	calc.metrics = make(map[string][]*Calculation)
 
 	// Load the calculations
-	if err := calc.Config.Accept(station.NewVisitor().
-		CalculatedValue(calc.addCalculation).
-		WithContext(context.Background())); err != nil {
+	if err := calc.Calculations.Script().Accept(lang.NewBuilder().
+		Calculation(calc.addCalculation).
+		Build()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (calc *Calculator) addCalculation(ctx context.Context) error {
-	cDef := station.CalculatedValueFromContext(ctx)
-	if cDef == nil {
-		return nil
-	}
-
-	c := calc.getCalculation(cDef.ID)
-	if c != nil {
-		return fmt.Errorf("calculation for %q already defined", cDef.ID)
-	}
-
-	c = NewCalculation(cDef)
-
-	stn := station.StationFromContext(ctx)
-	c.time = value.BasicTime(time.Time{},
-		stn.LatLong().Coord(),
-		stn.Location.Altitude)
-
-	n := strings.ToLower(cDef.ID)
+func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
 	calc.mutex.Lock()
 	defer calc.mutex.Unlock()
 
-	calc.calculations[n] = c
+	log.Printf("addMetric %q -> %q", n, c.Target)
 
-	for _, s := range cDef.Source {
-		switch s {
-		case "current":
-		default:
-			calc.metrics[s] = append(calc.metrics[s], c)
+	metrics := calc.metrics[n]
+	if metrics != nil {
+		for _, e := range metrics {
+			if e.ID() == c.Target {
+				return
+			}
+		}
+	}
+	calc.metrics[n] = append(metrics, NewCalculation(c))
+}
+
+func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) error {
+	//c.time = value.BasicTime(time.Time{},
+	//	stn.LatLong().Coord(),
+	//	stn.Location.Altitude)
+
+	f := func(_ lang.Visitor, m *lang.Metric) error {
+		calc.addMetric(m.Name, c)
+		return nil
+	}
+	visitor := lang.NewBuilder().
+		Metric(f).
+		UseFirst(f).
+		Build()
+
+	script := calc.Calculations.Script()
+	for _, c := range script.Calculations {
+		if err := c.Accept(visitor); err != nil {
+			return err
 		}
 	}
 
 	// If Default and Use set then set the default value
-	if c.src.Default != nil && c.src.Use != "" {
-		if v, exists := value.GetUnit(c.src.Use); exists {
-			calc.Latest.Append(
-				c.ID(),
-				record.Record{
-					Value: v.Value(*c.src.Default),
-					Time:  time.Now(),
-				})
-		}
-	}
+	//if c.src.Default != nil && c.src.Use != "" {
+	//	if v, exists := value.GetUnit(c.src.Use); exists {
+	//		calc.Latest.Append(
+	//			c.ID(),
+	//			record.Record{
+	//				Value: v.Value(*c.src.Default),
+	//				Time:  time.Now(),
+	//			})
+	//	}
+	//}
 
 	return nil
-}
-
-func (calc *Calculator) getCalculation(n string) *Calculation {
-	n = strings.ToLower(n)
-	calc.mutex.Lock()
-	defer calc.mutex.Unlock()
-	return calc.calculations[n]
 }
 
 func (calc *Calculator) getCalculationByMetric(n string) ([]*Calculation, bool) {
@@ -160,69 +154,58 @@ func (calc *Calculator) calculate(c *Calculation, post bool) {
 }
 
 func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time, error) {
-	if _, exists := calc.Latest.Latest(c.ID()); !exists && c.src.UseFirst {
-		for _, s := range c.src.Source {
-			switch s {
-			case "current":
-			default:
-				r, ok := calc.Latest.Latest(s)
-				if ok && r.IsValid() {
-					return r.Value, r.Time, nil
-				}
-				return value.Value{}, time.Time{}, nil
-			}
-		}
+	log.Printf("Calculating %s", c.ID())
 
-		return value.Value{}, time.Time{}, nil
-	}
-
-	var t time.Time
-	var args []value.Value
-	for _, s := range c.src.Source {
-		switch s {
-		case "current":
-			s = c.ID()
-		}
-
-		r, ok := calc.Latest.Latest(s)
-		if !ok {
-			return value.Value{}, time.Time{}, nil
-		}
-		args = append(args, r.Value)
-
-		if t.IsZero() || t.Before(r.Time) {
-			t = r.Time
-		}
-	}
-
-	r, err := c.src.Calculate(c.time.Clone().SetTime(t), args...)
-	return r, t, err
+	return value.Value{}, time.Time{}, nil
+	//if _, exists := calc.Latest.Latest(c.ID()); !exists && c.src.UseFirst {
+	//	for _, s := range c.src.Source {
+	//		switch s {
+	//		case "current":
+	//		default:
+	//			r, ok := calc.Latest.Latest(s)
+	//			if ok && r.IsValid() {
+	//				return r.Value, r.Time, nil
+	//			}
+	//			return value.Value{}, time.Time{}, nil
+	//		}
+	//	}
+	//
+	//	return value.Value{}, time.Time{}, nil
+	//}
+	//
+	//var t time.Time
+	//var args []value.Value
+	//for _, s := range c.src.Source {
+	//	switch s {
+	//	case "current":
+	//		s = c.ID()
+	//	}
+	//
+	//	r, ok := calc.Latest.Latest(s)
+	//	if !ok {
+	//		return value.Value{}, time.Time{}, nil
+	//	}
+	//	args = append(args, r.Value)
+	//
+	//	if t.IsZero() || t.Before(r.Time) {
+	//		t = r.Time
+	//	}
+	//}
+	//
+	//r, err := c.src.Calculate(c.time.Clone().SetTime(t), args...)
+	//return r, t, err
 }
 
 type Calculation struct {
 	mutex      sync.Mutex
-	src        *station.CalculatedValue     // Link to definition
-	metrics    map[string]*CalculationValue // Most recent values received
-	lastUpdate time.Time                    // Time calculation last run
-	lastValue  value.Value                  // Last value
-	time       value.Time                   // Time with location
+	src        *lang.Calculation // Link to definition
+	lastUpdate time.Time         // Time calculation last run
+	lastValue  value.Value       // Last value
+	time       value.Time        // Time with location
 }
 
-func NewCalculation(src *station.CalculatedValue) *Calculation {
-	calc := &Calculation{
-		src:     src,
-		metrics: make(map[string]*CalculationValue),
-	}
-
-	for _, s := range src.Source {
-		switch s {
-		case "current":
-		default:
-			calc.metrics[s] = &CalculationValue{}
-		}
-	}
-
-	return calc
+func NewCalculation(src *lang.Calculation) *Calculation {
+	return &Calculation{src: src}
 }
 
 type CalculationValue struct {
@@ -231,27 +214,25 @@ type CalculationValue struct {
 }
 
 func (c *Calculation) ID() string {
-	return c.src.ID
+	return c.src.Target
 }
 
 func (c *Calculation) Accept(metric api.Metric) bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	cv := c.metrics[metric.Metric]
-	// Do nothing if metric is newer
-	if cv == nil || cv.metric.Time.After(metric.Time) {
+	if c.lastUpdate.After(metric.Time) {
 		return false
 	}
 
-	cv.metric = metric
-	cv.ready = true
-
-	// Return true only if all metrics are ready
-	for _, m := range c.metrics {
-		if !m.ready && m.metric.Metric != "" {
-			return false
-		}
-	}
+	//cv.metric = metric
+	//cv.ready = true
+	//
+	//// Return true only if all metrics are ready
+	//for _, m := range c.metrics {
+	//	if !m.ready && m.metric.Metric != "" {
+	//		return false
+	//	}
+	//}
 	return true
 }

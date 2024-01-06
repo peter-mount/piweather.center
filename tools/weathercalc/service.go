@@ -9,12 +9,12 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/tools/weathercalc/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/rabbitmq/amqp091-go"
 	"time"
@@ -23,13 +23,14 @@ import (
 type Service struct {
 	Latest         memory.Latest         `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
+	Calculations   *Calculations         `kernel:"inject"`
 	Calculator     *Calculator           `kernel:"inject"`
 	Cron           *cron.CronService     `kernel:"inject"`
 	Daemon         *kernel.Daemon        `kernel:"inject"`
-	Config         service.Config        `kernel:"inject"`
-	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.calc"`
-	DBServer       *string               `kernel:"flag,metric-db,DB url"`
-	mqQueue        *amqp.Queue
+	//Config         service.Config        `kernel:"inject"`
+	QueueName *string `kernel:"flag,metric-queue,DB queue name,database.calc"`
+	DBServer  *string `kernel:"flag,metric-db,DB url"`
+	mqQueue   *amqp.Queue
 }
 
 func (s *Service) Start() error {
@@ -72,9 +73,11 @@ func (s *Service) Start() error {
 
 func (s *Service) initFromDB() {
 	if *s.DBServer != "" {
-		if err := s.Config.Accept(station.NewVisitor().
-			CalculatedValue(s.addCalculation).
-			WithContext(context.Background())); err != nil {
+		err := s.Calculations.Script().Accept(lang.NewBuilder().
+			Calculation(s.addCalculation).
+			Build())
+
+		if err != nil {
 			panic(err)
 		}
 	}
@@ -123,7 +126,11 @@ func (s *Service) storeLatest(metric api.Metric) {
 	}
 }
 
-func (s *Service) addCalculation(ctx context.Context) error {
+func (s *Service) addCalculation(_ lang.Visitor, c *lang.Calculation) error {
+	return nil
+}
+
+func (s *Service) addCalculationX(ctx context.Context) error {
 	cDef := station.CalculatedValueFromContext(ctx)
 	if cDef != nil && cDef.Query != "" {
 		c := &client.Client{Url: *s.DBServer}
