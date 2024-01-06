@@ -189,6 +189,14 @@ func (v *visitor) Function(b *Function) error {
 		if IsVisitorStop(err) {
 			return nil
 		}
+
+		if err == nil {
+			for _, exp := range b.Expressions {
+				if err == nil {
+					err = exp.Accept(v)
+				}
+			}
+		}
 	}
 	return err
 }
