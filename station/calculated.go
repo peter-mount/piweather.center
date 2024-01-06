@@ -26,6 +26,8 @@ type CalculatedValue struct {
 	Default *float64 `yaml:"default,omitempty"`
 	// UseFirst if set then take the first value instead of calculating it
 	UseFirst bool `yaml:"useFirst,omitempty"`
+	// Query to send to DB on load
+	Query string `yaml:"query,omitempty"`
 	// calculator to use
 	calculator value.Calculator
 	sensors    *Sensors
