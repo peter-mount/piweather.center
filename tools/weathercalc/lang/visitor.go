@@ -96,11 +96,19 @@ func (v *visitor) Calculation(b *Calculation) error {
 		}
 
 		if err == nil {
-			err = v.CronTab(b.Every)
+			err = b.Every.Accept(v)
 		}
 
 		if err == nil {
-			err = v.CronTab(b.ResetEvery)
+			err = b.ResetEvery.Accept(v)
+		}
+
+		if err == nil {
+			err = b.UseFirst.Accept(v)
+		}
+
+		if err == nil {
+			err = b.Expression.Accept(v)
 		}
 	}
 	return err

@@ -62,16 +62,11 @@ func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) erro
 		calc.addMetric(m.Name, c)
 		return nil
 	}
-	visitor := lang.NewBuilder().
+	if err := c.Accept(lang.NewBuilder().
 		Metric(f).
 		UseFirst(f).
-		Build()
-
-	script := calc.Calculations.Script()
-	for _, c := range script.Calculations {
-		if err := c.Accept(visitor); err != nil {
-			return err
-		}
+		Build()); err != nil {
+		return err
 	}
 
 	// If Default and Use set then set the default value
