@@ -2,10 +2,6 @@ package measurement
 
 import "github.com/peter-mount/piweather.center/weather/value"
 
-func feelsLike(_ value.Time, args ...value.Value) (value.Value, error) {
-	return FeelsLike(args[0], args[1], args[2])
-}
-
 // FeelsLike returns feels like temperature based on temperature, relative humidity and windSpeed.
 //
 // For temperatures below 50F this returns the wind chill. For those above 80F the Heat Index.
