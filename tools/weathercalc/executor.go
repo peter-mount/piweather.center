@@ -30,7 +30,7 @@ func (se StackEntry) IsValid() bool {
 
 func (e *executor) save() {
 	e.stacks = append(e.stacks, e.stack)
-	e.resetStack()
+	e.stack = nil
 }
 
 func (e *executor) restore() {
@@ -198,13 +198,15 @@ func (e *executor) useFirst(_ lang.Visitor, b *lang.UseFirst) error {
 }
 
 func (e *executor) unit(_ lang.Visitor, b *lang.Unit) error {
-	v, empty := e.pop()
-	if !empty {
+	v, present := e.pop()
+	if present {
 		nv, err := v.Value.As(b.Unit())
 		if err != nil {
 			return err
 		}
 		e.push(v.Time, nv)
+	} else {
+		e.pushNull()
 	}
 	return nil
 }
@@ -232,7 +234,7 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 		if !arg.IsValid() {
 			e.restore()
 			e.pushNull()
-			return nil
+			return lang.VisitorStop
 		}
 
 		if t.IsZero() || t.Before(arg.Time) {
@@ -250,6 +252,7 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 	if err == nil {
 		e.restore()
 		e.push(t, val)
+		return lang.VisitorStop
 	}
 
 	return err
