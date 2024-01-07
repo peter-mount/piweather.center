@@ -61,8 +61,8 @@ func (b *basicTime) ForEach(step, duration time.Duration, f func(Time) error) er
 }
 
 type timeWrapper struct {
-	t time.Time
 	p Time
+	t time.Time
 }
 
 func (b *timeWrapper) Time() time.Time { return b.t }

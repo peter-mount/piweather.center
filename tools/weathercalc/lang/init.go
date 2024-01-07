@@ -7,7 +7,6 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
-	"time"
 )
 
 func (p *defaultParser) init(q *Script, err error) (*Script, error) {
@@ -128,8 +127,6 @@ func (s *State) initLocation(_ Visitor, l *Location) error {
 		Altitude:  l.Altitude,
 		Name:      l.Name,
 	}
-
-	l.time = value.BasicTime(time.Time{}, l.latLong.Coord(), l.Altitude)
 
 	if e, exists := s.locations[l.Name]; exists {
 		return participle.Errorf(l.Pos, "location %q already defined at %s", l.Name, e.Pos.String())

@@ -159,6 +159,7 @@ func (calc *Calculator) addCalculationByTarget(c *Calculation) {
 	calc.mutex.Lock()
 	defer calc.mutex.Unlock()
 	calc.targets[c.ID()] = c
+	calc.calculations = append(calc.calculations, c)
 }
 
 func (calc *Calculator) getCalculationByTarget(n string) *Calculation {
@@ -182,7 +183,6 @@ func (calc *Calculator) accept(metric api.Metric, post bool) {
 }
 
 func (calc *Calculator) calculateTarget(n string) {
-	log.Printf("calculateTarget %q", n)
 	cd := calc.getCalculationByTarget(n)
 	if cd != nil {
 		calc.calculate(cd, true)
@@ -192,6 +192,7 @@ func (calc *Calculator) calculateTarget(n string) {
 func (calc *Calculator) calculate(c *Calculation, post bool) {
 	result, t, err := calc.calculateResult(c)
 	if err != nil {
+		log.Println(c.Src().Pos, err)
 		return
 	}
 

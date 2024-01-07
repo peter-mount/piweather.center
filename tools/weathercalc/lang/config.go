@@ -67,7 +67,8 @@ func (s *Location) Time() value.Time {
 	if s == nil {
 		return value.PlainTime(time.Time{})
 	}
-	return s.time.Clone()
+
+	return value.BasicTime(time.Time{}, s.latLong.Coord(), s.Altitude)
 }
 
 func (s *Location) Accept(v Visitor) error {

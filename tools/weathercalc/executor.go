@@ -49,6 +49,13 @@ func (e *executor) pop() (StackEntry, bool) {
 	return r, true
 }
 
+func (e *executor) peek() (StackEntry, bool) {
+	if e.stackEmpty() {
+		return StackEntry{}, false
+	}
+	return e.stack[len(e.stack)-1], true
+}
+
 func (e *executor) stackEmpty() bool {
 	return len(e.stack) == 0
 }
@@ -63,8 +70,6 @@ func (e *executor) setMetric(m string, v StackEntry) {
 }
 
 func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time, error) {
-	log.Printf("Calculating %q", c.ID())
-
 	e := executor{
 		script: calc.Script(),
 		calc:   c,
@@ -111,7 +116,7 @@ func (e *executor) calculation(v lang.Visitor, b *lang.Calculation) error {
 		return err
 	}
 
-	val, _ := e.pop()
+	val, _ := e.peek()
 
 	e.setMetric(b.Target, val)
 
@@ -215,9 +220,13 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 		args = append(args, arg.Value)
 	}
 
+	if t.IsZero() {
+		t = time.Now()
+	}
 	e.time.SetTime(t)
 
-	if val, err := calc(e.time, args...); err == nil {
+	val, err := calc(e.time, args...)
+	if err == nil {
 		e.push(t, val)
 	}
 
