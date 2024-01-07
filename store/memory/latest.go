@@ -3,6 +3,7 @@ package memory
 import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/file/record"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,6 +16,7 @@ func init() {
 type Latest interface {
 	Append(metric string, rec record.Record) bool
 	Latest(metric string) (record.Record, bool)
+	Remove(metric string)
 	Metrics() []string
 	LatestTime() time.Time
 }
@@ -30,10 +32,25 @@ func (l *latest) Start() error {
 	return nil
 }
 
+func (l *latest) Remove(metric string) {
+	if metric == "" {
+		return
+	}
+
+	metric = strings.ToLower(metric)
+
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	delete(l.metrics, metric)
+}
+
 func (l *latest) Append(metric string, rec record.Record) bool {
 	if metric == "" || !rec.IsValid() {
 		return false
 	}
+
+	metric = strings.ToLower(metric)
 
 	// Truncate time to the second as the DB only has resolution to
 	// the second
@@ -68,6 +85,8 @@ func (l *latest) Append(metric string, rec record.Record) bool {
 }
 
 func (l *latest) Latest(metric string) (record.Record, bool) {
+	metric = strings.ToLower(metric)
+
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 

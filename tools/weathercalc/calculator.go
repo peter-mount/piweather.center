@@ -24,9 +24,10 @@ type Calculator struct {
 	Latest         memory.Latest         `kernel:"inject"`
 	DBServer       *string               `kernel:"flag,metric-db,DB url"`
 	mutex          sync.Mutex
-	metrics        map[string][]*Calculation // Map of Calculation's by their dependencies
 	script         *lang.Script
-	calculations   []*Calculation // Calculation's in sequence
+	targets        map[string]*Calculation   // Map of Calculations by target
+	metrics        map[string][]*Calculation // Map of Calculation's by their dependencies
+	calculations   []*Calculation            // Calculation's in sequence
 }
 
 func (calc *Calculator) Start() error {
@@ -38,6 +39,7 @@ func (calc *Calculator) Start() error {
 
 	calc.script = script
 
+	calc.targets = make(map[string]*Calculation)
 	calc.metrics = make(map[string][]*Calculation)
 
 	// Load the calculations
@@ -126,6 +128,7 @@ func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
 	}
 
 	nc := NewCalculation(c)
+	calc.targets[c.Target] = nc
 	calc.metrics[n] = append(metrics, nc)
 	calc.calculations = append(calc.calculations, nc)
 }
@@ -140,6 +143,25 @@ func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) erro
 		return err
 	}
 
+	// RESET EVERY cron definition
+	if c.ResetEvery != nil {
+		if _, err := calc.Cron.AddFunc(c.ResetEvery.Definition, func() {
+			calc.Latest.Remove(c.Target)
+			calc.calculateTarget(c.Target)
+		}); err != nil {
+			return err
+		}
+	}
+
+	// Every definition
+	if c.Every != nil {
+		if _, err := calc.Cron.AddFunc(c.Every.Definition, func() {
+			calc.calculateTarget(c.Target)
+		}); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -149,6 +171,12 @@ func (calc *Calculator) getCalculationByMetric(n string) ([]*Calculation, bool) 
 	defer calc.mutex.Unlock()
 	c, exists := calc.metrics[n]
 	return c, exists
+}
+
+func (calc *Calculator) getCalculationByTarget(n string) *Calculation {
+	calc.mutex.Lock()
+	defer calc.mutex.Unlock()
+	return calc.targets[n]
 }
 
 func (calc *Calculator) Accept(metric api.Metric) {
@@ -162,6 +190,13 @@ func (calc *Calculator) accept(metric api.Metric, post bool) {
 				calc.calculate(c, post)
 			}
 		}
+	}
+}
+
+func (calc *Calculator) calculateTarget(n string) {
+	cd := calc.getCalculationByTarget(n)
+	if cd != nil {
+		calc.calculate(cd, true)
 	}
 }
 
