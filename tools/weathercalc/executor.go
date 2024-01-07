@@ -131,6 +131,10 @@ func (e *executor) expression(v lang.Visitor, b *lang.Expression) error {
 
 	if err == nil && b.Using != nil {
 		err = b.Using.Accept(v)
+		if err != nil {
+			// Use this so the user is told the file/line of the error
+			return participle.Errorf(b.Pos, "%s", err.Error())
+		}
 	}
 
 	if err != nil {
@@ -193,7 +197,7 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 	var t time.Time
 	var args []value.Value
 	for _, exp := range b.Expressions {
-		err := exp.Accept(v)
+		err = exp.Accept(v)
 		if err != nil {
 			return err
 		}
@@ -213,8 +217,7 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 
 	e.time.SetTime(t)
 
-	val, err := calc(e.time, args...)
-	if err == nil {
+	if val, err := calc(e.time, args...); err == nil {
 		e.push(t, val)
 	}
 

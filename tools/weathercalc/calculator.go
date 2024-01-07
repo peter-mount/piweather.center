@@ -58,7 +58,6 @@ func (calc *Calculator) Start() error {
 		calc.calculate(c, true)
 	}
 
-	log.Printf("\n\n**** targets ****\n\n%v", calc.targets)
 	return nil
 }
 
