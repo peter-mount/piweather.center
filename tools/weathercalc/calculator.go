@@ -38,7 +38,6 @@ func (calc *Calculator) Start() error {
 	}
 
 	calc.script = script
-
 	calc.targets = make(map[string]*Calculation)
 	calc.metrics = make(map[string][]*Calculation)
 
@@ -47,16 +46,6 @@ func (calc *Calculator) Start() error {
 		Calculation(calc.addCalculation).
 		Build()); err != nil {
 		return err
-	}
-
-	if *calc.DBServer != "" {
-		calc.initFromDB()
-		// Reload from the DB at 00:01
-		// This allows for 1 minute for some data to arrive before
-		// we refresh the metrics
-		if _, err := calc.Cron.AddFunc("1 0 * * *", calc.initFromDB); err != nil {
-			return err
-		}
 	}
 
 	// Get latest metrics from DB
@@ -69,23 +58,12 @@ func (calc *Calculator) Start() error {
 		calc.calculate(c, true)
 	}
 
+	log.Printf("\n\n**** targets ****\n\n%v", calc.targets)
 	return nil
 }
 
 func (calc *Calculator) Script() *lang.Script {
 	return calc.script
-}
-
-func (calc *Calculator) initFromDB() {
-	if *calc.DBServer != "" {
-		err := calc.script.Accept(lang.NewBuilder().
-			Calculation(calc.addCalculation).
-			Build())
-
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 // loadLatestMetrics retrieves the current metrics from the DB server
@@ -115,8 +93,6 @@ func (calc *Calculator) loadLatestMetrics() error {
 func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
 	calc.mutex.Lock()
 	defer calc.mutex.Unlock()
-
-	log.Printf("addMetric %q -> %q", n, c.Target)
 
 	metrics := calc.metrics[n]
 	if metrics != nil {
@@ -162,6 +138,13 @@ func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) erro
 		}
 	}
 
+	// If the target still has no Calculation registered then create it.
+	// This will happen when a calculation is defined that doesn't
+	// reference any metrics. e.g. SolarAltitude which uses just location and time
+	if calc.getCalculationByTarget(c.Target) == nil {
+		calc.addCalculationByTarget(NewCalculation(c))
+	}
+
 	return nil
 }
 
@@ -171,6 +154,12 @@ func (calc *Calculator) getCalculationByMetric(n string) ([]*Calculation, bool) 
 	defer calc.mutex.Unlock()
 	c, exists := calc.metrics[n]
 	return c, exists
+}
+
+func (calc *Calculator) addCalculationByTarget(c *Calculation) {
+	calc.mutex.Lock()
+	defer calc.mutex.Unlock()
+	calc.targets[c.ID()] = c
 }
 
 func (calc *Calculator) getCalculationByTarget(n string) *Calculation {
@@ -194,6 +183,7 @@ func (calc *Calculator) accept(metric api.Metric, post bool) {
 }
 
 func (calc *Calculator) calculateTarget(n string) {
+	log.Printf("calculateTarget %q", n)
 	cd := calc.getCalculationByTarget(n)
 	if cd != nil {
 		calc.calculate(cd, true)

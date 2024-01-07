@@ -2,9 +2,12 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/piweather.center/astro/coord"
+	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
+	"time"
 )
 
 func (p *defaultParser) init(q *Script, err error) (*Script, error) {
@@ -70,6 +73,7 @@ func (s *State) GetCalculations() []*Calculation {
 
 func (s *State) initCalculation(_ Visitor, l *Calculation) error {
 	l.Target = strings.ToLower(l.Target)
+	l.At = strings.ToLower(l.At)
 
 	if e, exists := s.calculations[l.Target]; exists {
 		return participle.Errorf(l.Pos, "calculation for %q already defined at %s", l.Target, e.Pos.String())
@@ -108,7 +112,24 @@ func (s *State) initFunction(_ Visitor, l *Function) error {
 func (s *State) initLocation(_ Visitor, l *Location) error {
 	l.Name = strings.ToLower(l.Name)
 
-	// TODO validate lat/long
+	lat, err := util.ParseAngle(l.Latitude)
+	if err != nil {
+		return err
+	}
+
+	lon, err := util.ParseAngle(l.Longitude)
+	if err != nil {
+		return err
+	}
+
+	l.latLong = &coord.LatLong{
+		Longitude: lon,
+		Latitude:  lat,
+		Altitude:  l.Altitude,
+		Name:      l.Name,
+	}
+
+	l.time = value.BasicTime(time.Time{}, l.latLong.Coord(), l.Altitude)
 
 	if e, exists := s.locations[l.Name]; exists {
 		return participle.Errorf(l.Pos, "location %q already defined at %s", l.Name, e.Pos.String())

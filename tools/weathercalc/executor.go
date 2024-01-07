@@ -69,7 +69,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		script: calc.Script(),
 		calc:   c,
 		latest: calc.Latest,
-		time:   value.PlainTime(time.Time{}),
+		time:   calc.script.State.GetLocation(c.Src().At).Time(),
 	}
 
 	err := c.Src().Accept(lang.NewBuilder().
@@ -83,6 +83,9 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		Build())
 
 	r, exists := e.pop()
+	if err != nil {
+		log.Printf("calc %q %v", c.ID(), err)
+	}
 	if err != nil || !exists || !r.IsValid() {
 		return value.Value{}, time.Time{}, err
 	}
@@ -216,23 +219,6 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 	}
 
 	return err
-}
-
-func getTime(args []StackEntry) time.Time {
-	var t time.Time
-	var v *value.Unit
-	for _, arg := range args {
-		if t.IsZero() || t.Before(arg.Time) {
-			t = arg.Time
-		}
-		if v == nil && arg.Value.IsValid() {
-			v = arg.Value.Unit()
-		}
-	}
-	if t.IsZero() {
-		t = time.Now().UTC()
-	}
-	return t
 }
 
 func (e *executor) pushValue(f float64, args []StackEntry) {
