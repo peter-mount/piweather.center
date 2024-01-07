@@ -16,6 +16,7 @@ type executor struct {
 	latest memory.Latest
 	stack  []StackEntry
 	time   value.Time
+	stacks [][]StackEntry
 }
 
 type StackEntry struct {
@@ -25,6 +26,21 @@ type StackEntry struct {
 
 func (se StackEntry) IsValid() bool {
 	return !se.Time.IsZero() && se.Value.IsValid()
+}
+
+func (e *executor) save() {
+	e.stacks = append(e.stacks, e.stack)
+	e.resetStack()
+}
+
+func (e *executor) restore() {
+	l := len(e.stacks)
+	if l == 0 {
+		e.stack = nil
+	} else {
+		e.stack = e.stacks[l-1]
+		e.stacks = e.stacks[:l-1]
+	}
 }
 
 func (e *executor) resetStack() {
@@ -194,8 +210,11 @@ func (e *executor) unit(_ lang.Visitor, b *lang.Unit) error {
 }
 
 func (e *executor) function(v lang.Visitor, b *lang.Function) error {
+	e.save()
+
 	calc, err := value.GetCalculator(b.Name)
 	if err != nil {
+		e.restore()
 		return participle.Errorf(b.Pos, "%s", err.Error())
 	}
 
@@ -204,12 +223,14 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 	for _, exp := range b.Expressions {
 		err = exp.Accept(v)
 		if err != nil {
+			e.restore()
 			return err
 		}
 
 		arg, _ := e.pop()
 		// Not valid then stop here
 		if !arg.IsValid() {
+			e.restore()
 			e.pushNull()
 			return nil
 		}
@@ -227,29 +248,9 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 
 	val, err := calc(e.time, args...)
 	if err == nil {
+		e.restore()
 		e.push(t, val)
 	}
 
 	return err
-}
-
-func (e *executor) pushValue(f float64, args []StackEntry) {
-	var t time.Time
-	var v *value.Unit
-	for _, arg := range args {
-		if t.IsZero() || t.Before(arg.Time) {
-			t = arg.Time
-		}
-		if v == nil && arg.Value.IsValid() {
-			v = arg.Value.Unit()
-		}
-	}
-	if t.IsZero() {
-		t = time.Now().UTC()
-	}
-	if v == nil {
-		v = value.Float
-	}
-
-	e.push(t, v.Value(f))
 }
