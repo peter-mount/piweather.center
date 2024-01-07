@@ -10,7 +10,7 @@ type Builder interface {
 	Metric(func(Visitor, *Metric) error) Builder
 	Script(func(Visitor, *Script) error) Builder
 	Unit(f func(Visitor, *Unit) error) Builder
-	UseFirst(f func(Visitor, *Metric) error) Builder
+	UseFirst(f func(Visitor, *UseFirst) error) Builder
 	Build() Visitor
 }
 
@@ -71,7 +71,7 @@ func (b *builder) Metric(f func(Visitor, *Metric) error) Builder {
 	return b
 }
 
-func (b *builder) UseFirst(f func(Visitor, *Metric) error) Builder {
+func (b *builder) UseFirst(f func(Visitor, *UseFirst) error) Builder {
 	b.useFirst = f
 	return b
 }

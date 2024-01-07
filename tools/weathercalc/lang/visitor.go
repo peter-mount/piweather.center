@@ -12,7 +12,7 @@ type Visitor interface {
 	Metric(*Metric) error
 	Script(*Script) error
 	Unit(b *Unit) error
-	UseFirst(b *Metric) error
+	UseFirst(b *UseFirst) error
 }
 
 type Visitable interface {
@@ -29,7 +29,7 @@ type visitorCommon struct {
 	metric      func(Visitor, *Metric) error
 	script      func(Visitor, *Script) error
 	unit        func(Visitor, *Unit) error
-	useFirst    func(Visitor, *Metric) error
+	useFirst    func(Visitor, *UseFirst) error
 }
 
 type visitor struct {
@@ -214,7 +214,7 @@ func (v *visitor) Metric(b *Metric) error {
 	return err
 }
 
-func (v *visitor) UseFirst(b *Metric) error {
+func (v *visitor) UseFirst(b *UseFirst) error {
 	var err error
 	if b != nil {
 		if v.useFirst != nil {
@@ -222,6 +222,10 @@ func (v *visitor) UseFirst(b *Metric) error {
 		}
 		if IsVisitorStop(err) {
 			return nil
+		}
+
+		if err == nil {
+			err = b.Metric.Accept(v)
 		}
 	}
 	return err

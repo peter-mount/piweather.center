@@ -2,11 +2,9 @@ package weathercalc
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
-	"github.com/peter-mount/piweather.center/tools/weathercalc/functions"
 	"github.com/peter-mount/piweather.center/tools/weathercalc/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
@@ -17,6 +15,7 @@ type executor struct {
 	calc   *Calculation
 	latest memory.Latest
 	stack  []StackEntry
+	time   value.Time
 }
 
 type StackEntry struct {
@@ -60,7 +59,6 @@ func (e *executor) setMetric(m string, v StackEntry) {
 			Time:  v.Time,
 			Value: v.Value,
 		})
-		log.Printf("set %q %s %s", m, v.Value, v.Time.Format(time.RFC3339))
 	}
 }
 
@@ -68,26 +66,28 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 	log.Printf("Calculating %q", c.ID())
 
 	e := executor{
-		script: calc.Calculations.Script(),
+		script: calc.Script(),
 		calc:   c,
 		latest: calc.Latest,
+		time:   value.PlainTime(time.Time{}),
 	}
 
-	err := e.calc.Src().Accept(lang.NewBuilder().
+	err := c.Src().Accept(lang.NewBuilder().
 		Calculation(e.calculation).
 		Current(e.current).
 		Expression(e.expression).
 		Function(e.function).
 		Metric(e.metric).
 		Unit(e.unit).
+		UseFirst(e.useFirst).
 		Build())
 
-	r, empty := e.pop()
-	if err != nil || !empty {
+	r, exists := e.pop()
+	if err != nil || !exists || !r.IsValid() {
 		return value.Value{}, time.Time{}, err
 	}
 
-	log.Printf("result %q = %s %s", c.ID(), r.Value, r.Time.Format(time.RFC3339))
+	log.Printf("Result %q %s %s", c.ID(), r.Value, r.Time.Format(time.RFC3339))
 
 	return r.Value, r.Time, nil
 }
@@ -95,28 +95,20 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 func (e *executor) calculation(v lang.Visitor, b *lang.Calculation) error {
 	e.resetStack()
 
-	var val StackEntry
-
 	// If usefirst set check to see we have a latest value, if not then set the default value
 	if b.UseFirst != nil {
-		_, exists := e.latest.Latest(b.Target)
-		if !exists {
-			err := b.UseFirst.Accept(v)
-			if err != nil {
-				return err
-			}
-			val, _ = e.pop()
-		}
-	}
-
-	if !val.IsValid() {
-		err := b.Expression.Accept(v)
+		err := b.UseFirst.Accept(v)
 		if err != nil {
 			return err
 		}
-
-		val, _ = e.pop()
 	}
+
+	err := b.Expression.Accept(v)
+	if err != nil {
+		return err
+	}
+
+	val, _ := e.pop()
 
 	e.setMetric(b.Target, val)
 
@@ -155,10 +147,24 @@ func (e *executor) metric(_ lang.Visitor, b *lang.Metric) error {
 
 func (e *executor) metricImpl(n string) error {
 	rec, exists := e.latest.Latest(n)
-	if exists {
+	if exists && rec.IsValid() {
 		e.push(rec.Time, rec.Value)
 	} else {
 		e.pushNull()
+	}
+	return nil
+}
+
+func (e *executor) useFirst(_ lang.Visitor, b *lang.UseFirst) error {
+	rec, exists := e.latest.Latest(e.calc.ID())
+	if !exists {
+		rec, exists = e.latest.Latest(b.Metric.Name)
+		if exists {
+			// Set the new value then VisitorStop to tell
+			// calculation() to terminate
+			e.latest.Append(e.calc.ID(), rec)
+			return lang.VisitorStop
+		}
 	}
 	return nil
 }
@@ -176,31 +182,40 @@ func (e *executor) unit(_ lang.Visitor, b *lang.Unit) error {
 }
 
 func (e *executor) function(v lang.Visitor, b *lang.Function) error {
-	f, exists := functions.LookupFunction(b.Name)
-	if !exists {
-		return participle.Errorf(b.Pos, "function %q undefined", b.Name)
+	calc, err := value.GetCalculator(b.Name)
+	if err != nil {
+		return participle.Errorf(b.Pos, "%s", err.Error())
 	}
 
-	var args []StackEntry
+	var t time.Time
+	var args []value.Value
 	for _, exp := range b.Expressions {
 		err := exp.Accept(v)
 		if err != nil {
 			return err
 		}
-		se, _ := e.pop()
-		args = append(args, se)
+
+		arg, _ := e.pop()
+		// Not valid then stop here
+		if !arg.IsValid() {
+			e.pushNull()
+			return nil
+		}
+
+		if t.IsZero() || t.Before(arg.Time) {
+			t = arg.Time
+		}
+		args = append(args, arg.Value)
 	}
 
-	switch {
-	case f.Calculator != nil:
-	case f.Op != nil:
-		return e.op(b.Pos, f.Op, args)
-	case f.MathOp != nil:
-		return e.mathOp(b.Pos, f.MathOp, args)
-	case f.MathBiOp != nil:
-		return e.mathBiOp(b.Pos, f.MathBiOp, args)
+	e.time.SetTime(t)
+
+	val, err := calc(e.time, args...)
+	if err == nil {
+		e.push(t, val)
 	}
-	return nil
+
+	return err
 }
 
 func getTime(args []StackEntry) time.Time {
@@ -239,60 +254,4 @@ func (e *executor) pushValue(f float64, args []StackEntry) {
 	}
 
 	e.push(t, v.Value(f))
-}
-
-func (e *executor) op(pos lexer.Position, f func(value.Value) (value.Value, error), args []StackEntry) error {
-	if len(args) != 1 {
-		return participle.Errorf(pos, "expected 1 arg")
-	}
-	v, err := f(args[0].Value)
-	if err != nil {
-		return err
-	}
-	e.push(getTime(args), v)
-	return nil
-}
-
-func (e *executor) biOp(pos lexer.Position, f func(value.Value, value.Value) (value.Value, error), args []StackEntry) error {
-	if len(args) != 2 {
-		return participle.Errorf(pos, "expected 2 args")
-	}
-
-	v, err := f(args[0].Value, args[1].Value)
-	if err != nil {
-		return err
-	}
-	e.push(getTime(args), v)
-	return nil
-}
-
-func (e *executor) triOp(pos lexer.Position, f func(value.Value, value.Value, value.Value) (value.Value, error), args []StackEntry) error {
-	if len(args) != 3 {
-		return participle.Errorf(pos, "expected 3 args")
-	}
-
-	v, err := f(args[0].Value, args[1].Value, args[2].Value)
-	if err != nil {
-		return err
-	}
-	e.push(getTime(args), v)
-	return nil
-}
-
-func (e *executor) mathOp(pos lexer.Position, f func(float64) float64, args []StackEntry) error {
-	if len(args) != 1 {
-		return participle.Errorf(pos, "expected 1 arg")
-	}
-
-	e.pushValue(f(args[0].Value.Float()), args)
-	return nil
-}
-
-func (e *executor) mathBiOp(pos lexer.Position, f func(float64, float64) float64, args []StackEntry) error {
-	if len(args) != 2 {
-		return participle.Errorf(pos, "expected 2 args")
-	}
-
-	e.pushValue(f(args[0].Value.Float(), args[1].Value.Float()), args)
-	return nil
 }

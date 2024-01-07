@@ -1,9 +1,12 @@
 package weathercalc
 
 import (
+	"flag"
+	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
+	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
 	"github.com/peter-mount/piweather.center/tools/weathercalc/lang"
@@ -17,22 +20,93 @@ import (
 // However, it only does the calculation once it gets all the values the calculation requires.
 type Calculator struct {
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
+	Cron           *cron.CronService     `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
-	Calculations   *Calculations         `kernel:"inject"`
+	DBServer       *string               `kernel:"flag,metric-db,DB url"`
 	mutex          sync.Mutex
 	metrics        map[string][]*Calculation // Map of Calculation's by their dependencies
+	script         *lang.Script
+	calculations   []*Calculation // Calculation's in sequence
 }
 
 func (calc *Calculator) Start() error {
+	p := lang.NewParser()
+	script, err := p.ParseFiles(flag.Args()...)
+	if err != nil {
+		return err
+	}
+
+	calc.script = script
+
 	calc.metrics = make(map[string][]*Calculation)
 
 	// Load the calculations
-	if err := calc.Calculations.Script().Accept(lang.NewBuilder().
+	if err := calc.script.Accept(lang.NewBuilder().
 		Calculation(calc.addCalculation).
 		Build()); err != nil {
 		return err
 	}
 
+	if *calc.DBServer != "" {
+		calc.initFromDB()
+		// Reload from the DB at 00:01
+		// This allows for 1 minute for some data to arrive before
+		// we refresh the metrics
+		if _, err := calc.Cron.AddFunc("1 0 * * *", calc.initFromDB); err != nil {
+			return err
+		}
+	}
+
+	// Get latest metrics from DB
+	if err := calc.loadLatestMetrics(); err != nil {
+		return err
+	}
+
+	// Now run through all calculations for the first time
+	for _, c := range calc.calculations {
+		calc.calculate(c, true)
+	}
+
+	return nil
+}
+
+func (calc *Calculator) Script() *lang.Script {
+	return calc.script
+}
+
+func (calc *Calculator) initFromDB() {
+	if *calc.DBServer != "" {
+		err := calc.script.Accept(lang.NewBuilder().
+			Calculation(calc.addCalculation).
+			Build())
+
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// loadLatestMetrics retrieves the current metrics from the DB server
+func (calc *Calculator) loadLatestMetrics() error {
+	if *calc.DBServer != "" {
+		c := &client.Client{Url: *calc.DBServer}
+
+		r, err := c.LatestMetrics()
+		if err != nil {
+			return err
+		}
+
+		for _, m := range r.Metrics {
+			u, ok := value.GetUnit(m.Unit)
+			if ok {
+				calc.Latest.Append(m.Metric, record.Record{
+					Time:  m.Time,
+					Value: u.Value(m.Value),
+				})
+			}
+		}
+
+	}
 	return nil
 }
 
@@ -50,36 +124,21 @@ func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
 			}
 		}
 	}
-	calc.metrics[n] = append(metrics, NewCalculation(c))
+
+	nc := NewCalculation(c)
+	calc.metrics[n] = append(metrics, nc)
+	calc.calculations = append(calc.calculations, nc)
 }
 
 func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) error {
-	//c.time = value.BasicTime(time.Time{},
-	//	stn.LatLong().Coord(),
-	//	stn.Location.Altitude)
-
-	f := func(_ lang.Visitor, m *lang.Metric) error {
-		calc.addMetric(m.Name, c)
-		return nil
-	}
 	if err := c.Accept(lang.NewBuilder().
-		Metric(f).
-		UseFirst(f).
+		Metric(func(_ lang.Visitor, m *lang.Metric) error {
+			calc.addMetric(m.Name, c)
+			return nil
+		}).
 		Build()); err != nil {
 		return err
 	}
-
-	// If Default and Use set then set the default value
-	//if c.src.Default != nil && c.src.Use != "" {
-	//	if v, exists := value.GetUnit(c.src.Use); exists {
-	//		calc.Latest.Append(
-	//			c.ID(),
-	//			record.Record{
-	//				Value: v.Value(*c.src.Default),
-	//				Time:  time.Now(),
-	//			})
-	//	}
-	//}
 
 	return nil
 }
@@ -90,19 +149,6 @@ func (calc *Calculator) getCalculationByMetric(n string) ([]*Calculation, bool) 
 	defer calc.mutex.Unlock()
 	c, exists := calc.metrics[n]
 	return c, exists
-}
-
-func (calc *Calculator) Seed() {
-	for _, m := range calc.Latest.Metrics() {
-		if r, ok := calc.Latest.Latest(m); ok {
-			calc.accept(api.Metric{
-				Metric: m,
-				Time:   r.Time,
-				Unit:   r.Value.Unit().ID(),
-				Value:  r.Value.Float(),
-			}, false)
-		}
-	}
 }
 
 func (calc *Calculator) Accept(metric api.Metric) {
@@ -177,18 +223,6 @@ func (c *Calculation) Accept(metric api.Metric) bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if c.lastUpdate.After(metric.Time) {
-		return false
-	}
-
-	//cv.metric = metric
-	//cv.ready = true
-	//
-	//// Return true only if all metrics are ready
-	//for _, m := range c.metrics {
-	//	if !m.ready && m.metric.Metric != "" {
-	//		return false
-	//	}
-	//}
-	return true
+	// Note: !After and not Before as they are NOT the same thing!
+	return !c.lastUpdate.After(metric.Time)
 }

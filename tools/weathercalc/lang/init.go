@@ -2,7 +2,6 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/peter-mount/piweather.center/tools/weathercalc/functions"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
@@ -22,7 +21,6 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 			Location(state.initLocation).
 			Metric(state.initMetric).
 			Unit(state.initUnit).
-			UseFirst(state.initMetric).
 			Build())
 
 		if err == nil {
@@ -100,26 +98,8 @@ func (s *State) initCronTab(_ Visitor, l *CronTab) error {
 func (s *State) initFunction(_ Visitor, l *Function) error {
 	l.Name = strings.ToLower(l.Name)
 
-	f, exists := functions.LookupFunction(l.Name)
-	if !exists {
+	if !value.CalculatorExists(l.Name) {
 		return participle.Errorf(l.Pos, "function %q is undefined", l.Name)
-	}
-
-	switch {
-	case f.Calculator != nil:
-		return participle.Errorf(l.Pos, "calculation %q unsupported", f.Name)
-	case f.Op != nil, f.MathOp != nil:
-		if len(l.Expressions) != 1 {
-			return participle.Errorf(l.Pos, "syntax: %s(expr)", f.Name)
-		}
-	case f.BiOp != nil, f.MathBiOp != nil:
-		if len(l.Expressions) != 2 {
-			return participle.Errorf(l.Pos, "syntax: %s(expr,expr)", f.Name)
-		}
-	case f.TriOp != nil:
-		if len(l.Expressions) != 3 {
-			return participle.Errorf(l.Pos, "syntax: %s(expr,expr,expr)", f.Name)
-		}
 	}
 
 	return nil

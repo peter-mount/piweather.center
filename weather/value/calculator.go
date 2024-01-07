@@ -53,6 +53,16 @@ func GetCalculator(id string) (Calculator, error) {
 	return nil, fmt.Errorf("calculator %q not defined", id)
 }
 
+func CalculatorExists(id string) bool {
+	id = strings.ToLower(id)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	_, exists := calculators[id]
+	return exists
+}
+
 // GetCalculatorIDs return's the ID's of all registered Calculator's
 func GetCalculatorIDs() []string {
 	var r []string
@@ -83,16 +93,27 @@ func Calculator3arg(f func(_, _, _ Value) (Value, error)) Calculator {
 	}
 }
 
+func Basic1ArgCalculator(f func(float64) float64) Calculator {
+	return func(_ Time, value ...Value) (Value, error) {
+		if len(value) != 1 {
+			return Value{}, invalidValue
+		}
+		u1 := value[0]
+		return u1.Unit().Value(f(u1.Float())), nil
+	}
+}
+
 func Basic2ArgCalculator(f func(float64, float64) float64) Calculator {
 	return func(_ Time, value ...Value) (Value, error) {
 		if len(value) != 2 {
 			return Value{}, invalidValue
 		}
-		u1 := value[0].Unit()
+		v1 := value[0]
+		u1 := v1.Unit()
 		v2, err := value[1].As(u1)
 		if err != nil {
 			return Value{}, err
 		}
-		return u1.Value(f(value[0].Float(), v2.Float())), nil
+		return u1.Value(f(v1.Float(), v2.Float())), nil
 	}
 }
