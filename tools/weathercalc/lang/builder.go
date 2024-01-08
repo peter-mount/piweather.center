@@ -6,6 +6,7 @@ type Builder interface {
 	Current(func(Visitor, *Current) error) Builder
 	Expression(func(Visitor, *Expression) error) Builder
 	Function(func(Visitor, *Function) error) Builder
+	Load(f func(Visitor, *Load) error) Builder
 	Location(func(Visitor, *Location) error) Builder
 	Metric(func(Visitor, *Metric) error) Builder
 	Script(func(Visitor, *Script) error) Builder
@@ -38,6 +39,11 @@ func (b *builder) Location(f func(Visitor, *Location) error) Builder {
 
 func (b *builder) Calculation(f func(Visitor, *Calculation) error) Builder {
 	b.calculation = f
+	return b
+}
+
+func (b *builder) Load(f func(Visitor, *Load) error) Builder {
+	b.load = f
 	return b
 }
 

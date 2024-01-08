@@ -18,6 +18,7 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 
 		err = q.Accept(NewBuilder().
 			Calculation(state.initCalculation).
+			Load(state.load).
 			CronTab(state.initCronTab).
 			Function(state.initFunction).
 			Location(state.initLocation).
@@ -79,6 +80,23 @@ func (s *State) initCalculation(_ Visitor, l *Calculation) error {
 	}
 
 	s.calculations[l.Target] = l
+	return nil
+}
+
+func (s *State) load(_ Visitor, l *Load) error {
+	l.When = strings.ToLower(l.When)
+	l.With = strings.TrimSpace(l.With)
+
+	switch l.When {
+	case "today", "hour", "minute":
+	default:
+		return participle.Errorf(l.Pos, "Unsupported When %q", l.When)
+	}
+
+	if l.With == "" {
+		return participle.Errorf(l.Pos, "Undefined With")
+	}
+
 	return nil
 }
 

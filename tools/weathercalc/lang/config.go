@@ -82,12 +82,23 @@ type Calculation struct {
 	At         string      `parser:"('AT' @String)?"`       // If set the Location to use
 	Every      *CronTab    `parser:"('EVERY' @@)?"`         // Calculate at specified intervals
 	ResetEvery *CronTab    `parser:"('RESET' 'EVERY' @@)?"` // Crontab to reset the value
+	Load       *Load       `parser:"(@@)?"`                 // Load from the DB on startup
 	UseFirst   *UseFirst   `parser:"(@@)?"`                 // If set and no value use this expression
 	Expression *Expression `parser:"'AS' @@"`               // Expression to perform calculation
 }
 
 func (s *Calculation) Accept(v Visitor) error {
 	return v.Calculation(s)
+}
+
+type Load struct {
+	Pos  lexer.Position
+	When string `parser:"'LOAD' @String"` // When to load from
+	With string `parser:"'WITH' @String"` // Query to perform
+}
+
+func (s *Load) Accept(v Visitor) error {
+	return v.Load(s)
 }
 
 type CronTab struct {

@@ -144,6 +144,11 @@ func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) erro
 		calc.addCalculationByTarget(NewCalculation(c))
 	}
 
+	if c.Load != nil {
+		if err := calc.loadFromDB(c); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

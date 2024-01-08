@@ -8,6 +8,7 @@ type Visitor interface {
 	Current(*Current) error
 	Expression(*Expression) error
 	Function(*Function) error
+	Load(b *Load) error
 	Location(*Location) error
 	Metric(*Metric) error
 	Script(*Script) error
@@ -25,6 +26,7 @@ type visitorCommon struct {
 	current     func(Visitor, *Current) error
 	expression  func(Visitor, *Expression) error
 	function    func(Visitor, *Function) error
+	load        func(Visitor, *Load) error
 	location    func(Visitor, *Location) error
 	metric      func(Visitor, *Metric) error
 	script      func(Visitor, *Script) error
@@ -104,12 +106,27 @@ func (v *visitor) Calculation(b *Calculation) error {
 		}
 
 		if err == nil {
+			err = b.Load.Accept(v)
+		}
+
+		if err == nil {
 			err = b.UseFirst.Accept(v)
 		}
 
 		if err == nil {
 			err = b.Expression.Accept(v)
 		}
+	}
+	return err
+}
+
+func (v *visitor) Load(b *Load) error {
+	var err error
+	if b != nil && v.load != nil {
+		err = v.load(v, b)
+	}
+	if IsVisitorStop(err) {
+		return nil
 	}
 	return err
 }
