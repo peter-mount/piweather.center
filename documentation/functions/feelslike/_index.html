@@ -1,0 +1,42 @@
+---
+type: "manual"
+title: "feelslike"
+linkTitle: "feelslike"
+description: "Returns the feels like temperature"
+categories:
+    - weather
+    - piweather.center
+---
+<p>
+    This function returns the feels like temperature based on the temperature, relative humidity and wind speed.
+</p>
+
+<h3 class="paragraph">Syntax</h3>
+<h4 class="paragraph">weathercalc, weatherdb</h4>
+<pre><strong>feelslike(</strong> <em>temperature</em>, <em>humidity</em>, <em>windSpeed</em> <strong>)</strong></pre>
+<h4 class="paragraph">go</h4>
+<div class="sourceCode">
+import "github.com/peter-mount/piweather.center/weather/measurement"
+import "github.com/peter-mount/piweather.center/weather/value"
+
+measurement.FeelsLike(temp, humidity, windSpeed value.Value) (value.Value, error)
+</div>
+
+<h3>Definition</h3>
+<p>
+    As the <a href="../windchill/">Wind Chill</a> and <a href="../heatindex/">Heat Index</a>
+    functions are only valid across specific ranges, this function will call the appropriate function
+    based on the following conditions:
+</p>
+<ul>
+    <li>
+        The temperature is above 26.6&deg;C (80&deg;F) then the
+        <a href="../heatindex/">Heat Index</a> will be returned.</li>
+    <li>
+        The temperature is below 10&deg;C (50&deg;F) and the wind speed is faster than 1.34m/s then the
+        <a href="../windchill/">Wind Chill</a> will be returned.
+    </li>
+    <li>
+        If neither of the previous two cases are used then the original temperature is returned.
+    </li>
+</ul>

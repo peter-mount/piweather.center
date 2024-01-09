@@ -1,0 +1,57 @@
+---
+type: "manual"
+title: "windchill"
+linkTitle: "windchill"
+description: "Wind chill or windchill (popularly wind chill factor) is the lowering of body temperature due to the passing flow of lower-temperature air."
+categories:
+    - weather
+    - piweather.center
+---
+<p>
+    The <code>windchill</code> function calculates the windchill based on the temperature and wind speed.
+    If the values passed are not of the correct type then this will return an error.
+</p>
+<p>
+    This function is only valid for temperatures below 10&deg;C (50&deg;F) and for wind faster than 1.34m/s.
+    As such the <a href="../feelslike/">feelslike</a> function may be more suitable as it's response will be
+    dependent on the temperature and wind speed passed to it.
+</p>
+
+<h3 class="paragraph">Syntax</h3>
+<h4 class="paragraph">weathercalc, weatherdb</h4>
+<pre><strong>windchill(</strong> <em>temperature</em>, <em>windSpeed</em> <strong>)</strong></pre>
+<h4 class="paragraph">go</h4>
+<div class="sourceCode">
+import "github.com/peter-mount/piweather.center/weather/measurement"
+import "github.com/peter-mount/piweather.center/weather/value"
+
+measurement.WindChill(temp, windSpeed value.Value) (value.Value, error)
+</div>
+<h3>Definition</h3>
+<p>
+    The Wind Chill Index used is that implemented by the United Kingdom, Canada and the United States in November 2001.
+</p>
+<p>
+    It is determined by iterating a model of skin temperature under various wind speeds and temperatures using standard
+    engineering correlations of wind speed and heat transfer rate.
+    Heat transfer was calculated for a bare face in wind, facing the wind, while walking into it at 1.4 m/s (5.0 km/h; 3.1 mph).
+    The model corrects the officially measured wind speed to the wind speed at face height, assuming the person is in an open field.
+</p>
+<p>
+    The results of this model may be approximated, to within one degree, from the following equation:
+</p>
+
+<math class="math-block" display="block">
+    <msub><mi>T</mi><mi>WC</mi></msub>
+    <mo>=</mo> <mn>35.74</mn> <mo>+</mo> <mn>0.6215</mn><mi>T</mi>
+    <mo>-</mo> <mn>35.75</mn> <msup><mi>v</mi><mn>0.16</mn></msup>
+    <mo>+</mo> <mn>0.4275</mn> <mi>T</mi> <msup><mi>v</mi><mn>0.16</mn></msup>
+</math>
+
+<p>
+    Where:
+</p>
+<ul>
+    <li><code>T</code> is the ambient dry bulb temperature (&deg;F)</li>
+    <li><code>v</code> the wind speed in m/s.</li>
+</ul>
