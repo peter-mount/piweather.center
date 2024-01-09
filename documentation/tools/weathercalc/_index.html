@@ -1,0 +1,44 @@
+---
+type: "manual"
+title: "weathercalc"
+linkTitle: "weathercalc"
+description: "Perform realtime calculations on inbound data"
+categories:
+    - weather
+    - piweather.center
+---
+<p>
+    <code>weathercalc</code> is a core component which listens for readings appearing within the system and
+    performs calculations with them.
+    These calculations are usually of the form:
+</p>
+<div class="marginNote">
+    The period of time is either the current day since local midnight,
+    the current hour or minute.
+</div>
+<ul>
+    <li>Min/Max of the metric over a period of time,</li>
+    <li>Feels Like, Wind Chill or Heat Index at that moment,</li>
+    <li>
+        Astronomical calculations like the position of the Sun,
+        Moon or major Planets in the sky,
+    </li>
+    <li>Unit conversions if a duplicate is required.</li>
+</ul>
+
+<h3 class="paragraph">Syntax</h3>
+<pre><strong>weathercalc</strong> <em>config [config&hellip;]</em></pre>
+
+<h4 class="paragraph">Options</h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Option</th><th>Description</th><th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>-rootDir <em>path</em></td><td>The location of configuration files</td><td></td></tr>
+    <tr><td>-metric-queue <em>queueName</em></td><td>RabbitMQ queue to receive metrics</td><td>database.calc</td></tr>
+    <tr><td>-metic-db <em>url</em></td><td>URL for the database</td><td>Only required if a calculation requires the DB</td></tr>
+    </tbody>
+</table>
