@@ -2,6 +2,7 @@
 type: "manual"
 title: "weatherscript"
 linkTitle: "weatherscript"
+description: "Simple scripting language to generate reports or timelapse videos"
 categories:
     - weather
     - piweather.center
@@ -10,6 +11,11 @@ categories:
     <code>weatherscript</code> is a standalone interpreter which, via a simple scripting language
     similar to C, provides the ability to run scripts against the recorded data.
 </p>
+<div class="marginNote">
+    <code>weatherscript</code> is an implementation of my
+    <code>go-script</code> scripting language and includes the
+    <code>go-anim</code> graphical extensions to support image or timelapse generation.
+</div>
 <p>
     A primary use of this is in the generation of timelapse videos from a webcam where you can
     easily overlay data on each frame containing the weather information for that frame.
@@ -19,7 +25,7 @@ categories:
 </p>
 
 <h3 class="paragraph">Syntax</h3>
-<pre><strong>weatherscript</strong> <em>script</em> <em>[arguments...]</em></pre>
+<pre><strong>weatherscript</strong> <em>script</em> <em>[arguments&hellip;]</em></pre>
 
 <h4 class="paragraph">Options</h4>
 <table class="table">
