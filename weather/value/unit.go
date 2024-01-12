@@ -243,19 +243,15 @@ var (
 	Float *Unit
 	// Percent is a Unit bounded by 0..100 and has no decimal places
 	Percent *Unit
-	// Unix Time in seconds since 1970-Jan-1
-	Unix *Unit
 )
 
 func init() {
 	Integer = NewUnit("Integer", "Integer", "", 0)
 	Float = NewUnit("Float", "Float", "", 3)
 	Percent = NewBoundedUnit("Percent", "Percent", "%", 0, 0, 100)
-	Unix = NewUnit("UnixTime", "Unix Time", "", 0)
 
 	// General transforms for Basic values
 	NewBasicBiTransform(Integer, Float, 1)
-	NewBasicBiTransform(Integer, Unix, 1)
 	NewBasicBiTransform(Integer, Percent, 100)
 	NewBasicBiTransform(Float, Percent, 100)
 
