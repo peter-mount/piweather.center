@@ -155,3 +155,26 @@
 .wind-rose-step4 {fill:goldenrod}
 .wind-rose-step5 {fill:darkred}
 .wind-rose-step6 {fill:red}
+
+.dash-gauge {
+    .dash-h0 {
+        stroke: black;
+        stroke-width: 3px;
+    }
+    .dash-h1 {
+        stroke: red;
+        stroke-width: 3px;
+    }
+    .dash-h2 {
+        stroke: blue;
+        stroke-width: 2px;
+    }
+    .dash-h3 {
+        stroke: green;
+        stroke-width: 1px;
+    }
+    .dash-h4 {
+        stroke: black;
+        stroke-width: 1px;
+    }
+}
