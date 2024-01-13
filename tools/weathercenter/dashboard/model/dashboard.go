@@ -129,7 +129,7 @@ func encode(b []byte) []byte {
 
 func (c *Dashboard) NextId() string {
 	c.idSeq++
-	return string(encode([]byte{uid[0], uid[1], byte(c.idSeq & 0xcff), byte((c.idSeq >> 8) & 0xcff)}))
+	return string(encode([]byte{uid[0], uid[1], byte(c.idSeq & 0xff), byte((c.idSeq >> 8) & 0xff)}))
 }
 
 func (c *Dashboard) Process(m api.Metric, r *Response) {
