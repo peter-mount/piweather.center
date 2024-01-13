@@ -11,20 +11,6 @@
      data-min="{{$min}}"
      data-max="{{$max}}"
      data-delta="{{$axis.Delta}}">
-    <defs>
-        <g id="h0" stroke="black" stroke-width="3px">
-            <path d="M0,0 l0,-80"/>
-        </g>
-        <g id="h1" stroke="red" stroke-width="3px">
-            <path d="M0,0 l0,-70"/>
-        </g>
-        <g id="h2" stroke="blue" stroke-width="2px">
-            <path d="M0 0 l0 -60"/>
-        </g>
-        <g id="h3" stroke="green" stroke-width="1px">
-            <path d="M0 0 l0 -50"/>
-        </g>
-    </defs>
     <g transform="translate(125,125)" dominant-baseline="middle" text-anchor="middle">
         {{- /*
         We need an arc that's part of a circle, so the best way is to use a circle with a stroke-dasharray.
@@ -58,10 +44,10 @@
         {{- range $i,$m := $.Metric -}}
         {{- $ang := subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 112.5 -}}
         <g transform="rotate({{$ang}})">
-            {{- /* min 3 here so we limit the href to h0 h1 h2 h3 defined in defs */ -}}
-            <use xlink:href="#h{{min 3 $i}}">
+            {{- /* min 5 to allow up to 5 hands */ -}}
+            <path class="dash-h{{$i}}" d="M0,0l0,{{add -80 (multiply 10 (min 5 $i))}}">
                 <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>
-            </use>
+            </path>
         </g>
         {{- end -}}
         <circle r="10" fill="black"/>

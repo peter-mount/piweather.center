@@ -156,6 +156,7 @@
 .wind-rose-step5 {fill:darkred}
 .wind-rose-step6 {fill:red}
 
+.dash-barometer,
 .dash-gauge {
     .dash-h0 {
         stroke: black;
