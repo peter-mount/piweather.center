@@ -1,20 +1,13 @@
 window.addEventListener("load", wsListener)
 
 function wsListener(evt) {
-    let pt = location.port,
-        url = (location.protocol === "http:" ? "ws" : "wss") + "://" + location.host + "/live/dash/{{$.dash}}",
+    let url = (location.protocol === "http:" ? "ws" : "wss") + "://" + location.host + "/live/dash/{{$.dash}}",
         dashUid = "{{$.board.Uid}}",
         ws = new WebSocket(url);
-
-    ws.onopen = function (evt) {
-    }
 
     ws.onclose = function (evt) {
         ws = null;
         setTimeout(wsListener, 2000)
-    }
-
-    ws.onerror = function (evt) {
     }
 
     ws.onmessage = function (evt) {
