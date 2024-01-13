@@ -1,8 +1,8 @@
 {{- template "componentStart" . }}
 {{- with .Label}}<span class="label">
-{{- range split "_" .}}<span>{{.}}</span>{{end -}}
+{{- range split "_" .}}<span>{{if eq . ""}}&nbsp;{{else}}{{.}}{{end}}</span>{{end -}}
 </span>{{end -}}
 <span class="metric">
-{{- range $i,$m := .Metric -}}<span id="{{$.ID}}.txt{{$i}}">{{$m.String}}</span>{{- end -}}
+{{- range $i,$m := .Metric -}}{{$s := $m.String}}<span id="{{$.ID}}.txt{{$i}}">{{if eq $s ""}}&nbsp;{{else}}{{$s}}{{end}}</span>{{- end -}}
 </span>
 {{- template "componentEnd" . -}}

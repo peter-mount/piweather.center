@@ -84,11 +84,7 @@ func html(s string) template.HTML {
 }
 
 func split(sep, s string) []string {
-	a := strings.Split(s, sep)
-	for len(a) < 3 {
-		a = append(a, "")
-	}
-	return a
+	return strings.Split(s, sep)
 }
 
 func trimPrefix(p, s string) string {
