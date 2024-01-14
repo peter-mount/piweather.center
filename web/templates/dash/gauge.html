@@ -29,7 +29,7 @@
         {{- end -}}
         {{- range $i,$m := $.Metric -}}
         {{- $ang := subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90 -}}
-        <g transform="rotate({{$ang}})">
+        <g transform="rotate({{printf "%.0f" $ang}})">
             {{- /* min 5 to allow up to 5 hands */ -}}
             <path class="dash-h{{$i}}" d="M0,0l0,{{add -80 (multiply 10 (min 5 $i))}}">
                 {{- if $.IsLive}}<animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>{{end -}}
