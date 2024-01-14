@@ -3,6 +3,6 @@
 {{- range split "_" .}}<span>{{if eq . ""}}&nbsp;{{else}}{{.}}{{end}}</span>{{end -}}
 </span>{{end -}}
 <span class="metric">
-{{- range $i,$m := .Metric -}}{{$s := $m.String}}<span id="{{$.ID}}.txt{{$i}}">{{if eq $s ""}}&nbsp;{{else}}{{$s}}{{end}}</span>{{- end -}}
+{{- range $i,$m := .Metric -}}{{$s := $m.String}}<span{{if $.IsLive}} id="{{$.ID}}.txt{{$i}}"{{end}}>{{if eq $s ""}}&nbsp;{{else}}{{$s}}{{end}}</span>{{- end -}}
 </span>
 {{- template "componentEnd" . -}}

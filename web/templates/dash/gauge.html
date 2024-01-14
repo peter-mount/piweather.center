@@ -5,7 +5,7 @@
 {{- $ticks := defVal .Ticks 10 -}}
 {{- $axis := genAxis $min $max $ticks 180 -}}
 <svg viewBox="0 0 250 250" role="img"
-     id="{{$.ID}}.svg"
+     {{- if $.IsLive}}id="{{$.ID}}.svg"{{end -}}
      {{- range $i,$m := $.Metric}} data-metric{{$i}}="{{$m.Value.Float}}"
      data-d{{$i}}="{{subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90}}"{{end}}
      data-min="{{$min}}"
@@ -21,7 +21,7 @@
         {{- end -}}
         {{- range $i,$m := $.Metric -}}
             {{- if eq $i 0 -}}
-                <text id="{{$.ID}}.txt{{$i}}" y="35" font-size="150%">{{$m.String}}</text>
+                <text {{if $.IsLive}}id="{{$.ID}}.txt{{$i}}"{{end}} y="35" font-size="150%">{{$m.String}}</text>
             {{- end -}}
         {{- end -}}
         {{- with $.Label -}}
@@ -32,7 +32,7 @@
         <g transform="rotate({{$ang}})">
             {{- /* min 5 to allow up to 5 hands */ -}}
             <path class="dash-h{{$i}}" d="M0,0l0,{{add -80 (multiply 10 (min 5 $i))}}">
-                <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>
+                {{- if $.IsLive}}<animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>{{end -}}
             </path>
         </g>
         {{- end -}}

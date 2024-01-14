@@ -1,7 +1,7 @@
 {{- /* simple compass usually used to show wind direction */ -}}
 {{- template "componentStart" . -}}
 <svg viewBox="0 0 250 250" role="img" xmlns:xlink="http://www.w3.org/1999/xlink"
-     id="{{$.ID}}.svg"
+     {{- if $.IsLive}}id="{{$.ID}}.svg"{{end -}}
      {{- range $i,$m := $.Metric}} data-metric{{$i}}="{{$m.Value.Float}}" data-d{{$i}}="{{$m.Value.Float}}"{{end}}>
     <g transform="translate(125,125)" stroke-width="3px">
         <circle r="100" fill="none" stroke="black"/>
@@ -21,7 +21,7 @@
             {{- end -}}
             {{- range $i,$m := $.Metric -}}
                 {{- if eq $i 0 -}}
-                    <text id="{{$.ID}}.txt{{$i}}" y="45" font-size="150%">{{printf "%.0f" $m.Value.Float}}°</text>
+                    <text {{if $.IsLive}}id="{{$.ID}}.txt{{$i}}"{{end}} y="45" font-size="150%">{{printf "%.0f" $m.Value.Float}}°</text>
                 {{- end -}}
             {{- end -}}
         </g>
@@ -30,7 +30,7 @@
         <g fill="red" transform="rotate({{$ang}})">
             <circle r="15"/>
             <path d="M-15 0 l30 0 l-15 -80 z">
-                <animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>
+                {{- if $.IsLive}}<animateTransform id="{{$.ID}}.ptr{{$i}}" attributeName="transform" attributeType="XML" type="rotate" from="0" to="0" dur="1s" fill="freeze"/>{{end -}}
             </path>
         </g>
         {{- end -}}

@@ -1,7 +1,7 @@
 {{- /* simple compass usually used to show wind direction */ -}}
 {{- template "componentStart" . -}}
 <svg viewBox="0 0 250 250" role="img" xmlns:xlink="http://www.w3.org/1999/xlink"
-     id="{{$.ID}}.svg">
+     {{- if $.IsLive}}id="{{$.ID}}.svg"{{end}}>
     <g transform="translate(125,125)" stroke-width="3px">
         <circle r="100" fill="none" stroke="black"/>
         {{- range $d := sequence 0 360 22.5 -}}
