@@ -84,7 +84,7 @@ type Calculation struct {
 	ResetEvery *CronTab    `parser:"('RESET' 'EVERY' @@)?"` // Crontab to reset the value
 	Load       *Load       `parser:"(@@)?"`                 // Load from the DB on startup
 	UseFirst   *UseFirst   `parser:"(@@)?"`                 // If set and no value use this expression
-	Expression *Expression `parser:"'AS' @@"`               // Expression to perform calculation
+	Expression *Expression `parser:"('AS' @@)?"`            // Expression to perform calculation
 }
 
 func (s *Calculation) Accept(v Visitor) error {

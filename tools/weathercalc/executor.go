@@ -127,11 +127,20 @@ func (e *executor) calculation(v lang.Visitor, b *lang.Calculation) error {
 		}
 	}
 
-	err := b.Expression.Accept(v)
-	if err != nil {
-		return err
+	if b.Expression == nil {
+		// Handle no AS clause - result is the target metric
+		r, exists := e.latest.Latest(b.Target)
+		if !exists {
+			return lang.VisitorStop
+		}
+		e.push(r.Time, r.Value)
+	} else {
+		// Evaluate the expression
+		err := b.Expression.Accept(v)
+		if err != nil {
+			return err
+		}
 	}
-
 	val, _ := e.peek()
 
 	e.setMetric(b.Target, val)

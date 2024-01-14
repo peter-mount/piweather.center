@@ -227,7 +227,9 @@ func (calc *Calculator) calculate(c *Calculation) {
 
 		// Pass the calculated result back into the calculator so any dependencies
 		// may then be calculated immediately
-		calc.accept(metric)
+		if c.Src().Expression != nil {
+			calc.accept(metric)
+		}
 	}
 }
 
