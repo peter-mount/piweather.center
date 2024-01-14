@@ -3,14 +3,27 @@ package model
 import (
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"strings"
+	"time"
 )
 
 type Metric struct {
 	Metric string      `yaml:"metric"`         // Metric ID
 	Unit   string      `yaml:"unit,omitempty"` // Required Unit
+	Time   string      `yaml:"time,omitempty"` // Indicate we want the time
 	Value  value.Value `yaml:"-"`              // Used by templates
 	metric api.Metric
 }
+
+const (
+	MetricDateTime  = "datetime"
+	MetricDateTimeZ = "datetimez"
+	MetricDate      = "date"
+	MetricDateZ     = "datez"
+	MetricTime      = "time"
+	MetricTimeZ     = "timez"
+	MetricTimeZone  = "timezone"
+)
 
 func (m *Metric) setValue(v api.Metric) {
 	if v.IsValid() {
@@ -36,10 +49,38 @@ func (m *Metric) setValue(v api.Metric) {
 	}
 }
 
+func (m *Metric) MetricTime() time.Time {
+	return m.metric.Time
+}
+
+func (m *Metric) TimeString() string {
+	switch strings.ToLower(m.Time) {
+	case MetricDateTime:
+		return m.metric.Time.Format("2006-01-02T15:04:05")
+	case MetricDateTimeZ:
+		return m.metric.Time.Format("2006-01-02T15:04:05Z07:00")
+	case MetricDate:
+		return m.metric.Time.Format("2006-01-02")
+	case MetricDateZ:
+		return m.metric.Time.Format("2006-01-02 Z07:00")
+	case MetricTime:
+		return m.metric.Time.Format("15:04:05")
+	case MetricTimeZ:
+		return m.metric.Time.Format("15:04:05 Z07:00")
+	case MetricTimeZone:
+		return m.metric.Time.Format("MST")
+	default:
+		return ""
+	}
+}
+
 // String is the same as Value.String() but returns "" if the Value is invalid
 // instead of saying "invalid value"
 func (m *Metric) String() string {
 	if m.Value.IsValid() {
+		if m.Time != "" {
+			return m.TimeString()
+		}
 		return m.Value.String()
 	}
 
