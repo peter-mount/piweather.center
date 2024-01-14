@@ -55,7 +55,7 @@ func (calc *Calculator) Start() error {
 
 	// Now run through all calculations for the first time
 	for _, c := range calc.calculations {
-		calc.calculate(c, true)
+		calc.calculate(c)
 	}
 
 	return nil
@@ -174,14 +174,21 @@ func (calc *Calculator) getCalculationByTarget(n string) *Calculation {
 }
 
 func (calc *Calculator) Accept(metric api.Metric) {
-	calc.accept(metric, true)
+	// Only process the metric if it's not one we are calculating.
+	// This is done as we would receive a duplicate from Rabbit after we have
+	// made a calculation which. As we already pass the calculation result back
+	// into the calculator locally, we don't need this duplication.
+	target := calc.getCalculationByTarget(metric.Metric)
+	if target == nil {
+		calc.accept(metric)
+	}
 }
 
-func (calc *Calculator) accept(metric api.Metric, post bool) {
+func (calc *Calculator) accept(metric api.Metric) {
 	if m, exists := calc.getCalculationByMetric(metric.Metric); exists {
 		for _, c := range m {
 			if c.Accept(metric) {
-				calc.calculate(c, post)
+				calc.calculate(c)
 			}
 		}
 	}
@@ -190,11 +197,11 @@ func (calc *Calculator) accept(metric api.Metric, post bool) {
 func (calc *Calculator) calculateTarget(n string) {
 	cd := calc.getCalculationByTarget(n)
 	if cd != nil {
-		calc.calculate(cd, true)
+		calc.calculate(cd)
 	}
 }
 
-func (calc *Calculator) calculate(c *Calculation, post bool) {
+func (calc *Calculator) calculate(c *Calculation) {
 	result, t, err := calc.calculateResult(c)
 	if err != nil {
 		log.Println(c.Src().Pos, err)
@@ -214,13 +221,13 @@ func (calc *Calculator) calculate(c *Calculation, post bool) {
 			Value:  result.Float(),
 		}
 
-		if post {
-			if err = calc.DatabaseBroker.PublishMetric(metric); err != nil {
-				log.Printf("post %q failed %v", c.ID(), metric)
-			}
+		if err = calc.DatabaseBroker.PublishMetric(metric); err != nil {
+			log.Printf("post %q failed %v", c.ID(), metric)
 		}
 
-		calc.accept(metric, post)
+		// Pass the calculated result back into the calculator so any dependencies
+		// may then be calculated immediately
+		calc.accept(metric)
 	}
 }
 
