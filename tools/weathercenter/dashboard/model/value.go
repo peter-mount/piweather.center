@@ -30,15 +30,39 @@ func (c *Value) Process(m api.Metric, r *Response) {
 		a := Action{ID: c.ID}
 
 		for i, e := range c.Metric {
-			if e.Accept(m.Metric) {
+			var s string
+			var post bool
+
+			switch {
+			// Time set and no metric then use the most recent time as the value
+			case e.Time != "" && e.Metric == "":
+				t := e.MetricTime()
+				if t.IsZero() || t.Before(m.Time) {
+					e.setValue(m)
+					s = e.TimeString()
+					post = true
+				}
+
+			case e.Metric == "":
+				break
+
+			case e.Accept(m.Metric):
 				e.setValue(m)
+				s = e.Value.String()
+				post = true
+
+			default:
+				break
+			}
+
+			if post {
 				if e.Value.IsValid() {
 					a = a.Add(i, api.Metric{
 						Metric:    m.Metric,
 						Time:      m.Time,
 						Unit:      e.Value.Unit().ID(),
 						Value:     e.Value.Float(),
-						Formatted: e.Value.String(),
+						Formatted: s,
 						Unix:      m.Unix,
 					})
 				}
