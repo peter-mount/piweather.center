@@ -85,6 +85,7 @@ func (c *Cell) UnmarshalJSON(data []byte) error {
 	case strings.HasPrefix(s, `"`) && strings.HasSuffix(s, `"`):
 		c.Type = CellString
 		c.string = strings.Trim(s, `"`)
+		c.Time, _ = time.Parse(time.RFC3339, c.string)
 
 	default:
 		f, err := strconv.ParseFloat(s, 64)
