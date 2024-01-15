@@ -41,7 +41,11 @@ func (calc *Calculator) loadFromDB(c *lang.Calculation) error {
 		return participle.Errorf(b.Pos, "Unsupported when %q in exec", b.When)
 	}
 
-	q = append(q, "LIMIT 1", `SELECT`, b.With)
+	useFirst := ""
+	if c.UseFirst != nil && c.UseFirst.Metric != nil {
+		useFirst = "LAST(" + c.UseFirst.Metric.Name + ")"
+	}
+	q = append(q, "LIMIT 1", `SELECT`, `TIMEOF(`+useFirst+`),`, b.With)
 
 	query := strings.Join(q, " ")
 	log.Printf("DB: %s", query)
@@ -54,17 +58,18 @@ func (calc *Calculator) loadFromDB(c *lang.Calculation) error {
 
 	for _, t := range res.Table {
 		for _, r := range t.Rows {
-			if len(*r) == 0 || !(*r)[0].Value.IsValid() {
+			if len(*r) < 2 || !(*r)[1].Value.IsValid() {
 				log.Printf("no data returned for %q", b.With)
 			} else {
-				e := (*r)[0]
-				calc.Latest.Append(c.Target, record.Record{Time: e.Time, Value: e.Value})
+				e0 := (*r)[0]
+				e1 := (*r)[1]
+				calc.Latest.Set(c.Target, record.Record{Time: e0.Time, Value: e1.Value})
 
 				if err = calc.DatabaseBroker.PublishMetric(api.Metric{
 					Metric: c.Target,
-					Time:   e.Time,
-					Unit:   e.Value.Unit().ID(),
-					Value:  e.Value.Float(),
+					Time:   e0.Time,
+					Unit:   e1.Value.Unit().ID(),
+					Value:  e1.Value.Float(),
 				}); err != nil {
 					log.Printf("post %q failed", c.Target)
 				}

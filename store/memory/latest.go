@@ -19,6 +19,7 @@ type Latest interface {
 	Remove(metric string)
 	Metrics() []string
 	LatestTime() time.Time
+	Set(metric string, rec record.Record)
 }
 
 type latest struct {
@@ -82,6 +83,13 @@ func (l *latest) Append(metric string, rec record.Record) bool {
 	}
 
 	return true
+}
+
+func (l *latest) Set(metric string, rec record.Record) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	l.metrics[metric] = rec
 }
 
 func (l *latest) Latest(metric string) (record.Record, bool) {

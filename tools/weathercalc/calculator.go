@@ -122,6 +122,9 @@ func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) erro
 	if c.ResetEvery != nil {
 		if _, err := calc.Cron.AddFunc(c.ResetEvery.Definition, func() {
 			calc.Latest.Remove(c.Target)
+			if c.Load != nil {
+				_ = calc.loadFromDB(c)
+			}
 			calc.calculateTarget(c.Target)
 		}); err != nil {
 			return err
@@ -131,6 +134,9 @@ func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) erro
 	// Every definition
 	if c.Every != nil {
 		if _, err := calc.Cron.AddFunc(c.Every.Definition, func() {
+			if c.Load != nil {
+				_ = calc.loadFromDB(c)
+			}
 			calc.calculateTarget(c.Target)
 		}); err != nil {
 			return err
