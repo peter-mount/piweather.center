@@ -16,8 +16,10 @@ func (s *Server) loadLatestMetrics() error {
 		if err != nil {
 			return err
 		}
-		for _, m := range r.Metrics {
-			s.storeLatest(m)
+		if r != nil {
+			for _, m := range r.Metrics {
+				s.storeLatest(m)
+			}
 		}
 	}
 	return nil
