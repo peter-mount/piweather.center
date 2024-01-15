@@ -1,0 +1,169 @@
+# Example weathercalc configuration
+
+# Multiple locations can be defined for calculations that require the
+# location of the sensor being calculated.
+#
+# Here we define the location "Maidstone" with its Latitude, Longitude and Altitude.
+#
+# Note: The name must be unique but is case-insensitive.
+#       The altitude is optional, it will default to 0 if left out.
+#       For latitude and longitude, you can use any of the following formats:
+#           "51.225" "51:13.5" or "51:13:30"
+#       When using the : notation, the last field can have decimals in them.
+#
+location "Maidstone" "51:13.5" "0:30:30" 127.77
+
+# Example of a calculation that requires a named location.
+# Here we calculate the Sun's altitude once per minute at the named location.
+# The result will be a value in degrees.
+calculate "home.pseudo1.solarAltitude"
+    at "Maidstone"
+    every "minute"
+    as solarAltitude()
+
+# Example of calculating the dew point
+calculate "home.pseudo1.dewpoint" as dewPoint( home.ecowitt.temp, home.ecowitt.humidity ) using "celsius"
+
+# Here we calculate the Feels Like temperature cased on the recorded temperature, humidity and wind speed.
+#
+# The result will be the temperature in Fahrenheit, hence the using clause which will convert it to Celsius.
+#
+calculate "home.pseudo1.feelslike"
+    as feelsLike( home.ecowitt.temp, home.ecowitt.humidity, home.ecowitt.windspeed )
+    using "celsius"
+
+# Here we calculate the max and min values for the previous Feels Like temperature.
+#
+# The reset clause ensures that the value is reset at midnight.
+#
+# The load clause will make a DB call to get the initial value when the calculator first starts
+# and when the metric is reset.
+#
+# The usefirst clause will, if the metric still has no valid value take the first value received instead of using the AS clause.
+#
+# Finally the AS clause will perform the calculation taking the max value of current or the feelslike metric.
+#
+# Note: current is shorthand for the metric being calculated. It's advisable that if the calculation references itself then
+# the USEFIRST clause is also used to handle the condition when a calculation is first made.
+calculate "home.pseudo1.maxfeelslike"
+    reset every "day"
+    load "today" with "max(home.pseudo1.feelslike)"
+    usefirst home.pseudo1.feelslike
+    as max(current,home.pseudo1.feelslike)
+    using "celsius"
+
+calculate "home.pseudo1.minfeelslike"
+    reset every "day"
+    load "today" with "min(home.pseudo1.feelslike)"
+    usefirst home.pseudo1.feelslike
+    as min( current, home.pseudo1.feelslike )
+    using "celsius"
+
+# This is the same but for the actual temperature from the weather station.
+calculate "home.pseudo1.maxtemp"
+    reset every "day"
+    load "today" with "max(home.ecowitt.temp)"
+    usefirst home.ecowitt.temp
+    as max(current,home.ecowitt.temp)
+    using "celsius"
+
+calculate "home.pseudo1.mintemp"
+    reset every "day"
+    load "today" with "min(home.ecowitt.temp)"
+    usefirst home.ecowitt.temp
+    as min(current,home.ecowitt.temp)
+    using "celsius"
+
+# As the EcoWitt sensor has a UV sensor, we also calculate the max value recorded each day.
+# There is no point in calculating the min as that's always 0.
+calculate "home.pseudo1.maxuv"
+    reset every "day"
+    load "today" with "max(home.ecowitt.uv)"
+    usefirst home.ecowitt.uv
+    as max(current,home.ecowitt.uv)
+    using "uv"
+
+# Similarly we calculate the maximum solar radiation measurement for each day.
+# Again no min calculation as that's always 0.
+calculate "home.pseudo1.maxsolarradiation"
+    reset every "day"
+    load "today" with "max(home.ecowitt.solarradiation)"
+    usefirst home.ecowitt.solarradiation
+    as max(current,home.ecowitt.solarradiation)
+    using "wattspersquaremeter"
+
+# The station provides wind, gust and max daily gust wind speeds, so it's useful to
+# record the max wind speed as well.
+calculate "home.pseudo1.maxwind"
+    reset every "day"
+    load "today" with "max(home.ecowitt.windspeed)"
+    usefirst home.ecowitt.windspeed
+    as max(current,home.ecowitt.windspeed)
+    using "meterspersecond"
+
+# On the Ecowitt, rrain_piezo records the rain rate in mm/h showing the speed rain is
+# falling, rather than the amount, so recording the max rain rate for the day is useful.
+calculate "home.pseudo1.maxrrain_piezo"
+    reset every "day"
+    load "today" with "max(home.ecowitt.rrain_piezo)"
+    usefirst home.ecowitt.rrain_piezo
+    as max(current,home.ecowitt.rrain_piezo)
+    using "MilliMeters"
+
+# The Pimoroni Enviro Urban records the ambient noise level by measuring the voltage from
+# it's onboard microphone. So here we record the max noise voltage over the day.
+calculate "home.drive.noisemax"
+    reset every "day"
+    load "today" with "max(home.drive.noise)"
+    usefirst home.drive.noise
+    as max(current,home.drive.noise)
+    using "volt"
+
+# The Pimoroni Enviro Urban also has a particulate matter sensor to record airborne pollution.
+# It does this by recording the amount of particles at 1µm, 2.5µm and 10µm sizes.
+# The 2.5µm readings are the measurements most commonly used as particles at those sizes cause the most issues.
+#
+# So here we record the daily maximum values of those measurements.
+calculate "home.drive.pm1max"
+    reset every "day"
+    load "today" with "max(home.drive.pm1)"
+    usefirst home.drive.pm1
+    as max(current,home.drive.pm1)
+    using "MicrogramsPerCubicMeter"
+
+calculate "home.drive.pm2_5max"
+    reset every "day"
+    load "today" with "max(home.drive.pm2_5)"
+    usefirst home.drive.pm2_5
+    as max(current,home.drive.pm2_5)
+    using "MicrogramsPerCubicMeter"
+
+calculate "home.drive.pm10max"
+    reset every "day"
+    load "today" with "max(home.drive.pm10)"
+    usefirst home.drive.pm10
+    as max(current,home.drive.pm10)
+    using "MicrogramsPerCubicMeter"
+
+# Here we calculate the daily minimum and maximum count-per-minute from the Geiger Counter
+calculate "home.garden.cpmmax"
+    reset every "day"
+    load "today" with "max(home.garden.cpm)"
+    usefirst home.garden.cpm
+    as max(current,home.garden.cpm)
+    using "CountPerMinute"
+
+calculate "home.garden.cpmmin"
+    reset every "day"
+    load "today" with "min(home.garden.cpm)"
+    usefirst home.garden.cpm
+    as min(current,home.garden.cpm)
+    using "CountPerMinute"
+
+# We also calculate the daily average count-per-minute from the Geiger Counter.
+# Here we make the calculation once every minute by making a DB call so the DB makes the average calculation
+# for all measurements since Midnight.
+calculate "home.garden.cpmavg"
+    every "minute"
+    load "today" with "avg(home.garden.cpm)"
+
