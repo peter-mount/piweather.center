@@ -1,0 +1,329 @@
+# Example of a dashboard showing the current state of the station
+
+# If set to true then the dashboard will receive live updates.
+# If not defined or set to false, then the dashboard will be static.
+# Also, no Javascript will be served with the page.
+live: true
+
+#
+# If set then this includes the HTTP Refresh header so the browser will
+# refresh the page at regular intervals. The value is measured in seconds.
+#refresh: 60
+
+# If set this will refresh the data on the page at regular intervals,
+# in this instance every fifteen minutes.
+#
+# It's used for data that doesn't update regularly - specifically the
+# WindRose is generated at this frequency as it's not in real time and
+# would be computationally expensive to do so.
+#
+# If live mode is also enabled then the page will also be refreshed at the same time.
+update: "0 */15 * * * *"
+
+# A dashboard is a type of Container, so it contains a list of the Components to display here.
+components:
+  # We have two containers within the dashboard, the left hand column and the right hand container
+  # with the graphics
+  - type: container
+    components:
+      # The first container is a column (type: col) containing values (type: value) components
+      # displaying the textual values of various metrics.
+      - type: col
+        # We define the CSS class col-bordered which provides the border of the column and a line between each Value
+        class: col-bordered
+        components:
+          # The first value shows the date, time and timezone of the most recent metric in the dashboard.
+          - type: value
+            # The label for this value. Here "_" indicates where a line break is required, so here we have three
+            # lines, one each for Date, Time and Time Zone.
+            label: Date_Time_Time Zone
+            # A list of metrics to display. Here we are using the special case where we want the latest date, time etc
+            # displayed rather than that of a specific metric, so we only define the time field to what we want shown.
+            # If we wanted the time to be that of a specific metric then we would also need the metric field set.
+            metric:
+              - time: date
+              - time: time
+              - time: timezone
+          # Here we display the current temperature
+          - type: value
+            label: "Temp_Max_Min_Feels Like_Max_Min_Dew Point"
+            metric:
+              # The current temperature and it's calculated daily max and minimum
+              - metric: "home.ecowitt.temp"
+              - metric: "home.pseudo1.maxtemp"
+              - metric: "home.pseudo1.mintemp"
+              # The calculated feels like temperature, and it's calculated daily max and minimum
+              - metric: "home.pseudo1.feelslike"
+              - metric: "home.pseudo1.maxfeelslike"
+              - metric: "home.pseudo1.minfeelslike"
+              # The calculated Dew Point temperature
+              - metric: "home.pseudo1.dewpoint"
+          # The UV Index and it's daily maximum
+          - type: value
+            label: "UV_Max"
+            metric:
+              - metric: "home.ecowitt.uv"
+              - metric: "home.pseudo1.maxuv"
+          # The wind speed measurements
+          - type: value
+            label: "Wind Speed_Max_Gust_Max Gust"
+            metric:
+              # The current wind speed and it's calculated daily maximum
+              - metric: "home.ecowitt.windspeed"
+              - metric: "home.pseudo1.maxwind"
+              # The wind gust speed and the daily maximum as provided by the sensor
+              - metric: "home.ecowitt.windgust"
+              - metric: "home.ecowitt.maxdailygust"
+          # The current atmospheric pressure
+          - type: value
+            label: "Pressure"
+            metric:
+              # The raw pressure in hPa
+              - metric: "home.ecowitt.baromrelin"
+              # The pressure but converted into mmHg
+              - metric: "home.ecowitt.baromrelin"
+                unit: pressuremmhg
+          # The relative humidity and the current rain measurements
+          - type: value
+            label: "Humidity_Rain Rate_Event_Hour_Day_Week_Month_Year"
+            metric:
+              - metric: "home.ecowitt.humidity"
+              # On the ecowitt rrain is the rain rate in mm/h
+              - metric: "home.ecowitt.rrain_piezo"
+              # On the ecowitt rrain is the event measurement, so the amount of
+              # continuous rain over a period of time, which can span days
+              - metric: "home.ecowitt.erain_piezo"
+              # The hourly, daily, weekly, month and year rain fall
+              - metric: "home.ecowitt.hrain_piezo"
+              - metric: "home.ecowitt.drain_piezo"
+              - metric: "home.ecowitt.wrain_piezo"
+              - metric: "home.ecowitt.mrain_piezo"
+              - metric: "home.ecowitt.yrain_piezo"
+          # Solar measurements
+          - type: value
+            label: "Solar Alt_Radiation__Max"
+            metric:
+              # The calculated altitude of the sun at this moment
+              - metric: "home.ecowitt.solaraltitude"
+              # The current solar radiation in W/m²
+              - metric: "home.ecowitt.solarradiation"
+              # The current solar radiation converted to lux
+              - metric: "home.ecowitt.solarradiation"
+                unit: lux
+              # The daily max solar radiation in W/m²
+              - metric: "home.pseudo1.maxsolarradiation"
+          # The current Geiger Counter reading
+          - type: value
+            label: "Radiation"
+            metric:
+              - metric: "home.garden.cpm"
+          # The current noise level converted to dBV
+          - type: value
+            label: "Noise"
+            metric:
+              - metric: "home.drive.noise"
+                unit: decibelvolt
+          # The current particulate pollution readings in µg/m³
+          - type: value
+            label: "Pollution_1µm_2.5µm_10µm"
+            metric:
+              # Dummy entry to set a blank space next to Pollution header so the values line up with their headings
+              - blank: true
+              - metric: "home.drive.pm1"
+              - metric: "home.drive.pm2_5"
+              - metric: "home.drive.pm10"
+      # The container containing the graphics
+      - type: container
+        components:
+        - type: row
+          components:
+            # Gauge component showing the temperature.
+            - type: gauge
+              label: "Temperature"
+              metric:
+                # The default CSS shows the first hand in black
+                - metric: "home.ecowitt.temp"
+                # The default CSS shows the second hand in red
+                - metric: "home.pseudo1.maxtemp"
+                # The default CSS shows the third hand in blue
+                - metric: "home.pseudo1.mintemp"
+              # The min and max values shown for the axes.
+              # These also limit how far the hands can move on the gauge
+              min: -10
+              max: 40
+              # The number of ticks shown on the gauge.
+              # So with 10 ticks and a range of 50°C (-10°C...40°C) this means 1 tick for every 5°C
+              ticks: 10
+            # The UV gauge is simple with a range of 0...12 and two hands showing the current and max daily value
+            - type: gauge
+              label: "UV"
+              metric:
+                - metric: "home.ecowitt.uv"
+                - metric: "home.pseudo1.maxuv"
+              max: 12
+              ticks: 12
+            # The Atmospheric Pressure Barometer
+            - type: barometer
+              # The label is optional and is shown below the current reading
+              label: "Pressure"
+              metric:
+                # Although it can accept multiple metrics it's usually best to keep it to a single one
+                - metric: "home.ecowitt.baromrelin"
+              # The min, max and tics should be kept the same as these values match those on most physical barometers.
+              min: 960
+              max: 1060
+              ticks: 10
+            # Humidity gauge showing how to display a value that's a percentage.
+            - type: gauge
+              label: "Humidity"
+              metric:
+                - metric: "home.ecowitt.humidity"
+              min: 0
+              max: 100
+              ticks: 10
+        # second row containing wind measurements
+        - type: row
+          components:
+            # compass component showing the current wind direction.
+            - type: compass
+              # Label is optional for compass, if present it appears above the central point
+              label: "Wind"
+              # A single metric used to point the compass "needle"
+              metric:
+                - metric: "home.ecowitt.winddir"
+            # Wind speed gauge with daily max shown
+            - type: gauge
+              label: "Wind Speed"
+              metric:
+                - metric: "home.ecowitt.windspeed"
+                - metric: "home.pseudo1.maxwind"
+              max: 10
+              ticks: 10
+            # Wind Gust speed gauge with daily max shown
+            - type: gauge
+              label: "Wind Gust"
+              metric:
+                - metric: "home.ecowitt.windgust"
+                - metric: "home.ecowitt.maxdailygust"
+              max: 10
+              ticks: 10
+            # Wind Rose showing the distribution of the wind over the current day
+            - type: wind-rose
+              # Label is optional and for most purposes it's not needed as it would be
+              # covered by the rose content
+              #label: Today
+              # DB query to calculate the wind rose data.
+              # This is refreshed on startup and by the update entry against the dashboard
+              query:
+                between "today" and "now"
+                windrose home.ecowitt.winddir, home.ecowitt.windspeed as rose
+        # Third row contains rain fall data
+        - type: row
+          components:
+            # rain-gauge component to show the amount of rain fallen for each metric.
+            # The gauges are half the width of most other components, so you can fit two where you would place one on the other rows.
+            - type: rain-gauge
+              # Label, goes below the gauge and above the current reading
+              label: "Hour"
+              # Only one metric is supported by this component
+              metric:
+                - metric: "home.ecowitt.hrain_piezo"
+              # The initial maximum value for the axes.
+              # If the amount is greater, then the axes are scaled accordingly
+              max: 2
+            - type: rain-gauge
+              label: "Day"
+              metric:
+                - metric: "home.ecowitt.drain_piezo"
+              max: 2
+            - type: rain-gauge
+              label: "Week"
+              metric:
+                - metric: "home.ecowitt.wrain_piezo"
+              max: 2
+            - type: rain-gauge
+              label: "Month"
+              metric:
+                - metric: "home.ecowitt.mrain_piezo"
+              max: 2
+            - type: rain-gauge
+              label: "Year"
+              metric:
+                - metric: "home.ecowitt.yrain_piezo"
+              max: 2
+            - type: rain-gauge
+              label: "Current Event"
+              metric:
+                - metric: "home.ecowitt.erain_piezo"
+              max: 2
+            # rain rate gauge recording the current rain fall rate in mm/h
+            - type: gauge
+              label: "Rain Rate"
+              metric:
+                - metric: "home.ecowitt.rrain_piezo"
+                - metric: "home.pseudo1.maxrrain_piezo"
+              max: 5
+              ticks: 5
+        # Fourth row showing radiation and noise levels
+        - type: row
+          components:
+            # Gauge showing the current, daily max and daily average readings from the Geiger Counter
+            - type: gauge
+              label: "Radiation"
+              metric:
+                - metric: "home.garden.cpm"
+                - metric: "home.garden.cpmmax"
+                - metric: "home.garden.cpmavg"
+              # Using Max 50 here should be high enough for most areas where the average CPM is around 20 per minute.
+              # If you are in a high radiation area you might want to increase this
+              max: 50
+              ticks: 5
+            # Noise gauge in volts
+            - type: gauge
+              label: "Noise"
+              metric:
+                - metric: "home.drive.noise"
+                - metric: "home.drive.noisemax"
+              # Max of 0.5V is usually enough unless there's a large amount of noise in the environment.
+              # Most of the time my sensor hovers between 0V and 0.3V
+              max: 0.5
+              ticks: 5
+            # Solar radiation in W/m²
+            - type: gauge
+              label: "Solar Radiation"
+              metric:
+                - metric: "home.ecowitt.solarradiation"
+                - metric: "home.pseudo1.maxsolarradiation"
+              # Max of 1200 is good for the UK where during the summer I recorded values approaching 1200W/m²
+              max: 1200
+              ticks: 6
+        # Fifth row showing particulate pollution levels
+        - type: row
+          components:
+            - type: gauge
+              label: "Pollution 2.5µm"
+              metric:
+                - metric: "home.drive.pm2_5"
+                - metric: "home.drive.pm2_5max"
+              max: 60
+              ticks: 6
+            - type: gauge
+              label: "Pollution 1µm"
+              metric:
+                - metric: "home.drive.pm1"
+                - metric: "home.drive.pm1max"
+              max: 60
+              ticks: 6
+            - type: gauge
+              label: "Pollution 10µm"
+              metric:
+                - metric: "home.drive.pm10"
+                - metric: "home.drive.pm10max"
+              max: 60
+              ticks: 6
+      - type: row
+        components:
+          - type: text
+            text:
+              This is a prototype weather station currently under development.
+              The accuracy or stability of this site is not guaranteed at this time.
