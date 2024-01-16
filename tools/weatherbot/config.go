@@ -70,6 +70,7 @@ type Value struct {
 	Factor float64   `yaml:"factor"` // Factor to apply to value
 	Unit   Unit      `yaml:"unit"`   // Units to use
 	Value  *float64  `yaml:"value"`  // Explicit value to use
+	Format string    `yaml:"format"` // Format to use
 	Col    string    `yaml:"-"`      // Internal used to match from the result
 	Cell   *api.Cell `yaml:"-"`      // Cell of the result
 }

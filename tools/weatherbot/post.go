@@ -9,6 +9,7 @@ import (
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
+	"time"
 )
 
 // getPost loads the yaml config and gets the named post to publish
@@ -164,12 +165,34 @@ func (t *Bot) GetValue(val *Value) (interface{}, error) {
 		val.Cell = &cell
 	}
 
-	switch val.Cell.Type {
-	case api.CellNull:
+	ct := val.Cell.Type
+	switch {
+
+	case ct == api.CellNull:
 		return "", nil
-	case api.CellString:
+
+	case ct == api.CellString && val.Cell.Time.IsZero():
 		return val.Cell.String(), nil
-	case api.CellNumeric:
+
+	case ct == api.CellString && !val.Cell.Time.IsZero():
+		var tFormat string
+		switch strings.ToLower(strings.TrimSpace(val.Format)) {
+		case "":
+			tFormat = time.RFC3339
+		case "date":
+			tFormat = "2006-01-02"
+		case "time":
+			tFormat = "15:04:05"
+		case "timez":
+			tFormat = "15:04:05 MST"
+		case "datetime":
+			tFormat = "2006-01-02 15:04:05 MST"
+		default:
+			tFormat = val.Format
+		}
+		return val.Cell.Time.Format(tFormat), nil
+
+	case ct == api.CellNumeric:
 		if val.Cell.Value.IsValid() {
 			return val.GetValue(val.Cell.Value)
 		}
