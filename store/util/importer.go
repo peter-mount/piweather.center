@@ -6,11 +6,11 @@ import (
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	_ "github.com/peter-mount/piweather.center/astro/calculator"
 	"github.com/peter-mount/piweather.center/io"
-	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/station/payload"
-	"github.com/peter-mount/piweather.center/station/service"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/file/record"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/model"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/payload"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/service"
 	"github.com/peter-mount/piweather.center/util"
 	"os"
 	"path/filepath"
@@ -38,16 +38,16 @@ func (i *Importer) Start() error {
 		i.startDate = time.Now().UTC().Add(-7 * 24 * time.Hour)
 	}
 
-	return i.Config.Accept(station.NewVisitor().
+	return i.Config.Accept(model.NewVisitor().
 		Sensors(i.importSensor).
 		WithContext(context.Background()))
 }
 
 func (i *Importer) importSensor(ctx context.Context) error {
-	visitor := station.NewVisitor().
+	visitor := model.NewVisitor().
 		Reading(i.processReading)
 
-	sensors := station.SensorsFromContext(ctx)
+	sensors := model.SensorsFromContext(ctx)
 
 	dir := filepath.Join(*i.Import, filepath.Join(strings.Split(sensors.ID, ".")...))
 
@@ -84,7 +84,7 @@ func (i *Importer) importSensor(ctx context.Context) error {
 }
 
 func (i *Importer) processReading(ctx context.Context) error {
-	r := station.ReadingFromContext(ctx)
+	r := model.ReadingFromContext(ctx)
 	if r.Unit() != nil {
 		p := payload.GetPayload(ctx)
 

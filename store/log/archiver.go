@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/task"
-	"github.com/peter-mount/piweather.center/station/payload"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/payload"
 	"os"
 	"path/filepath"
 	"strings"

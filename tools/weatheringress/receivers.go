@@ -7,15 +7,14 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/mq/mqtt"
-	"github.com/peter-mount/piweather.center/station"
-	"github.com/peter-mount/piweather.center/station/payload"
-	"github.com/peter-mount/piweather.center/weather/value"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/model"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/payload"
 	"io"
 	"net/http"
 )
 
 func (s *Ingress) startAMQP(ctx context.Context) error {
-	sensor := station.SensorsFromContext(ctx)
+	sensor := model.SensorsFromContext(ctx)
 	if sensor.Source.Amqp == nil {
 		return nil
 	}
@@ -52,7 +51,7 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 
 			default:
 				return s.processVisitor.
-					WithContext(p.AddContext(value.WithMap(s.subContext))).
+					WithContext(p.AddContext(s.subContext)).
 					VisitSensors(sensor)
 			}
 		})
@@ -64,7 +63,7 @@ func (s *Ingress) startAMQP(ctx context.Context) error {
 }
 
 func (s *Ingress) startMQTT(ctx context.Context) error {
-	sensor := station.SensorsFromContext(ctx)
+	sensor := model.SensorsFromContext(ctx)
 	if sensor.Source.Amqp == nil {
 		return nil
 	}
@@ -97,7 +96,7 @@ func (s *Ingress) startMQTT(ctx context.Context) error {
 
 			default:
 				return s.processVisitor.
-					WithContext(p.AddContext(value.WithMap(s.subContext))).
+					WithContext(p.AddContext(s.subContext)).
 					VisitSensors(sensor)
 			}
 		})
@@ -109,8 +108,8 @@ func (s *Ingress) startMQTT(ctx context.Context) error {
 	return err
 }
 
-func (s *Ingress) startEcowitt(ctx context.Context) error {
-	sensor := station.SensorsFromContext(ctx)
+func (s *Ingress) startHttp(ctx context.Context) error {
+	sensor := model.SensorsFromContext(ctx)
 	if sensor.Source.EcoWitt == nil {
 		return nil
 	}
@@ -121,7 +120,7 @@ func (s *Ingress) startEcowitt(ctx context.Context) error {
 		sensor.ID,
 		sensor.Name,
 		http.MethodPost,
-		"ecowitt",
+		"http",
 		func(ctx context.Context) error {
 			r := rest.GetRest(ctx)
 			body, _ := io.ReadAll(r.Request().Body)
@@ -136,7 +135,7 @@ func (s *Ingress) startEcowitt(ctx context.Context) error {
 				return nil
 
 			default:
-				return s.processVisitor.WithContext(p.AddContext(value.WithMap(s.subContext))).
+				return s.processVisitor.WithContext(p.AddContext(s.subContext)).
 					VisitSensors(sensor)
 			}
 		})

@@ -1,4 +1,4 @@
-package station
+package model
 
 // Location represents a location on the Earth's surface.
 type Location struct {

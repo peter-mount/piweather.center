@@ -16,7 +16,7 @@ type Source struct {
 }
 
 type EcoWitt struct {
-	// Path under /api/ecowitt/
+	// Path under /api/http/
 	Path string `json:"path" xml:"path,attr" yaml:"path"`
 	// PassKey unique to the unit. "" to allow all
 	PassKey string `json:"passKey,omitempty" xml:"passKey,attr,omitempty" yaml:"passKey,omitempty"`

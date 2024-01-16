@@ -3,7 +3,7 @@ package weather
 import (
 	"github.com/peter-mount/go-script/packages"
 	"github.com/peter-mount/piweather.center/io"
-	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/model"
 )
 
 func init() {
@@ -11,12 +11,12 @@ func init() {
 }
 
 type Weather struct {
-	stations *station.Stations
+	stations *model.Stations
 }
 
 func (w *Weather) LoadConfig(fileName string) error {
 	if w.stations == nil {
-		config := station.Stations(make(map[string]*station.Station))
+		config := model.Stations(make(map[string]*model.Station))
 
 		if err := io.NewReader().
 			Yaml(&config).

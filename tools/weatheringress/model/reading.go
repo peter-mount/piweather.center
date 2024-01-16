@@ -1,4 +1,4 @@
-package station
+package model
 
 import (
 	"context"
@@ -54,6 +54,3 @@ func (s *Reading) Unit() *value.Unit {
 func (s *Reading) Sensors() *Sensors { return s.sensors }
 
 func (s *Reading) GetID() string { return s.ID }
-
-func (s *Reading) IsCalculated() bool { return false }
-func (s *Reading) IsPseudo() bool     { return false }

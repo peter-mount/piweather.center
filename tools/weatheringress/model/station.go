@@ -1,9 +1,9 @@
-package station
+package model
 
 import (
 	"context"
 	"github.com/peter-mount/piweather.center/astro/coord"
-	"github.com/peter-mount/piweather.center/station/source"
+	"github.com/peter-mount/piweather.center/tools/weatheringress/source"
 )
 
 // Stations  Map of all defined Station's
@@ -64,9 +64,6 @@ type Sensors struct {
 	Timestamp string
 	// Reading's provided by this collection
 	Readings map[string]*Reading `yaml:"readings"`
-	// CalculatedValue's to calculate with this calculation
-	Calculations map[string]*CalculatedValue `yaml:"calculations,omitempty"`
-	Output       *Output                     `yaml:"output,omitempty"`
 	// The station containing this sensor
 	station *Station
 }
@@ -91,15 +88,6 @@ func (s *Sensors) Accept(v Visitor) error {
 func (s *Sensors) ReadingsKeys() []string {
 	var keys []string
 	for k, _ := range s.Readings {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-// CalculationsKeys returns a slice containing the keys for each Calculations entry
-func (s *Sensors) CalculationsKeys() []string {
-	var keys []string
-	for k, _ := range s.Calculations {
 		keys = append(keys, k)
 	}
 	return keys

@@ -1,11 +1,10 @@
-package station
+package model
 
 import (
 	"context"
 	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"strings"
 )
 
 func (s *Stations) Init() error {
@@ -13,7 +12,6 @@ func (s *Stations) Init() error {
 		Station(s.initStation).
 		Sensors(s.initSensors).
 		Reading(s.initReading).
-		CalculatedValue(s.initCalculatedValue).
 		WithContext(context.Background()).
 		VisitStations(s)
 }
@@ -74,52 +72,5 @@ func (s *Stations) initReading(ctx context.Context) error {
 			}
 		}
 	}
-	return nil
-}
-
-func (s *Stations) initCalculatedValue(ctx context.Context) error {
-	parent := SensorsFromContext(ctx)
-	calculation := CalculatedValueFromContext(ctx)
-
-	// Ensure ID is set and the Source entries have the same prefix
-	prefix := parent.ID + "."
-	calculation.ID = strings.ToLower(prefix + ctx.Value("ReadingId").(string))
-
-	calculation.sensors = parent
-
-	for i, src := range calculation.Source {
-		var s string
-		switch {
-		// Keywords not to expand.
-		// "current" the metrics current value
-		case src == "current":
-			s = src
-
-		// If a calculation source has a "." then it's an absolute reference and
-		// not local to the reading
-		case strings.Contains(src, "."):
-			s = src
-
-		default:
-			s = prefix + src
-		}
-		calculation.Source[i] = strings.ToLower(s)
-	}
-
-	// Lookup the Calculator to use
-	calc, err := value.GetCalculator(calculation.Type)
-	if err != nil {
-		return err
-	}
-	calculation.calculator = calc
-
-	// If we have Use set then try to convert to that unit
-	if calculation.Use != "" {
-		to, ok := value.GetUnit(calculation.Use)
-		if ok {
-			calculation.calculator = calculation.calculator.As(to)
-		}
-	}
-
 	return nil
 }
