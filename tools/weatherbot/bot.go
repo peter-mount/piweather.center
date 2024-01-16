@@ -25,9 +25,6 @@ type Bot struct {
 }
 
 func (t *Bot) Start() error {
-	// FIXME remove once refactoring is completed
-	*t.Test = true
-
 	t.dbClient.Url = *t.Host
 
 	err := t.getPost()
