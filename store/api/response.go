@@ -21,10 +21,19 @@ type Response struct {
 	Metrics []Metric      `json:"metrics,omitempty" xml:"metrics,omitempty"`
 }
 
+func (r *Response) Close() error {
+	if r != nil {
+		r.Results = nil
+		r.Result = nil
+		r.Metrics = nil
+	}
+	return nil
+}
+
 // Submit the Response to the client.
 // It will also ensure that the Response.Results and Response.Metrics slices
 // are sorted in metric/time order
-func (r Response) Submit(rs *rest.Rest) error {
+func (r *Response) Submit(rs *rest.Rest) error {
 	var p time2.Period
 
 	if len(r.Results) > 0 {

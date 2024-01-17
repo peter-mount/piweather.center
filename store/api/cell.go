@@ -100,13 +100,38 @@ func (c *Cell) UnmarshalJSON(data []byte) error {
 }
 
 func (c *Cell) Float() float64 {
+	if c == nil {
+		return 0.0
+	}
 	return c.float
 }
 
 func (c *Cell) Int() int {
+	if c == nil {
+		return 0
+	}
 	return int(c.float)
 }
 
 func (c *Cell) String() string {
+	if c == nil {
+		return ""
+	}
 	return c.string
+}
+
+func (c *Cell) IsNull() bool {
+	return c == nil || c.Type == CellNull
+}
+
+func (c *Cell) IsNumeric() bool {
+	return c != nil && c.Type == CellNumeric
+}
+
+func (c *Cell) IsString() bool {
+	return c != nil && c.Type == CellString && c.Time.IsZero()
+}
+
+func (c *Cell) IsTime() bool {
+	return c != nil && c.Type == CellString && !c.Time.IsZero()
 }

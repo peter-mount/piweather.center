@@ -14,11 +14,24 @@ type Result struct {
 	WindRose []*WindRose `json:"windRose,omitempty"`
 }
 
+// Close the Result
+func (r *Result) Close() error {
+	if r != nil {
+		r.Meta = nil
+		r.Range = nil
+		r.Table = nil
+		r.WindRose = nil
+	}
+	return nil
+}
+
 func (r *Result) Init() {
 	for _, t := range r.Table {
 		for _, r := range t.Rows {
 			for i, c := range *r {
-				if c.Type == CellNumeric {
+				if c == nil {
+					(*r)[i] = &Cell{Type: CellNull}
+				} else if c.Type == CellNumeric {
 					v, _ := t.Columns[i].Value(c.Float())
 					c.Value = v
 					(*r)[i] = c
