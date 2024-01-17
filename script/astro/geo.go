@@ -1,14 +1,9 @@
-package geo
+package astro
 
 import (
-	"github.com/peter-mount/go-script/packages"
 	"github.com/peter-mount/piweather.center/astro/coord"
 	"github.com/soniakeys/unit"
 )
-
-func init() {
-	packages.Register("geo", &Geo{})
-}
 
 type Geo struct{}
 
