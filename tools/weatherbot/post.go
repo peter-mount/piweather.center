@@ -161,8 +161,7 @@ func (t *Bot) GetValue(val *Value) (interface{}, error) {
 
 	if val.Cell == nil {
 		table := t.result.Table[0]
-		cell := table.GetCell(val.Col, table.Rows[0])
-		val.Cell = &cell
+		val.Cell = table.GetCell(val.Col, table.Rows[0])
 	}
 
 	ct := val.Cell.Type

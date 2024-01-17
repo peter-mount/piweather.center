@@ -72,7 +72,7 @@ func (t *Table) Finalise() {
 		if r.IsValid() {
 			// If row is shorter than columns add null columns to the table
 			for r.Size() < len(t.Columns) {
-				*r = append(*r, Cell{Type: CellNull})
+				*r = append(*r, &Cell{Type: CellNull})
 			}
 
 			// now ensure column widths are wide enough
@@ -110,7 +110,7 @@ func (t *Table) GetColumn(n string) *Column {
 	return nil
 }
 
-func (t *Table) GetCell(n string, r *Row) Cell {
+func (t *Table) GetCell(n string, r *Row) *Cell {
 	for i, c := range t.Columns {
 		if n == c.Name {
 			if i < len(*r) {
@@ -119,7 +119,7 @@ func (t *Table) GetCell(n string, r *Row) Cell {
 			break
 		}
 	}
-	return Cell{Type: CellNull}
+	return &Cell{Type: CellNull}
 }
 
 type Column struct {
@@ -219,10 +219,10 @@ func (c *Column) pad(s string, l, e int) string {
 }
 
 // Row Holds details about an individual
-type Row []Cell // Individual columns
+type Row []*Cell // Individual columns
 
 func (r *Row) add(c Cell) *Row {
-	*r = append(*r, c)
+	*r = append(*r, &c)
 	return r
 }
 
