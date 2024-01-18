@@ -6,10 +6,12 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/store/api"
+	"github.com/rabbitmq/amqp091-go"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 func init() {
@@ -23,6 +25,7 @@ type DatabaseBroker interface {
 	Consume(queue *amqp.Queue, tag string, task amqp.Task) error
 	ConsumeKeys(queue *amqp.Queue, tag string, task amqp.Task, keys ...string) error
 	PublishMetric(metric api.Metric) error
+	amqp.PublishAPI
 }
 
 const (
@@ -104,17 +107,44 @@ func (s *broker) ConsumeKeys(queue *amqp.Queue, tag string, task amqp.Task, keys
 	return s.Consume(queue, tag, task)
 }
 
-func (s *broker) PublishMetric(metric api.Metric) error {
+func (s *broker) Publish(key string, msg []byte) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-
-	routingKey := "metric." + amqp.EncodeKey(metric.Metric)
-	err := s.connectPublisher()
-	if err == nil {
-		err = s.publisher.PublishJSON(routingKey, metric)
+	if err := s.connectPublisher(); err != nil {
+		return err
 	}
+	return s.publisher.Publish(key, msg)
+}
 
-	return err
+func (s *broker) PublishJSON(key string, payload interface{}) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if err := s.connectPublisher(); err != nil {
+		return err
+	}
+	return s.publisher.PublishJSON(key, payload)
+}
+
+func (s *broker) PublishApi(key string, msg interface{}) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if err := s.connectPublisher(); err != nil {
+		return err
+	}
+	return s.publisher.PublishApi(key, msg)
+}
+
+func (s *broker) Post(key string, body []byte, headers amqp091.Table, timestamp time.Time) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if err := s.connectPublisher(); err != nil {
+		return err
+	}
+	return s.publisher.Post(key, body, headers, timestamp)
+}
+
+func (s *broker) PublishMetric(metric api.Metric) error {
+	return s.PublishJSON("metric."+amqp.EncodeKey(metric.Metric), metric)
 }
 
 func (s *broker) connectPublisher() error {

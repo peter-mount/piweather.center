@@ -10,6 +10,22 @@ import (
 	"time"
 )
 
+type PublishAPI interface {
+	// Publish sends a raw message with the specified routingKey
+	Publish(key string, msg []byte) error
+
+	// PublishJSON sends a JSON message with the specified routingKey
+	PublishJSON(key string, payload interface{}) error
+
+	// PublishApi sends the payload using the supplied routing key.
+	// []byte and string are sent as-is otherwise the message is marshaled into JSON before sending.
+	PublishApi(key string, msg interface{}) error
+
+	// Post is the underlying function used by the Publish functions.
+	// It sends the actual message to RabbitMQ.
+	Post(key string, body []byte, headers amqp.Table, timestamp time.Time) error
+}
+
 // Publisher represents the configuration for how to send messages to RabbitMQ
 type Publisher struct {
 	Exchange   string            `yaml:"exchange"`  // Exchange to submit to
