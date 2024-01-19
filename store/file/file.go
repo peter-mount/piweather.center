@@ -319,11 +319,15 @@ func openFile(name string) (*File, error) {
 	return file, nil
 }
 
+func mkdir(name string) error {
+	return os.MkdirAll(filepath.Dir(name), 0755)
+}
+
 // createFile creates a new file, erasing any existing one
 // Warning, the file will be open when this returns, so it's up to the caller to close it.
 // returns nil,nil if the file does not exist.
 func createFile(name, metric string) (*File, error) {
-	if err := os.MkdirAll(filepath.Dir(name), 0755); err != nil {
+	if err := mkdir(name); err != nil {
 		return nil, err
 	}
 
@@ -458,6 +462,10 @@ func (f *File) writeAllRecords(recs []record.Record) error {
 
 // writeTmpFile writes a sloce of records into a new temporary file
 func (f *File) writeTmpFile(tmpName string, recs []record.Record) error {
+	if err := mkdir(tmpName); err != nil {
+		return err
+	}
+
 	nf, err := os.Create(tmpName)
 	if err != nil {
 		return err
