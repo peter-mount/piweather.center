@@ -7,7 +7,7 @@ import (
 	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/store/broker"
-	log2 "github.com/peter-mount/piweather.center/store/log"
+	"github.com/peter-mount/piweather.center/tools/weatherarchive"
 	"github.com/peter-mount/piweather.center/tools/weatheringress/model"
 	"github.com/peter-mount/piweather.center/util/endpoint"
 )
@@ -15,7 +15,7 @@ import (
 // Ingress handles the ability to get data into the system, be it via
 // http, amqp, mqtt etc.
 type Ingress struct {
-	Archiver        *log2.Archiver            `kernel:"inject"`
+	Archiver        *weatherarchive.Archiver  `kernel:"inject"`
 	Amqp            amqp.Pool                 `kernel:"inject"`
 	Mqtt            mqtt.Pool                 `kernel:"inject"`
 	EndpointManager *endpoint.EndpointManager `kernel:"inject"`
@@ -32,9 +32,6 @@ func (s *Ingress) Start() error {
 	if s.Importer.IsImporting() {
 		return nil
 	}
-
-	// Common context for processing
-	s.subContext = s.Archiver.AddContext(context.Background())
 
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
