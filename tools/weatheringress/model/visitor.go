@@ -101,11 +101,7 @@ func (v *visitor) VisitReading(s *Reading) error {
 		v.ctx = oldCtx
 	}()
 
-	if err := v.reading.Do(v.ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return v.reading.Do(v.ctx)
 }
 
 type VisitorBuilder interface {
