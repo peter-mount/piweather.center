@@ -1,4 +1,4 @@
-package source
+package model
 
 import (
 	"github.com/peter-mount/piweather.center/mq/amqp"
@@ -10,12 +10,12 @@ import (
 // You can define multiple entries here
 type Source struct {
 	WUnderground string      `yaml:"wunderground,omitempty"`
-	EcoWitt      *EcoWitt    `yaml:"ecowitt,omitempty"`
+	Http         *Http       `yaml:"ecowitt,omitempty"`
 	Amqp         *amqp.Queue `yaml:"amqp,omitempty"`
 	Mqtt         *mqtt.Queue `yaml:"mqtt,omitempty"`
 }
 
-type EcoWitt struct {
+type Http struct {
 	// Path under /api/http/
 	Path string `json:"path" xml:"path,attr" yaml:"path"`
 	// PassKey unique to the unit. "" to allow all

@@ -3,7 +3,6 @@ package model
 import (
 	"context"
 	"github.com/peter-mount/piweather.center/astro/coord"
-	"github.com/peter-mount/piweather.center/tools/weatheringress/source"
 )
 
 // Stations  Map of all defined Station's
@@ -57,7 +56,7 @@ type Sensors struct {
 	// Name of the Readings collection
 	Name string `yaml:"name"`
 	// Source of data for this collection
-	Source source.Source `yaml:"source"`
+	Source Source `yaml:"source"`
 	// Format of the message, default is json
 	Format string
 	// Timestamp Path to timestamp, "" for none

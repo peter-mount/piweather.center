@@ -110,13 +110,13 @@ func (s *Ingress) startMQTT(ctx context.Context) error {
 
 func (s *Ingress) startHttp(ctx context.Context) error {
 	sensor := model.SensorsFromContext(ctx)
-	if sensor.Source.EcoWitt == nil {
+	if sensor.Source.Http == nil {
 		return nil
 	}
 
 	return s.EndpointManager.RegisterHttpEndpoint(
 		"inbound",
-		"/api/inbound/"+sensor.Source.EcoWitt.Path,
+		"/api/inbound/"+sensor.Source.Http.Path,
 		sensor.ID,
 		sensor.Name,
 		http.MethodPost,
