@@ -31,3 +31,19 @@ func (c *Client) RecordMetric(m api.Metric) (*api.Response, error) {
 		return nil, nil
 	}
 }
+
+func (c *Client) RecordMetrics(m []api.Metric) (*api.Response, error) {
+	b, err := json.Marshal(&m)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &api.Response{}
+	if found, err := c.post("/recordMultiple", b, resp); err != nil {
+		return nil, err
+	} else if found {
+		return resp, nil
+	} else {
+		return nil, nil
+	}
+}
