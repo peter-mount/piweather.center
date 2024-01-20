@@ -414,17 +414,20 @@ func (f *File) insertRecords(r []record.Record, rec record.Record) []record.Reco
 	}
 
 	l := len(r)
-	t0 := rec.Time
+	t0 := rec.Time.Truncate(time.Second)
 	for i := 0; i < l; i++ {
-		if r[i].Time.After(t0) {
-			switch {
-			case i == 0:
-				r = append([]record.Record{rec}, r...)
-			case i == (l - 1):
-				r = append(r, rec)
-			default:
-				r = append(append(r[:i], rec), r[i:]...)
-			}
+		t1 := r[i].Time.Truncate(time.Second)
+		switch {
+		// If t0 is before the first entry then prepend it
+		case t1.After(t0) && i == 0:
+			return append([]record.Record{rec}, r...)
+		// t0 is before the current entry then insert it
+		case t1.After(t0):
+			return append(append(r[:i], rec), r[i:]...)
+		// t0 is same second as t1 so replace it
+		case t1.Equal(t0):
+			r[i] = rec
+			return r
 		}
 	}
 
