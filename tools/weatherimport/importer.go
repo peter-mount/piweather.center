@@ -6,7 +6,6 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	_ "github.com/peter-mount/piweather.center/astro/calculator"
 	"github.com/peter-mount/piweather.center/io"
@@ -22,7 +21,6 @@ import (
 )
 
 type Importer struct {
-	Rest      *rest.Server   `kernel:"inject"`
 	Daemon    *kernel.Daemon `kernel:"inject"`
 	Config    model.Loader   `kernel:"inject"`
 	Store     file.Store     `kernel:"inject"`
@@ -49,22 +47,15 @@ func (i *Importer) IsImporting() bool {
 }
 
 func (i *Importer) PostInit() error {
-	// Disable the rest server if we are going to import
-	if i.IsImporting() {
-		i.Rest.Disable()
-		i.Daemon.ClearDaemon()
-
-		if i.MaxBuffer == nil || *i.MaxBuffer < 1 {
-			*i.MaxBuffer = 256
-		}
+	if i.MaxBuffer == nil || *i.MaxBuffer < 1 {
+		*i.MaxBuffer = 256
 	}
+
 	return nil
 }
 
 func (i *Importer) Start() error {
-	if !i.IsImporting() {
-		return nil
-	}
+	i.Daemon.ClearDaemon()
 
 	log.Println(version.Version)
 
