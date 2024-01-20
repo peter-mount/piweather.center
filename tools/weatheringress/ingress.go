@@ -23,10 +23,13 @@ type Ingress struct {
 	DatabaseBroker  broker.DatabaseBroker     `kernel:"inject"`
 	subContext      context.Context           // Common Context
 	processVisitor  model.VisitorBuilder      // Common visitor used by all sources to process data
-	updateVisitor   model.Visitor             // Visitor used to process updates sent to the DB to handle calculated updates
 }
 
 func (s *Ingress) Start() error {
+	// Originally this was set up with specific entries in it which are no longer present.
+	// It's kept in case we need this again in the future, so for now it's the default context.
+	s.subContext = context.Background()
+
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
 	// build it as needed.
