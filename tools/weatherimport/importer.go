@@ -1,4 +1,4 @@
-package weatheringress
+package weatherimport
 
 import (
 	"context"

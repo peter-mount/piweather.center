@@ -21,18 +21,12 @@ type Ingress struct {
 	EndpointManager *endpoint.EndpointManager `kernel:"inject"`
 	Loader          model.Loader              `kernel:"inject"`
 	DatabaseBroker  broker.DatabaseBroker     `kernel:"inject"`
-	Importer        *Importer                 `kernel:"inject"`
 	subContext      context.Context           // Common Context
 	processVisitor  model.VisitorBuilder      // Common visitor used by all sources to process data
 	updateVisitor   model.Visitor             // Visitor used to process updates sent to the DB to handle calculated updates
 }
 
 func (s *Ingress) Start() error {
-	// Do nothing if we are in import mode
-	if s.Importer.IsImporting() {
-		return nil
-	}
-
 	// Visitor that will process an inbound message.
 	// This is common to all sources, so we define it here, but they will
 	// build it as needed.
