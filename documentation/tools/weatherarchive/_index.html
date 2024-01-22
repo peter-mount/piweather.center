@@ -1,0 +1,34 @@
+---
+type: "manual"
+title: "weatherarchive"
+linkTitle: "weatherarchive"
+description: "Receives messages from weatheringress and archives them to disk"
+categories:
+    - weather
+    - piweather.center
+---
+<p>
+    <code>weatherarchive</code> is a utility that can receive messages from
+    <code><a href="../weatheringress/">weatheringress</a></code> and archive them to disk.
+</p>
+<p>
+    This component is included within <code>weatheringress</code> so if local archiving is required then archive from within it.
+    This utility is for archiving remotely, potentially from multiple stations to a central location.
+</p>
+<h3 class="paragraph">Syntax</h3>
+<pre><strong>weatherimport</strong> -station <em>station.yaml</em> -import <em>http://127.0.0.1:9001</em> -dir <em>archiveDir</em></pre>
+
+<h4 class="paragraph">Options</h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Option</th><th>Description</th><th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>-rootDir <em>path</em></td><td>The location of configuration files</td><td></td></tr>
+    <tr><td>-station <em>path</em></td><td>The station config</td><td></td></tr>
+    <tr><td>-import</td><td>Database URL</td><td></td></tr>
+    <tr><td>-dir</td><td>Directory to import data from</td><th>Optional</th></tr>
+    </tbody>
+</table>
