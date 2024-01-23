@@ -69,15 +69,16 @@
     display: inline-block;
 }
 
-.dash-text,
-.dash-gauge,
 .dash-barometer,
 .dash-compass,
+.dash-gauge,
+.dash-inclinometer,
+.dash-rain-gauge,
+.dash-text,
 .dash-value,
 .dash-wind-rose,
 .dash-wind-rose-line,
-.dash-wind-rose-simple,
-.dash-rain-gauge {
+.dash-wind-rose-simple {
     display: inline-block;
     font-family: "Lucida Sans", Verdana, Arial, Helvetica, sans-serif;
     font-weight: normal;
@@ -124,8 +125,9 @@
 }
 
 .dash-barometer,
-.dash-gauge,
 .dash-compass,
+.dash-gauge,
+.dash-inclinometer,
 .dash-wind-rose,
 .dash-wind-rose-line,
 .dash-wind-rose-simple {
@@ -157,7 +159,8 @@
 .wind-rose-step6 {fill:red}
 
 .dash-barometer,
-.dash-gauge {
+.dash-gauge,
+.dash-inclinometer {
     .dash-h0 {
         stroke: black;
         stroke-width: 3px;
@@ -178,4 +181,10 @@
         stroke: black;
         stroke-width: 1px;
     }
+}
+
+.dash-inclinometer-horizon {
+    stroke-width: 1px;
+    stroke: #888;
+    fill: none;
 }

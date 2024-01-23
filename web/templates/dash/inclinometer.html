@@ -1,0 +1,50 @@
+{{- /* simple gauge */ -}}
+{{- template "componentStart" . -}}
+{{- $min := -90.0 -}}
+{{- $max := 90.0 -}}
+{{- $ticks := 9.0 -}}
+{{- $axis := genAxis $min $max $ticks 180 -}}
+<svg viewBox="0 0 250 250" role="img"
+     {{- if $.IsLive}}id="{{$.ID}}.svg"{{end -}}
+     {{- range $i,$m := $.Metric}} data-metric{{$i}}="{{$m.Value.Float}}"
+     data-d{{$i}}="{{subtract (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) 90}}"{{end}}
+     data-min="{{$min}}"
+     data-max="{{$max}}"
+     data-delta="{{$axis.Delta}}">
+    <g transform="translate(125,125)" dominant-baseline="middle" text-anchor="middle">
+        {{- /*
+        We need an arc that's part of a circle, so the best way is to use a circle with a stroke-dasharray.
+        Here we need to calculate the dash in drawing units. 1 unit = 2πr/360 so here 2π*90/360=1.57
+
+        As the arc starts clockwise from the East position, we start with 90° which is 90*1.57=141.
+        Then we skip the next 180° (283 units) and then draw for another 90° (141 units).
+        */ -}}
+        <circle cx="0" cy="0" r="90" fill="none" stroke="black" stroke-width="3px" stroke-dasharray="141,283,142"/>
+        <path class="dash-inclinometer-horizon" d="M0,90L0,-90M90,0L0,0L90,9M88,19L0,0L85,28"/>
+        {{- range $a := $axis.Ticks -}}
+        <g transform="rotate({{subtract 180 $a.Angle}})">
+            <path d="M0,-90 l0,10" fill="none" stroke="black" stroke-width="2px"/>
+            <text y="-100">{{$a.Label}}</text>
+        </g>
+        {{- end -}}
+        <g transform="rotate(-90)">
+        {{- range $i,$m := $.Metric -}}
+            {{- if eq $i 0 -}}
+                <text {{if $.IsLive}}id="{{$.ID}}.txt{{$i}}"{{end}} y="-35" font-size="150%">{{$m.String}}</text>
+            {{- end -}}
+        {{- end -}}
+        {{- with $.Label -}}
+        <text y="-55" font-size="150%">{{$.Label}}</text>
+        {{- end -}}
+        </g>
+        {{- range $i,$m := $.Metric -}}
+        {{- $ang := subtract 180 (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) -}}
+        <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{printf "%.0f" $ang}})">
+            {{- /* min 5 to allow up to 5 hands, as this slowly changes no need for animation */ -}}
+            <path class="dash-h{{$i}}" d="M0,0l0,{{add -80 (multiply 10 (min 5 $i))}}"/>
+        </path>
+        {{- end -}}
+        <circle r="10" fill="black"/>
+    </g>
+</svg>
+{{- template "componentEnd" . -}}

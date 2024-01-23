@@ -9,6 +9,7 @@ func init() {
 	Register("barometer", f)
 	Register("compass", f)
 	Register("gauge", f)
+	Register("inclinometer", f)
 	Register("rain-gauge", f)
 	Register("value", f)
 }
