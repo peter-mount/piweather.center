@@ -38,11 +38,11 @@
         {{- end -}}
         </g>
         {{- range $i,$m := $.Metric -}}
-        {{- $ang := subtract 180 (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta) -}}
-        <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{printf "%.0f" $ang}})">
+        {{- $ang := printf "%.0f" (subtract 180 (multiply (subtract (ensureWithin $m.Value.Float $min $max) $min) $axis.Delta)) -}}
+        <g id="{{$.ID}}.ptr{{$i}}" transform="rotate({{$ang}})">
             {{- /* min 5 to allow up to 5 hands, as this slowly changes no need for animation */ -}}
             <path class="dash-h{{$i}}" d="M0,0l0,{{add -80 (multiply 10 (min 5 $i))}}"/>
-        </path>
+        </g>
         {{- end -}}
         <circle r="10" fill="black"/>
     </g>
