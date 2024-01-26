@@ -1,0 +1,29 @@
+# Replace the default block list with this one
+replace: true
+
+block:
+  # Normally blocked as not useful platforms
+  - os: android
+  - os: ios
+  - os: js
+  # Normally blocked due to known bug with the linker
+  - os: openbsd
+    arch: mips64
+
+tools:
+  # geiger is not supported on all platforms
+  geiger:
+    # These platforms have no serial support in go
+    - os: aix
+    - os: dragonfly
+    - os: illumos
+    - os: netbsd
+    - os: plan9
+    - os: solaris
+    # On linux, these platforms fail due to fdset having NFDBITS undefined
+    - os: linux
+      arch: loong64
+    - os: linux
+      arch: ppc64
+    - os: linux
+      arch: ppc64le

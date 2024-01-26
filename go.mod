@@ -10,7 +10,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.4
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
 	github.com/peter-mount/go-anim v0.0.0-20230929102653-4caf008f3ba9
-	github.com/peter-mount/go-build v0.0.0-20231109105724-5a533c3f0da7
+	github.com/peter-mount/go-build v0.0.0-20240126202922-f1400910cdf7
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240119080616-ca3b1f9a9ce3
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
