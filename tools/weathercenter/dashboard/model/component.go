@@ -21,24 +21,12 @@ func (c *Component) init(d *Dashboard) {
 	c.ID = d.NextId()
 }
 
-// Process a Metric
-//func (c *Component) Process(m api.Metric) {
-//	// Do nothing, we override this on each type
-//}
-
 // GetType returns the type of component
 func (c *Component) GetType() string {
 	if c == nil {
 		return ""
 	}
 	return c.Type
-}
-
-func (c *Component) Accept(v Visitor) error {
-	if v == nil {
-		return nil
-	}
-	return v(c)
 }
 
 func (c *Component) IsLive() bool {

@@ -12,10 +12,7 @@ type Factory func() Instance
 
 type Instance interface {
 	GetType() string
-	Accept(Visitor) error
 }
-
-type Visitor func(Instance) error
 
 var (
 	components = map[string]Factory{}
