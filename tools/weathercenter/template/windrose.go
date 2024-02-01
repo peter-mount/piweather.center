@@ -34,7 +34,9 @@ type WindRoseBreakdown struct {
 }
 
 func (wrb WindRoseBreakdown) Path() string {
-	return fmt.Sprintf("M0,0L%.2f,%.2fL%.2f,%.2fz", wrb.C1.X, wrb.C1.Y, wrb.C2.X, wrb.C2.Y)
+	// Note, negate Y here as CirclePos has it has 0 at (0,r) but in SVG it's really (0,-r)
+	// due to the axes going down from the top rather than up from the bottom
+	return fmt.Sprintf("M0,0L%.2f,%.2fL%.2f,%.2fz", wrb.C1.X, -wrb.C1.Y, wrb.C2.X, -wrb.C2.Y)
 }
 
 // Seq returns a plot ordering where we order by compass point and then by reverse order
