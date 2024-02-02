@@ -5,9 +5,6 @@ import (
 	"time"
 )
 
-type RealtimeStats struct {
-}
-
 type CpmReading struct {
 	Time time.Time // Time of reading
 	CPS  int       // Count per second
@@ -33,7 +30,7 @@ func (m *Geiger) realtime() error {
 			})
 		}
 
-		// Clear buffer in case we have a race and we have invalid data
+		// Clear buffer in case we have a race condition, and we have invalid data
 		// in the stream from the Geiger counter
 		err = m.port.ResetInputBuffer()
 		if err != nil {
