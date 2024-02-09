@@ -7,17 +7,19 @@ import (
 )
 
 type action struct {
-	metric  api.Metric
-	metrics *lang.Metric
-	message any
-	exec    executor.Executor
+	metric     api.Metric
+	metrics    *lang.Metric
+	routingKey string
+	message    any
+	exec       executor.Executor
 }
 
 func newAction(metric api.Metric, metrics *lang.Metric) *action {
 	return &action{
-		metric:  metric,
-		metrics: metrics,
-		message: metric.String(),
-		exec:    executor.NewExpressionExecutor(),
+		metric:     metric,
+		metrics:    metrics,
+		routingKey: "metric." + metric.Metric,
+		message:    metric.String(),
+		exec:       executor.NewExpressionExecutor(),
 	}
 }

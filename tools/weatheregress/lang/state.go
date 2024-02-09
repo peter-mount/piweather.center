@@ -21,6 +21,16 @@ func (s *State) GetAmqp(n string) *Amqp {
 	return s.amqp[strings.ToLower(n)]
 }
 
+func (s *State) GetAmqpNames() []string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	var a []string
+	for k, _ := range s.amqp {
+		a = append(a, k)
+	}
+	return a
+}
+
 func (s *State) GetMetrics(n string) []*Metric {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()

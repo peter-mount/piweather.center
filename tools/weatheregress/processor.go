@@ -3,6 +3,7 @@ package weatheregress
 import (
 	"flag"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/calculator"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/tools/weatheregress/lang"
 )
@@ -25,7 +26,7 @@ func (s *Processor) Start() error {
 		Publish(s.publish).
 		Build()
 
-	return nil
+	return s.initMq()
 }
 
 // ProcessMetric accepts a metric, checks to see if it's one we are interested in
@@ -71,6 +72,9 @@ func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
 		scope.Declare("message")
 		scope.Set("message", act.message)
 
+		scope.Declare("routingKey")
+		scope.Set("routingKey", act.routingKey)
+
 		exec.Calculator().Reset()
 		for _, ex := range m.Expression.Expression {
 			err = exec.Expression(ex)
@@ -81,6 +85,10 @@ func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
 
 		if err == nil {
 			act.message, _ = scope.Get("message")
+
+			if k, exists := scope.Get("routingKey"); exists {
+				act.routingKey, err = calculator.GetString(k)
+			}
 		}
 	}
 
@@ -92,6 +100,7 @@ func (s *Processor) publish(v lang.Visitor[*action], p *lang.Publish) error {
 	case p.Console:
 		log.Printf("%s\n", v.GetData().message)
 	case p.Amqp != "":
+		return s.publishAmqp(v, p)
 	}
 	return nil
 }

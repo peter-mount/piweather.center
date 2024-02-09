@@ -3,6 +3,7 @@ package lang
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/script"
+	"github.com/peter-mount/piweather.center/mq/amqp"
 )
 
 type Script struct {
@@ -29,10 +30,12 @@ func (s *Script) merge(b *Script) (*Script, error) {
 
 // Amqp broker definition
 type Amqp struct {
-	Pos      lexer.Position
-	Name     string `parser:"'amqp' '(' 'name' @String"`
-	Url      string `parser:"'url' @String"`
-	Exchange string `parser:"('exchange' @String)? ')'"`
+	Pos       lexer.Position
+	Name      string `parser:"'amqp' '(' 'name' @String"`
+	Url       string `parser:"'url' @String"`
+	Exchange  string `parser:"('exchange' @String)? ')'"`
+	MQ        *amqp.MQ
+	Publisher *amqp.Publisher
 }
 
 type Action struct {
