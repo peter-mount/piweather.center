@@ -18,7 +18,10 @@ node("go") {
     checkout scm
   }
   stage("Init") {
-    sh 'make clean init test'
+    sh 'make clean init'
+  }
+  stage("Test") {
+    sh 'make test'
   }
   stage("aix_ppc64") {
     sh 'make -f Makefile.gen aix_ppc64'
