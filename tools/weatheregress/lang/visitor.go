@@ -118,6 +118,14 @@ func (v *visitor[T]) Format(b *Format) error {
 		if IsVisitorStop(err) {
 			return nil
 		}
+		if err == nil {
+			for _, e := range b.Expressions {
+				err = v.FormatExpression(e)
+				if err != nil {
+					break
+				}
+			}
+		}
 	}
 	return err
 }
@@ -157,6 +165,11 @@ func (v *visitor[T]) Metric(b *Metric) error {
 		if IsVisitorStop(err) {
 			return nil
 		}
+
+		if err == nil {
+			err = v.Format(b.Format)
+		}
+
 		if err == nil {
 			for _, p := range b.Publish {
 				err = v.Publish(p)

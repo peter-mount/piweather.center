@@ -62,14 +62,14 @@ type Format struct {
 type FormatExpression struct {
 	Pos   lexer.Position
 	Left  *FormatAtom       `parser:"@@"`
-	Op    string            `parser:"( '+'"`
+	Op    string            `parser:"( (@'+' | @'-')"`
 	Right *FormatExpression `parser:"@@ )?"`
 }
 
 type FormatAtom struct {
 	Pos      lexer.Position
-	Metric   bool   `parser:"( @'METRIC'"`
-	Value    bool   `parser:"| @'VALUE'"`
-	UnixTime bool   `parser:"| @'UNIXTIME'"`
-	String   string `parser:"| @String )"`
+	Metric   bool    `parser:"( @'METRIC'"`
+	Value    bool    `parser:"| @'VALUE'"`
+	UnixTime bool    `parser:"| @'UNIXTIME'"`
+	String   *string `parser:"| @String )"`
 }
