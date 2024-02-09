@@ -1,65 +1,65 @@
 package lang
 
-type Builder interface {
-	Action(func(Visitor, *Action) error) Builder
-	Amqp(func(Visitor, *Amqp) error) Builder
-	Format(func(Visitor, *Format) error) Builder
-	FormatAtom(func(Visitor, *FormatAtom) error) Builder
-	FormatExpression(func(Visitor, *FormatExpression) error) Builder
-	Metric(f func(Visitor, *Metric) error) Builder
-	Publish(f func(Visitor, *Publish) error) Builder
-	Script(func(Visitor, *Script) error) Builder
-	Build() Visitor
+type Builder[T any] interface {
+	Action(func(Visitor[T], *Action) error) Builder[T]
+	Amqp(func(Visitor[T], *Amqp) error) Builder[T]
+	Format(func(Visitor[T], *Format) error) Builder[T]
+	FormatAtom(func(Visitor[T], *FormatAtom) error) Builder[T]
+	FormatExpression(func(Visitor[T], *FormatExpression) error) Builder[T]
+	Metric(f func(Visitor[T], *Metric) error) Builder[T]
+	Publish(f func(Visitor[T], *Publish) error) Builder[T]
+	Script(func(Visitor[T], *Script) error) Builder[T]
+	Build() Visitor[T]
 }
 
-type builder struct {
-	visitorCommon
+type builder[T any] struct {
+	visitorCommon[T]
 }
 
-func NewBuilder() Builder {
-	return &builder{}
+func NewBuilder[T any]() Builder[T] {
+	return &builder[T]{}
 }
 
-func (b *builder) Build() Visitor {
-	return &visitor{visitorCommon: b.visitorCommon}
+func (b *builder[T]) Build() Visitor[T] {
+	return &visitor[T]{visitorCommon: b.visitorCommon}
 }
 
-func (b *builder) Action(f func(Visitor, *Action) error) Builder {
+func (b *builder[T]) Action(f func(Visitor[T], *Action) error) Builder[T] {
 	b.action = f
 	return b
 }
 
-func (b *builder) Amqp(f func(Visitor, *Amqp) error) Builder {
+func (b *builder[T]) Amqp(f func(Visitor[T], *Amqp) error) Builder[T] {
 	b.amqp = f
 	return b
 }
 
-func (b *builder) Publish(f func(Visitor, *Publish) error) Builder {
+func (b *builder[T]) Publish(f func(Visitor[T], *Publish) error) Builder[T] {
 	b.publish = f
 	return b
 }
 
-func (b *builder) Format(f func(Visitor, *Format) error) Builder {
+func (b *builder[T]) Format(f func(Visitor[T], *Format) error) Builder[T] {
 	b.format = f
 	return b
 }
 
-func (b *builder) FormatAtom(f func(Visitor, *FormatAtom) error) Builder {
+func (b *builder[T]) FormatAtom(f func(Visitor[T], *FormatAtom) error) Builder[T] {
 	b.formatAtom = f
 	return b
 }
 
-func (b *builder) FormatExpression(f func(Visitor, *FormatExpression) error) Builder {
+func (b *builder[T]) FormatExpression(f func(Visitor[T], *FormatExpression) error) Builder[T] {
 	b.formatExpression = f
 	return b
 }
 
-func (b *builder) Metric(f func(Visitor, *Metric) error) Builder {
+func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 	b.metric = f
 	return b
 }
 
-func (b *builder) Script(f func(Visitor, *Script) error) Builder {
+func (b *builder[T]) Script(f func(Visitor[T], *Script) error) Builder[T] {
 	b.script = f
 	return b
 }

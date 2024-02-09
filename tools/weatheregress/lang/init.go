@@ -12,11 +12,13 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 			metricMatch: make(map[string][]*Metric),
 		}
 
-		err = q.Accept(NewBuilder().
-			Amqp(state.defineAmqp).
-			Metric(state.defineMetric).
-			Publish(state.definePublish).
-			Build())
+		err = NewBuilder[*State]().
+			Amqp(defineAmqp).
+			Metric(defineMetric).
+			Publish(definePublish).
+			Build().
+			SetData(state).
+			Script(q)
 
 		if err == nil {
 			q.state = state
@@ -25,29 +27,15 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 	return q, err
 }
 
-func (s *State) defineAmqp(v Visitor, a *Amqp) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	a.Name = strings.ToLower(strings.TrimSpace(a.Name))
-
-	if e, exists := s.amqp[a.Name]; exists {
-		return participle.Errorf(a.Pos, "%q already defined at %s",
-			a.Name,
-			e.Pos.String())
+func defineAmqp(v Visitor[*State], a *Amqp) error {
+	err := v.GetData().AddAmqp(a)
+	if err != nil {
+		return err
 	}
-
-	// Exchange is optional, default to amq.topic
-	a.Exchange = strings.TrimSpace(a.Exchange)
-	if a.Exchange == "" {
-		a.Exchange = "amq.topic"
-	}
-
-	s.amqp[a.Name] = a
 	return VisitorStop
 }
 
-func (s *State) defineMetric(_ Visitor, a *Metric) error {
+func defineMetric(v Visitor[*State], a *Metric) error {
 	// Should never occur as this would be a parser error
 	if len(a.Metrics) == 0 {
 		return participle.Errorf(a.Pos, "metric undefined")
@@ -59,17 +47,18 @@ func (s *State) defineMetric(_ Visitor, a *Metric) error {
 			return participle.Errorf(a.Pos, "metric undefined")
 		}
 		a.Metrics[i] = m
-		s.AddMetric(m, a)
+		v.GetData().AddMetric(m, a)
 	}
 
 	return nil
 }
 
-func (s *State) definePublish(_ Visitor, a *Publish) error {
+func definePublish(v Visitor[*State], a *Publish) error {
+	state := v.GetData()
 	a.Amqp = strings.TrimSpace(a.Amqp)
 	switch {
 	case a.Console,
-		a.Amqp != "" && s.GetAmqp(a.Amqp) != nil:
+		a.Amqp != "" && state.GetAmqp(a.Amqp) != nil:
 		return nil
 	default:
 		return participle.Errorf(a.Pos, "invalid publisher")

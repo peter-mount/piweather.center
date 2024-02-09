@@ -12,10 +12,6 @@ type Script struct {
 	state   *State
 }
 
-func (s *Script) Accept(v Visitor) error {
-	return v.Script(s)
-}
-
 func (s *Script) State() *State {
 	return s.state
 }
@@ -38,17 +34,9 @@ type Amqp struct {
 	Exchange string `parser:"('EXCHANGE' @String)? ')'"`
 }
 
-func (s *Amqp) Accept(v Visitor) error {
-	return v.Amqp(s)
-}
-
 type Action struct {
 	Pos    lexer.Position
 	Metric *Metric `parser:"( @@ )"`
-}
-
-func (s *Action) Accept(v Visitor) error {
-	return v.Action(s)
 }
 
 // Metric on receipt
@@ -59,28 +47,16 @@ type Metric struct {
 	Publish []*Publish `parser:"'PUBLISH' (@@)+"`
 }
 
-func (s *Metric) Accept(v Visitor) error {
-	return v.Metric(s)
-}
-
 type Publish struct {
 	Pos     lexer.Position
 	Amqp    string `parser:"( 'AMQP' @String"`
 	Console bool   `parser:"| @'CONSOLE' )"`
 }
 
-func (s *Publish) Accept(v Visitor) error {
-	return v.Publish(s)
-}
-
 type Format struct {
 	Pos         lexer.Position
 	Format      string              `parser:"'FORMAT' '(' @String"`
 	Expressions []*FormatExpression `parser:"(',' @@)* ')'"`
-}
-
-func (s *Format) Accept(v Visitor) error {
-	return v.Format(s)
 }
 
 type FormatExpression struct {
@@ -90,18 +66,10 @@ type FormatExpression struct {
 	Right *FormatExpression `parser:"@@ )?"`
 }
 
-func (s *FormatExpression) Accept(v Visitor) error {
-	return v.FormatExpression(s)
-}
-
 type FormatAtom struct {
 	Pos      lexer.Position
 	Metric   bool   `parser:"( @'METRIC'"`
 	Value    bool   `parser:"| @'VALUE'"`
 	UnixTime bool   `parser:"| @'UNIXTIME'"`
 	String   string `parser:"| @String )"`
-}
-
-func (s *FormatAtom) Accept(v Visitor) error {
-	return v.FormatAtom(s)
 }

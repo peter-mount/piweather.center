@@ -2,7 +2,7 @@ package lang
 
 import "errors"
 
-type Visitor interface {
+type Visitor[T any] interface {
 	Action(*Action) error
 	Amqp(*Amqp) error
 	Format(*Format) error
@@ -11,25 +11,35 @@ type Visitor interface {
 	Metric(*Metric) error
 	Publish(*Publish) error
 	Script(*Script) error
+	GetData() T
+	SetData(T) Visitor[T]
 }
 
-type Visitable interface {
-	Accept(v Visitor) error
+type visitorCommon[T any] struct {
+	action           func(Visitor[T], *Action) error
+	amqp             func(Visitor[T], *Amqp) error
+	format           func(Visitor[T], *Format) error
+	formatAtom       func(Visitor[T], *FormatAtom) error
+	formatExpression func(Visitor[T], *FormatExpression) error
+	metric           func(Visitor[T], *Metric) error
+	publish          func(Visitor[T], *Publish) error
+	script           func(Visitor[T], *Script) error
 }
 
-type visitorCommon struct {
-	action           func(Visitor, *Action) error
-	amqp             func(Visitor, *Amqp) error
-	format           func(Visitor, *Format) error
-	formatAtom       func(Visitor, *FormatAtom) error
-	formatExpression func(Visitor, *FormatExpression) error
-	metric           func(Visitor, *Metric) error
-	publish          func(Visitor, *Publish) error
-	script           func(Visitor, *Script) error
+type visitor[T any] struct {
+	visitorCommon[T]
+	data T
 }
 
-type visitor struct {
-	visitorCommon
+func (v *visitor[T]) GetData() T {
+	return v.data
+}
+
+func (v *visitor[T]) SetData(data T) Visitor[T] {
+	return &visitor[T]{
+		visitorCommon: v.visitorCommon,
+		data:          data,
+	}
 }
 
 // VisitorStop is an error which causes the current step in a Visitor to stop processing.
@@ -41,7 +51,7 @@ func IsVisitorStop(err error) bool {
 	return err != nil && errors.Is(err, VisitorStop)
 }
 
-func (v *visitor) Script(b *Script) error {
+func (v *visitor[T]) Script(b *Script) error {
 	var err error
 	if b != nil {
 		if v.script != nil {
@@ -54,7 +64,7 @@ func (v *visitor) Script(b *Script) error {
 		if err == nil {
 			for _, l := range b.Amqp {
 				if err == nil {
-					err = l.Accept(v)
+					err = v.Amqp(l)
 				}
 			}
 		}
@@ -62,7 +72,7 @@ func (v *visitor) Script(b *Script) error {
 		if err == nil {
 			for _, c := range b.Actions {
 				if err == nil {
-					err = c.Accept(v)
+					err = v.Action(c)
 				}
 			}
 		}
@@ -70,7 +80,7 @@ func (v *visitor) Script(b *Script) error {
 	return err
 }
 
-func (v *visitor) Action(b *Action) error {
+func (v *visitor[T]) Action(b *Action) error {
 	var err error
 	if b != nil {
 		if v.action != nil {
@@ -80,13 +90,13 @@ func (v *visitor) Action(b *Action) error {
 			return nil
 		}
 		if err == nil {
-			err = b.Metric.Accept(v)
+			err = v.Metric(b.Metric)
 		}
 	}
 	return err
 }
 
-func (v *visitor) Amqp(b *Amqp) error {
+func (v *visitor[T]) Amqp(b *Amqp) error {
 	var err error
 	if b != nil {
 		if v.amqp != nil {
@@ -99,7 +109,7 @@ func (v *visitor) Amqp(b *Amqp) error {
 	return err
 }
 
-func (v *visitor) Format(b *Format) error {
+func (v *visitor[T]) Format(b *Format) error {
 	var err error
 	if b != nil {
 		if v.format != nil {
@@ -112,7 +122,7 @@ func (v *visitor) Format(b *Format) error {
 	return err
 }
 
-func (v *visitor) FormatExpression(b *FormatExpression) error {
+func (v *visitor[T]) FormatExpression(b *FormatExpression) error {
 	var err error
 	if b != nil {
 		if v.formatExpression != nil {
@@ -125,7 +135,7 @@ func (v *visitor) FormatExpression(b *FormatExpression) error {
 	return err
 }
 
-func (v *visitor) FormatAtom(b *FormatAtom) error {
+func (v *visitor[T]) FormatAtom(b *FormatAtom) error {
 	var err error
 	if b != nil {
 		if v.formatAtom != nil {
@@ -138,7 +148,7 @@ func (v *visitor) FormatAtom(b *FormatAtom) error {
 	return err
 }
 
-func (v *visitor) Metric(b *Metric) error {
+func (v *visitor[T]) Metric(b *Metric) error {
 	var err error
 	if b != nil {
 		if v.metric != nil {
@@ -149,7 +159,7 @@ func (v *visitor) Metric(b *Metric) error {
 		}
 		if err == nil {
 			for _, p := range b.Publish {
-				err = p.Accept(v)
+				err = v.Publish(p)
 				if err != nil {
 					break
 				}
@@ -159,7 +169,7 @@ func (v *visitor) Metric(b *Metric) error {
 	return err
 }
 
-func (v *visitor) Publish(b *Publish) error {
+func (v *visitor[T]) Publish(b *Publish) error {
 	var err error
 	if b != nil {
 		if v.publish != nil {

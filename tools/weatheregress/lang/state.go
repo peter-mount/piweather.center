@@ -1,6 +1,7 @@
 package lang
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"strings"
 	"sync"
 )
@@ -48,6 +49,28 @@ func (s *State) merge(b *State) {
 	}
 
 	s.metricFilter = append(s.metricFilter, b.metricFilter...)
+}
+
+func (s *State) AddAmqp(a *Amqp) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	a.Name = strings.ToLower(strings.TrimSpace(a.Name))
+
+	if e, exists := s.amqp[a.Name]; exists {
+		return participle.Errorf(a.Pos, "%q already defined at %s",
+			a.Name,
+			e.Pos.String())
+	}
+
+	// Exchange is optional, default to amq.topic
+	a.Exchange = strings.TrimSpace(a.Exchange)
+	if a.Exchange == "" {
+		a.Exchange = "amq.topic"
+	}
+
+	s.amqp[a.Name] = a
+	return nil
 }
 
 func (s *State) AddMetric(n string, m *Metric) {
