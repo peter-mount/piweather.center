@@ -1,33 +1,87 @@
 package weatheregress
 
 import (
-	"encoding/json"
+	"context"
+	"flag"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/tools/weatheregress/lang"
-	"github.com/rabbitmq/amqp091-go"
 )
 
-func (s *Egress) initProcessor() {
-	s.processor = lang.NewBuilder().
-		Build()
+type Processor struct {
+	Worker    task.Queue `kernel:"worker"`
+	script    *lang.Script
+	processor lang.Visitor
+	action    *action
 }
 
-// processMetricUpdate accepts a metric from RabbitMQ, updates it in Latest
-// then forwards it to any calculations
-func (s *Egress) processMetricUpdate(delivery amqp091.Delivery) error {
-	var metric api.Metric
-	err := json.Unmarshal(delivery.Body, &metric)
-	if err == nil {
-		err = s.processMetric(metric)
+type action struct {
+	proc    *Processor
+	metric  api.Metric
+	metrics []*lang.Metric
+}
+
+func (a *action) run(_ context.Context) error {
+	// Capture any panics so we don't shut down
+	defer func() {
+		if err1 := recover(); err1 != nil {
+			log.Printf("Panic %q %.3f %v\n",
+				a.metric.Metric,
+				a.metric.Value,
+				err1)
+		}
+	}()
+	a.proc.processAction(a)
+	return nil
+}
+
+func (s *Processor) Start() error {
+	p := lang.NewParser()
+	script, err := p.ParseFiles(flag.Args()...)
+	if err != nil {
+		return err
 	}
-	return err
+
+	s.script = script
+	s.processor = lang.NewBuilder().
+		Metric(s.metric).
+		Publish(s.publish).
+		Build()
+
+	return nil
 }
 
-func (s *Egress) processMetric(metric api.Metric) error {
+// ProcessMetric accepts a metric, checks to see if it's one we are interested in
+// and if so places it into the work queue
+func (s *Processor) ProcessMetric(metric api.Metric) {
 	metrics := s.script.State().GetMetrics(metric.Metric)
-	for _, m := range metrics {
-		log.Printf("Found %q @ %T\n", metric.Metric, m)
+	if len(metrics) > 0 {
+		act := &action{
+			proc:    s,
+			metric:  metric,
+			metrics: metrics,
+		}
+		s.Worker.AddTask(act.run)
+	}
+}
+
+func (s *Processor) processAction(a *action) {
+	s.action = a
+	for _, m := range a.metrics {
+		_ = m.Accept(s.processor)
+	}
+}
+
+func (s *Processor) metric(v lang.Visitor, m *lang.Metric) error {
+	return nil
+}
+
+func (s *Processor) publish(_ lang.Visitor, p *lang.Publish) error {
+	switch {
+	case p.Console:
+		log.Printf("%s\n", s.action.metric)
+	case p.Amqp != "":
 	}
 	return nil
 }

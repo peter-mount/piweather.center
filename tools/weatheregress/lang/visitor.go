@@ -3,10 +3,13 @@ package lang
 import "errors"
 
 type Visitor interface {
-	Action(a *Action) error
-	Amqp(amqp *Amqp) error
-	Format(f *Format) error
-	Metric(m *Metric) error
+	Action(*Action) error
+	Amqp(*Amqp) error
+	Format(*Format) error
+	FormatAtom(*FormatAtom) error
+	FormatExpression(*FormatExpression) error
+	Metric(*Metric) error
+	Publish(*Publish) error
 	Script(*Script) error
 }
 
@@ -15,11 +18,14 @@ type Visitable interface {
 }
 
 type visitorCommon struct {
-	action func(Visitor, *Action) error
-	amqp   func(Visitor, *Amqp) error
-	format func(Visitor, *Format) error
-	metric func(Visitor, *Metric) error
-	script func(Visitor, *Script) error
+	action           func(Visitor, *Action) error
+	amqp             func(Visitor, *Amqp) error
+	format           func(Visitor, *Format) error
+	formatAtom       func(Visitor, *FormatAtom) error
+	formatExpression func(Visitor, *FormatExpression) error
+	metric           func(Visitor, *Metric) error
+	publish          func(Visitor, *Publish) error
+	script           func(Visitor, *Script) error
 }
 
 type visitor struct {
@@ -106,11 +112,58 @@ func (v *visitor) Format(b *Format) error {
 	return err
 }
 
+func (v *visitor) FormatExpression(b *FormatExpression) error {
+	var err error
+	if b != nil {
+		if v.formatExpression != nil {
+			err = v.formatExpression(v, b)
+		}
+		if IsVisitorStop(err) {
+			return nil
+		}
+	}
+	return err
+}
+
+func (v *visitor) FormatAtom(b *FormatAtom) error {
+	var err error
+	if b != nil {
+		if v.formatAtom != nil {
+			err = v.formatAtom(v, b)
+		}
+		if IsVisitorStop(err) {
+			return nil
+		}
+	}
+	return err
+}
+
 func (v *visitor) Metric(b *Metric) error {
 	var err error
 	if b != nil {
 		if v.metric != nil {
 			err = v.metric(v, b)
+		}
+		if IsVisitorStop(err) {
+			return nil
+		}
+		if err == nil {
+			for _, p := range b.Publish {
+				err = p.Accept(v)
+				if err != nil {
+					break
+				}
+			}
+		}
+	}
+	return err
+}
+
+func (v *visitor) Publish(b *Publish) error {
+	var err error
+	if b != nil {
+		if v.publish != nil {
+			err = v.publish(v, b)
 		}
 		if IsVisitorStop(err) {
 			return nil

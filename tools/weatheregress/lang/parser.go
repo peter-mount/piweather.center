@@ -9,7 +9,7 @@ import (
 
 var (
 	scriptLexer = lexer.MustSimple([]lexer.SimpleRule{
-		{"Keyword", `(?i)\b(AMQP|EXCHANGE|FORMAT|IN|METRIC|PUBLISH|UNIXTIME|URL|VALUE)\b`},
+		{"Keyword", `(?i)\b(AMQP|CONSOLE|EXCHANGE|FORMAT|IN|METRIC|PUBLISH|UNIXTIME|URL|VALUE)\b`},
 		{"hashComment", `#.*`},
 		{"sheBang", `#\!.*`},
 		{"comment", `//.*|/\*.*?\*/`},

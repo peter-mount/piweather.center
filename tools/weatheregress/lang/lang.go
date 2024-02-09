@@ -54,25 +54,54 @@ func (s *Action) Accept(v Visitor) error {
 // Metric on receipt
 type Metric struct {
 	Pos     lexer.Position
-	Metrics []string `parser:"'METRIC' (@String | 'IN' '(' @String (',' @String)* ')' )"`
-	Format  *Format  `parser:"(@@)"`
-	Amqp    string   `parser:"'PUBLISH' ( 'AMQP' @String )"`
+	Metrics []string   `parser:"'METRIC' (@String | 'IN' '(' @String (',' @String)* ')' )"`
+	Format  *Format    `parser:"(@@)"`
+	Publish []*Publish `parser:"'PUBLISH' (@@)+"`
 }
 
 func (s *Metric) Accept(v Visitor) error {
 	return v.Metric(s)
 }
 
+type Publish struct {
+	Pos     lexer.Position
+	Amqp    string `parser:"( 'AMQP' @String"`
+	Console bool   `parser:"| @'CONSOLE' )"`
+}
+
+func (s *Publish) Accept(v Visitor) error {
+	return v.Publish(s)
+}
+
 type Format struct {
 	Pos         lexer.Position
-	Format      string              `parser:"'FORMAT' '(' @String ','"`
-	Expressions []*FormatExpression `parser:"( @@ (',' @@)* )? ')'"`
+	Format      string              `parser:"'FORMAT' '(' @String"`
+	Expressions []*FormatExpression `parser:"(',' @@)* ')'"`
+}
+
+func (s *Format) Accept(v Visitor) error {
+	return v.Format(s)
 }
 
 type FormatExpression struct {
+	Pos   lexer.Position
+	Left  *FormatAtom       `parser:"@@"`
+	Op    string            `parser:"( '+'"`
+	Right *FormatExpression `parser:"@@ )?"`
+}
+
+func (s *FormatExpression) Accept(v Visitor) error {
+	return v.FormatExpression(s)
+}
+
+type FormatAtom struct {
 	Pos      lexer.Position
 	Metric   bool   `parser:"( @'METRIC'"`
 	Value    bool   `parser:"| @'VALUE'"`
 	UnixTime bool   `parser:"| @'UNIXTIME'"`
 	String   string `parser:"| @String )"`
+}
+
+func (s *FormatAtom) Accept(v Visitor) error {
+	return v.FormatAtom(s)
 }
