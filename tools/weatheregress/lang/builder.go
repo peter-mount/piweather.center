@@ -3,9 +3,6 @@ package lang
 type Builder[T any] interface {
 	Action(func(Visitor[T], *Action) error) Builder[T]
 	Amqp(func(Visitor[T], *Amqp) error) Builder[T]
-	Format(func(Visitor[T], *Format) error) Builder[T]
-	FormatAtom(func(Visitor[T], *FormatAtom) error) Builder[T]
-	FormatExpression(func(Visitor[T], *FormatExpression) error) Builder[T]
 	Metric(f func(Visitor[T], *Metric) error) Builder[T]
 	Publish(f func(Visitor[T], *Publish) error) Builder[T]
 	Script(func(Visitor[T], *Script) error) Builder[T]
@@ -36,21 +33,6 @@ func (b *builder[T]) Amqp(f func(Visitor[T], *Amqp) error) Builder[T] {
 
 func (b *builder[T]) Publish(f func(Visitor[T], *Publish) error) Builder[T] {
 	b.publish = f
-	return b
-}
-
-func (b *builder[T]) Format(f func(Visitor[T], *Format) error) Builder[T] {
-	b.format = f
-	return b
-}
-
-func (b *builder[T]) FormatAtom(f func(Visitor[T], *FormatAtom) error) Builder[T] {
-	b.formatAtom = f
-	return b
-}
-
-func (b *builder[T]) FormatExpression(f func(Visitor[T], *FormatExpression) error) Builder[T] {
-	b.formatExpression = f
 	return b
 }
 

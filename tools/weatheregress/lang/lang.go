@@ -2,6 +2,7 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/go-script/script"
 )
 
 type Script struct {
@@ -29,9 +30,9 @@ func (s *Script) merge(b *Script) (*Script, error) {
 // Amqp broker definition
 type Amqp struct {
 	Pos      lexer.Position
-	Name     string `parser:"'AMQP' '(' 'NAME' @String"`
-	Url      string `parser:"'URL' @String"`
-	Exchange string `parser:"('EXCHANGE' @String)? ')'"`
+	Name     string `parser:"'amqp' '(' 'name' @String"`
+	Url      string `parser:"'url' @String"`
+	Exchange string `parser:"('exchange' @String)? ')'"`
 }
 
 type Action struct {
@@ -41,35 +42,19 @@ type Action struct {
 
 // Metric on receipt
 type Metric struct {
-	Pos     lexer.Position
-	Metrics []string   `parser:"'METRIC' (@String | 'IN' '(' @String (',' @String)* ')' )"`
-	Format  *Format    `parser:"(@@)"`
-	Publish []*Publish `parser:"'PUBLISH' (@@)+"`
+	Pos        lexer.Position
+	Metrics    []string    `parser:"'metric' (@String | 'in' '(' @String (',' @String)* ')' )"`
+	Expression *Expression `parser:"('eval' '(' @@ ')')?"`
+	Publish    []*Publish  `parser:"'publish' (@@)+"`
+}
+
+type Expression struct {
+	Pos        lexer.Position
+	Expression []*script.Expression `parser:"(@@)+"`
 }
 
 type Publish struct {
 	Pos     lexer.Position
-	Amqp    string `parser:"( 'AMQP' @String"`
-	Console bool   `parser:"| @'CONSOLE' )"`
-}
-
-type Format struct {
-	Pos         lexer.Position
-	Format      string              `parser:"'FORMAT' '(' @String"`
-	Expressions []*FormatExpression `parser:"(',' @@)* ')'"`
-}
-
-type FormatExpression struct {
-	Pos   lexer.Position
-	Left  *FormatAtom       `parser:"@@"`
-	Op    string            `parser:"( (@'+' | @'-')"`
-	Right *FormatExpression `parser:"@@ )?"`
-}
-
-type FormatAtom struct {
-	Pos      lexer.Position
-	Metric   bool    `parser:"( @'METRIC'"`
-	Value    bool    `parser:"| @'VALUE'"`
-	UnixTime bool    `parser:"| @'UNIXTIME'"`
-	String   *string `parser:"| @String )"`
+	Amqp    string `parser:"( 'amqp' @String"`
+	Console bool   `parser:"| @'console' )"`
 }

@@ -5,9 +5,6 @@ import "errors"
 type Visitor[T any] interface {
 	Action(*Action) error
 	Amqp(*Amqp) error
-	Format(*Format) error
-	FormatAtom(*FormatAtom) error
-	FormatExpression(*FormatExpression) error
 	Metric(*Metric) error
 	Publish(*Publish) error
 	Script(*Script) error
@@ -16,14 +13,11 @@ type Visitor[T any] interface {
 }
 
 type visitorCommon[T any] struct {
-	action           func(Visitor[T], *Action) error
-	amqp             func(Visitor[T], *Amqp) error
-	format           func(Visitor[T], *Format) error
-	formatAtom       func(Visitor[T], *FormatAtom) error
-	formatExpression func(Visitor[T], *FormatExpression) error
-	metric           func(Visitor[T], *Metric) error
-	publish          func(Visitor[T], *Publish) error
-	script           func(Visitor[T], *Script) error
+	action  func(Visitor[T], *Action) error
+	amqp    func(Visitor[T], *Amqp) error
+	metric  func(Visitor[T], *Metric) error
+	publish func(Visitor[T], *Publish) error
+	script  func(Visitor[T], *Script) error
 }
 
 type visitor[T any] struct {
@@ -109,53 +103,6 @@ func (v *visitor[T]) Amqp(b *Amqp) error {
 	return err
 }
 
-func (v *visitor[T]) Format(b *Format) error {
-	var err error
-	if b != nil {
-		if v.format != nil {
-			err = v.format(v, b)
-		}
-		if IsVisitorStop(err) {
-			return nil
-		}
-		if err == nil {
-			for _, e := range b.Expressions {
-				err = v.FormatExpression(e)
-				if err != nil {
-					break
-				}
-			}
-		}
-	}
-	return err
-}
-
-func (v *visitor[T]) FormatExpression(b *FormatExpression) error {
-	var err error
-	if b != nil {
-		if v.formatExpression != nil {
-			err = v.formatExpression(v, b)
-		}
-		if IsVisitorStop(err) {
-			return nil
-		}
-	}
-	return err
-}
-
-func (v *visitor[T]) FormatAtom(b *FormatAtom) error {
-	var err error
-	if b != nil {
-		if v.formatAtom != nil {
-			err = v.formatAtom(v, b)
-		}
-		if IsVisitorStop(err) {
-			return nil
-		}
-	}
-	return err
-}
-
 func (v *visitor[T]) Metric(b *Metric) error {
 	var err error
 	if b != nil {
@@ -164,10 +111,6 @@ func (v *visitor[T]) Metric(b *Metric) error {
 		}
 		if IsVisitorStop(err) {
 			return nil
-		}
-
-		if err == nil {
-			err = v.Format(b.Format)
 		}
 
 		if err == nil {
