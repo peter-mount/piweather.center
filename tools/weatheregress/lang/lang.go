@@ -28,6 +28,8 @@ func (s *Script) merge(b *Script) (*Script, error) {
 		return b, nil
 	}
 
+	s.Amqp = append(s.Amqp, b.Amqp...)
+	s.Actions = append(s.Actions, b.Actions...)
 	s.state.merge(b.state)
 
 	return s, nil
