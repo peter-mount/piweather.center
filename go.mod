@@ -14,7 +14,7 @@ require (
 	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240119080616-ca3b1f9a9ce3
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
-	github.com/peter-mount/go-script v0.0.0-20240209221525-937df72b8ec9
+	github.com/peter-mount/go-script v0.0.0-20240210082255-ef2c90e84d66
 	github.com/peter-mount/nre-feeds v0.0.0-20240201140817-fd78167946e5
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd

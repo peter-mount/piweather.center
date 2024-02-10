@@ -7,10 +7,7 @@ import (
 
 func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 	if err == nil {
-		state := &State{
-			amqp:        make(map[string]*Amqp),
-			metricMatch: make(map[string][]*Metric),
-		}
+		state := NewState()
 
 		err = NewBuilder[*State]().
 			Amqp(defineAmqp).
@@ -21,7 +18,7 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 			Script(q)
 
 		if err == nil {
-			q.state = state
+			q.state = state.Cleanup()
 		}
 	}
 	return q, err
@@ -41,13 +38,19 @@ func defineMetric(v Visitor[*State], a *Metric) error {
 		return participle.Errorf(a.Pos, "metric undefined")
 	}
 
+	state := v.GetData()
+
 	for i, m := range a.Metrics {
 		m = strings.TrimSpace(m)
 		if m == "" {
 			return participle.Errorf(a.Pos, "metric undefined")
 		}
 		a.Metrics[i] = m
-		v.GetData().AddMetric(m, a)
+		state.AddMetric(m, a)
+	}
+
+	if a.Statement != nil {
+		return state.scriptInit.Statements(a.Statement)
 	}
 
 	return nil

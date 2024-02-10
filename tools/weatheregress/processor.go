@@ -60,7 +60,7 @@ func (s *Processor) processAction(a *action) {
 
 func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
 	var err error
-	if m.Expression != nil {
+	if m.Statement != nil {
 		act := v.GetData()
 		exec := act.exec
 
@@ -76,12 +76,7 @@ func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
 		scope.Set("routingKey", act.routingKey)
 
 		exec.Calculator().Reset()
-		for _, ex := range m.Expression.Expression {
-			err = exec.Expression(ex)
-			if err != nil {
-				break
-			}
-		}
+		err = exec.Statements(m.Statement)
 
 		if err == nil {
 			act.message, _ = scope.Get("message")

@@ -2,6 +2,7 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/go-script/parser"
 	"strings"
 	"sync"
 )
@@ -11,6 +12,20 @@ type State struct {
 	amqp         map[string]*Amqp     // Map of AMQP definitions
 	metricMatch  map[string][]*Metric // Map of exact matches
 	metricFilter []MetricFilter       // Slice of filters to filter against
+	scriptInit   parser.Initialiser   // from go-script, initialiser for embedded scripts
+}
+
+func NewState() *State {
+	return &State{
+		amqp:        make(map[string]*Amqp),
+		metricMatch: make(map[string][]*Metric),
+		scriptInit:  parser.NewInitialiser(),
+	}
+}
+
+func (s *State) Cleanup() *State {
+	s.scriptInit = nil
+	return s
 }
 
 type MetricFilter func(string) *Metric

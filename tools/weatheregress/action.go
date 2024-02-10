@@ -11,7 +11,7 @@ type action struct {
 	metrics    *lang.Metric
 	routingKey string
 	message    any
-	exec       executor.Executor
+	exec       executor.ExpressionExecutor
 }
 
 func newAction(metric api.Metric, metrics *lang.Metric) *action {

@@ -45,15 +45,10 @@ type Action struct {
 
 // Metric on receipt
 type Metric struct {
-	Pos        lexer.Position
-	Metrics    []string    `parser:"'metric' (@String | 'in' '(' @String (',' @String)* ')' )"`
-	Expression *Expression `parser:"('eval' '(' @@ ')')?"`
-	Publish    []*Publish  `parser:"'publish' (@@)+"`
-}
-
-type Expression struct {
-	Pos        lexer.Position
-	Expression []*script.Expression `parser:"(@@)+"`
+	Pos       lexer.Position
+	Metrics   []string           `parser:"'metric' (@String | 'in' '(' @String (',' @String)* ')' )"`
+	Statement *script.Statements `parser:"(@@)?"`
+	Publish   []*Publish         `parser:"'publish' (@@)+"`
 }
 
 type Publish struct {
