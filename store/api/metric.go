@@ -8,12 +8,12 @@ import (
 )
 
 type Metric struct {
-	Metric    string    `json:"metric" xml:"metric,attr,omitempty"`
-	Time      time.Time `json:"time" xml:"time,attr,omitempty"`
-	Unit      string    `json:"unit" xml:"unit,attr,omitempty"`
-	Value     float64   `json:"value" xml:",chardata"`
-	Formatted string    `json:"formatted,omitempty" xml:"formatted,attr,omitempty"`
-	Unix      int64     `json:"unix,omitempty" xml:"unix,attr,omitempty"`
+	Metric    string    `json:"metric" xml:"metric,attr,omitempty" yaml:"metric"`
+	Time      time.Time `json:"time" xml:"time,attr,omitempty" yaml:"time"`
+	Unit      string    `json:"unit" xml:"unit,attr,omitempty" yaml:"unit"`
+	Value     float64   `json:"value" xml:",chardata" yaml:"value"`
+	Formatted string    `json:"formatted,omitempty" xml:"formatted,attr,omitempty" yaml:"formatted,omitempty"`
+	Unix      int64     `json:"unix,omitempty" xml:"unix,attr,omitempty" yaml:"unix,omitempty"`
 }
 
 // IsValid returns true if the Metric has a value

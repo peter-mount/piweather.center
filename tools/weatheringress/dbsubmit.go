@@ -21,7 +21,7 @@ func (s *Ingress) processReading(ctx context.Context) error {
 		}
 
 		if f, ok := util.ToFloat64(str); ok {
-			// Convert to Type unit then transform to Use unit
+			// Convert to As unit then transform to Use unit
 			v, err := r.Value(f)
 			if err != nil {
 				// Ignore, should only happen if the result is

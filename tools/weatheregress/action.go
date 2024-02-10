@@ -19,7 +19,7 @@ func newAction(metric api.Metric, metrics *lang.Metric) *action {
 		metric:     metric,
 		metrics:    metrics,
 		routingKey: "metric." + metric.Metric,
-		message:    metric.String(),
+		message:    metric,
 		exec:       executor.NewExpressionExecutor(),
 	}
 }

@@ -91,11 +91,15 @@ func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
 }
 
 func (s *Processor) publish(v lang.Visitor[*action], p *lang.Publish) error {
-	switch {
-	case p.Console:
-		log.Printf("%s\n", v.GetData().message)
-	case p.Amqp != "":
-		return s.publishAmqp(v, p)
+	msg, err := p.As.Marshaller()(v.GetData().message)
+	if err == nil {
+		switch {
+		case p.Console:
+			log.Printf("%s\n", string(msg))
+
+		case p.Amqp != "":
+			err = s.publishAmqp(v, p, msg)
+		}
 	}
-	return nil
+	return err
 }

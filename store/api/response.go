@@ -73,7 +73,7 @@ func (r *Response) Submit(rs *rest.Rest) error {
 	}
 
 	rs.Status(r.Status).
-		ContentType(rs.GetHeader("Content-Type")).
+		ContentType(rs.GetHeader("Content-As")).
 		Value(r)
 
 	return nil

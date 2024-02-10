@@ -149,7 +149,7 @@ type SubUnit struct {
 	Max  float64 `yaml:"max,omitempty"` // Maximum value to use
 }
 
-// Value.Type values
+// Value.As values
 const (
 	ValueLatest      = "latest"      // Default, latest value
 	ValuePrevious    = "previous"    // latest value in previous10

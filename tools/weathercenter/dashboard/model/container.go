@@ -48,7 +48,7 @@ func (c *Container) Init(db string) {
 
 // ComponentList holds a list of dynamic Component implementations.
 // When a ComponentList is unmarshalled from the yaml, the components are of the correct type
-// based on the Component Type field.
+// based on the Component As field.
 type ComponentList []Instance
 
 func (c *ComponentList) UnmarshalYAML(types *yaml.Node) error {

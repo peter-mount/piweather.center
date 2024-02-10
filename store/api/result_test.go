@@ -51,7 +51,7 @@ func TestTable_UnmarshalJSON(t *testing.T) {
 				/*for j, c := range *row {
 					fmt.Printf("Col (%d,%d) type %d %q %f\n",
 						j, i,
-						c.Type,
+						c.As,
 						c.String,
 						c.Float,
 					)

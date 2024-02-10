@@ -3,7 +3,6 @@ package weatheregress
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-build/version"
-	"github.com/peter-mount/go-script/calculator"
 	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/tools/weatheregress/lang"
 	"strings"
@@ -49,19 +48,12 @@ func (s *Processor) initAmqp(v lang.Visitor[mqSetup], a *lang.Amqp) error {
 	return a.Publisher.Bind(a.MQ)
 }
 
-func (s *Processor) publishAmqp(v lang.Visitor[*action], p *lang.Publish) error {
+func (s *Processor) publishAmqp(v lang.Visitor[*action], p *lang.Publish, msg []byte) error {
 	a := s.script.State().GetAmqp(p.Amqp)
 	if a == nil {
 		return participle.Errorf(p.Pos, "Unknown amqp %q", p.Amqp)
 	}
 
 	act := v.GetData()
-
-	// FIXME this works for strings, but need to handle json as well
-	msg, err := calculator.GetString(act.message)
-	if err == nil {
-		err = a.Publisher.Publish(act.routingKey, []byte(msg))
-	}
-
-	return err
+	return a.Publisher.Publish(act.routingKey, msg)
 }
