@@ -3,15 +3,14 @@ package calc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/astro/coord"
+	"github.com/peter-mount/piweather.center/config/location"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"time"
 )
 
 type Script struct {
 	Pos          lexer.Position
-	Locations    []*Location    `parser:"(@@)*"`
-	Calculations []*Calculation `parser:"(@@)+"`
+	Locations    []*location.Location `parser:"(@@)*"`
+	Calculations []*Calculation       `parser:"(@@)+"`
 	State        *State
 }
 
@@ -20,12 +19,8 @@ func (s *Script) merge(b *Script) (*Script, error) {
 		return b, nil
 	}
 
-	// Merge the state, dealing with id clashes
-	for _, l := range b.State.GetLocations() {
-		if e := s.State.GetLocation(l.Name); e != nil {
-			return nil, participle.Errorf(l.Pos, "location %q already defined at %s", l.Name, e.Pos.String())
-		}
-		s.State.locations[l.Name] = l
+	if err := s.State.MergeLocations(b.State.MapContainer); err != nil {
+		return nil, err
 	}
 
 	for _, l := range b.State.GetCalculations() {
@@ -40,31 +35,6 @@ func (s *Script) merge(b *Script) (*Script, error) {
 	s.Calculations = append(s.Calculations, b.Calculations...)
 
 	return s, nil
-}
-
-// Location defines a location on the Earth
-type Location struct {
-	Pos       lexer.Position
-	Name      string         `parser:"'LOCATION' @String"` // Name of location
-	Latitude  string         `parser:"@String"`            // Latitude, North positive, South negative
-	Longitude string         `parser:"@String"`            // Longitude, East positive, West negative
-	Altitude  float64        `parser:"(@Number)?"`         // Altitude in meters. Optional will default to 0
-	latLong   *coord.LatLong // Parsed location details
-	time      value.Time     // Time based on latLong
-}
-
-func (s *Location) LatLong() *coord.LatLong {
-	return s.latLong
-}
-
-// Time returns a value.Time for this location.
-// If the Location is nil then this returns a value.PlainTime
-func (s *Location) Time() value.Time {
-	if s == nil {
-		return value.PlainTime(time.Time{})
-	}
-
-	return value.BasicTime(time.Time{}, s.latLong.Coord(), s.Altitude)
 }
 
 // Calculation defines a metric to calculate

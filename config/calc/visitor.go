@@ -1,21 +1,25 @@
 package calc
 
-import "errors"
+import (
+	"errors"
+	"github.com/peter-mount/piweather.center/config/data"
+	"github.com/peter-mount/piweather.center/config/location"
+)
 
 type Visitor[T any] interface {
+	data.DataVisitor[T]
+	location.LocationVisitor[T]
+	Clone() Visitor[T]
 	Calculation(*Calculation) error
 	CronTab(*CronTab) error
 	Current(*Current) error
 	Expression(*Expression) error
 	Function(*Function) error
 	Load(b *Load) error
-	Location(*Location) error
 	Metric(*Metric) error
 	Script(*Script) error
 	Unit(b *Unit) error
 	UseFirst(b *UseFirst) error
-	GetData() T
-	SetData(T) Visitor[T]
 }
 
 type visitorCommon[T any] struct {
@@ -25,7 +29,6 @@ type visitorCommon[T any] struct {
 	expression  func(Visitor[T], *Expression) error
 	function    func(Visitor[T], *Function) error
 	load        func(Visitor[T], *Load) error
-	location    func(Visitor[T], *Location) error
 	metric      func(Visitor[T], *Metric) error
 	script      func(Visitor[T], *Script) error
 	unit        func(Visitor[T], *Unit) error
@@ -33,18 +36,16 @@ type visitorCommon[T any] struct {
 }
 
 type visitor[T any] struct {
+	data.DataVisitorCommon[T]
+	location.LocationVisitorBase[T]
 	visitorCommon[T]
-	data T
 }
 
-func (v *visitor[T]) GetData() T {
-	return v.data
-}
-
-func (v *visitor[T]) SetData(data T) Visitor[T] {
+func (v *visitor[T]) Clone() Visitor[T] {
 	return &visitor[T]{
-		visitorCommon: v.visitorCommon,
-		data:          data,
+		DataVisitorCommon:   v.DataVisitorCommon,
+		LocationVisitorBase: v.LocationVisitorBase,
+		visitorCommon:       v.visitorCommon,
 	}
 }
 
@@ -82,17 +83,6 @@ func (v *visitor[T]) Script(b *Script) error {
 				}
 			}
 		}
-	}
-	return err
-}
-
-func (v *visitor[T]) Location(b *Location) error {
-	var err error
-	if b != nil && v.location != nil {
-		err = v.location(v, b)
-	}
-	if IsVisitorStop(err) {
-		return nil
 	}
 	return err
 }

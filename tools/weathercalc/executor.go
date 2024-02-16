@@ -93,7 +93,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		time:   calc.script.State.GetLocation(c.Src().At).Time(),
 	}
 
-	err := lang2.NewBuilder[*Calculator]().
+	v := lang2.NewBuilder[*Calculator]().
 		Calculation(e.calculation).
 		Current(e.current).
 		Expression(e.expression).
@@ -101,9 +101,9 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		Metric(e.metric).
 		Unit(e.unit).
 		UseFirst(e.useFirst).
-		Build().
-		SetData(calc).
-		Calculation(c.Src())
+		Build()
+	v.SetData(calc)
+	err := v.Calculation(c.Src())
 
 	r, exists := e.pop()
 	if err != nil {

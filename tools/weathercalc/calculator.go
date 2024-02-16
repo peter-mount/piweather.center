@@ -110,14 +110,14 @@ func (calc *Calculator) addMetric(n string, c *lang2.Calculation) {
 }
 
 func (calc *Calculator) addCalculation(_ lang2.Visitor[*Calculator], c *lang2.Calculation) error {
-	if err := lang2.NewBuilder[*Calculator]().
+	v := lang2.NewBuilder[*Calculator]().
 		Metric(func(_ lang2.Visitor[*Calculator], m *lang2.Metric) error {
 			calc.addMetric(m.Name, c)
 			return nil
 		}).
-		Build().
-		SetData(calc).
-		Calculation(c); err != nil {
+		Build()
+	v.SetData(calc)
+	if err := v.Calculation(c); err != nil {
 		return err
 	}
 

@@ -1,13 +1,15 @@
 package calc
 
+import "github.com/peter-mount/piweather.center/config/location"
+
 type Builder[T any] interface {
+	location.LocationBuilder[T]
 	Calculation(func(Visitor[T], *Calculation) error) Builder[T]
 	CronTab(func(Visitor[T], *CronTab) error) Builder[T]
 	Current(func(Visitor[T], *Current) error) Builder[T]
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
 	Function(func(Visitor[T], *Function) error) Builder[T]
 	Load(f func(Visitor[T], *Load) error) Builder[T]
-	Location(func(Visitor[T], *Location) error) Builder[T]
 	Metric(func(Visitor[T], *Metric) error) Builder[T]
 	Script(func(Visitor[T], *Script) error) Builder[T]
 	Unit(f func(Visitor[T], *Unit) error) Builder[T]
@@ -16,6 +18,7 @@ type Builder[T any] interface {
 }
 
 type builder[T any] struct {
+	location.LocationBuilderBase[T]
 	visitorCommon[T]
 }
 
@@ -24,16 +27,16 @@ func NewBuilder[T any]() Builder[T] {
 }
 
 func (b *builder[T]) Build() Visitor[T] {
-	return &visitor[T]{visitorCommon: b.visitorCommon}
+	return &visitor[T]{
+		visitorCommon: b.visitorCommon,
+		LocationVisitorBase: location.LocationVisitorBase[T]{
+			LocationVisitorCommon: b.LocationBuilderBase.LocationVisitorCommon,
+		},
+	}
 }
 
 func (b *builder[T]) Script(f func(Visitor[T], *Script) error) Builder[T] {
 	b.script = f
-	return b
-}
-
-func (b *builder[T]) Location(f func(Visitor[T], *Location) error) Builder[T] {
-	b.location = f
 	return b
 }
 
