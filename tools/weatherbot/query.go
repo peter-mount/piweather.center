@@ -2,8 +2,8 @@ package bot
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/config/ql"
 	util2 "github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/store/ql/lang"
 	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"github.com/peter-mount/piweather.center/util"
 	"sort"
@@ -14,7 +14,7 @@ type Query struct {
 	post       *Post
 	columns    map[string]column
 	colKeys    util.StringMap
-	parser     util2.Parser[lang.Expression]
+	parser     util2.Parser[ql.Expression]
 	Query      string
 	queryRange string
 }

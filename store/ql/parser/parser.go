@@ -3,20 +3,20 @@ package parser
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	lang2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/store/ql/lang"
 )
 
 const (
 	keywords = `(?i)\b(ADD|AND|AS|AT|BETWEEN|DECLARE|EVERY|FOR|FROM|HISTOGRAM|LIMIT|OFFSET|SELECT|TRUNCATE|UNIT|USING|WINDROSE)\b`
 )
 
-func New() util.Parser[lang.Query] {
-	return newParser[lang.Query](nil)
+func New() util.Parser[lang2.Query] {
+	return newParser[lang2.Query](nil)
 }
 
-func NewExpressionParser() util.Parser[lang.Expression] {
-	return newParser[lang.Expression](expressionInit)
+func NewExpressionParser() util.Parser[lang2.Expression] {
+	return newParser[lang2.Expression](expressionInit)
 }
 
 func newParser[G any](init util.ParserInit[G]) util.Parser[G] {

@@ -1,4 +1,4 @@
-package lang
+package ql
 
 import "github.com/alecthomas/participle/v2/lexer"
 

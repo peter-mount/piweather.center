@@ -1,4 +1,4 @@
-package lang
+package ql
 
 import (
 	"errors"

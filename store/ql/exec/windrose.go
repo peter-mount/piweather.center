@@ -2,15 +2,15 @@ package exec
 
 import (
 	"github.com/alecthomas/participle/v2"
+	lang2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
-	"github.com/peter-mount/piweather.center/store/ql/lang"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strconv"
 )
 
-func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
+func (ex *Executor) windRose(v lang2.Visitor, s *lang2.WindRose) error {
 	wr := api.NewWindRose()
 
 	it := ex.timeRange.Iterator()
@@ -55,7 +55,7 @@ func (ex *Executor) windRose(v lang.Visitor, s *lang.WindRose) error {
 	}
 
 	// Tell the visitor to stop processing this Histogram statement
-	return lang.VisitorStop
+	return lang2.VisitorStop
 }
 
 func (ex *Executor) windRoseTable(wr *api.WindRose, f func(*api.WindRoseBucket) float64) {
@@ -74,7 +74,7 @@ func (ex *Executor) windRoseTable(wr *api.WindRose, f func(*api.WindRoseBucket) 
 	}
 }
 
-func (ex *Executor) windRoseExpression(v lang.Visitor, s *lang.Expression, u *value.Unit) (float64, bool, error) {
+func (ex *Executor) windRoseExpression(v lang2.Visitor, s *lang2.Expression, u *value.Unit) (float64, bool, error) {
 	ex.resetStack()
 	err := v.Expression(s)
 

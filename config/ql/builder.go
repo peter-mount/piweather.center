@@ -1,4 +1,4 @@
-package lang
+package ql
 
 type Builder interface {
 	Query(func(Visitor, *Query) error) Builder
