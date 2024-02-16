@@ -2,19 +2,19 @@ package weatheregress
 
 import (
 	"github.com/peter-mount/go-script/executor"
+	"github.com/peter-mount/piweather.center/config/egress"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/tools/weatheregress/lang"
 )
 
 type action struct {
 	metric     api.Metric
-	metrics    *lang.Metric
+	metrics    *egress.Metric
 	routingKey string
 	message    any
 	exec       executor.ExpressionExecutor
 }
 
-func newAction(metric api.Metric, metrics *lang.Metric) *action {
+func newAction(metric api.Metric, metrics *egress.Metric) *action {
 	return &action{
 		metric:     metric,
 		metrics:    metrics,

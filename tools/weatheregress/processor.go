@@ -4,24 +4,24 @@ import (
 	"flag"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-script/calculator"
+	egress2 "github.com/peter-mount/piweather.center/config/egress"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/tools/weatheregress/lang"
 )
 
 type Processor struct {
-	script    *lang.Script
-	processor lang.Visitor[*action]
+	script    *egress2.Script
+	processor egress2.Visitor[*action]
 }
 
 func (s *Processor) Start() error {
-	p := lang.NewParser()
+	p := egress2.NewParser()
 	script, err := p.ParseFiles(flag.Args()...)
 	if err != nil {
 		return err
 	}
 
 	s.script = script
-	s.processor = lang.NewBuilder[*action]().
+	s.processor = egress2.NewBuilder[*action]().
 		Metric(s.metric).
 		Publish(s.publish).
 		Build()
@@ -58,7 +58,7 @@ func (s *Processor) processAction(a *action) {
 	}
 }
 
-func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
+func (s *Processor) metric(v egress2.Visitor[*action], m *egress2.Metric) error {
 	var err error
 	if m.Statement != nil {
 		act := v.GetData()
@@ -90,7 +90,7 @@ func (s *Processor) metric(v lang.Visitor[*action], m *lang.Metric) error {
 	return err
 }
 
-func (s *Processor) publish(v lang.Visitor[*action], p *lang.Publish) error {
+func (s *Processor) publish(v egress2.Visitor[*action], p *egress2.Publish) error {
 	msg, err := p.As.Marshaller()(v.GetData().message)
 	if err == nil {
 		switch {

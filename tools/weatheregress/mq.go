@@ -3,8 +3,8 @@ package weatheregress
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-build/version"
+	egress2 "github.com/peter-mount/piweather.center/config/egress"
 	"github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/tools/weatheregress/lang"
 	"strings"
 )
 
@@ -20,14 +20,14 @@ func (s *Processor) initMq() error {
 		appVersion: strings.Trim(vs[1], "()"),
 	}
 
-	return lang.NewBuilder[mqSetup]().
+	return egress2.NewBuilder[mqSetup]().
 		Amqp(s.initAmqp).
 		Build().
 		SetData(m).
 		Script(s.script)
 }
 
-func (s *Processor) initAmqp(v lang.Visitor[mqSetup], a *lang.Amqp) error {
+func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *egress2.Amqp) error {
 	m := v.GetData()
 
 	a.MQ = &amqp.MQ{
@@ -48,7 +48,7 @@ func (s *Processor) initAmqp(v lang.Visitor[mqSetup], a *lang.Amqp) error {
 	return a.Publisher.Bind(a.MQ)
 }
 
-func (s *Processor) publishAmqp(v lang.Visitor[*action], p *lang.Publish, msg []byte) error {
+func (s *Processor) publishAmqp(v egress2.Visitor[*action], p *egress2.Publish, msg []byte) error {
 	a := s.script.State().GetAmqp(p.Amqp)
 	if a == nil {
 		return participle.Errorf(p.Pos, "Unknown amqp %q", p.Amqp)

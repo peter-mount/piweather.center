@@ -1,4 +1,4 @@
-package lang
+package egress
 
 import (
 	"github.com/alecthomas/participle/v2"

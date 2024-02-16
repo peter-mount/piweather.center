@@ -1,4 +1,4 @@
-package lang
+package egress
 
 type Builder[T any] interface {
 	Action(func(Visitor[T], *Action) error) Builder[T]

@@ -1,4 +1,4 @@
-package lang
+package egress
 
 import (
 	"encoding/json"
