@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/peter-mount/piweather.center/config/data"
 	"github.com/peter-mount/piweather.center/config/location"
+	"github.com/peter-mount/piweather.center/config/misc"
 )
 
 type Visitor[T any] interface {
@@ -11,27 +12,27 @@ type Visitor[T any] interface {
 	location.LocationVisitor[T]
 	Clone() Visitor[T]
 	Calculation(*Calculation) error
-	CronTab(*CronTab) error
+	CronTab(tab *misc.CronTab) error
 	Current(*Current) error
 	Expression(*Expression) error
 	Function(*Function) error
 	Load(b *Load) error
 	Metric(*Metric) error
 	Script(*Script) error
-	Unit(b *Unit) error
+	Unit(b *misc.Unit) error
 	UseFirst(b *UseFirst) error
 }
 
 type visitorCommon[T any] struct {
 	calculation func(Visitor[T], *Calculation) error
-	cronTab     func(Visitor[T], *CronTab) error
+	cronTab     func(Visitor[T], *misc.CronTab) error
 	current     func(Visitor[T], *Current) error
 	expression  func(Visitor[T], *Expression) error
 	function    func(Visitor[T], *Function) error
 	load        func(Visitor[T], *Load) error
 	metric      func(Visitor[T], *Metric) error
 	script      func(Visitor[T], *Script) error
-	unit        func(Visitor[T], *Unit) error
+	unit        func(Visitor[T], *misc.Unit) error
 	useFirst    func(Visitor[T], *UseFirst) error
 }
 
@@ -131,7 +132,7 @@ func (v *visitor[T]) Load(b *Load) error {
 	return err
 }
 
-func (v *visitor[T]) CronTab(b *CronTab) error {
+func (v *visitor[T]) CronTab(b *misc.CronTab) error {
 	var err error
 	if b != nil && v.cronTab != nil {
 		err = v.cronTab(v, b)
@@ -184,7 +185,7 @@ func (v *visitor[T]) Current(b *Current) error {
 	return err
 }
 
-func (v *visitor[T]) Unit(b *Unit) error {
+func (v *visitor[T]) Unit(b *misc.Unit) error {
 	var err error
 	if b != nil {
 		if v.unit != nil {

@@ -3,6 +3,7 @@ package calc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/piweather.center/config/location"
+	"github.com/peter-mount/piweather.center/config/misc"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
@@ -87,20 +88,8 @@ func (s *State) load(_ Visitor[*State], l *Load) error {
 	return nil
 }
 
-func (s *State) initCronTab(_ Visitor[*State], l *CronTab) error {
-	// Convert aliases to actual definitions
-	switch strings.ToLower(l.Definition) {
-	case "day", "daily", "midnight":
-		l.Definition = "0 0 0 * * *"
-	case "hour", "hourly":
-		l.Definition = "0 0 * * * *"
-	case "minute":
-		l.Definition = "0 * * * * *"
-	case "second":
-		l.Definition = "* * * * * *"
-	}
-
-	return nil
+func (s *State) initCronTab(_ Visitor[*State], l *misc.CronTab) error {
+	return l.Init()
 }
 
 func (s *State) initFunction(_ Visitor[*State], l *Function) error {
@@ -130,11 +119,6 @@ func (s *State) initMetric(_ Visitor[*State], l *Metric) error {
 	return nil
 }
 
-func (s *State) initUnit(_ Visitor[*State], l *Unit) error {
-	u, exists := value.GetUnit(l.Using)
-	if exists {
-		l.unit = u
-		return nil
-	}
-	return participle.Errorf(l.Pos, "unsupported unit %q", l.Using)
+func (s *State) initUnit(_ Visitor[*State], l *misc.Unit) error {
+	return l.Init()
 }
