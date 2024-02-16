@@ -2,6 +2,8 @@ package bot
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/config"
+	"github.com/peter-mount/piweather.center/store/ql/lang"
 	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"github.com/peter-mount/piweather.center/util"
 	"sort"
@@ -12,7 +14,7 @@ type Query struct {
 	post       *Post
 	columns    map[string]column
 	colKeys    util.StringMap
-	parser     parser.ExpressionParser
+	parser     config.Parser[lang.Expression]
 	Query      string
 	queryRange string
 }
@@ -105,7 +107,7 @@ func (q *Query) parseValue(v *Value) error {
 	}
 
 	// Verify expression is valid
-	_, err := q.parser.Parse(v.Query)
+	_, err := q.parser.ParseString("", v.Query)
 	if err != nil {
 		return fmt.Errorf("error in %s: %s", v.Query, err.Error())
 	}

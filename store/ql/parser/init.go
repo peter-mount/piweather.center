@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (p *defaultParser) init(q *lang.Query, err error) (*lang.Query, error) {
+func scriptInit(q *lang.Query, err error) (*lang.Query, error) {
 	if err == nil {
 		parserState := &parserState{usingNames: util.NewStringSet()}
 		err = q.Accept(lang.NewBuilder().
@@ -29,6 +29,20 @@ func (p *defaultParser) init(q *lang.Query, err error) (*lang.Query, error) {
 			Time(timeInit).
 			Duration(durationInit).
 			WindRose(windRoseInit).
+			Build())
+	}
+	return q, err
+}
+
+func expressionInit(q *lang.Expression, err error) (*lang.Expression, error) {
+	if err == nil {
+		parserState := &parserState{usingNames: util.NewStringSet()}
+		err = q.Accept(lang.NewBuilder().
+			ExpressionModifier(parserState.expressionModifierInit).
+			Function(functionInit).
+			Metric(metricInit).
+			Time(timeInit).
+			Duration(durationInit).
 			Build())
 	}
 	return q, err

@@ -2,10 +2,15 @@ package lang
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/piweather.center/config"
 	"strings"
 )
 
-func (p *defaultParser) init(q *Script, err error) (*Script, error) {
+func NewParser() config.Parser[Script] {
+	return config.NewParser[Script](nil, nil, egressInit)
+}
+
+func egressInit(q *Script, err error) (*Script, error) {
 	if err == nil {
 		state := NewState()
 
