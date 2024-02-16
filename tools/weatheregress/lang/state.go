@@ -69,6 +69,12 @@ func (s *State) merge(b *State) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	for k, v := range b.amqp {
+		if _, exists := s.amqp[k]; !exists {
+			s.amqp[k] = v
+		}
+	}
+
 	for k, v := range b.metricMatch {
 		s.metricMatch[k] = append(s.metricMatch[k], v...)
 	}
