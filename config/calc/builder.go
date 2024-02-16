@@ -1,4 +1,4 @@
-package lang
+package calc
 
 type Builder[T any] interface {
 	Calculation(func(Visitor[T], *Calculation) error) Builder[T]

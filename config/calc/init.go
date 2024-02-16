@@ -1,4 +1,4 @@
-package lang
+package calc
 
 import (
 	"github.com/alecthomas/participle/v2"

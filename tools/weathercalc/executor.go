@@ -3,15 +3,15 @@ package weathercalc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
+	lang2 "github.com/peter-mount/piweather.center/config/calc"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
-	"github.com/peter-mount/piweather.center/tools/weathercalc/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
 
 type executor struct {
-	script *lang.Script
+	script *lang2.Script
 	calc   *Calculation
 	latest memory.Latest
 	stack  []StackEntry
@@ -93,7 +93,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		time:   calc.script.State.GetLocation(c.Src().At).Time(),
 	}
 
-	err := lang.NewBuilder[*Calculator]().
+	err := lang2.NewBuilder[*Calculator]().
 		Calculation(e.calculation).
 		Current(e.current).
 		Expression(e.expression).
@@ -118,7 +118,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 	return r.Value, r.Time, nil
 }
 
-func (e *executor) calculation(v lang.Visitor[*Calculator], b *lang.Calculation) error {
+func (e *executor) calculation(v lang2.Visitor[*Calculator], b *lang2.Calculation) error {
 	e.resetStack()
 
 	// If usefirst set check to see we have a latest value, if not then set the default value
@@ -133,7 +133,7 @@ func (e *executor) calculation(v lang.Visitor[*Calculator], b *lang.Calculation)
 		// Handle no AS clause - result is the target metric
 		r, exists := e.latest.Latest(b.Target)
 		if !exists {
-			return lang.VisitorStop
+			return lang2.VisitorStop
 		}
 		e.push(r.Time, r.Value)
 	} else {
@@ -147,10 +147,10 @@ func (e *executor) calculation(v lang.Visitor[*Calculator], b *lang.Calculation)
 
 	e.setMetric(b.Target, val)
 
-	return lang.VisitorStop
+	return lang2.VisitorStop
 }
 
-func (e *executor) expression(v lang.Visitor[*Calculator], b *lang.Expression) error {
+func (e *executor) expression(v lang2.Visitor[*Calculator], b *lang2.Expression) error {
 	var err error
 	switch {
 	case b.Current != nil:
@@ -173,14 +173,14 @@ func (e *executor) expression(v lang.Visitor[*Calculator], b *lang.Expression) e
 		return err
 	}
 
-	return lang.VisitorStop
+	return lang2.VisitorStop
 }
 
-func (e *executor) current(_ lang.Visitor[*Calculator], _ *lang.Current) error {
+func (e *executor) current(_ lang2.Visitor[*Calculator], _ *lang2.Current) error {
 	return e.metricImpl(e.calc.ID())
 }
 
-func (e *executor) metric(_ lang.Visitor[*Calculator], b *lang.Metric) error {
+func (e *executor) metric(_ lang2.Visitor[*Calculator], b *lang2.Metric) error {
 	return e.metricImpl(b.Name)
 }
 
@@ -194,7 +194,7 @@ func (e *executor) metricImpl(n string) error {
 	return nil
 }
 
-func (e *executor) useFirst(_ lang.Visitor[*Calculator], b *lang.UseFirst) error {
+func (e *executor) useFirst(_ lang2.Visitor[*Calculator], b *lang2.UseFirst) error {
 	rec, exists := e.latest.Latest(e.calc.ID())
 	if !exists {
 		rec, exists = e.latest.Latest(b.Metric.Name)
@@ -202,13 +202,13 @@ func (e *executor) useFirst(_ lang.Visitor[*Calculator], b *lang.UseFirst) error
 			// Set the new value then VisitorStop to tell
 			// calculation() to terminate
 			e.latest.Append(e.calc.ID(), rec)
-			return lang.VisitorStop
+			return lang2.VisitorStop
 		}
 	}
 	return nil
 }
 
-func (e *executor) unit(_ lang.Visitor[*Calculator], b *lang.Unit) error {
+func (e *executor) unit(_ lang2.Visitor[*Calculator], b *lang2.Unit) error {
 	v, present := e.pop()
 	if present {
 		nv, err := v.Value.As(b.Unit())
@@ -222,7 +222,7 @@ func (e *executor) unit(_ lang.Visitor[*Calculator], b *lang.Unit) error {
 	return nil
 }
 
-func (e *executor) function(v lang.Visitor[*Calculator], b *lang.Function) error {
+func (e *executor) function(v lang2.Visitor[*Calculator], b *lang2.Function) error {
 	e.save()
 
 	calc, err := value.GetCalculator(b.Name)
@@ -245,7 +245,7 @@ func (e *executor) function(v lang.Visitor[*Calculator], b *lang.Function) error
 		if !arg.IsValid() {
 			e.restore()
 			e.pushNull()
-			return lang.VisitorStop
+			return lang2.VisitorStop
 		}
 
 		if t.IsZero() || t.Before(arg.Time) {
@@ -263,7 +263,7 @@ func (e *executor) function(v lang.Visitor[*Calculator], b *lang.Function) error
 	if err == nil {
 		e.restore()
 		e.push(t, val)
-		return lang.VisitorStop
+		return lang2.VisitorStop
 	}
 
 	return err

@@ -4,12 +4,12 @@ import (
 	"flag"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
+	lang2 "github.com/peter-mount/piweather.center/config/calc"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
-	"github.com/peter-mount/piweather.center/tools/weathercalc/lang"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
@@ -24,14 +24,14 @@ type Calculator struct {
 	Latest         memory.Latest         `kernel:"inject"`
 	DBServer       *string               `kernel:"flag,metric-db,DB url"`
 	mutex          sync.Mutex
-	script         *lang.Script
+	script         *lang2.Script
 	targets        map[string]*Calculation   // Map of Calculations by target
 	metrics        map[string][]*Calculation // Map of Calculation's by their dependencies
 	calculations   []*Calculation            // Calculation's in sequence
 }
 
 func (calc *Calculator) Start() error {
-	p := lang.NewParser()
+	p := lang2.NewParser()
 	script, err := p.ParseFiles(flag.Args()...)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (calc *Calculator) Start() error {
 	calc.metrics = make(map[string][]*Calculation)
 
 	// Load the calculations
-	if err := lang.NewBuilder[*Calculator]().
+	if err := lang2.NewBuilder[*Calculator]().
 		Calculation(calc.addCalculation).
 		Build().
 		Script(calc.script); err != nil {
@@ -62,7 +62,7 @@ func (calc *Calculator) Start() error {
 	return nil
 }
 
-func (calc *Calculator) Script() *lang.Script {
+func (calc *Calculator) Script() *lang2.Script {
 	return calc.script
 }
 
@@ -90,7 +90,7 @@ func (calc *Calculator) loadLatestMetrics() error {
 	return nil
 }
 
-func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
+func (calc *Calculator) addMetric(n string, c *lang2.Calculation) {
 	calc.mutex.Lock()
 	defer calc.mutex.Unlock()
 
@@ -109,9 +109,9 @@ func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
 	calc.calculations = append(calc.calculations, nc)
 }
 
-func (calc *Calculator) addCalculation(_ lang.Visitor[*Calculator], c *lang.Calculation) error {
-	if err := lang.NewBuilder[*Calculator]().
-		Metric(func(_ lang.Visitor[*Calculator], m *lang.Metric) error {
+func (calc *Calculator) addCalculation(_ lang2.Visitor[*Calculator], c *lang2.Calculation) error {
+	if err := lang2.NewBuilder[*Calculator]().
+		Metric(func(_ lang2.Visitor[*Calculator], m *lang2.Metric) error {
 			calc.addMetric(m.Name, c)
 			return nil
 		}).
@@ -244,13 +244,13 @@ func (calc *Calculator) calculate(c *Calculation) {
 
 type Calculation struct {
 	mutex      sync.Mutex
-	src        *lang.Calculation // Link to definition
-	lastUpdate time.Time         // Time calculation last run
-	lastValue  value.Value       // Last value
-	time       value.Time        // Time with location
+	src        *lang2.Calculation // Link to definition
+	lastUpdate time.Time          // Time calculation last run
+	lastValue  value.Value        // Last value
+	time       value.Time         // Time with location
 }
 
-func NewCalculation(src *lang.Calculation) *Calculation {
+func NewCalculation(src *lang2.Calculation) *Calculation {
 	return &Calculation{src: src}
 }
 
@@ -263,7 +263,7 @@ func (c *Calculation) ID() string {
 	return c.src.Target
 }
 
-func (c *Calculation) Src() *lang.Calculation {
+func (c *Calculation) Src() *lang2.Calculation {
 	return c.src
 }
 

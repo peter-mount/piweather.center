@@ -13,7 +13,7 @@ import (
 
 type Script struct {
 	Pos lexer.Position
-	//Locations []*lang.Location `parser:"(@@)*"` // Share the same from calculator
+	//Locations []*calc.Location `parser:"(@@)*"` // Share the same from calculator
 	Amqp    []*Amqp   `parser:"(@@)?"`
 	Actions []*Action `parser:"(@@)+"`
 	state   *State
