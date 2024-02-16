@@ -15,10 +15,6 @@ type Script struct {
 	State        *State
 }
 
-func (s *Script) Accept(v Visitor) error {
-	return v.Script(s)
-}
-
 func (s *Script) merge(b *Script) (*Script, error) {
 	if s == nil {
 		return b, nil
@@ -71,10 +67,6 @@ func (s *Location) Time() value.Time {
 	return value.BasicTime(time.Time{}, s.latLong.Coord(), s.Altitude)
 }
 
-func (s *Location) Accept(v Visitor) error {
-	return v.Location(s)
-}
-
 // Calculation defines a metric to calculate
 type Calculation struct {
 	Pos        lexer.Position
@@ -87,27 +79,15 @@ type Calculation struct {
 	Expression *Expression `parser:"('AS' @@)?"`            // Expression to perform calculation
 }
 
-func (s *Calculation) Accept(v Visitor) error {
-	return v.Calculation(s)
-}
-
 type Load struct {
 	Pos  lexer.Position
 	When string `parser:"'LOAD' @String"` // When to load from
 	With string `parser:"'WITH' @String"` // Query to perform
 }
 
-func (s *Load) Accept(v Visitor) error {
-	return v.Load(s)
-}
-
 type CronTab struct {
 	Pos        lexer.Position
 	Definition string `parser:"@String"` // CronTab definition
-}
-
-func (s *CronTab) Accept(v Visitor) error {
-	return v.CronTab(s)
 }
 
 type Expression struct {
@@ -118,19 +98,11 @@ type Expression struct {
 	Using    *Unit     `parser:"(@@)?"`  // Optional target Unit
 }
 
-func (s *Expression) Accept(v Visitor) error {
-	return v.Expression(s)
-}
-
 // Unit allows for Unit selection
 type Unit struct {
 	Pos   lexer.Position
 	Using string `parser:"'USING' @String"`
 	unit  *value.Unit
-}
-
-func (s *Unit) Accept(v Visitor) error {
-	return v.Unit(s)
 }
 
 func (s *Unit) Unit() *value.Unit {
@@ -143,19 +115,11 @@ type Current struct {
 	Current bool `parser:"@'CURRENT'"`
 }
 
-func (s *Current) Accept(v Visitor) error {
-	return v.Current(s)
-}
-
 // Function handles function calls
 type Function struct {
 	Pos         lexer.Position
 	Name        string        `parser:"@Ident"`
 	Expressions []*Expression `parser:"'(' (@@ (',' @@)*)? ')'"`
-}
-
-func (s *Function) Accept(v Visitor) error {
-	return v.Function(s)
 }
 
 // Metric handles a metric reference
@@ -165,15 +129,7 @@ type Metric struct {
 	Name   string
 }
 
-func (s *Metric) Accept(v Visitor) error {
-	return v.Metric(s)
-}
-
 type UseFirst struct {
 	Pos    lexer.Position
 	Metric *Metric `parser:"'USEFIRST' @@"`
-}
-
-func (s *UseFirst) Accept(v Visitor) error {
-	return v.UseFirst(s)
 }

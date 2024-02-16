@@ -1,83 +1,83 @@
 package lang
 
-type Builder interface {
-	Calculation(func(Visitor, *Calculation) error) Builder
-	CronTab(func(Visitor, *CronTab) error) Builder
-	Current(func(Visitor, *Current) error) Builder
-	Expression(func(Visitor, *Expression) error) Builder
-	Function(func(Visitor, *Function) error) Builder
-	Load(f func(Visitor, *Load) error) Builder
-	Location(func(Visitor, *Location) error) Builder
-	Metric(func(Visitor, *Metric) error) Builder
-	Script(func(Visitor, *Script) error) Builder
-	Unit(f func(Visitor, *Unit) error) Builder
-	UseFirst(f func(Visitor, *UseFirst) error) Builder
-	Build() Visitor
+type Builder[T any] interface {
+	Calculation(func(Visitor[T], *Calculation) error) Builder[T]
+	CronTab(func(Visitor[T], *CronTab) error) Builder[T]
+	Current(func(Visitor[T], *Current) error) Builder[T]
+	Expression(func(Visitor[T], *Expression) error) Builder[T]
+	Function(func(Visitor[T], *Function) error) Builder[T]
+	Load(f func(Visitor[T], *Load) error) Builder[T]
+	Location(func(Visitor[T], *Location) error) Builder[T]
+	Metric(func(Visitor[T], *Metric) error) Builder[T]
+	Script(func(Visitor[T], *Script) error) Builder[T]
+	Unit(f func(Visitor[T], *Unit) error) Builder[T]
+	UseFirst(f func(Visitor[T], *UseFirst) error) Builder[T]
+	Build() Visitor[T]
 }
 
-type builder struct {
-	visitorCommon
+type builder[T any] struct {
+	visitorCommon[T]
 }
 
-func NewBuilder() Builder {
-	return &builder{}
+func NewBuilder[T any]() Builder[T] {
+	return &builder[T]{}
 }
 
-func (b *builder) Build() Visitor {
-	return &visitor{visitorCommon: b.visitorCommon}
+func (b *builder[T]) Build() Visitor[T] {
+	return &visitor[T]{visitorCommon: b.visitorCommon}
 }
 
-func (b *builder) Script(f func(Visitor, *Script) error) Builder {
+func (b *builder[T]) Script(f func(Visitor[T], *Script) error) Builder[T] {
 	b.script = f
 	return b
 }
 
-func (b *builder) Location(f func(Visitor, *Location) error) Builder {
+func (b *builder[T]) Location(f func(Visitor[T], *Location) error) Builder[T] {
 	b.location = f
 	return b
 }
 
-func (b *builder) Calculation(f func(Visitor, *Calculation) error) Builder {
+func (b *builder[T]) Calculation(f func(Visitor[T], *Calculation) error) Builder[T] {
 	b.calculation = f
 	return b
 }
 
-func (b *builder) Load(f func(Visitor, *Load) error) Builder {
+func (b *builder[T]) Load(f func(Visitor[T], *Load) error) Builder[T] {
 	b.load = f
 	return b
 }
 
-func (b *builder) CronTab(f func(Visitor, *CronTab) error) Builder {
+func (b *builder[T]) CronTab(f func(Visitor[T], *CronTab) error) Builder[T] {
 	b.cronTab = f
 	return b
 }
 
-func (b *builder) Expression(f func(Visitor, *Expression) error) Builder {
+func (b *builder[T]) Expression(f func(Visitor[T], *Expression) error) Builder[T] {
 	b.expression = f
 	return b
 }
 
-func (b *builder) Unit(f func(Visitor, *Unit) error) Builder {
+func (b *builder[T]) Unit(f func(Visitor[T], *Unit) error) Builder[T] {
 	b.unit = f
 	return b
 }
 
-func (b *builder) Current(f func(Visitor, *Current) error) Builder {
+func (b *builder[T]) Current(f func(Visitor[T], *Current) error) Builder[T] {
 	b.current = f
 	return b
 }
 
-func (b *builder) Function(f func(Visitor, *Function) error) Builder {
+func (b *builder[T]) Function(f func(Visitor[T], *Function) error) Builder[T] {
 	b.function = f
 	return b
 }
 
-func (b *builder) Metric(f func(Visitor, *Metric) error) Builder {
+func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 	b.metric = f
 	return b
 }
 
-func (b *builder) UseFirst(f func(Visitor, *UseFirst) error) Builder {
+func (b *builder[T]) UseFirst(f func(Visitor[T], *UseFirst) error) Builder[T] {
 	b.useFirst = f
 	return b
 }

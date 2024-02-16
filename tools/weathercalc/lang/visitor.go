@@ -2,7 +2,7 @@ package lang
 
 import "errors"
 
-type Visitor interface {
+type Visitor[T any] interface {
 	Calculation(*Calculation) error
 	CronTab(*CronTab) error
 	Current(*Current) error
@@ -14,28 +14,38 @@ type Visitor interface {
 	Script(*Script) error
 	Unit(b *Unit) error
 	UseFirst(b *UseFirst) error
+	GetData() T
+	SetData(T) Visitor[T]
 }
 
-type Visitable interface {
-	Accept(v Visitor) error
+type visitorCommon[T any] struct {
+	calculation func(Visitor[T], *Calculation) error
+	cronTab     func(Visitor[T], *CronTab) error
+	current     func(Visitor[T], *Current) error
+	expression  func(Visitor[T], *Expression) error
+	function    func(Visitor[T], *Function) error
+	load        func(Visitor[T], *Load) error
+	location    func(Visitor[T], *Location) error
+	metric      func(Visitor[T], *Metric) error
+	script      func(Visitor[T], *Script) error
+	unit        func(Visitor[T], *Unit) error
+	useFirst    func(Visitor[T], *UseFirst) error
 }
 
-type visitorCommon struct {
-	calculation func(Visitor, *Calculation) error
-	cronTab     func(Visitor, *CronTab) error
-	current     func(Visitor, *Current) error
-	expression  func(Visitor, *Expression) error
-	function    func(Visitor, *Function) error
-	load        func(Visitor, *Load) error
-	location    func(Visitor, *Location) error
-	metric      func(Visitor, *Metric) error
-	script      func(Visitor, *Script) error
-	unit        func(Visitor, *Unit) error
-	useFirst    func(Visitor, *UseFirst) error
+type visitor[T any] struct {
+	visitorCommon[T]
+	data T
 }
 
-type visitor struct {
-	visitorCommon
+func (v *visitor[T]) GetData() T {
+	return v.data
+}
+
+func (v *visitor[T]) SetData(data T) Visitor[T] {
+	return &visitor[T]{
+		visitorCommon: v.visitorCommon,
+		data:          data,
+	}
 }
 
 // VisitorStop is an error which causes the current step in a Visitor to stop processing.
@@ -47,7 +57,7 @@ func IsVisitorStop(err error) bool {
 	return err != nil && errors.Is(err, VisitorStop)
 }
 
-func (v *visitor) Script(b *Script) error {
+func (v *visitor[T]) Script(b *Script) error {
 	var err error
 	if b != nil {
 		if v.script != nil {
@@ -60,7 +70,7 @@ func (v *visitor) Script(b *Script) error {
 		if err == nil {
 			for _, l := range b.Locations {
 				if err == nil {
-					err = l.Accept(v)
+					err = v.Location(l)
 				}
 			}
 		}
@@ -68,7 +78,7 @@ func (v *visitor) Script(b *Script) error {
 		if err == nil {
 			for _, c := range b.Calculations {
 				if err == nil {
-					err = c.Accept(v)
+					err = v.Calculation(c)
 				}
 			}
 		}
@@ -76,7 +86,7 @@ func (v *visitor) Script(b *Script) error {
 	return err
 }
 
-func (v *visitor) Location(b *Location) error {
+func (v *visitor[T]) Location(b *Location) error {
 	var err error
 	if b != nil && v.location != nil {
 		err = v.location(v, b)
@@ -87,7 +97,7 @@ func (v *visitor) Location(b *Location) error {
 	return err
 }
 
-func (v *visitor) Calculation(b *Calculation) error {
+func (v *visitor[T]) Calculation(b *Calculation) error {
 	var err error
 	if b != nil {
 		if v.calculation != nil {
@@ -98,29 +108,29 @@ func (v *visitor) Calculation(b *Calculation) error {
 		}
 
 		if err == nil {
-			err = b.Every.Accept(v)
+			err = v.CronTab(b.Every)
 		}
 
 		if err == nil {
-			err = b.ResetEvery.Accept(v)
+			err = v.CronTab(b.ResetEvery)
 		}
 
 		if err == nil {
-			err = b.Load.Accept(v)
+			err = v.Load(b.Load)
 		}
 
 		if err == nil {
-			err = b.UseFirst.Accept(v)
+			err = v.UseFirst(b.UseFirst)
 		}
 
 		if err == nil {
-			err = b.Expression.Accept(v)
+			err = v.Expression(b.Expression)
 		}
 	}
 	return err
 }
 
-func (v *visitor) Load(b *Load) error {
+func (v *visitor[T]) Load(b *Load) error {
 	var err error
 	if b != nil && v.load != nil {
 		err = v.load(v, b)
@@ -131,7 +141,7 @@ func (v *visitor) Load(b *Load) error {
 	return err
 }
 
-func (v *visitor) CronTab(b *CronTab) error {
+func (v *visitor[T]) CronTab(b *CronTab) error {
 	var err error
 	if b != nil && v.cronTab != nil {
 		err = v.cronTab(v, b)
@@ -142,7 +152,7 @@ func (v *visitor) CronTab(b *CronTab) error {
 	return err
 }
 
-func (v *visitor) Expression(b *Expression) error {
+func (v *visitor[T]) Expression(b *Expression) error {
 	var err error
 	if b != nil {
 		if v.expression != nil {
@@ -153,25 +163,25 @@ func (v *visitor) Expression(b *Expression) error {
 		}
 
 		if err == nil && b.Current != nil {
-			err = b.Current.Accept(v)
+			err = v.Current(b.Current)
 		}
 
 		if err == nil && b.Function != nil {
-			err = b.Function.Accept(v)
+			err = v.Function(b.Function)
 		}
 
 		if err == nil && b.Metric != nil {
-			err = b.Metric.Accept(v)
+			err = v.Metric(b.Metric)
 		}
 
 		if err == nil && b.Using != nil {
-			err = b.Using.Accept(v)
+			err = v.Unit(b.Using)
 		}
 	}
 	return err
 }
 
-func (v *visitor) Current(b *Current) error {
+func (v *visitor[T]) Current(b *Current) error {
 	var err error
 	if b != nil {
 		if v.current != nil {
@@ -184,7 +194,7 @@ func (v *visitor) Current(b *Current) error {
 	return err
 }
 
-func (v *visitor) Unit(b *Unit) error {
+func (v *visitor[T]) Unit(b *Unit) error {
 	var err error
 	if b != nil {
 		if v.unit != nil {
@@ -197,7 +207,7 @@ func (v *visitor) Unit(b *Unit) error {
 	return err
 }
 
-func (v *visitor) Function(b *Function) error {
+func (v *visitor[T]) Function(b *Function) error {
 	var err error
 	if b != nil {
 		if v.function != nil {
@@ -210,7 +220,7 @@ func (v *visitor) Function(b *Function) error {
 		if err == nil {
 			for _, exp := range b.Expressions {
 				if err == nil {
-					err = exp.Accept(v)
+					err = v.Expression(exp)
 				}
 			}
 		}
@@ -218,7 +228,7 @@ func (v *visitor) Function(b *Function) error {
 	return err
 }
 
-func (v *visitor) Metric(b *Metric) error {
+func (v *visitor[T]) Metric(b *Metric) error {
 	var err error
 	if b != nil {
 		if v.metric != nil {
@@ -231,7 +241,7 @@ func (v *visitor) Metric(b *Metric) error {
 	return err
 }
 
-func (v *visitor) UseFirst(b *UseFirst) error {
+func (v *visitor[T]) UseFirst(b *UseFirst) error {
 	var err error
 	if b != nil {
 		if v.useFirst != nil {
@@ -242,7 +252,7 @@ func (v *visitor) UseFirst(b *UseFirst) error {
 		}
 
 		if err == nil {
-			err = b.Metric.Accept(v)
+			err = v.Metric(b.Metric)
 		}
 	}
 	return err

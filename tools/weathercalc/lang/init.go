@@ -16,7 +16,7 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 			calculations: make(map[string]*Calculation),
 		}
 
-		err = q.Accept(NewBuilder().
+		err = NewBuilder[*State]().
 			Calculation(state.initCalculation).
 			Load(state.load).
 			CronTab(state.initCronTab).
@@ -24,7 +24,9 @@ func (p *defaultParser) init(q *Script, err error) (*Script, error) {
 			Location(state.initLocation).
 			Metric(state.initMetric).
 			Unit(state.initUnit).
-			Build())
+			Build().
+			SetData(state).
+			Script(q)
 
 		if err == nil {
 			q.State = state
@@ -71,7 +73,7 @@ func (s *State) GetCalculations() []*Calculation {
 	return r
 }
 
-func (s *State) initCalculation(_ Visitor, l *Calculation) error {
+func (s *State) initCalculation(_ Visitor[*State], l *Calculation) error {
 	l.Target = strings.ToLower(l.Target)
 	l.At = strings.ToLower(l.At)
 
@@ -83,7 +85,7 @@ func (s *State) initCalculation(_ Visitor, l *Calculation) error {
 	return nil
 }
 
-func (s *State) load(_ Visitor, l *Load) error {
+func (s *State) load(_ Visitor[*State], l *Load) error {
 	l.When = strings.ToLower(l.When)
 	l.With = strings.TrimSpace(l.With)
 
@@ -100,7 +102,7 @@ func (s *State) load(_ Visitor, l *Load) error {
 	return nil
 }
 
-func (s *State) initCronTab(_ Visitor, l *CronTab) error {
+func (s *State) initCronTab(_ Visitor[*State], l *CronTab) error {
 	// Convert aliases to actual definitions
 	switch strings.ToLower(l.Definition) {
 	case "day", "daily", "midnight":
@@ -116,7 +118,7 @@ func (s *State) initCronTab(_ Visitor, l *CronTab) error {
 	return nil
 }
 
-func (s *State) initFunction(_ Visitor, l *Function) error {
+func (s *State) initFunction(_ Visitor[*State], l *Function) error {
 	l.Name = strings.ToLower(l.Name)
 
 	if !value.CalculatorExists(l.Name) {
@@ -126,7 +128,7 @@ func (s *State) initFunction(_ Visitor, l *Function) error {
 	return nil
 }
 
-func (s *State) initLocation(_ Visitor, l *Location) error {
+func (s *State) initLocation(_ Visitor[*State], l *Location) error {
 	l.Name = strings.ToLower(l.Name)
 
 	lat, err := util.ParseAngle(l.Latitude)
@@ -154,12 +156,12 @@ func (s *State) initLocation(_ Visitor, l *Location) error {
 	return nil
 }
 
-func (s *State) initMetric(_ Visitor, l *Metric) error {
+func (s *State) initMetric(_ Visitor[*State], l *Metric) error {
 	l.Name = strings.ToLower(strings.Join(l.Metric, "."))
 	return nil
 }
 
-func (s *State) initUnit(_ Visitor, l *Unit) error {
+func (s *State) initUnit(_ Visitor[*State], l *Unit) error {
 	u, exists := value.GetUnit(l.Using)
 	if exists {
 		l.unit = u

@@ -93,7 +93,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		time:   calc.script.State.GetLocation(c.Src().At).Time(),
 	}
 
-	err := c.Src().Accept(lang.NewBuilder().
+	err := lang.NewBuilder[*Calculator]().
 		Calculation(e.calculation).
 		Current(e.current).
 		Expression(e.expression).
@@ -101,7 +101,9 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		Metric(e.metric).
 		Unit(e.unit).
 		UseFirst(e.useFirst).
-		Build())
+		Build().
+		SetData(calc).
+		Calculation(c.Src())
 
 	r, exists := e.pop()
 	if err != nil {
@@ -116,12 +118,12 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 	return r.Value, r.Time, nil
 }
 
-func (e *executor) calculation(v lang.Visitor, b *lang.Calculation) error {
+func (e *executor) calculation(v lang.Visitor[*Calculator], b *lang.Calculation) error {
 	e.resetStack()
 
 	// If usefirst set check to see we have a latest value, if not then set the default value
 	if b.UseFirst != nil {
-		err := b.UseFirst.Accept(v)
+		err := v.UseFirst(b.UseFirst)
 		if err != nil {
 			return err
 		}
@@ -136,7 +138,7 @@ func (e *executor) calculation(v lang.Visitor, b *lang.Calculation) error {
 		e.push(r.Time, r.Value)
 	} else {
 		// Evaluate the expression
-		err := b.Expression.Accept(v)
+		err := v.Expression(b.Expression)
 		if err != nil {
 			return err
 		}
@@ -148,19 +150,19 @@ func (e *executor) calculation(v lang.Visitor, b *lang.Calculation) error {
 	return lang.VisitorStop
 }
 
-func (e *executor) expression(v lang.Visitor, b *lang.Expression) error {
+func (e *executor) expression(v lang.Visitor[*Calculator], b *lang.Expression) error {
 	var err error
 	switch {
 	case b.Current != nil:
-		err = b.Current.Accept(v)
+		err = v.Current(b.Current)
 	case b.Function != nil:
-		err = b.Function.Accept(v)
+		err = v.Function(b.Function)
 	case b.Metric != nil:
-		err = b.Metric.Accept(v)
+		err = v.Metric(b.Metric)
 	}
 
 	if err == nil && b.Using != nil {
-		err = b.Using.Accept(v)
+		err = v.Unit(b.Using)
 		if err != nil {
 			// Use this so the user is told the file/line of the error
 			return participle.Errorf(b.Pos, "%s", err.Error())
@@ -174,11 +176,11 @@ func (e *executor) expression(v lang.Visitor, b *lang.Expression) error {
 	return lang.VisitorStop
 }
 
-func (e *executor) current(_ lang.Visitor, _ *lang.Current) error {
+func (e *executor) current(_ lang.Visitor[*Calculator], _ *lang.Current) error {
 	return e.metricImpl(e.calc.ID())
 }
 
-func (e *executor) metric(_ lang.Visitor, b *lang.Metric) error {
+func (e *executor) metric(_ lang.Visitor[*Calculator], b *lang.Metric) error {
 	return e.metricImpl(b.Name)
 }
 
@@ -192,7 +194,7 @@ func (e *executor) metricImpl(n string) error {
 	return nil
 }
 
-func (e *executor) useFirst(_ lang.Visitor, b *lang.UseFirst) error {
+func (e *executor) useFirst(_ lang.Visitor[*Calculator], b *lang.UseFirst) error {
 	rec, exists := e.latest.Latest(e.calc.ID())
 	if !exists {
 		rec, exists = e.latest.Latest(b.Metric.Name)
@@ -206,7 +208,7 @@ func (e *executor) useFirst(_ lang.Visitor, b *lang.UseFirst) error {
 	return nil
 }
 
-func (e *executor) unit(_ lang.Visitor, b *lang.Unit) error {
+func (e *executor) unit(_ lang.Visitor[*Calculator], b *lang.Unit) error {
 	v, present := e.pop()
 	if present {
 		nv, err := v.Value.As(b.Unit())
@@ -220,7 +222,7 @@ func (e *executor) unit(_ lang.Visitor, b *lang.Unit) error {
 	return nil
 }
 
-func (e *executor) function(v lang.Visitor, b *lang.Function) error {
+func (e *executor) function(v lang.Visitor[*Calculator], b *lang.Function) error {
 	e.save()
 
 	calc, err := value.GetCalculator(b.Name)
@@ -232,7 +234,7 @@ func (e *executor) function(v lang.Visitor, b *lang.Function) error {
 	var t time.Time
 	var args []value.Value
 	for _, exp := range b.Expressions {
-		err = exp.Accept(v)
+		err = v.Expression(exp)
 		if err != nil {
 			e.restore()
 			return err

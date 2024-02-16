@@ -42,9 +42,10 @@ func (calc *Calculator) Start() error {
 	calc.metrics = make(map[string][]*Calculation)
 
 	// Load the calculations
-	if err := calc.script.Accept(lang.NewBuilder().
+	if err := lang.NewBuilder[*Calculator]().
 		Calculation(calc.addCalculation).
-		Build()); err != nil {
+		Build().
+		Script(calc.script); err != nil {
 		return err
 	}
 
@@ -108,13 +109,15 @@ func (calc *Calculator) addMetric(n string, c *lang.Calculation) {
 	calc.calculations = append(calc.calculations, nc)
 }
 
-func (calc *Calculator) addCalculation(_ lang.Visitor, c *lang.Calculation) error {
-	if err := c.Accept(lang.NewBuilder().
-		Metric(func(_ lang.Visitor, m *lang.Metric) error {
+func (calc *Calculator) addCalculation(_ lang.Visitor[*Calculator], c *lang.Calculation) error {
+	if err := lang.NewBuilder[*Calculator]().
+		Metric(func(_ lang.Visitor[*Calculator], m *lang.Metric) error {
 			calc.addMetric(m.Name, c)
 			return nil
 		}).
-		Build()); err != nil {
+		Build().
+		SetData(calc).
+		Calculation(c); err != nil {
 		return err
 	}
 
