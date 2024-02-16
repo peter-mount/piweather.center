@@ -1,8 +1,10 @@
 package egress
 
+import "github.com/peter-mount/piweather.center/config/util/amqp"
+
 type Builder[T any] interface {
 	Action(func(Visitor[T], *Action) error) Builder[T]
-	Amqp(func(Visitor[T], *Amqp) error) Builder[T]
+	Amqp(func(Visitor[T], *amqp.Amqp) error) Builder[T]
 	Metric(f func(Visitor[T], *Metric) error) Builder[T]
 	Publish(f func(Visitor[T], *Publish) error) Builder[T]
 	Script(func(Visitor[T], *Script) error) Builder[T]
@@ -26,7 +28,7 @@ func (b *builder[T]) Action(f func(Visitor[T], *Action) error) Builder[T] {
 	return b
 }
 
-func (b *builder[T]) Amqp(f func(Visitor[T], *Amqp) error) Builder[T] {
+func (b *builder[T]) Amqp(f func(Visitor[T], *amqp.Amqp) error) Builder[T] {
 	b.amqp = f
 	return b
 }

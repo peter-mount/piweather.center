@@ -2,12 +2,13 @@ package egress
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/peter-mount/piweather.center/config"
+	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/amqp"
 	"strings"
 )
 
-func NewParser() config.Parser[Script] {
-	return config.NewParser[Script](nil, nil, egressInit)
+func NewParser() util.Parser[Script] {
+	return util.NewParser[Script](nil, nil, egressInit)
 }
 
 func egressInit(q *Script, err error) (*Script, error) {
@@ -29,7 +30,7 @@ func egressInit(q *Script, err error) (*Script, error) {
 	return q, err
 }
 
-func defineAmqp(v Visitor[*State], a *Amqp) error {
+func defineAmqp(v Visitor[*State], a *amqp.Amqp) error {
 	err := v.GetData().AddAmqp(a)
 	if err != nil {
 		return err

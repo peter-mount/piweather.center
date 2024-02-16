@@ -7,15 +7,15 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/calculator"
 	"github.com/peter-mount/go-script/script"
-	"github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/config/util/amqp"
 	"gopkg.in/yaml.v3"
 )
 
 type Script struct {
 	Pos lexer.Position
 	//Locations []*calc.Location `parser:"(@@)*"` // Share the same from calculator
-	Amqp    []*Amqp   `parser:"(@@)?"`
-	Actions []*Action `parser:"(@@)+"`
+	Amqp    []*amqp.Amqp `parser:"(@@)?"`
+	Actions []*Action    `parser:"(@@)+"`
 	state   *State
 }
 
@@ -33,16 +33,6 @@ func (s *Script) merge(b *Script) (*Script, error) {
 	s.state.merge(b.state)
 
 	return s, nil
-}
-
-// Amqp broker definition
-type Amqp struct {
-	Pos       lexer.Position
-	Name      string `parser:"'amqp' '(' 'name' @String"`
-	Url       string `parser:"'url' @String"`
-	Exchange  string `parser:"('exchange' @String)? ')'"`
-	MQ        *amqp.MQ
-	Publisher *amqp.Publisher
 }
 
 type Action struct {

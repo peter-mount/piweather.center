@@ -3,9 +3,10 @@ package calc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config"
-	"github.com/peter-mount/piweather.center/config/location"
-	"github.com/peter-mount/piweather.center/config/misc"
+	"github.com/peter-mount/piweather.center/config/util"
+	location2 "github.com/peter-mount/piweather.center/config/util/location"
+	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"sync"
@@ -15,8 +16,8 @@ const (
 	keywords = `(?i)\b(AS|AT|CALCULATE|CURRENT|EVERY|LOAD|LOCATION|RESET|USEFIRST|USING|WITH)\b`
 )
 
-func NewParser() config.Parser[Script] {
-	return config.NewParser[Script](
+func NewParser() util.Parser[Script] {
+	return util.NewParser[Script](
 		[]lexer.SimpleRule{
 			lexer.SimpleRule{Name: "Keyword", Pattern: keywords},
 		},
@@ -56,7 +57,7 @@ func calcInit(q *Script, err error) (*Script, error) {
 }
 
 type State struct {
-	location.MapContainer
+	location2.MapContainer
 	mutex        sync.Mutex
 	calculations map[string]*Calculation
 }
@@ -106,7 +107,7 @@ func (s *State) load(_ Visitor[*State], l *Load) error {
 	return nil
 }
 
-func (s *State) initCronTab(_ Visitor[*State], l *misc.CronTab) error {
+func (s *State) initCronTab(_ Visitor[*State], l *time.CronTab) error {
 	return l.Init()
 }
 
@@ -120,7 +121,7 @@ func (s *State) initFunction(_ Visitor[*State], l *Function) error {
 	return nil
 }
 
-func (s *State) initLocation(_ location.LocationVisitor[*State], l *location.Location) error {
+func (s *State) initLocation(_ location2.LocationVisitor[*State], l *location2.Location) error {
 	if err := l.Init(); err != nil {
 		return err
 	}
@@ -137,6 +138,6 @@ func (s *State) initMetric(_ Visitor[*State], l *Metric) error {
 	return nil
 }
 
-func (s *State) initUnit(_ Visitor[*State], l *misc.Unit) error {
+func (s *State) initUnit(_ Visitor[*State], l *units.Unit) error {
 	return l.Init()
 }

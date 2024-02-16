@@ -2,9 +2,10 @@ package calc
 
 import (
 	"errors"
-	"github.com/peter-mount/piweather.center/config/data"
-	"github.com/peter-mount/piweather.center/config/location"
-	"github.com/peter-mount/piweather.center/config/misc"
+	"github.com/peter-mount/piweather.center/config/util/data"
+	"github.com/peter-mount/piweather.center/config/util/location"
+	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Visitor[T any] interface {
@@ -12,27 +13,27 @@ type Visitor[T any] interface {
 	location.LocationVisitor[T]
 	Clone() Visitor[T]
 	Calculation(*Calculation) error
-	CronTab(tab *misc.CronTab) error
+	CronTab(tab *time.CronTab) error
 	Current(*Current) error
 	Expression(*Expression) error
 	Function(*Function) error
 	Load(b *Load) error
 	Metric(*Metric) error
 	Script(*Script) error
-	Unit(b *misc.Unit) error
+	Unit(b *units.Unit) error
 	UseFirst(b *UseFirst) error
 }
 
 type visitorCommon[T any] struct {
 	calculation func(Visitor[T], *Calculation) error
-	cronTab     func(Visitor[T], *misc.CronTab) error
+	cronTab     func(Visitor[T], *time.CronTab) error
 	current     func(Visitor[T], *Current) error
 	expression  func(Visitor[T], *Expression) error
 	function    func(Visitor[T], *Function) error
 	load        func(Visitor[T], *Load) error
 	metric      func(Visitor[T], *Metric) error
 	script      func(Visitor[T], *Script) error
-	unit        func(Visitor[T], *misc.Unit) error
+	unit        func(Visitor[T], *units.Unit) error
 	useFirst    func(Visitor[T], *UseFirst) error
 }
 
@@ -132,7 +133,7 @@ func (v *visitor[T]) Load(b *Load) error {
 	return err
 }
 
-func (v *visitor[T]) CronTab(b *misc.CronTab) error {
+func (v *visitor[T]) CronTab(b *time.CronTab) error {
 	var err error
 	if b != nil && v.cronTab != nil {
 		err = v.cronTab(v, b)
@@ -185,7 +186,7 @@ func (v *visitor[T]) Current(b *Current) error {
 	return err
 }
 
-func (v *visitor[T]) Unit(b *misc.Unit) error {
+func (v *visitor[T]) Unit(b *units.Unit) error {
 	var err error
 	if b != nil {
 		if v.unit != nil {

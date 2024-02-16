@@ -1,10 +1,13 @@
 package egress
 
-import "errors"
+import (
+	"errors"
+	"github.com/peter-mount/piweather.center/config/util/amqp"
+)
 
 type Visitor[T any] interface {
 	Action(*Action) error
-	Amqp(*Amqp) error
+	Amqp(*amqp.Amqp) error
 	Metric(*Metric) error
 	Publish(*Publish) error
 	Script(*Script) error
@@ -14,7 +17,7 @@ type Visitor[T any] interface {
 
 type visitorCommon[T any] struct {
 	action  func(Visitor[T], *Action) error
-	amqp    func(Visitor[T], *Amqp) error
+	amqp    func(Visitor[T], *amqp.Amqp) error
 	metric  func(Visitor[T], *Metric) error
 	publish func(Visitor[T], *Publish) error
 	script  func(Visitor[T], *Script) error
@@ -90,7 +93,7 @@ func (v *visitor[T]) Action(b *Action) error {
 	return err
 }
 
-func (v *visitor[T]) Amqp(b *Amqp) error {
+func (v *visitor[T]) Amqp(b *amqp.Amqp) error {
 	var err error
 	if b != nil {
 		if v.amqp != nil {

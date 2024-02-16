@@ -3,21 +3,22 @@ package egress
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-script/parser"
+	amqp2 "github.com/peter-mount/piweather.center/config/util/amqp"
 	"strings"
 	"sync"
 )
 
 type State struct {
 	mutex        sync.Mutex
-	amqp         map[string]*Amqp     // Map of AMQP definitions
-	metricMatch  map[string][]*Metric // Map of exact matches
-	metricFilter []MetricFilter       // Slice of filters to filter against
-	scriptInit   parser.Initialiser   // from go-script, initialiser for embedded scripts
+	amqp         map[string]*amqp2.Amqp // Map of AMQP definitions
+	metricMatch  map[string][]*Metric   // Map of exact matches
+	metricFilter []MetricFilter         // Slice of filters to filter against
+	scriptInit   parser.Initialiser     // from go-script, initialiser for embedded scripts
 }
 
 func NewState() *State {
 	return &State{
-		amqp:        make(map[string]*Amqp),
+		amqp:        make(map[string]*amqp2.Amqp),
 		metricMatch: make(map[string][]*Metric),
 		scriptInit:  parser.NewInitialiser(),
 	}
@@ -30,7 +31,7 @@ func (s *State) Cleanup() *State {
 
 type MetricFilter func(string) *Metric
 
-func (s *State) GetAmqp(n string) *Amqp {
+func (s *State) GetAmqp(n string) *amqp2.Amqp {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.amqp[strings.ToLower(n)]
@@ -82,25 +83,21 @@ func (s *State) merge(b *State) {
 	s.metricFilter = append(s.metricFilter, b.metricFilter...)
 }
 
-func (s *State) AddAmqp(a *Amqp) error {
+func (s *State) AddAmqp(a *amqp2.Amqp) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	a.Name = strings.ToLower(strings.TrimSpace(a.Name))
+	if err := a.Init(); err != nil {
+		return err
+	}
 
 	if e, exists := s.amqp[a.Name]; exists {
 		return participle.Errorf(a.Pos, "%q already defined at %s",
 			a.Name,
 			e.Pos.String())
 	}
-
-	// Exchange is optional, default to amq.topic
-	a.Exchange = strings.TrimSpace(a.Exchange)
-	if a.Exchange == "" {
-		a.Exchange = "amq.topic"
-	}
-
 	s.amqp[a.Name] = a
+
 	return nil
 }
 

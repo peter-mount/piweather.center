@@ -4,6 +4,7 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-build/version"
 	egress2 "github.com/peter-mount/piweather.center/config/egress"
+	amqp2 "github.com/peter-mount/piweather.center/config/util/amqp"
 	"github.com/peter-mount/piweather.center/mq/amqp"
 	"strings"
 )
@@ -27,7 +28,7 @@ func (s *Processor) initMq() error {
 		Script(s.script)
 }
 
-func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *egress2.Amqp) error {
+func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *amqp2.Amqp) error {
 	m := v.GetData()
 
 	a.MQ = &amqp.MQ{

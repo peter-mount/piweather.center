@@ -3,8 +3,9 @@ package calc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/location"
-	"github.com/peter-mount/piweather.center/config/misc"
+	"github.com/peter-mount/piweather.center/config/util/location"
+	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Script struct {
@@ -42,8 +43,8 @@ type Calculation struct {
 	Pos        lexer.Position
 	Target     string        `parser:"'CALCULATE' @String"`   // Name of metric to calculate
 	At         string        `parser:"('AT' @String)?"`       // If set the Location to use
-	Every      *misc.CronTab `parser:"('EVERY' @@)?"`         // Calculate at specified intervals
-	ResetEvery *misc.CronTab `parser:"('RESET' 'EVERY' @@)?"` // Crontab to reset the value
+	Every      *time.CronTab `parser:"('EVERY' @@)?"`         // Calculate at specified intervals
+	ResetEvery *time.CronTab `parser:"('RESET' 'EVERY' @@)?"` // Crontab to reset the value
 	Load       *Load         `parser:"(@@)?"`                 // Load from the DB on startup
 	UseFirst   *UseFirst     `parser:"(@@)?"`                 // If set and no value use this expression
 	Expression *Expression   `parser:"('AS' @@)?"`            // Expression to perform calculation
@@ -57,10 +58,10 @@ type Load struct {
 
 type Expression struct {
 	Pos      lexer.Position
-	Current  *Current   `parser:"( @@"`   // Get the current value of calculation
-	Function *Function  `parser:"| @@"`   // Generic Function Call
-	Metric   *Metric    `parser:"| @@ )"` // Metric reference
-	Using    *misc.Unit `parser:"(@@)?"`  // Optional target Unit
+	Current  *Current    `parser:"( @@"`   // Get the current value of calculation
+	Function *Function   `parser:"| @@"`   // Generic Function Call
+	Metric   *Metric     `parser:"| @@ )"` // Metric reference
+	Using    *units.Unit `parser:"(@@)?"`  // Optional target Unit
 }
 
 // Current returns the current value of the calculation being performed

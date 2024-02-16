@@ -1,4 +1,4 @@
-package misc
+package units
 
 import (
 	"github.com/alecthomas/participle/v2"

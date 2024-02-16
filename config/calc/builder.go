@@ -1,21 +1,22 @@
 package calc
 
 import (
-	"github.com/peter-mount/piweather.center/config/location"
-	"github.com/peter-mount/piweather.center/config/misc"
+	"github.com/peter-mount/piweather.center/config/util/location"
+	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Builder[T any] interface {
 	location.LocationBuilder[T]
 	Calculation(func(Visitor[T], *Calculation) error) Builder[T]
-	CronTab(func(Visitor[T], *misc.CronTab) error) Builder[T]
+	CronTab(func(Visitor[T], *time.CronTab) error) Builder[T]
 	Current(func(Visitor[T], *Current) error) Builder[T]
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
 	Function(func(Visitor[T], *Function) error) Builder[T]
 	Load(f func(Visitor[T], *Load) error) Builder[T]
 	Metric(func(Visitor[T], *Metric) error) Builder[T]
 	Script(func(Visitor[T], *Script) error) Builder[T]
-	Unit(f func(Visitor[T], *misc.Unit) error) Builder[T]
+	Unit(f func(Visitor[T], *units.Unit) error) Builder[T]
 	UseFirst(f func(Visitor[T], *UseFirst) error) Builder[T]
 	Build() Visitor[T]
 }
@@ -53,7 +54,7 @@ func (b *builder[T]) Load(f func(Visitor[T], *Load) error) Builder[T] {
 	return b
 }
 
-func (b *builder[T]) CronTab(f func(Visitor[T], *misc.CronTab) error) Builder[T] {
+func (b *builder[T]) CronTab(f func(Visitor[T], *time.CronTab) error) Builder[T] {
 	b.cronTab = f
 	return b
 }
@@ -63,7 +64,7 @@ func (b *builder[T]) Expression(f func(Visitor[T], *Expression) error) Builder[T
 	return b
 }
 
-func (b *builder[T]) Unit(f func(Visitor[T], *misc.Unit) error) Builder[T] {
+func (b *builder[T]) Unit(f func(Visitor[T], *units.Unit) error) Builder[T] {
 	b.unit = f
 	return b
 }

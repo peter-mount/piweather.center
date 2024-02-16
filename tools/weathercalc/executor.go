@@ -4,7 +4,7 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	lang2 "github.com/peter-mount/piweather.center/config/calc"
-	"github.com/peter-mount/piweather.center/config/misc"
+	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -209,7 +209,7 @@ func (e *executor) useFirst(_ lang2.Visitor[*Calculator], b *lang2.UseFirst) err
 	return nil
 }
 
-func (e *executor) unit(_ lang2.Visitor[*Calculator], b *misc.Unit) error {
+func (e *executor) unit(_ lang2.Visitor[*Calculator], b *units.Unit) error {
 	v, present := e.pop()
 	if present {
 		nv, err := v.Value.As(b.Unit())
