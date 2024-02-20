@@ -1,12 +1,12 @@
 package exec
 
 import (
-	lang2 "github.com/peter-mount/piweather.center/config/ql"
+	ql2 "github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql"
 )
 
-func (ex *Executor) metric(_ lang2.Visitor, s *lang2.Metric) error {
+func (ex *Executor) metric(_ ql2.QueryVisitor, s *ql2.Metric) error {
 	r := api.RangeFrom(ex.time, ex.timeRange.Every)
 	vals := ex.findMetrics(s.Name, r)
 

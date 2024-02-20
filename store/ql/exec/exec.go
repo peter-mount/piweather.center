@@ -4,6 +4,8 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
+	"github.com/peter-mount/piweather.center/config/util"
+	ql2 "github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
@@ -14,14 +16,14 @@ import (
 
 type Executor struct {
 	exState
-	qp          *QueryPlan                        // QueryPlan to execute
-	result      *api.Result                       // Query Results
-	table       *api.Table                        // Current table
-	row         *api.Row                          // Current row
-	metrics     map[string][]ql.Value             // Collected data for each metric
-	stack       []ql.Value                        // Stack for expressions
-	using       map[string]*lang2.UsingDefinition // Using aliases
-	colResolver *colResolver                      // Used when resolving columns
+	qp          *QueryPlan                      // QueryPlan to execute
+	result      *api.Result                     // Query Results
+	table       *api.Table                      // Current table
+	row         *api.Row                        // Current row
+	metrics     map[string][]ql.Value           // Collected data for each metric
+	stack       []ql.Value                      // Stack for expressions
+	using       map[string]*ql2.UsingDefinition // Using aliases
+	colResolver *colResolver                    // Used when resolving columns
 }
 
 type exState struct {
@@ -51,7 +53,7 @@ func (qp *QueryPlan) Execute(result *api.Result) error {
 		qp:          qp,
 		result:      result,
 		metrics:     make(map[string][]ql.Value),
-		using:       make(map[string]*lang2.UsingDefinition),
+		using:       make(map[string]*ql2.UsingDefinition),
 		colResolver: newColResolver(),
 		exState: exState{
 			timeRange: qp.QueryRange,
@@ -77,7 +79,7 @@ func (ex *Executor) run() error {
 
 	_ = qp.Metrics.ForEach(ex.getMetric)
 
-	return qp.query.Accept(lang2.NewBuilder().
+	return lang2.NewBuilder().
 		Query(ex.query).
 		UsingDefinitions(ex.usingDefinitions).
 		Histogram(ex.histogram).
@@ -89,7 +91,8 @@ func (ex *Executor) run() error {
 		ExpressionModifier(ex.expressionModifier).
 		Function(ex.function).
 		Metric(ex.metric).
-		Build())
+		Build().
+		Query(qp.query)
 }
 
 func (ex *Executor) getMetric(m string) error {
@@ -97,7 +100,7 @@ func (ex *Executor) getMetric(m string) error {
 	return nil
 }
 
-func (ex *Executor) query(_ lang2.Visitor, s *lang2.Query) error {
+func (ex *Executor) query(_ ql2.QueryVisitor, s *ql2.Query) error {
 	ex.setSelectLimit(s.Limit)
 	return nil
 }
@@ -109,18 +112,18 @@ func (ex *Executor) setSelectLimit(l int) {
 	}
 }
 
-func (ex *Executor) usingDefinitions(v lang2.Visitor, s *lang2.UsingDefinitions) error {
+func (ex *Executor) usingDefinitions(v ql2.QueryVisitor, s *ql2.UsingDefinitions) error {
 	for _, e := range s.Defs {
 		// Ensure the definition is valid
-		if err := e.Accept(v); err != nil {
+		if err := v.UsingDefinition(e); err != nil {
 			return err
 		}
 		ex.using[e.Name] = e
 	}
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
-func (ex *Executor) selectStatement(v lang2.Visitor, s *lang2.Select) error {
+func (ex *Executor) selectStatement(v ql2.QueryVisitor, s *ql2.Select) error {
 	ex.table = ex.result.NewTable()
 
 	// Select has its own LIMIT defined
@@ -150,22 +153,22 @@ func (ex *Executor) selectStatement(v lang2.Visitor, s *lang2.Select) error {
 	}
 
 	// Tell the visitor to stop processing this Select statement
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
-func (ex *Executor) selectExpression(_ lang2.Visitor, _ *lang2.SelectExpression) error {
+func (ex *Executor) selectExpression(_ ql2.QueryVisitor, _ *ql2.SelectExpression) error {
 	ex.table.PruneCurrentRow()
 
 	// If we have exceeded the selectLimit then stop here
 	if ex.selectLimit > 0 && ex.table.RowCount() >= ex.selectLimit {
-		return lang2.VisitorExit
+		return util.VisitorExit
 	}
 
 	ex.row = ex.table.NewRow()
 	return nil
 }
 
-func (ex *Executor) expression(v lang2.Visitor, s *lang2.Expression) error {
+func (ex *Executor) expression(v ql2.QueryVisitor, s *ql2.Expression) error {
 	var err error
 
 	// If offset defined, temporarily adjust the current time by that offset
@@ -204,10 +207,10 @@ func (ex *Executor) expression(v lang2.Visitor, s *lang2.Expression) error {
 		return err
 	}
 
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
-func (ex *Executor) expressionModifier(v lang2.Visitor, s *lang2.ExpressionModifier) error {
+func (ex *Executor) expressionModifier(v ql2.QueryVisitor, s *ql2.ExpressionModifier) error {
 	var err error
 
 	if s.Offset != nil {
@@ -227,7 +230,7 @@ func (ex *Executor) expressionModifier(v lang2.Visitor, s *lang2.ExpressionModif
 	return err
 }
 
-func (ex *Executor) aliasedExpression(v lang2.Visitor, s *lang2.AliasedExpression) error {
+func (ex *Executor) aliasedExpression(v ql2.QueryVisitor, s *ql2.AliasedExpression) error {
 	ex.resetStack()
 
 	err := v.Expression(s.Expression)
@@ -261,11 +264,11 @@ func (ex *Executor) aliasedExpression(v lang2.Visitor, s *lang2.AliasedExpressio
 		ex.row.AddValue(val.Time, val1)
 	}
 
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
 type colResolver struct {
-	visitor lang2.Visitor
+	visitor ql2.QueryVisitor
 	path    []string
 }
 
@@ -284,25 +287,25 @@ func (r *colResolver) append(s ...string) {
 	r.path = append(r.path, s...)
 }
 
-func (r *colResolver) resolveColumn(v *lang2.AliasedExpression) *api.Column {
+func (r *colResolver) resolveColumn(v *ql2.AliasedExpression) *api.Column {
 	return &api.Column{Name: r.resolveName(v)}
 }
 
-func (r *colResolver) resolveName(v *lang2.AliasedExpression) string {
+func (r *colResolver) resolveName(v *ql2.AliasedExpression) string {
 	r.path = nil
 	_ = r.visitor.AliasedExpression(v)
 	return strings.Join(r.path, "")
 }
 
-func (r *colResolver) aliasedExpression(_ lang2.Visitor, f *lang2.AliasedExpression) error {
+func (r *colResolver) aliasedExpression(_ ql2.QueryVisitor, f *ql2.AliasedExpression) error {
 	if f.As != "" {
 		r.append(f.As)
-		return lang2.VisitorStop
+		return util.VisitorStop
 	}
 	return nil
 }
 
-func (r *colResolver) function(v lang2.Visitor, f *lang2.Function) error {
+func (r *colResolver) function(v ql2.QueryVisitor, f *ql2.Function) error {
 	r.append(f.Name, "(")
 	for i, e := range f.Expressions {
 		if i > 0 {
@@ -313,10 +316,10 @@ func (r *colResolver) function(v lang2.Visitor, f *lang2.Function) error {
 		}
 	}
 	r.append(")")
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
-func (r *colResolver) metric(_ lang2.Visitor, f *lang2.Metric) error {
+func (r *colResolver) metric(_ ql2.QueryVisitor, f *ql2.Metric) error {
 	r.append(f.Name)
 	return nil
 }

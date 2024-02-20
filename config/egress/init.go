@@ -35,7 +35,7 @@ func defineAmqp(v Visitor[*State], a *amqp.Amqp) error {
 	if err != nil {
 		return err
 	}
-	return VisitorStop
+	return util.VisitorStop
 }
 
 func defineMetric(v Visitor[*State], a *Metric) error {

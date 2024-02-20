@@ -2,8 +2,6 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"strconv"
-	"strings"
 )
 
 type Query struct {
@@ -16,10 +14,7 @@ type Query struct {
 	Select     []*Select         `parser:"  ( @@ )+ )"`
 }
 
-func (a *Query) Accept(v Visitor) error {
-	return v.Query(a)
-}
-
+/*
 func (a *Query) String() string {
 	qp := queryPrinter{}
 	_ = NewBuilder().
@@ -335,3 +330,4 @@ func (qp *queryPrinter) function(v Visitor, b *Function) error {
 	qp.restore("")
 	return VisitorStop
 }
+*/

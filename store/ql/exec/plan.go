@@ -4,6 +4,8 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
+	util2 "github.com/peter-mount/piweather.center/config/util"
+	ql2 "github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/ql"
@@ -16,7 +18,7 @@ type QueryPlan struct {
 	QueryRange api.Range      `json:"queryRange"` // Time range for results
 	ScanRange  api.Range      `json:"scanRange"`  // Time range to scan for metrics
 	Metrics    util.StringSet `json:"metrics"`    // Set of Metrics we require
-	query      *lang2.Query   // Queries for this plan that share the Range
+	query      *ql2.Query     // Queries for this plan that share the Range
 	store      file.Store     // The actual file Store
 	// Used to handle expression offsets, so we can expand the QueryRange to get aggregated Metrics
 	minOffset time.Duration
@@ -39,7 +41,7 @@ func (qp *QueryPlan) restore() {
 	}
 }
 
-func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
+func NewQueryPlan(s file.Store, q *ql2.Query) (*QueryPlan, error) {
 
 	// We must have a QueryRange, and it cannot reference "row"
 	if q.QueryRange == nil || q.QueryRange.IsRow() {
@@ -52,12 +54,13 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 		store:   s,
 	}
 
-	if err := q.Accept(lang2.NewBuilder().
+	if err := lang2.NewBuilder().
 		AliasedExpression(qp.aliasedExpression).
 		Metric(qp.addMetric).
 		QueryRange(qp.setQueryRange).
 		Expression(qp.expression).
-		Build()); err != nil {
+		Build().
+		Query(q); err != nil {
 		return nil, err
 	}
 
@@ -66,24 +69,24 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 	return qp, nil
 }
 
-func (qp *QueryPlan) aliasedExpression(v lang2.Visitor, m *lang2.AliasedExpression) error {
+func (qp *QueryPlan) aliasedExpression(v ql2.QueryVisitor, m *ql2.AliasedExpression) error {
 	if err := v.Expression(m.Expression); err != nil {
 		return err
 	}
-	return lang2.VisitorStop
+	return util2.VisitorStop
 }
 
-func (qp *QueryPlan) addMetric(_ lang2.Visitor, m *lang2.Metric) error {
+func (qp *QueryPlan) addMetric(_ ql2.QueryVisitor, m *ql2.Metric) error {
 	qp.Metrics.Add(m.Name)
 	return nil
 }
 
-func (qp *QueryPlan) setQueryRange(_ lang2.Visitor, m *lang2.QueryRange) error {
+func (qp *QueryPlan) setQueryRange(_ ql2.QueryVisitor, m *ql2.QueryRange) error {
 	qp.QueryRange = m.Range()
 	return nil
 }
 
-func (qp *QueryPlan) expression(v lang2.Visitor, m *lang2.Expression) error {
+func (qp *QueryPlan) expression(v ql2.QueryVisitor, m *ql2.Expression) error {
 
 	// Check for modifiers, looking them up if m.Using is set
 	mods := m.Modifier
@@ -136,7 +139,7 @@ func (qp *QueryPlan) expression(v lang2.Visitor, m *lang2.Expression) error {
 		return err
 	}
 
-	return lang2.VisitorStop
+	return util2.VisitorStop
 }
 
 func (qp *QueryPlan) GetMetric(m string) []ql.Value {

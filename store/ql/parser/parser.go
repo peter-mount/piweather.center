@@ -3,8 +3,8 @@ package parser
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	lang2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
+	lang2 "github.com/peter-mount/piweather.center/config/util/ql"
 )
 
 const (

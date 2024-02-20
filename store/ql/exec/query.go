@@ -63,7 +63,8 @@ func queryImpl(s file.Store, fileName string, query []byte, result *api.Result, 
 	}
 
 	if OptQuery.Present(opts) {
-		result.AddMeta("query", q.String())
+		// TODO reimplement
+		//result.AddMeta("query", q.String())
 	}
 
 	qp, err := NewQueryPlan(s, q)

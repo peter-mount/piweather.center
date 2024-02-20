@@ -4,6 +4,7 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	lang2 "github.com/peter-mount/piweather.center/config/calc"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
@@ -134,7 +135,7 @@ func (e *executor) calculation(v lang2.Visitor[*Calculator], b *lang2.Calculatio
 		// Handle no AS clause - result is the target metric
 		r, exists := e.latest.Latest(b.Target)
 		if !exists {
-			return lang2.VisitorStop
+			return util.VisitorStop
 		}
 		e.push(r.Time, r.Value)
 	} else {
@@ -148,7 +149,7 @@ func (e *executor) calculation(v lang2.Visitor[*Calculator], b *lang2.Calculatio
 
 	e.setMetric(b.Target, val)
 
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
 func (e *executor) expression(v lang2.Visitor[*Calculator], b *lang2.Expression) error {
@@ -174,7 +175,7 @@ func (e *executor) expression(v lang2.Visitor[*Calculator], b *lang2.Expression)
 		return err
 	}
 
-	return lang2.VisitorStop
+	return util.VisitorStop
 }
 
 func (e *executor) current(_ lang2.Visitor[*Calculator], _ *lang2.Current) error {
@@ -203,7 +204,7 @@ func (e *executor) useFirst(_ lang2.Visitor[*Calculator], b *lang2.UseFirst) err
 			// Set the new value then VisitorStop to tell
 			// calculation() to terminate
 			e.latest.Append(e.calc.ID(), rec)
-			return lang2.VisitorStop
+			return util.VisitorStop
 		}
 	}
 	return nil
@@ -246,7 +247,7 @@ func (e *executor) function(v lang2.Visitor[*Calculator], b *lang2.Function) err
 		if !arg.IsValid() {
 			e.restore()
 			e.pushNull()
-			return lang2.VisitorStop
+			return util.VisitorStop
 		}
 
 		if t.IsZero() || t.Before(arg.Time) {
@@ -264,7 +265,7 @@ func (e *executor) function(v lang2.Visitor[*Calculator], b *lang2.Function) err
 	if err == nil {
 		e.restore()
 		e.push(t, val)
-		return lang2.VisitorStop
+		return util.VisitorStop
 	}
 
 	return err

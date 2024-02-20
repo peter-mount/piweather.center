@@ -1,15 +1,13 @@
 package ql
 
-import "github.com/alecthomas/participle/v2/lexer"
+import (
+	"github.com/alecthomas/participle/v2/lexer"
+)
 
 type Histogram struct {
 	Pos lexer.Position
 
 	Expression *AliasedExpression `parser:"'HISTOGRAM' @@"`
-}
-
-func (a *Histogram) Accept(v Visitor) error {
-	return v.Histogram(a)
 }
 
 type WindRose struct {
@@ -25,8 +23,4 @@ type WindRoseOption struct {
 	Rose  bool `parser:"( @'ROSE'"`
 	Count bool `parser:"| @'COUNT'"`
 	Max   bool `parser:"| @'MAX')"`
-}
-
-func (a *WindRose) Accept(v Visitor) error {
-	return v.WindRose(a)
 }

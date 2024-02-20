@@ -1,74 +1,34 @@
 package ql
 
 import (
-	"errors"
+	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/ql"
+	"github.com/peter-mount/piweather.center/config/util/time"
 )
-
-type Visitor interface {
-	Query(*Query) error
-
-	Select(*Select) error
-	SelectExpression(*SelectExpression) error
-	AliasedExpression(*AliasedExpression) error
-	Expression(*Expression) error
-	ExpressionModifier(*ExpressionModifier) error
-	Function(*Function) error
-	Metric(*Metric) error
-	QueryRange(*QueryRange) error
-	Time(*Time) error
-	Duration(*Duration) error
-	UsingDefinitions(definitions *UsingDefinitions) error
-	UsingDefinition(definitions *UsingDefinition) error
-
-	Histogram(b *Histogram) error
-	WindRose(b *WindRose) error
-}
-
-// VisitorStop is an error which causes the current step in a Visitor to stop processing.
-// It's used to enable a Visitor to handle all processing of a node within itself rather
-// than the Visitor proceeding to any child nodes of that node.
-var VisitorStop = errors.New("visitor stop")
-
-func IsVisitorStop(err error) bool {
-	return err != nil && errors.Is(err, VisitorStop)
-}
-
-// VisitorExit is an error which will terminate the Visitor.
-// This is the same as any error occurring within a Visitor except that the final error
-// returned from specific handlers will become nil.
-var VisitorExit = errors.New("visitor exit")
-
-func IsVisitorExit(err error) bool {
-	return err != nil && errors.Is(err, VisitorExit)
-}
-
-type Visitable interface {
-	Accept(v Visitor) error
-}
 
 type visitor struct {
 	common
 }
 
 type common struct {
-	query              func(Visitor, *Query) error
-	_select            func(Visitor, *Select) error
-	selectExpression   func(Visitor, *SelectExpression) error
-	aliasedExpression  func(Visitor, *AliasedExpression) error
-	expression         func(Visitor, *Expression) error
-	expressionModifier func(Visitor, *ExpressionModifier) error
-	function           func(Visitor, *Function) error
-	metric             func(Visitor, *Metric) error
-	queryRange         func(Visitor, *QueryRange) error
-	time               func(Visitor, *Time) error
-	duration           func(Visitor, *Duration) error
-	usingDefinitions   func(Visitor, *UsingDefinitions) error
-	usingDefinition    func(Visitor, *UsingDefinition) error
-	histogram          func(Visitor, *Histogram) error
-	windRose           func(Visitor, *WindRose) error
+	query              func(ql.QueryVisitor, *ql.Query) error
+	_select            func(ql.QueryVisitor, *ql.Select) error
+	selectExpression   func(ql.QueryVisitor, *ql.SelectExpression) error
+	aliasedExpression  func(ql.QueryVisitor, *ql.AliasedExpression) error
+	expression         func(ql.QueryVisitor, *ql.Expression) error
+	expressionModifier func(ql.QueryVisitor, *ql.ExpressionModifier) error
+	function           func(ql.QueryVisitor, *ql.Function) error
+	metric             func(ql.QueryVisitor, *ql.Metric) error
+	queryRange         func(ql.QueryVisitor, *ql.QueryRange) error
+	time               func(ql.QueryVisitor, *time.Time) error
+	duration           func(ql.QueryVisitor, *time.Duration) error
+	usingDefinitions   func(ql.QueryVisitor, *ql.UsingDefinitions) error
+	usingDefinition    func(ql.QueryVisitor, *ql.UsingDefinition) error
+	histogram          func(ql.QueryVisitor, *ql.Histogram) error
+	windRose           func(ql.QueryVisitor, *ql.WindRose) error
 }
 
-func (v *visitor) Query(b *Query) error {
+func (v *visitor) Query(b *ql.Query) error {
 	var err error
 	if b != nil {
 		// Process QueryRange first
@@ -77,7 +37,7 @@ func (v *visitor) Query(b *Query) error {
 		if err == nil && v.query != nil {
 			err = v.query(v, b)
 		}
-		if IsVisitorStop(err) || IsVisitorExit(err) {
+		if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
 			return nil
 		}
 
@@ -104,12 +64,12 @@ func (v *visitor) Query(b *Query) error {
 	return err
 }
 
-func (v *visitor) Select(b *Select) error {
+func (v *visitor) Select(b *ql.Select) error {
 	var err error
 	if b != nil {
 		if v._select != nil {
 			err = v._select(v, b)
-			if IsVisitorStop(err) || IsVisitorExit(err) {
+			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
 				return nil
 			}
 		}
@@ -121,12 +81,12 @@ func (v *visitor) Select(b *Select) error {
 	return err
 }
 
-func (v *visitor) SelectExpression(b *SelectExpression) error {
+func (v *visitor) SelectExpression(b *ql.SelectExpression) error {
 	var err error
 	if b != nil {
 		if v.selectExpression != nil {
 			err = v.selectExpression(v, b)
-			if IsVisitorStop(err) {
+			if util.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -142,13 +102,13 @@ func (v *visitor) SelectExpression(b *SelectExpression) error {
 	return err
 }
 
-func (v *visitor) AliasedExpression(b *AliasedExpression) error {
+func (v *visitor) AliasedExpression(b *ql.AliasedExpression) error {
 	var err error
 	if b != nil {
 		if v.aliasedExpression != nil {
 			err = v.aliasedExpression(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {
@@ -158,14 +118,14 @@ func (v *visitor) AliasedExpression(b *AliasedExpression) error {
 	return err
 }
 
-func (v *visitor) Expression(b *Expression) error {
+func (v *visitor) Expression(b *ql.Expression) error {
 	var err error
 	if b != nil {
 		if v.expression != nil {
 			err = v.expression(v, b)
 		}
 
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -187,13 +147,13 @@ func (v *visitor) Expression(b *Expression) error {
 	return err
 }
 
-func (v *visitor) ExpressionModifier(b *ExpressionModifier) error {
+func (v *visitor) ExpressionModifier(b *ql.ExpressionModifier) error {
 	var err error
 	if b != nil {
 		if v.expressionModifier != nil {
 			err = v.expressionModifier(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {
@@ -206,13 +166,13 @@ func (v *visitor) ExpressionModifier(b *ExpressionModifier) error {
 	return err
 }
 
-func (v *visitor) Function(b *Function) error {
+func (v *visitor) Function(b *ql.Function) error {
 	var err error
 	if b != nil {
 		if v.function != nil {
 			err = v.function(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {
@@ -227,19 +187,19 @@ func (v *visitor) Function(b *Function) error {
 	return err
 }
 
-func (v *visitor) Metric(b *Metric) error {
+func (v *visitor) Metric(b *ql.Metric) error {
 	if b != nil && v.metric != nil {
 		return v.metric(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) QueryRange(b *QueryRange) error {
+func (v *visitor) QueryRange(b *ql.QueryRange) error {
 	var err error
 	if b != nil {
 		if v.queryRange != nil {
 			err = v.queryRange(v, b)
-			if IsVisitorStop(err) {
+			if util.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -272,13 +232,13 @@ func (v *visitor) QueryRange(b *QueryRange) error {
 	return err
 }
 
-func (v *visitor) Time(b *Time) error {
+func (v *visitor) Time(b *time.Time) error {
 	var err error
 	if b != nil {
 		if v.time != nil {
 			err = v.time(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 		for _, e := range b.Expression {
@@ -293,21 +253,21 @@ func (v *visitor) Time(b *Time) error {
 	return err
 }
 
-func (v *visitor) Duration(b *Duration) error {
+func (v *visitor) Duration(b *time.Duration) error {
 	if b != nil && v.duration != nil {
 		return v.duration(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) UsingDefinitions(b *UsingDefinitions) error {
+func (v *visitor) UsingDefinitions(b *ql.UsingDefinitions) error {
 	var err error
 
 	if b != nil {
 		if v.usingDefinitions != nil {
 			err = v.usingDefinitions(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {
@@ -320,19 +280,19 @@ func (v *visitor) UsingDefinitions(b *UsingDefinitions) error {
 	return err
 }
 
-func (v *visitor) UsingDefinition(b *UsingDefinition) error {
+func (v *visitor) UsingDefinition(b *ql.UsingDefinition) error {
 	if b != nil && v.usingDefinition != nil {
 		return v.usingDefinition(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) Histogram(b *Histogram) error {
+func (v *visitor) Histogram(b *ql.Histogram) error {
 	var err error
 	if b != nil {
 		if v.histogram != nil {
 			err = v.histogram(v, b)
-			if IsVisitorStop(err) || IsVisitorExit(err) {
+			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
 				return nil
 			}
 		}
@@ -343,12 +303,12 @@ func (v *visitor) Histogram(b *Histogram) error {
 	return err
 }
 
-func (v *visitor) WindRose(b *WindRose) error {
+func (v *visitor) WindRose(b *ql.WindRose) error {
 	var err error
 	if b != nil {
 		if v.windRose != nil {
 			err = v.windRose(v, b)
-			if IsVisitorStop(err) || IsVisitorExit(err) {
+			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
 				return nil
 			}
 		}

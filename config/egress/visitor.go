@@ -1,7 +1,7 @@
 package egress
 
 import (
-	"errors"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/amqp"
 )
 
@@ -39,22 +39,13 @@ func (v *visitor[T]) SetData(data T) Visitor[T] {
 	}
 }
 
-// VisitorStop is an error which causes the current step in a Visitor to stop processing.
-// It's used to enable a Visitor to handle all processing of a node within itself rather
-// than the Visitor proceeding to any child nodes of that node.
-var VisitorStop = errors.New("visitor stop")
-
-func IsVisitorStop(err error) bool {
-	return err != nil && errors.Is(err, VisitorStop)
-}
-
 func (v *visitor[T]) Script(b *Script) error {
 	var err error
 	if b != nil {
 		if v.script != nil {
 			err = v.script(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -83,7 +74,7 @@ func (v *visitor[T]) Action(b *Action) error {
 		if v.action != nil {
 			err = v.action(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {
@@ -99,7 +90,7 @@ func (v *visitor[T]) Amqp(b *amqp.Amqp) error {
 		if v.amqp != nil {
 			err = v.amqp(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -112,7 +103,7 @@ func (v *visitor[T]) Metric(b *Metric) error {
 		if v.metric != nil {
 			err = v.metric(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -134,7 +125,7 @@ func (v *visitor[T]) Publish(b *Publish) error {
 		if v.publish != nil {
 			err = v.publish(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}

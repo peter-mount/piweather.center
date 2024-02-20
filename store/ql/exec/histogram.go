@@ -1,7 +1,8 @@
 package exec
 
 import (
-	lang2 "github.com/peter-mount/piweather.center/config/ql"
+	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -10,7 +11,7 @@ type histogram struct {
 	max value.Value
 }
 
-func (ex *Executor) histogram(v lang2.Visitor, s *lang2.Histogram) error {
+func (ex *Executor) histogram(v ql.QueryVisitor, s *ql.Histogram) error {
 	ex.table = ex.result.NewTable()
 
 	if s.Expression != nil {
@@ -33,5 +34,5 @@ func (ex *Executor) histogram(v lang2.Visitor, s *lang2.Histogram) error {
 	}
 
 	// Tell the visitor to stop processing this Histogram statement
-	return lang2.VisitorStop
+	return util.VisitorStop
 }

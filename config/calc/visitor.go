@@ -1,7 +1,7 @@
 package calc
 
 import (
-	"errors"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/data"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
@@ -51,22 +51,13 @@ func (v *visitor[T]) Clone() Visitor[T] {
 	}
 }
 
-// VisitorStop is an error which causes the current step in a Visitor to stop processing.
-// It's used to enable a Visitor to handle all processing of a node within itself rather
-// than the Visitor proceeding to any child nodes of that node.
-var VisitorStop = errors.New("visitor stop")
-
-func IsVisitorStop(err error) bool {
-	return err != nil && errors.Is(err, VisitorStop)
-}
-
 func (v *visitor[T]) Script(b *Script) error {
 	var err error
 	if b != nil {
 		if v.script != nil {
 			err = v.script(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -95,7 +86,7 @@ func (v *visitor[T]) Calculation(b *Calculation) error {
 		if v.calculation != nil {
 			err = v.calculation(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -127,7 +118,7 @@ func (v *visitor[T]) Load(b *Load) error {
 	if b != nil && v.load != nil {
 		err = v.load(v, b)
 	}
-	if IsVisitorStop(err) {
+	if util.IsVisitorStop(err) {
 		return nil
 	}
 	return err
@@ -138,7 +129,7 @@ func (v *visitor[T]) CronTab(b *time.CronTab) error {
 	if b != nil && v.cronTab != nil {
 		err = v.cronTab(v, b)
 	}
-	if IsVisitorStop(err) {
+	if util.IsVisitorStop(err) {
 		return nil
 	}
 	return err
@@ -150,7 +141,7 @@ func (v *visitor[T]) Expression(b *Expression) error {
 		if v.expression != nil {
 			err = v.expression(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -179,7 +170,7 @@ func (v *visitor[T]) Current(b *Current) error {
 		if v.current != nil {
 			err = v.current(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -192,7 +183,7 @@ func (v *visitor[T]) Unit(b *units.Unit) error {
 		if v.unit != nil {
 			err = v.unit(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -205,7 +196,7 @@ func (v *visitor[T]) Function(b *Function) error {
 		if v.function != nil {
 			err = v.function(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -226,7 +217,7 @@ func (v *visitor[T]) Metric(b *Metric) error {
 		if v.metric != nil {
 			err = v.metric(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -239,7 +230,7 @@ func (v *visitor[T]) UseFirst(b *UseFirst) error {
 		if v.useFirst != nil {
 			err = v.useFirst(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
