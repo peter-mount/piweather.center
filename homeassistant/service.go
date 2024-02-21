@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	mq "github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/util/config"
+	mq "github.com/peter-mount/piweather.center/util/mq/amqp"
+	"github.com/peter-mount/piweather.center/util/mq/mqtt"
 	"path"
 	"strings"
 )

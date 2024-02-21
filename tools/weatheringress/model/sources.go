@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/mq/mqtt"
+	"github.com/peter-mount/piweather.center/util/mq/amqp"
+	"github.com/peter-mount/piweather.center/util/mq/mqtt"
 )
 
 // Source defines the source of data for a Sensors collection.

@@ -5,7 +5,7 @@ import (
 	"github.com/peter-mount/go-build/version"
 	egress2 "github.com/peter-mount/piweather.center/config/egress"
 	amqp2 "github.com/peter-mount/piweather.center/config/util/amqp"
-	"github.com/peter-mount/piweather.center/mq/amqp"
+	amqp3 "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"strings"
 )
 
@@ -31,7 +31,7 @@ func (s *Processor) initMq() error {
 func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *amqp2.Amqp) error {
 	m := v.GetData()
 
-	a.MQ = &amqp.MQ{
+	a.MQ = &amqp3.MQ{
 		Url:            a.Url,
 		Exchange:       a.Exchange,
 		ConnectionName: m.appName + " Egress",
@@ -39,7 +39,7 @@ func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *amqp2.Amqp) error {
 		Version:        m.appVersion,
 	}
 
-	a.Publisher = &amqp.Publisher{
+	a.Publisher = &amqp3.Publisher{
 		Exchange:  a.Exchange,
 		Mandatory: false,
 		Immediate: false,

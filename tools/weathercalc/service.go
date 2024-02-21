@@ -5,11 +5,11 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/util/mq/amqp"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/rabbitmq/amqp091-go"
 )

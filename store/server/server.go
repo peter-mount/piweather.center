@@ -5,22 +5,22 @@ import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/memory"
 	"github.com/peter-mount/piweather.center/store/ql/service"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
 )
 
 type Server struct {
 	Web            *rest.Server          `kernel:"inject"`
-	Amqp           amqp.Pool             `kernel:"inject"`
+	Amqp           amqp2.Pool            `kernel:"inject"`
 	Store          file.Store            `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	QueryService   service.Service       `kernel:"inject"`
 	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.ingress"`
-	mqQueue        *amqp.Queue
+	mqQueue        *amqp2.Queue
 }
 
 const (
@@ -77,7 +77,7 @@ func (s *Server) PostInit() error {
 
 func (s *Server) Start() error {
 
-	s.mqQueue = &amqp.Queue{
+	s.mqQueue = &amqp2.Queue{
 		Name:       *s.QueueName,
 		Durable:    true,
 		AutoDelete: false,

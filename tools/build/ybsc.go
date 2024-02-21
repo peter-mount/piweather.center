@@ -9,7 +9,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/util"
-	"github.com/peter-mount/piweather.center/io"
+	"github.com/peter-mount/piweather.center/util/io"
 	"github.com/soniakeys/unit"
 	"path/filepath"
 	"strconv"

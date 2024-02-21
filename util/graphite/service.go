@@ -3,7 +3,7 @@ package graphite
 import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
-	mq2 "github.com/peter-mount/piweather.center/mq/amqp"
+	"github.com/peter-mount/piweather.center/util/mq/amqp"
 	"reflect"
 	"strconv"
 	"strings"
@@ -21,8 +21,8 @@ func init() {
 }
 
 type graphite struct {
-	MQ        *mq2.MQ        `kernel:"inject"`
-	Publisher *mq2.Publisher `kernel:"config,graphitePublisher"`
+	MQ        *amqp.MQ        `kernel:"inject"`
+	Publisher *amqp.Publisher `kernel:"config,graphitePublisher"`
 }
 
 func (m *graphite) Start() error {

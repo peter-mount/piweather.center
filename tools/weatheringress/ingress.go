@@ -4,12 +4,12 @@ import (
 	"context"
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/tools/weatherarchive"
 	"github.com/peter-mount/piweather.center/tools/weatheringress/model"
 	"github.com/peter-mount/piweather.center/util/endpoint"
+	"github.com/peter-mount/piweather.center/util/mq/amqp"
+	"github.com/peter-mount/piweather.center/util/mq/mqtt"
 )
 
 // Ingress handles the ability to get data into the system, be it via

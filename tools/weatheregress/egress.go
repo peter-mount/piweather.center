@@ -5,25 +5,25 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
+	"github.com/peter-mount/piweather.center/util/mq/mqtt"
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type Egress struct {
-	Amqp           amqp.Pool             `kernel:"inject"`
+	Amqp           amqp2.Pool            `kernel:"inject"`
 	Mqtt           mqtt.Pool             `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	Processor      *Processor            `kernel:"inject"`
 	Daemon         *kernel.Daemon        `kernel:"inject"`
 	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.calc"`
-	mqQueue        *amqp.Queue
+	mqQueue        *amqp2.Queue
 }
 
 func (s *Egress) Start() error {
-	s.mqQueue = &amqp.Queue{
+	s.mqQueue = &amqp2.Queue{
 		Name:       *s.QueueName,
 		Durable:    true,
 		AutoDelete: false,

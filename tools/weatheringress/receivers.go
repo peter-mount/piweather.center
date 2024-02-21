@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	mq "github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/mq/mqtt"
 	"github.com/peter-mount/piweather.center/tools/weatheringress/model"
 	"github.com/peter-mount/piweather.center/tools/weatheringress/payload"
+	mq "github.com/peter-mount/piweather.center/util/mq/amqp"
+	"github.com/peter-mount/piweather.center/util/mq/mqtt"
 	"io"
 	"net/http"
 )

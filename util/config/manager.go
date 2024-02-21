@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/peter-mount/go-kernel/v2"
-	"github.com/peter-mount/piweather.center/io"
+	"github.com/peter-mount/piweather.center/util/io"
 	"os"
 	"path"
 	"path/filepath"

@@ -1,8 +1,8 @@
 package homeassistant
 
 import (
-	mq "github.com/peter-mount/piweather.center/mq/amqp"
-	"github.com/peter-mount/piweather.center/mq/mqtt"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
+	mqtt2 "github.com/peter-mount/piweather.center/util/mq/mqtt"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -10,13 +10,13 @@ type HomeAssistant struct {
 	// if set then HomeAssistant is disabled - used in development
 	Disabled bool `yaml:"disabled"`
 
-	Amqp           string          `yaml:"amqp,omitempty"`
-	AmqpPublisher  *mq.Publisher   `yaml:"amqp_publisher"`
-	Mqtt           string          `yaml:"mqtt,omitempty"`
-	MqttPublisher  *mqtt.Publisher `yaml:"mqtt_publisher"`
-	amqp           *mq.MQ
+	Amqp           string           `yaml:"amqp,omitempty"`
+	AmqpPublisher  *amqp2.Publisher `yaml:"amqp_publisher"`
+	Mqtt           string           `yaml:"mqtt,omitempty"`
+	MqttPublisher  *mqtt2.Publisher `yaml:"mqtt_publisher"`
+	amqp           *amqp2.MQ
 	amqpConnection *amqp091.Connection
-	mqtt           *mqtt.MQ
+	mqtt           *mqtt2.MQ
 
 	// DiscoveryPrefix, will default to "homeassistant"
 	DiscoveryPrefix string `yaml:"discovery_prefix,omitempty"`

@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/memory"
@@ -14,6 +13,7 @@ import (
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/view"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/ws"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"github.com/rabbitmq/amqp091-go"
 	"path/filepath"
 )
@@ -25,11 +25,11 @@ type Server struct {
 	_              *view.Home            `kernel:"inject"`
 	Templates      *template.Manager     `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
-	Amqp           amqp.Pool             `kernel:"inject"`
+	Amqp           amqp2.Pool            `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.web"`
 	DBServer       *string               `kernel:"flag,metric-db,DB url"`
-	mqQueue        *amqp.Queue
+	mqQueue        *amqp2.Queue
 	liveServer     *ws.Server
 	listener       api.Listener
 }
@@ -55,7 +55,7 @@ func (s *Server) Start() error {
 	s.Rest.HandleFunc("/live", s.liveServer.Handle)
 	go s.liveServer.Run()
 
-	s.mqQueue = &amqp.Queue{
+	s.mqQueue = &amqp2.Queue{
 		Name:       *s.QueueName,
 		Durable:    true,
 		AutoDelete: false,

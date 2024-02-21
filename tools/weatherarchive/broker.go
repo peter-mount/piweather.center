@@ -3,7 +3,7 @@ package weatherarchive
 import (
 	"fmt"
 	"github.com/peter-mount/go-build/version"
-	"github.com/peter-mount/piweather.center/mq/amqp"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,13 +11,13 @@ import (
 )
 
 type Broker struct {
-	Broker    *string   `kernel:"flag,archive-broker,Send archives to rabbitmq"`
-	Exchange  *string   `kernel:"flag,archive-exchange,Exchange to use,amq.topic"`
-	Amqp      amqp.Pool `kernel:"inject"`
+	Broker    *string    `kernel:"flag,archive-broker,Send archives to rabbitmq"`
+	Exchange  *string    `kernel:"flag,archive-exchange,Exchange to use,amq.topic"`
+	Amqp      amqp2.Pool `kernel:"inject"`
 	mutex     sync.Mutex
-	mq        *amqp.MQ
-	queues    []*amqp.Queue
-	publisher *amqp.Publisher
+	mq        *amqp2.MQ
+	queues    []*amqp2.Queue
+	publisher *amqp2.Publisher
 	appName   string
 }
 
@@ -72,7 +72,7 @@ func (s *Broker) tag(tag string) string {
 	return strings.TrimSpace(strings.Join([]string{s.appName, "archiver", tag}, " "))
 }
 
-func (s *Broker) Consume(queue *amqp.Queue, tag string, task amqp.Task) error {
+func (s *Broker) Consume(queue *amqp2.Queue, tag string, task amqp2.Task) error {
 	if !s.IsActive() {
 		return nil
 	}
@@ -90,9 +90,9 @@ func (s *Broker) Consume(queue *amqp.Queue, tag string, task amqp.Task) error {
 	return err
 }
 
-func (s *Broker) ConsumeKeys(queue *amqp.Queue, tag string, task amqp.Task, keys ...string) error {
+func (s *Broker) ConsumeKeys(queue *amqp2.Queue, tag string, task amqp2.Task, keys ...string) error {
 	for _, key := range keys {
-		queue.AddBinding(amqp.Binding{
+		queue.AddBinding(amqp2.Binding{
 			Topic: s.mq.Exchange,
 			Key:   key,
 		})
@@ -120,7 +120,7 @@ func (s *Broker) connectPublisher() error {
 		return nil
 	}
 
-	pub := &amqp.Publisher{
+	pub := &amqp2.Publisher{
 		Exchange:  s.mq.Exchange,
 		Mandatory: false,
 		Immediate: false,

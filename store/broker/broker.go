@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
-	"github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/store/api"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"github.com/rabbitmq/amqp091-go"
 	"os"
 	"path/filepath"
@@ -22,10 +22,10 @@ func init() {
 // the RabbitMQ connection between them
 type DatabaseBroker interface {
 	Exchange() string
-	Consume(queue *amqp.Queue, tag string, task amqp.Task) error
-	ConsumeKeys(queue *amqp.Queue, tag string, task amqp.Task, keys ...string) error
+	Consume(queue *amqp2.Queue, tag string, task amqp2.Task) error
+	ConsumeKeys(queue *amqp2.Queue, tag string, task amqp2.Task, keys ...string) error
 	PublishMetric(metric api.Metric) error
-	amqp.PublishAPI
+	amqp2.PublishAPI
 }
 
 const (
@@ -33,11 +33,11 @@ const (
 )
 
 type broker struct {
-	Amqp      amqp.Pool `kernel:"inject"`
+	Amqp      amqp2.Pool `kernel:"inject"`
 	mutex     sync.Mutex
-	mq        *amqp.MQ
-	queues    []*amqp.Queue
-	publisher *amqp.Publisher
+	mq        *amqp2.MQ
+	queues    []*amqp2.Queue
+	publisher *amqp2.Publisher
 	appName   string
 }
 
@@ -82,7 +82,7 @@ func (s *broker) tag(tag string) string {
 	return strings.TrimSpace(strings.Join([]string{s.appName, "database", tag}, " "))
 }
 
-func (s *broker) Consume(queue *amqp.Queue, tag string, task amqp.Task) error {
+func (s *broker) Consume(queue *amqp2.Queue, tag string, task amqp2.Task) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -96,9 +96,9 @@ func (s *broker) Consume(queue *amqp.Queue, tag string, task amqp.Task) error {
 	return err
 }
 
-func (s *broker) ConsumeKeys(queue *amqp.Queue, tag string, task amqp.Task, keys ...string) error {
+func (s *broker) ConsumeKeys(queue *amqp2.Queue, tag string, task amqp2.Task, keys ...string) error {
 	for _, key := range keys {
-		queue.AddBinding(amqp.Binding{
+		queue.AddBinding(amqp2.Binding{
 			Topic: s.Exchange(),
 			Key:   key,
 		})
@@ -144,7 +144,7 @@ func (s *broker) Post(key string, body []byte, headers amqp091.Table, timestamp 
 }
 
 func (s *broker) PublishMetric(metric api.Metric) error {
-	return s.PublishJSON("metric."+amqp.EncodeKey(metric.Metric), metric)
+	return s.PublishJSON("metric."+amqp2.EncodeKey(metric.Metric), metric)
 }
 
 func (s *broker) connectPublisher() error {
@@ -153,7 +153,7 @@ func (s *broker) connectPublisher() error {
 		return nil
 	}
 
-	pub := &amqp.Publisher{
+	pub := &amqp2.Publisher{
 		Exchange:  s.mq.Exchange,
 		Mandatory: false,
 		Immediate: false,

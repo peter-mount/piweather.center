@@ -6,8 +6,8 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
-	mq "github.com/peter-mount/piweather.center/mq/amqp"
 	"github.com/peter-mount/piweather.center/store/broker"
+	mq "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"go.bug.st/serial"
 )
 

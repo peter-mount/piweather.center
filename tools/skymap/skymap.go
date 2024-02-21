@@ -5,7 +5,7 @@ import (
 	"flag"
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
-	io2 "github.com/peter-mount/piweather.center/io"
+	io2 "github.com/peter-mount/piweather.center/util/io"
 	"image"
 	"image/color"
 	"image/png"

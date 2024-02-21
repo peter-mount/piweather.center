@@ -2,7 +2,7 @@ package amqp
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/mq/amqp"
+	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"strings"
 )
 
@@ -12,8 +12,8 @@ type Amqp struct {
 	Name      string `parser:"'amqp' '(' 'name' @String"`
 	Url       string `parser:"'url' @String"`
 	Exchange  string `parser:"('exchange' @String)? ')'"`
-	MQ        *amqp.MQ
-	Publisher *amqp.Publisher
+	MQ        *amqp2.MQ
+	Publisher *amqp2.Publisher
 }
 
 func (s *Amqp) Init() error {
