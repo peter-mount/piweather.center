@@ -8,8 +8,8 @@ import (
 	_ "github.com/peter-mount/go-script/stdlib/math"
 	_ "github.com/peter-mount/go-script/stdlib/time"
 	"github.com/peter-mount/piweather.center/astro/calculator"
-	_ "github.com/peter-mount/piweather.center/script/astro"
-	_ "github.com/peter-mount/piweather.center/script/weather"
+	_ "github.com/peter-mount/piweather.center/tools/weatherscript/lib/astro"
+	_ "github.com/peter-mount/piweather.center/tools/weatherscript/lib/weather"
 )
 
 type Script struct {
