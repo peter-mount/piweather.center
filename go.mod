@@ -11,13 +11,11 @@ require (
 	github.com/llgcode/draw2d v0.0.0-20231212091825-f55e0c776b44
 	github.com/peter-mount/go-anim v0.0.0-20240209141414-139b370004cb
 	github.com/peter-mount/go-build v0.0.0-20240208185506-976dd78b5a76
-	github.com/peter-mount/go-graphics v0.0.0-20230117133409-dbc9b39bd46b
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240119080616-ca3b1f9a9ce3
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
 	github.com/peter-mount/go-script v0.0.0-20240210082255-ef2c90e84d66
 	github.com/peter-mount/nre-feeds v0.0.0-20240201140817-fd78167946e5
 	github.com/rabbitmq/amqp091-go v1.9.0
-	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/soniakeys/unit v1.0.0
 	go.bug.st/serial v1.6.1
@@ -36,6 +34,7 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/oapi-codegen/runtime v1.1.1 // indirect
 	github.com/peter-mount/go.uuid v1.2.1-0.20180103174451-36e9d2ebbde5 // indirect
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
