@@ -6,6 +6,7 @@ block:
   - os: android
   - os: ios
   - os: js
+  - os: wasip1 # Introduced in go 1.21
   # Normally blocked due to known bug with the linker
   - os: openbsd
     arch: mips64
