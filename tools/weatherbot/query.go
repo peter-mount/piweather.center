@@ -136,7 +136,7 @@ func (q *Query) generateQuery() string {
 	var a []string
 
 	if q.queryRange == "" {
-		q.queryRange = `BETWEEN "now" TRUNCATE "10m" ADD "-10m" AND "now" ADD "1m" EVERY "10m"`
+		q.queryRange = `between "now" truncate "10m" add "-10m" add "now" add "1m" every "10m"`
 	}
 	a = append(a, q.queryRange)
 
@@ -147,7 +147,7 @@ func (q *Query) generateQuery() string {
 		}
 		d = append(d, `  "`, k, `" AS `, v)
 	}
-	a = append(a, "DECLARE", strings.Join(d, ""))
+	a = append(a, "declare", strings.Join(d, ""))
 
 	var columns []string
 	for k, _ := range q.columns {
@@ -163,9 +163,9 @@ func (q *Query) generateQuery() string {
 			s = append(s, ",\n")
 		}
 		c := q.columns[k]
-		s = append(s, "  ", c.expression, ` AS "`, c.name, `"`)
+		s = append(s, "  ", c.expression, ` as "`, c.name, `"`)
 	}
-	a = append(a, "SELECT", strings.Join(s, ""))
+	a = append(a, "select", strings.Join(s, ""))
 
 	return strings.Join(a, "\n")
 }

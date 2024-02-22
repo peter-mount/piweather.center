@@ -24,18 +24,18 @@ func (calc *Calculator) loadFromDB(c *calc.Calculation) error {
 	switch b.When {
 	case "today":
 		q = append(q,
-			`BETWEEN "midnight" AND "now" ADD "24h"`,
-			`EVERY "24h"`)
+			`between "midnight" and "now" add "24h"`,
+			`every "24h"`)
 
 	case "hour":
 		q = append(q,
-			`BETWEEN "now" TRUNCATE "1h" AND "now" ADD "1h"`,
-			`EVERY "1h"`)
+			`between "now" truncate "1h" and "now" add "1h"`,
+			`every "1h"`)
 
 	case "minute":
 		q = append(q,
-			`BETWEEN "now" ADD "-1m" AND "now" TRUNCATE "1m"`,
-			`EVERY "1m"`)
+			`between "now" add "-1m" and "now" truncate "1m"`,
+			`every "1m"`)
 
 	default:
 		return participle.Errorf(b.Pos, "Unsupported when %q in exec", b.When)
@@ -43,9 +43,9 @@ func (calc *Calculator) loadFromDB(c *calc.Calculation) error {
 
 	useFirst := ""
 	if c.UseFirst != nil && c.UseFirst.Metric != nil {
-		useFirst = "LAST(" + c.UseFirst.Metric.Name + ")"
+		useFirst = "last(" + c.UseFirst.Metric.Name + ")"
 	}
-	q = append(q, "LIMIT 1", `SELECT`, `TIMEOF(`+useFirst+`),`, b.With)
+	q = append(q, "limit 1", `select`, `timeof(`+useFirst+`),`, b.With)
 
 	query := strings.Join(q, " ")
 	log.Printf("DB: %s", query)
