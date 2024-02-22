@@ -41,19 +41,19 @@ func (s *Script) merge(b *Script) (*Script, error) {
 // Calculation defines a metric to calculate
 type Calculation struct {
 	Pos        lexer.Position
-	Target     string        `parser:"'CALCULATE' @String"`   // Name of metric to calculate
-	At         string        `parser:"('AT' @String)?"`       // If set the Location to use
-	Every      *time.CronTab `parser:"('EVERY' @@)?"`         // Calculate at specified intervals
-	ResetEvery *time.CronTab `parser:"('RESET' 'EVERY' @@)?"` // Crontab to reset the value
+	Target     string        `parser:"'calculate' @String"`   // Name of metric to calculate
+	At         string        `parser:"('at' @String)?"`       // If set the Location to use
+	Every      *time.CronTab `parser:"('every' @@)?"`         // Calculate at specified intervals
+	ResetEvery *time.CronTab `parser:"('reset' 'every' @@)?"` // Crontab to reset the value
 	Load       *Load         `parser:"(@@)?"`                 // Load from the DB on startup
 	UseFirst   *UseFirst     `parser:"(@@)?"`                 // If set and no value use this expression
-	Expression *Expression   `parser:"('AS' @@)?"`            // Expression to perform calculation
+	Expression *Expression   `parser:"('as' @@)?"`            // Expression to perform calculation
 }
 
 type Load struct {
 	Pos  lexer.Position
-	When string `parser:"'LOAD' @String"` // When to load from
-	With string `parser:"'WITH' @String"` // Query to perform
+	When string `parser:"'load' @String"` // When to load from
+	With string `parser:"'with' @String"` // Query to perform
 }
 
 type Expression struct {
@@ -67,7 +67,7 @@ type Expression struct {
 // Current returns the current value of the calculation being performed
 type Current struct {
 	Pos     lexer.Position
-	Current bool `parser:"@'CURRENT'"`
+	Current bool `parser:"@'current'"`
 }
 
 // Function handles function calls
@@ -86,5 +86,5 @@ type Metric struct {
 
 type UseFirst struct {
 	Pos    lexer.Position
-	Metric *Metric `parser:"'USEFIRST' @@"`
+	Metric *Metric `parser:"'usefirst' @@"`
 }

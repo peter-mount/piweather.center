@@ -10,7 +10,7 @@ type Query struct {
 	Using      *UsingDefinitions `parser:"(@@)?"`
 	Histogram  []*Histogram      `parser:"( ( @@ )+"`
 	WindRose   []*WindRose       `parser:"| ( @@ )+"`
-	Limit      int               `parser:"| ( 'LIMIT' @Int )?"`
+	Limit      int               `parser:"| ( 'limit' @Int )?"`
 	Select     []*Select         `parser:"  ( @@ )+ )"`
 }
 

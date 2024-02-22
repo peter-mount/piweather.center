@@ -6,11 +6,11 @@ import (
 
 type UsingDefinitions struct {
 	Pos  lexer.Position
-	Defs []*UsingDefinition `parser:" 'DECLARE' @@ (',' @@)* "`
+	Defs []*UsingDefinition `parser:" 'declare' @@ (',' @@)* "`
 }
 
 type UsingDefinition struct {
 	Pos      lexer.Position
-	Name     string                `parser:"@String 'AS'"`
+	Name     string                `parser:"@String 'as'"`
 	Modifier []*ExpressionModifier `parser:"(@@)+"`
 }

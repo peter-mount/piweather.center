@@ -9,8 +9,8 @@ import (
 type Select struct {
 	Pos lexer.Position
 
-	Expression *SelectExpression `parser:"'SELECT' @@"`
-	Limit      int               `parser:"( 'LIMIT' @Int )?"`
+	Expression *SelectExpression `parser:"'select' @@"`
+	Limit      int               `parser:"( 'limit' @Int )?"`
 }
 
 type SelectExpression struct {
@@ -24,8 +24,8 @@ type AliasedExpression struct {
 	Pos lexer.Position
 
 	Expression *Expression `parser:"@@"`
-	Unit       string      `parser:"( 'UNIT' @String )?"`
-	As         string      `parser:"( 'AS' @String )?"`
+	Unit       string      `parser:"( 'unit' @String )?"`
+	As         string      `parser:"( 'as' @String )?"`
 	unit       *value.Unit
 }
 
@@ -45,14 +45,14 @@ type Expression struct {
 	Pos      lexer.Position
 	Function *Function             `parser:"( @@"`
 	Metric   *Metric               `parser:"| @@ )"`
-	Using    string                `parser:"( 'USING' @String"`
+	Using    string                `parser:"( 'using' @String"`
 	Modifier []*ExpressionModifier `parser:"| (@@)+ )?"`
 }
 
 type ExpressionModifier struct {
 	Pos    lexer.Position
 	Range  *QueryRange    `parser:"( @@"`
-	Offset *time.Duration `parser:"| 'OFFSET' @@ )"`
+	Offset *time.Duration `parser:"| 'offset' @@ )"`
 }
 
 // Function handles function calls

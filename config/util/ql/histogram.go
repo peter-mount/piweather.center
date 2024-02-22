@@ -7,20 +7,20 @@ import (
 type Histogram struct {
 	Pos lexer.Position
 
-	Expression *AliasedExpression `parser:"'HISTOGRAM' @@"`
+	Expression *AliasedExpression `parser:"'histogram' @@"`
 }
 
 type WindRose struct {
 	Pos lexer.Position
 
-	Degrees *Expression      `parser:"'WINDROSE' @@"`
+	Degrees *Expression      `parser:"'windrose' @@"`
 	Speed   *Expression      `parser:"',' @@"`
 	Options []WindRoseOption `parser:"('AS' @@ (',' @@)* )?"`
 }
 
 type WindRoseOption struct {
 	Pos   lexer.Position
-	Rose  bool `parser:"( @'ROSE'"`
-	Count bool `parser:"| @'COUNT'"`
-	Max   bool `parser:"| @'MAX')"`
+	Rose  bool `parser:"( @'rose'"`
+	Count bool `parser:"| @'count'"`
+	Max   bool `parser:"| @'max')"`
 }

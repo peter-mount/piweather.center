@@ -50,6 +50,6 @@ func (a *Time) SetTime(t time.Time, every time.Duration, v TimeVisitor) error {
 
 type TimeExpression struct {
 	Pos      lexer.Position
-	Add      *Duration `parser:"( 'ADD' @@"`        // Add duration to time
-	Truncate *Duration `parser:"| 'TRUNCATE' @@ )"` // truncate time
+	Add      *Duration `parser:"( 'add' @@"`        // Add duration to time
+	Truncate *Duration `parser:"| 'truncate' @@ )"` // truncate time
 }

@@ -9,7 +9,7 @@ import (
 // Unit allows for Unit selection
 type Unit struct {
 	Pos   lexer.Position
-	Using string `parser:"'USING' @String"`
+	Using string `parser:"'using' @String"`
 	unit  *value.Unit
 }
 

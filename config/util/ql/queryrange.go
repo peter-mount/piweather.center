@@ -11,12 +11,12 @@ import (
 type QueryRange struct {
 	Pos lexer.Position
 
-	At    *time2.Time     `parser:"( 'AT' @@"`       // AT time for a specific time
-	From  *time2.Time     `parser:"| 'FROM' @@"`     // FROM time
-	For   *time2.Duration `parser:"  'FOR' @@ "`     // Duration from FROM
-	Start *time2.Time     `parser:"| 'BETWEEN' @@"`  // Between a start time
-	End   *time2.Time     `parser:"  'AND' @@ )"`    // and an end time
-	Every *time2.Duration `parser:"( 'EVERY' @@ )?"` // Every duration time
+	At    *time2.Time     `parser:"( 'at' @@"`       // AT time for a specific time
+	From  *time2.Time     `parser:"| 'from' @@"`     // FROM time
+	For   *time2.Duration `parser:"  'for' @@ "`     // Duration from FROM
+	Start *time2.Time     `parser:"| 'between' @@"`  // Between a start time
+	End   *time2.Time     `parser:"  'and' @@ )"`    // and an end time
+	Every *time2.Duration `parser:"( 'every' @@ )?"` // Every duration time
 }
 
 func (a *QueryRange) Range() api.Range {

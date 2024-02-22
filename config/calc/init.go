@@ -2,7 +2,6 @@ package calc
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util"
 	location2 "github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
@@ -12,20 +11,8 @@ import (
 	"sync"
 )
 
-const (
-	keywords = `(?i)\b(AS|AT|CALCULATE|CURRENT|EVERY|LOAD|LOCATION|RESET|USEFIRST|USING|WITH)\b`
-)
-
 func NewParser() util.Parser[Script] {
-	return util.NewParser[Script](
-		[]lexer.SimpleRule{
-			lexer.SimpleRule{Name: "Keyword", Pattern: keywords},
-		},
-		[]participle.Option{
-			participle.CaseInsensitive("Keyword"),
-		},
-		calcInit,
-	)
+	return util.NewParser[Script](nil, nil, calcInit)
 }
 
 func calcInit(q *Script, err error) (*Script, error) {

@@ -12,7 +12,7 @@ import (
 // Location defines a location on the Earth
 type Location struct {
 	Pos       lexer.Position
-	Name      string         `parser:"'LOCATION' @String"` // Name of location
+	Name      string         `parser:"'location' @String"` // Name of location
 	Latitude  string         `parser:"@String"`            // Latitude, North positive, South negative
 	Longitude string         `parser:"@String"`            // Longitude, East positive, West negative
 	Altitude  float64        `parser:"(@Number)?"`         // Altitude in meters. Optional will default to 0
