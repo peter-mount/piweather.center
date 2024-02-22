@@ -109,12 +109,17 @@ func (p *defaultParser[G]) ParseFiles(fileNames ...string) (*G, error) {
 	for _, n := range fileNames {
 		script, err := p.ParseFile(n)
 		if err == nil {
-			m, ok := any(script).(Merge[G])
-			if !ok {
-				panic(fmt.Errorf("cannot merge %T as it does not support merging", script))
+			if r == nil {
+				// First entry then use it
+				r = script
+			} else {
+				// Try to merge but fail if r does not implement Merge[G]
+				m, ok := any(r).(Merge[G])
+				if !ok {
+					panic(fmt.Errorf("cannot merge %T as it does not support merging", r))
+				}
+				r, err = m.Merge(script)
 			}
-
-			r, err = m.Merge(script)
 		}
 		if err != nil {
 			return nil, err
