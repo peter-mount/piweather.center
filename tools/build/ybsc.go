@@ -11,6 +11,7 @@ import (
 	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/util/io"
 	"github.com/soniakeys/unit"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -73,6 +74,13 @@ func (s *YbscEncoder) encode() error {
 	}
 	log.Printf("Written %d stars", bsc.Size())
 
+	// Set encoded bsc timestamp to that of the source file
+	if info, err := os.Stat(*s.Source); err != nil {
+		return err
+	} else {
+		t := info.ModTime()
+		_ = os.Chtimes(*s.Encoder.Dest, t, t)
+	}
 	// Verify we can read the catalog
 	readBsc := &catalogue.Catalog{}
 	if err := io.NewReader(readBsc.Read).

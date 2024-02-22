@@ -22,11 +22,13 @@ type Query struct {
 }
 
 func (q *Query) Init(url string) {
+	log.Printf("Query %q %q = %q", q.ID, q.Query, url)
 	if q.Query != "" {
 		c := client.Client{Url: url}
 		r, err := c.Query(q.Query)
 		if err == nil {
 			q.Result = r
+			log.Printf("Query %q %q = %v", q.ID, q.Query, q.Result.WindRose)
 		} else {
 			log.Printf("Query %q %q = %v", q.ID, q.Query, err)
 		}

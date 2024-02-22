@@ -10,7 +10,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/llgcode/draw2d v0.0.0-20231212091825-f55e0c776b44
 	github.com/peter-mount/go-anim v0.0.0-20240209141414-139b370004cb
-	github.com/peter-mount/go-build v0.0.0-20240208185506-976dd78b5a76
+	github.com/peter-mount/go-build v0.0.0-20240222174608-0255639b6b28
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240119080616-ca3b1f9a9ce3
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
 	github.com/peter-mount/go-script v0.0.0-20240210082255-ef2c90e84d66
@@ -18,7 +18,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/soniakeys/unit v1.0.0
-	go.bug.st/serial v1.6.1
+	go.bug.st/serial v1.6.2
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -41,6 +41,6 @@ require (
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
