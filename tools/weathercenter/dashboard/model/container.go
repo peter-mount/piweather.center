@@ -23,6 +23,8 @@ func (c *Container) init(d *Dashboard) {
 	for _, e := range c.Components {
 		if ct, ok := e.(*Container); ok {
 			ct.init(d)
+		} else if ct, ok := e.(*Query); ok {
+			ct.init(d)
 		} else if ct, ok := e.(*Value); ok {
 			ct.init(d)
 		}
