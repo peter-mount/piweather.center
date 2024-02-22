@@ -146,9 +146,6 @@ node("go") {
   stage("solaris_amd64") {
     sh 'make -f Makefile.gen solaris_amd64'
   }
-  stage("wasip1_wasm") {
-    sh 'make -f Makefile.gen wasip1_wasm'
-  }
   stage("windows_386") {
     sh 'make -f Makefile.gen windows_386'
   }

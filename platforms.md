@@ -14,7 +14,6 @@ The following platforms are supported by virtue of how the build system works:
 | openbsd | 386 amd64 arm6 arm7 arm64 ppc64 |
 | plan9 | 386 amd64 arm6 arm7 |
 | solaris | amd64 |
-| wasip1 | wasm |
 | windows | 386 amd64 arm6 arm7 arm64 |
 
-Operating Systems 12 CPU's 15
+Operating Systems 11 CPU's 14
