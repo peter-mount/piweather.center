@@ -5,14 +5,23 @@ type MapContainer struct {
 }
 
 func (c *MapContainer) GetLocation(n string) *Location {
+	if c.locations == nil {
+		return nil
+	}
 	return c.locations.GetLocation(n)
 }
 
 func (c *MapContainer) GetLocations() []*Location {
+	if c.locations == nil {
+		return nil
+	}
 	return c.locations.GetLocations()
 }
 
 func (c *MapContainer) SetLocation(l *Location) (Map, bool) {
+	if c.locations == nil {
+		c.locations = NewMap()
+	}
 	m, added := c.locations.SetLocation(l)
 	if added && m != nil {
 		c.locations = m
@@ -25,9 +34,9 @@ func (c *MapContainer) MergeLocations(b MapContainer) error {
 		return nil
 	}
 
-	m, err := c.locations.Merge(b.locations)
-	if err == nil && m != nil {
-		c.locations = m
+	if c.locations == nil {
+		c.locations = NewMap()
 	}
-	return err
+
+	return c.locations.Merge(b.locations)
 }

@@ -1,6 +1,7 @@
 package calc
 
 import (
+	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util/location"
@@ -15,11 +16,16 @@ type Script struct {
 	State        *State
 }
 
-func (s *Script) merge(b *Script) (*Script, error) {
+func (s *Script) Merge(b *Script) (*Script, error) {
 	if s == nil {
 		return b, nil
 	}
 
+	if s == b {
+		return s, nil
+	}
+
+	fmt.Printf("Merge %v %v %v", s == b, s, b)
 	if err := s.State.MergeLocations(b.State.MapContainer); err != nil {
 		return nil, err
 	}

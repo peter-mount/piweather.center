@@ -3,6 +3,7 @@ package ql
 import (
 	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Builder interface {
@@ -18,6 +19,7 @@ type Builder interface {
 	QueryRange(func(ql.QueryVisitor, *ql.QueryRange) error) Builder
 	Time(func(ql.QueryVisitor, *time.Time) error) Builder
 	Duration(func(ql.QueryVisitor, *time.Duration) error) Builder
+	Unit(func(ql.QueryVisitor, *units.Unit) error) Builder
 	UsingDefinitions(func(ql.QueryVisitor, *ql.UsingDefinitions) error) Builder
 	UsingDefinition(func(ql.QueryVisitor, *ql.UsingDefinition) error) Builder
 
@@ -93,6 +95,11 @@ func (b *builder) Time(f func(ql.QueryVisitor, *time.Time) error) Builder {
 
 func (b *builder) Duration(f func(ql.QueryVisitor, *time.Duration) error) Builder {
 	b.common.duration = f
+	return b
+}
+
+func (b *builder) Unit(f func(ql.QueryVisitor, *units.Unit) error) Builder {
+	b.common.unit = f
 	return b
 }
 

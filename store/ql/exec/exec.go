@@ -137,7 +137,9 @@ func (ex *Executor) selectStatement(v ql2.QueryVisitor, s *ql2.Select) error {
 		// Create the required columns
 		for _, ae := range s.Expression.Expressions {
 			col := ex.colResolver.resolveColumn(ae)
-			col.SetUnit(ae.GetUnit())
+			if ae.Unit != nil {
+				col.SetUnit(ae.Unit.Unit())
+			}
 			ex.table.AddColumn(col)
 		}
 

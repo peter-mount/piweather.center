@@ -8,10 +8,10 @@ import (
 	util2 "github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/ql"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/unit"
-	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"time"
 )
@@ -24,13 +24,13 @@ func scriptInit(q *ql.Query, err error) (*ql.Query, error) {
 			QueryRange(queryRangeInit).
 			UsingDefinition(parserState.usingDefinitionInit).
 			Select(selectInit).
-			AliasedExpression(aliasedExpressionInit).
 			Expression(parserState.expressionInit).
 			ExpressionModifier(parserState.expressionModifierInit).
 			Function(functionInit).
 			Metric(metricInit).
 			Time(timeInit).
 			Duration(durationInit).
+			Unit(unitInit).
 			WindRose(windRoseInit).
 			Build().
 			Query(q)
@@ -104,15 +104,8 @@ func selectInit(_ ql.QueryVisitor, s *ql.Select) error {
 	return assertLimit(s.Pos, s.Limit)
 }
 
-func aliasedExpressionInit(_ ql.QueryVisitor, s *ql.AliasedExpression) error {
-	if s.Unit != "" {
-		u, exists := value.GetUnit(s.Unit)
-		if !exists {
-			return errors.Errorf(s.Pos, "unsupported unit %q", s.Unit)
-		}
-		s.SetUnit(u)
-	}
-	return nil
+func unitInit(_ ql.QueryVisitor, s *units.Unit) error {
+	return s.Init()
 }
 
 func functionInit(_ ql.QueryVisitor, b *ql.Function) error {

@@ -4,6 +4,7 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type visitor struct {
@@ -25,6 +26,7 @@ type common struct {
 	usingDefinitions   func(ql.QueryVisitor, *ql.UsingDefinitions) error
 	usingDefinition    func(ql.QueryVisitor, *ql.UsingDefinition) error
 	histogram          func(ql.QueryVisitor, *ql.Histogram) error
+	unit               func(ql.QueryVisitor, *units.Unit) error
 	windRose           func(ql.QueryVisitor, *ql.WindRose) error
 }
 
@@ -110,6 +112,9 @@ func (v *visitor) AliasedExpression(b *ql.AliasedExpression) error {
 		}
 		if util.IsVisitorStop(err) {
 			return nil
+		}
+		if err == nil {
+			err = v.Unit(b.Unit)
 		}
 		if err == nil {
 			err = v.Expression(b.Expression)
@@ -256,6 +261,13 @@ func (v *visitor) Time(b *time.Time) error {
 func (v *visitor) Duration(b *time.Duration) error {
 	if b != nil && v.duration != nil {
 		return v.duration(v, b)
+	}
+	return nil
+}
+
+func (v *visitor) Unit(b *units.Unit) error {
+	if b != nil && v.unit != nil {
+		return v.unit(v, b)
 	}
 	return nil
 }

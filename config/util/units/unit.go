@@ -9,15 +9,21 @@ import (
 // Unit allows for Unit selection
 type Unit struct {
 	Pos   lexer.Position
-	Using string `parser:"'using' @String"`
+	Using string `parser:"'unit' @String"`
 	unit  *value.Unit
 }
 
 func (s *Unit) Unit() *value.Unit {
+	if s == nil {
+		return nil
+	}
 	return s.unit
 }
 
 func (s *Unit) Init() error {
+	if s == nil || s.Using == "" {
+		return nil
+	}
 	u, exists := value.GetUnit(s.Using)
 	if exists {
 		s.unit = u

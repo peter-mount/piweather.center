@@ -10,7 +10,7 @@ type Map interface {
 	GetLocation(n string) *Location
 	GetLocations() []*Location
 	SetLocation(l *Location) (Map, bool)
-	Merge(b Map) (Map, error)
+	Merge(b Map) error
 }
 
 type basicMap struct {
@@ -72,21 +72,15 @@ func (s *basicMap) SetLocation(l *Location) (Map, bool) {
 	return s, true
 }
 
-func (s *basicMap) Merge(b Map) (Map, error) {
-	if b == nil {
-		return s, nil
-	}
-
-	if s == nil {
-		s = newMap()
-	}
-
+func (s *basicMap) Merge(b Map) error {
 	// Merge the state, dealing with id clashes
-	for _, l := range b.GetLocations() {
-		if _, added := s.SetLocation(l); !added {
-			return nil, participle.Errorf(l.Pos, "location %q already defined", l.Name)
+	if b != nil {
+		for _, l := range b.GetLocations() {
+			if _, added := s.SetLocation(l); !added {
+				return participle.Errorf(l.Pos, "location %q already defined during merge", l.Name)
+			}
 		}
 	}
 
-	return s, nil
+	return nil
 }

@@ -25,3 +25,4 @@ go.sum
 /lib/font/
 /documentation/install.txt
 /query.txt
+/syncdev.sh

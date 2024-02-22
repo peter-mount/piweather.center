@@ -3,7 +3,7 @@ package ql
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util/time"
-	"github.com/peter-mount/piweather.center/weather/value"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Select struct {
@@ -24,20 +24,8 @@ type AliasedExpression struct {
 	Pos lexer.Position
 
 	Expression *Expression `parser:"@@"`
-	Unit       string      `parser:"( 'unit' @String )?"`
+	Unit       *units.Unit `parser:"( @@ )?"`
 	As         string      `parser:"( 'as' @String )?"`
-	unit       *value.Unit
-}
-
-func (a *AliasedExpression) GetUnit() *value.Unit {
-	if a == nil {
-		return nil
-	}
-	return a.unit
-}
-
-func (a *AliasedExpression) SetUnit(u *value.Unit) {
-	a.unit = u
 }
 
 // Expression handles function calls or direct metric values
