@@ -8,10 +8,10 @@ import (
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
-type Visitor[T any] interface {
+type CalcVisitor[T any] interface {
 	data.DataVisitor[T]
 	location.LocationVisitor[T]
-	Clone() Visitor[T]
+	Clone() CalcVisitor[T]
 	Calculation(*Calculation) error
 	CronTab(tab *time.CronTab) error
 	Current(*Current) error
@@ -25,16 +25,16 @@ type Visitor[T any] interface {
 }
 
 type visitorCommon[T any] struct {
-	calculation func(Visitor[T], *Calculation) error
-	cronTab     func(Visitor[T], *time.CronTab) error
-	current     func(Visitor[T], *Current) error
-	expression  func(Visitor[T], *Expression) error
-	function    func(Visitor[T], *Function) error
-	load        func(Visitor[T], *Load) error
-	metric      func(Visitor[T], *Metric) error
-	script      func(Visitor[T], *Script) error
-	unit        func(Visitor[T], *units.Unit) error
-	useFirst    func(Visitor[T], *UseFirst) error
+	calculation func(CalcVisitor[T], *Calculation) error
+	cronTab     func(CalcVisitor[T], *time.CronTab) error
+	current     func(CalcVisitor[T], *Current) error
+	expression  func(CalcVisitor[T], *Expression) error
+	function    func(CalcVisitor[T], *Function) error
+	load        func(CalcVisitor[T], *Load) error
+	metric      func(CalcVisitor[T], *Metric) error
+	script      func(CalcVisitor[T], *Script) error
+	unit        func(CalcVisitor[T], *units.Unit) error
+	useFirst    func(CalcVisitor[T], *UseFirst) error
 }
 
 type visitor[T any] struct {
@@ -43,7 +43,7 @@ type visitor[T any] struct {
 	visitorCommon[T]
 }
 
-func (v *visitor[T]) Clone() Visitor[T] {
+func (v *visitor[T]) Clone() CalcVisitor[T] {
 	return &visitor[T]{
 		DataVisitorCommon:   v.DataVisitorCommon,
 		LocationVisitorBase: v.LocationVisitorBase,

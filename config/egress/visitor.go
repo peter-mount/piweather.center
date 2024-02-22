@@ -5,22 +5,22 @@ import (
 	"github.com/peter-mount/piweather.center/config/util/amqp"
 )
 
-type Visitor[T any] interface {
+type EgressVisitor[T any] interface {
 	Action(*Action) error
 	Amqp(*amqp.Amqp) error
 	Metric(*Metric) error
 	Publish(*Publish) error
 	Script(*Script) error
 	GetData() T
-	SetData(T) Visitor[T]
+	SetData(T) EgressVisitor[T]
 }
 
 type visitorCommon[T any] struct {
-	action  func(Visitor[T], *Action) error
-	amqp    func(Visitor[T], *amqp.Amqp) error
-	metric  func(Visitor[T], *Metric) error
-	publish func(Visitor[T], *Publish) error
-	script  func(Visitor[T], *Script) error
+	action  func(EgressVisitor[T], *Action) error
+	amqp    func(EgressVisitor[T], *amqp.Amqp) error
+	metric  func(EgressVisitor[T], *Metric) error
+	publish func(EgressVisitor[T], *Publish) error
+	script  func(EgressVisitor[T], *Script) error
 }
 
 type visitor[T any] struct {
@@ -32,7 +32,7 @@ func (v *visitor[T]) GetData() T {
 	return v.data
 }
 
-func (v *visitor[T]) SetData(data T) Visitor[T] {
+func (v *visitor[T]) SetData(data T) EgressVisitor[T] {
 	return &visitor[T]{
 		visitorCommon: v.visitorCommon,
 		data:          data,

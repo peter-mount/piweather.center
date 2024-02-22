@@ -120,7 +120,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 	return r.Value, r.Time, nil
 }
 
-func (e *executor) calculation(v lang2.Visitor[*Calculator], b *lang2.Calculation) error {
+func (e *executor) calculation(v lang2.CalcVisitor[*Calculator], b *lang2.Calculation) error {
 	e.resetStack()
 
 	// If usefirst set check to see we have a latest value, if not then set the default value
@@ -152,7 +152,7 @@ func (e *executor) calculation(v lang2.Visitor[*Calculator], b *lang2.Calculatio
 	return util.VisitorStop
 }
 
-func (e *executor) expression(v lang2.Visitor[*Calculator], b *lang2.Expression) error {
+func (e *executor) expression(v lang2.CalcVisitor[*Calculator], b *lang2.Expression) error {
 	var err error
 	switch {
 	case b.Current != nil:
@@ -178,11 +178,11 @@ func (e *executor) expression(v lang2.Visitor[*Calculator], b *lang2.Expression)
 	return util.VisitorStop
 }
 
-func (e *executor) current(_ lang2.Visitor[*Calculator], _ *lang2.Current) error {
+func (e *executor) current(_ lang2.CalcVisitor[*Calculator], _ *lang2.Current) error {
 	return e.metricImpl(e.calc.ID())
 }
 
-func (e *executor) metric(_ lang2.Visitor[*Calculator], b *lang2.Metric) error {
+func (e *executor) metric(_ lang2.CalcVisitor[*Calculator], b *lang2.Metric) error {
 	return e.metricImpl(b.Name)
 }
 
@@ -196,7 +196,7 @@ func (e *executor) metricImpl(n string) error {
 	return nil
 }
 
-func (e *executor) useFirst(_ lang2.Visitor[*Calculator], b *lang2.UseFirst) error {
+func (e *executor) useFirst(_ lang2.CalcVisitor[*Calculator], b *lang2.UseFirst) error {
 	rec, exists := e.latest.Latest(e.calc.ID())
 	if !exists {
 		rec, exists = e.latest.Latest(b.Metric.Name)
@@ -210,7 +210,7 @@ func (e *executor) useFirst(_ lang2.Visitor[*Calculator], b *lang2.UseFirst) err
 	return nil
 }
 
-func (e *executor) unit(_ lang2.Visitor[*Calculator], b *units.Unit) error {
+func (e *executor) unit(_ lang2.CalcVisitor[*Calculator], b *units.Unit) error {
 	v, present := e.pop()
 	if present {
 		nv, err := v.Value.As(b.Unit())
@@ -224,7 +224,7 @@ func (e *executor) unit(_ lang2.Visitor[*Calculator], b *units.Unit) error {
 	return nil
 }
 
-func (e *executor) function(v lang2.Visitor[*Calculator], b *lang2.Function) error {
+func (e *executor) function(v lang2.CalcVisitor[*Calculator], b *lang2.Function) error {
 	e.save()
 
 	calc, err := value.GetCalculator(b.Name)

@@ -28,7 +28,7 @@ func (s *Processor) initMq() error {
 		Script(s.script)
 }
 
-func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *amqp2.Amqp) error {
+func (s *Processor) initAmqp(v egress2.EgressVisitor[mqSetup], a *amqp2.Amqp) error {
 	m := v.GetData()
 
 	a.MQ = &amqp3.MQ{
@@ -49,7 +49,7 @@ func (s *Processor) initAmqp(v egress2.Visitor[mqSetup], a *amqp2.Amqp) error {
 	return a.Publisher.Bind(a.MQ)
 }
 
-func (s *Processor) publishAmqp(v egress2.Visitor[*action], p *egress2.Publish, msg []byte) error {
+func (s *Processor) publishAmqp(v egress2.EgressVisitor[*action], p *egress2.Publish, msg []byte) error {
 	a := s.script.State().GetAmqp(p.Amqp)
 	if a == nil {
 		return participle.Errorf(p.Pos, "Unknown amqp %q", p.Amqp)

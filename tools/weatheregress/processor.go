@@ -10,7 +10,7 @@ import (
 
 type Processor struct {
 	script    *egress2.Script
-	processor egress2.Visitor[*action]
+	processor egress2.EgressVisitor[*action]
 }
 
 func (s *Processor) Start() error {
@@ -58,7 +58,7 @@ func (s *Processor) processAction(a *action) {
 	}
 }
 
-func (s *Processor) metric(v egress2.Visitor[*action], m *egress2.Metric) error {
+func (s *Processor) metric(v egress2.EgressVisitor[*action], m *egress2.Metric) error {
 	var err error
 	if m.Statement != nil {
 		act := v.GetData()
@@ -90,7 +90,7 @@ func (s *Processor) metric(v egress2.Visitor[*action], m *egress2.Metric) error 
 	return err
 }
 
-func (s *Processor) publish(v egress2.Visitor[*action], p *egress2.Publish) error {
+func (s *Processor) publish(v egress2.EgressVisitor[*action], p *egress2.Publish) error {
 	msg, err := p.As.Marshaller()(v.GetData().message)
 	if err == nil {
 		switch {

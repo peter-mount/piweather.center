@@ -30,7 +30,7 @@ func egressInit(q *Script, err error) (*Script, error) {
 	return q, err
 }
 
-func defineAmqp(v Visitor[*State], a *amqp.Amqp) error {
+func defineAmqp(v EgressVisitor[*State], a *amqp.Amqp) error {
 	err := v.GetData().AddAmqp(a)
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func defineAmqp(v Visitor[*State], a *amqp.Amqp) error {
 	return util.VisitorStop
 }
 
-func defineMetric(v Visitor[*State], a *Metric) error {
+func defineMetric(v EgressVisitor[*State], a *Metric) error {
 	// Should never occur as this would be a parser error
 	if len(a.Metrics) == 0 {
 		return participle.Errorf(a.Pos, "metric undefined")
@@ -62,7 +62,7 @@ func defineMetric(v Visitor[*State], a *Metric) error {
 	return nil
 }
 
-func definePublish(v Visitor[*State], a *Publish) error {
+func definePublish(v EgressVisitor[*State], a *Publish) error {
 	state := v.GetData()
 	a.Amqp = strings.TrimSpace(a.Amqp)
 	switch {

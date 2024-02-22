@@ -78,7 +78,7 @@ func (s *State) GetCalculations() []*Calculation {
 	return r
 }
 
-func (s *State) initCalculation(_ Visitor[*State], l *Calculation) error {
+func (s *State) initCalculation(_ CalcVisitor[*State], l *Calculation) error {
 	l.Target = strings.ToLower(l.Target)
 	l.At = strings.ToLower(l.At)
 
@@ -90,7 +90,7 @@ func (s *State) initCalculation(_ Visitor[*State], l *Calculation) error {
 	return nil
 }
 
-func (s *State) load(_ Visitor[*State], l *Load) error {
+func (s *State) load(_ CalcVisitor[*State], l *Load) error {
 	l.When = strings.ToLower(l.When)
 	l.With = strings.TrimSpace(l.With)
 
@@ -107,11 +107,11 @@ func (s *State) load(_ Visitor[*State], l *Load) error {
 	return nil
 }
 
-func (s *State) initCronTab(_ Visitor[*State], l *time.CronTab) error {
+func (s *State) initCronTab(_ CalcVisitor[*State], l *time.CronTab) error {
 	return l.Init()
 }
 
-func (s *State) initFunction(_ Visitor[*State], l *Function) error {
+func (s *State) initFunction(_ CalcVisitor[*State], l *Function) error {
 	l.Name = strings.ToLower(l.Name)
 
 	if !value.CalculatorExists(l.Name) {
@@ -133,11 +133,11 @@ func (s *State) initLocation(_ location2.LocationVisitor[*State], l *location2.L
 	return nil
 }
 
-func (s *State) initMetric(_ Visitor[*State], l *Metric) error {
+func (s *State) initMetric(_ CalcVisitor[*State], l *Metric) error {
 	l.Name = strings.ToLower(strings.Join(l.Metric, "."))
 	return nil
 }
 
-func (s *State) initUnit(_ Visitor[*State], l *units.Unit) error {
+func (s *State) initUnit(_ CalcVisitor[*State], l *units.Unit) error {
 	return l.Init()
 }

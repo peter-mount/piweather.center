@@ -109,9 +109,9 @@ func (calc *Calculator) addMetric(n string, c *lang2.Calculation) {
 	calc.calculations = append(calc.calculations, nc)
 }
 
-func (calc *Calculator) addCalculation(_ lang2.Visitor[*Calculator], c *lang2.Calculation) error {
+func (calc *Calculator) addCalculation(_ lang2.CalcVisitor[*Calculator], c *lang2.Calculation) error {
 	v := lang2.NewBuilder[*Calculator]().
-		Metric(func(_ lang2.Visitor[*Calculator], m *lang2.Metric) error {
+		Metric(func(_ lang2.CalcVisitor[*Calculator], m *lang2.Metric) error {
 			calc.addMetric(m.Name, c)
 			return nil
 		}).
