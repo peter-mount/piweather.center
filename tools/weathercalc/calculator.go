@@ -76,13 +76,16 @@ func (calc *Calculator) loadLatestMetrics() error {
 			return err
 		}
 
-		for _, m := range r.Metrics {
-			u, ok := value.GetUnit(m.Unit)
-			if ok {
-				calc.Latest.Append(m.Metric, record.Record{
-					Time:  m.Time,
-					Value: u.Value(m.Value),
-				})
+		// r can be nil if there are no results returned from the DB
+		if r != nil {
+			for _, m := range r.Metrics {
+				u, ok := value.GetUnit(m.Unit)
+				if ok {
+					calc.Latest.Append(m.Metric, record.Record{
+						Time:  m.Time,
+						Value: u.Value(m.Value),
+					})
+				}
 			}
 		}
 
