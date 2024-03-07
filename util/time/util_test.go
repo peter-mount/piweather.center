@@ -21,19 +21,46 @@ func TestLocalMidnight(t *testing.T) {
 				return
 			}
 
-			year := 2023
-			tm := time.Date(year, 1, 1, 0, 13, 14, 0, time.UTC)
+			// test across a four-year period where one, 2024, is a leap year
+			for year := 2023; year <= 2026; year++ {
+				tm := time.Date(year, 1, 1, 0, 13, 14, 0, time.UTC)
 
-			for tm.Year() == year {
-				localTime := tm.In(loc)
+				for tm.Year() == year {
+					localTime := tm.In(loc)
 
-				got := LocalMidnight(localTime)
+					got := LocalMidnight(localTime)
 
-				if got.Hour() != 0 {
-					t.Errorf("%s got %s for %q", localTime.Format(time.RFC3339), got.Format(time.RFC3339), timeZone)
+					// We would expect midnight to occur at 00:00:00
+					hour := got.Hour()
+					failed := hour != 0
+
+					// If it's not 0 then check special cases
+					if failed {
+						switch timeZone {
+						// These Time Zones switch to DST at midnight,
+						// so the start of this single local day is 01:00 and not 00:00
+						// e.g. 23:59:59 is followed by 01:00:00
+						case "Africa/Cairo",
+							"America/Asuncion",
+							"America/Havana",
+							"America/Santiago",
+							"America/Scoresbysund",
+							"Asia/Beirut",
+							"Atlantic/Azores",
+							"Chile/Continental",
+							"Cuba",
+							"Egypt":
+							failed = hour != 1
+						}
+					}
+
+					if failed {
+						t.Errorf("%s got %s for %q", localTime.Format(time.RFC3339), got.Format(time.RFC3339), timeZone)
+					}
+
+					tm = tm.Add(time.Hour)
 				}
 
-				tm = tm.Add(time.Hour)
 			}
 		})
 	}

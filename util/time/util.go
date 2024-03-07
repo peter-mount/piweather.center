@@ -41,27 +41,18 @@ func Zone(t time.Time) string {
 // LocalMidnight returns the time of midnight in the local time zone before
 // the provided time.
 //
-// Note: this is NOT as simple as Truncate(24 * time.Hour) as that is only valid in UTC.
-//
-// So what we need to do is first do the Truncate, then adjust the result by the source
-// Time's TimeZone offset, which will give us midnight based on the source Time.
-//
-// This works for most days, except for those where a switch between local Standard
-// and Daylight Savings occurs. When that happens the result is not midnight but either
-// 01:00 the same day or 23:00 the previous day - because the truncate has presumed
-// that the day has 24 hours when in actual fact those local days are
+// Note: this is NOT as simple as Truncate(24 * time.Hour) as not all days are 24 hours long.
+// Where a Time Zone uses daylight saving, then the days they switch can be either
 // 23 hours long (Standard to Daylight Savings - e.g. "Spring Forward") or
 // 25 hours long (Daylight Savings to Standard - e.g. "Fall back").
 //
-// So when this happens we then adjust the time again to account for the difference.
-//
-// TODO: This works for most Time Zones, except for 10 where it's still off.
+// Note: Local Midnight is usually 00:00:00 but for some TimeZones, on the day they switch to Daylight Savings
+// the do so at midnight, so this returns 01:00:00 for those TimeZones for that specific day.
 func LocalMidnight(t time.Time) time.Time {
-	// First truncate the time to 24 hours and add the time zone offset
-	_, off := t.Zone()
-	midnight := t.
-		Truncate(24 * time.Hour).
-		Add(-time.Duration(off) * time.Second) //.
+	// Truncate to the current hour, then subtract the remaining hours.
+	// Do not truncate to 24*time.Hour here as not all days are 24 hours long!
+	midnight := t.Truncate(time.Hour)
+	midnight = midnight.Add(-time.Duration(midnight.Hour()) * time.Hour)
 
 	// If hour is still not zero then we have a Standard/Day-Light-Saving change
 	// on this day so adjust the time accordingly, so if 1 then -1hour, 23 then add 1 hour
