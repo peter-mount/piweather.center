@@ -41,13 +41,36 @@ func Zone(t time.Time) string {
 // LocalMidnight returns the time of midnight in the local time zone before
 // the provided time.
 //
-// Note: truncate to hour then subtract hours to get the start.
-// It might look weird when you could truncate to day, but that truncate
-// seems to set it to 0h UTC, so if we are in BST (UTC+1) then the day
-// starts at 0100 and not 0000 midnight.
+// Note: this is NOT as simple as Truncate(24 * time.Hour) as that is only valid in UTC.
 //
-// TODO check this works for other timezones
+// So what we need to do is first do the Truncate, then adjust the result by the source
+// Time's TimeZone offset, which will give us midnight based on the source Time.
+//
+// This works for most days, except for those where a switch between local Standard
+// and Daylight Savings occurs. When that happens the result is not midnight but either
+// 01:00 the same day or 23:00 the previous day - because the truncate has presumed
+// that the day has 24 hours when in actual fact those local days are
+// 23 hours long (Standard to Daylight Savings - e.g. "Spring Forward") or
+// 25 hours long (Daylight Savings to Standard - e.g. "Fall back").
+//
+// So when this happens we then adjust the time again to account for the difference.
+//
+// TODO: This works for most Time Zones, except for 10 where it's still off.
 func LocalMidnight(t time.Time) time.Time {
-	today := t.Truncate(time.Hour)
-	return today.Add(time.Hour * time.Duration(-today.Hour()))
+	// First truncate the time to 24 hours and add the time zone offset
+	_, off := t.Zone()
+	midnight := t.
+		Truncate(24 * time.Hour).
+		Add(-time.Duration(off) * time.Second) //.
+
+	// If hour is still not zero then we have a Standard/Day-Light-Saving change
+	// on this day so adjust the time accordingly, so if 1 then -1hour, 23 then add 1 hour
+	if h := midnight.Hour(); h != 0 {
+		if h >= 12 {
+			h = h - 24
+		}
+		midnight = midnight.Add(time.Duration(-h) * time.Hour)
+	}
+
+	return midnight
 }

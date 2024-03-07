@@ -1,38 +1,93 @@
 package time
 
 import (
+	"os"
+	"strings"
 	"testing"
 	"time"
+	"unicode"
 )
 
-// Simply test that, when we request local midnight for a specific time zone
-// we get that midnight and not that for UTC
+// For every timezone on the test machine, run local midnight against every hour
+// of the UTC year.
+//
+// This then tests things like Daylight Savings etc
 func TestLocalMidnight(t *testing.T) {
-	tests := []struct {
-		name  string
-		month time.Month
-		want  int
-	}{
-		{name: "Europe/London", month: time.February},
-		{name: "Europe/London", month: time.June},
-		{name: "US/Eastern", month: time.February},
-		{name: "US/Eastern", month: time.June},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name+" "+tt.month.String(), func(t *testing.T) {
-			tt.want = 1
-			loc, err := time.LoadLocation(tt.name)
+	for _, timeZone := range getAvailableTimeZones() {
+		t.Run(timeZone, func(t *testing.T) {
+			loc, err := time.LoadLocation(timeZone)
 			if err != nil {
-				t.Errorf("Failed to load %q: %v", tt.name, err)
+				t.Errorf("Failed to load %q: %v", timeZone, err)
 				return
 			}
 
-			tm := time.Date(2023, tt.month, 1, 12, 13, 14, 0, loc)
-			got := LocalMidnight(tm)
+			year := 2023
+			tm := time.Date(year, 1, 1, 0, 13, 14, 0, time.UTC)
 
-			if got.Hour() != 0 {
-				t.Errorf("LocalMidnight() = %v, want %v", got, 0)
+			for tm.Year() == year {
+				localTime := tm.In(loc)
+
+				got := LocalMidnight(localTime)
+
+				if got.Hour() != 0 {
+					t.Errorf("%s got %s for %q", localTime.Format(time.RFC3339), got.Format(time.RFC3339), timeZone)
+				}
+
+				tm = tm.Add(time.Hour)
 			}
 		})
 	}
+}
+
+func getAvailableTimeZones() []string {
+	var timeZones []string
+	for _, zd := range []string{
+		// Update path according to your OS
+		"/usr/share/zoneinfo/",
+		"/usr/share/lib/zoneinfo/",
+		"/usr/lib/locale/TZ/",
+	} {
+		timeZones = walkTzDir(zd, timeZones)
+
+		for idx, zone := range timeZones {
+			timeZones[idx] = strings.ReplaceAll(zone, zd+"/", "")
+		}
+	}
+	return timeZones
+}
+
+func walkTzDir(path string, zones []string) []string {
+	fileInfos, err := os.ReadDir(path)
+	if err != nil {
+		return zones
+	}
+
+	isAlpha := func(s string) bool {
+		for _, r := range s {
+			if !unicode.IsLetter(r) {
+				return false
+			}
+		}
+		return true
+	}
+
+	for _, info := range fileInfos {
+		if info.Name() != strings.ToUpper(info.Name()[:1])+info.Name()[1:] {
+			continue
+		}
+
+		if !isAlpha(info.Name()[:1]) {
+			continue
+		}
+
+		newPath := path + "/" + info.Name()
+
+		if info.IsDir() {
+			zones = walkTzDir(newPath, zones)
+		} else {
+			zones = append(zones, newPath)
+		}
+	}
+
+	return zones
 }
