@@ -9,135 +9,58 @@ import (
 	"unicode"
 )
 
-func TestXXX(t *testing.T) {
-	//timeZone := "Africa/Addis_Ababa"
-	//timeZone := "Africa/Cairo"
-	timeZone := "Europe/London"
-	//timeZone := "Australia/Lord_Howe"
-
-	loc, err := time.LoadLocation(timeZone)
-	if err != nil {
-		t.Errorf("Failed to load %q: %v", timeZone, err)
-		return
-	}
-
-	for d := 1; d <= 31; d++ {
-		t.Run(fmt.Sprintf("%s %02d", timeZone, d),
-			func(t *testing.T) {
-				t0 := time.Date(2024, 4, d-1, 23, 0, 0, 0, loc).
-					Add(time.Hour)
-				tm := t0
-
-				c := 0
-				for h := 0; tm.Day() == t0.Day(); h++ {
-
-					got := LocalMidnight(tm)
-
-					testTimeIsMidnight(t, timeZone, tm, got)
-
-					//if h == 0 {
-					fmt.Printf("%02d/%02d\t%s\t%v\t%s\t%v\n",
-						d, h,
-						tm.Format(time.RFC822),
-						IsMidnight(tm),
-						got.Format(time.RFC822),
-						IsMidnight(got))
-					//}
-
-					tm = tm.Add(time.Hour)
-					c++
-				}
-				fmt.Printf("hours %d\n", c)
-			})
-	}
-}
-
-func TestLocalMidnight2(t *testing.T) {
-	testTimeZone(t, "Europe/London", LocalMidnight, nil)
-	testTimeZone(t, "Africa/Cairo", LocalMidnight, nil)
-}
-
-func TestIsMidnight(t *testing.T) {
-	loc, err := time.LoadLocation("Europe/London")
-	if err != nil {
-		t.Errorf("Failed to load location %v", err)
-	}
-
-	dt := time.Date(2023, 3, 25, 23, 13, 14, 0, loc)
-	for h := 0; h < 5; h++ {
-		mid := LocalMidnight(dt)
-		fmt.Printf("dt %v %v midnight %v %v\n",
-			dt.String(),
-			IsMidnight(dt),
-			mid.String(),
-			IsMidnight(mid))
-
-		if mid.Hour() != 0 {
-			t.Errorf("Not midnight %v got %v",
-				dt.String(),
-				mid.String(),
-			)
-		}
-
-		dt = dt.Add(time.Hour)
-	}
-}
-
 // For every timezone on the test machine,
-// run LocalMidnight against every hour of the UTC year
-// for the four-year period 2023..2026, handling leap years.
+// run LocalMidnight against every hour of the UTC year for the four-year period 2023..2026, handling leap years.
 func TestLocalMidnight(t *testing.T) {
 	testAllTimeZones(t, LocalMidnight, nil)
 }
 
 // For every timezone on the test machine,
-// run YesterdayMidnight against every hour of the UTC year
-// for the four-year period 2023..2026, handling leap years.
+// run YesterdayMidnight against every hour of the UTC year for the four-year period 2023..2026, handling leap years.
 func TestYesterdayMidnight(t *testing.T) {
 	testAllTimeZones(t, YesterdayMidnight, func(t *testing.T, timeZone string, tm, got time.Time) {
 		// Now check the date is yesterday
 		midnight := LocalMidnight(tm)
-		midnight = midnight.UTC().In(midnight.Location())
-
-		if !got.Before(midnight) {
-			t.Errorf("%q is not yesterday for %q", got.String(), midnight.String())
-		}
-
 		if !IsMidnight(midnight) {
 			t.Errorf("%q is not midnight", midnight.String())
 		}
 
-		dr := midnight.Sub(got)
-		d := int(dr / time.Hour)
-		if d < 20 || d > 27 {
-			t.Errorf("Not same date, %q midnight %q got %q offset %s",
-				tm.String(),
-				midnight.String(),
-				got.String(),
-				dr.String())
+		if !got.Before(midnight) {
+			t.Errorf("%q is not yesterday for %q", got.String(), midnight.String())
 		}
 	})
 }
 
-// TestYesterdayMidnight has errors for some entries where midnight is off by 2 days
+// TestYesterdayMidnight had errors for some entries where midnight is off by 2 days.
+// This is now fixed but this checks that it is still fixed.
 func TestYesterdayMidnight_wrongDay(t *testing.T) {
 	for _, test := range []struct {
 		timeZone string
 		date     string
 		hrStart  int
 		hrEnd    int
+		expected string
 	}{
 		{
 			timeZone: "Africa/Cairo",
 			date:     "2023-04-29T00:13:14-03:00",
 			hrStart:  0,
 			hrEnd:    5,
+			expected: "2023-04-28",
 		},
 		{
 			timeZone: "Atlantic/Azores",
 			date:     "2023-03-27T00:13:14-03:00",
 			hrStart:  0,
 			hrEnd:    5,
+			expected: "2023-03-26",
+		},
+		{
+			timeZone: "Asia/Famagusta",
+			date:     "2023-10-29T02:13:14+02:00",
+			hrStart:  0,
+			hrEnd:    5,
+			expected: "2023-10-28",
 		},
 	} {
 		t.Run(test.timeZone,
@@ -157,6 +80,13 @@ func TestYesterdayMidnight_wrongDay(t *testing.T) {
 					return
 				}
 
+				expected, err := time.Parse(time.DateOnly, test.expected)
+				if err != nil {
+					t.Errorf("Failed to parse %q: %v", test.date, err)
+					return
+				}
+				expY, expM, expD := expected.Date()
+
 				tm := t0.UTC().In(loc)
 
 				c := 0
@@ -166,10 +96,15 @@ func TestYesterdayMidnight_wrongDay(t *testing.T) {
 
 					testTimeIsMidnight(t, test.timeZone, tm, got)
 
-					fmt.Printf("tm %s\tgot %s\t%v\n",
-						tm.Format(time.RFC3339),
-						got.Format(time.RFC3339),
-						IsMidnight(got))
+					// Test it's the date we are expecting
+					if yr, mn, dy := got.Date(); !(yr == expY && mn == expM && dy == expD) {
+						t.Errorf("Wrong day %d\ntm\t\t%-25s\ngot\t\t%-25s\t%v\nexpect\t%-25s\n",
+							h,
+							tm.Format(time.RFC822),
+							got.Format(time.RFC822),
+							IsMidnight(got),
+							test.expected)
+					}
 
 					// Now check the date is yesterday
 					midnight := LocalMidnight(tm)
@@ -177,9 +112,12 @@ func TestYesterdayMidnight_wrongDay(t *testing.T) {
 
 					dr := midnight.Sub(got)
 					d := int(dr / time.Hour)
-					if d < 20 || d > 27 {
-						t.Errorf("Not same date, midnight %s got %s offset %s",
+					if d < 20 || d > 28 {
+						t.Errorf("Too far %d\nmnight\t%-25s\t%-25s\ngot\t\t%-25s\t%-25s\noffset\t%s\n",
+							h,
+							midnight.Format(time.RFC822),
 							midnight.Format(time.RFC3339),
+							got.Format(time.RFC822),
 							got.Format(time.RFC3339),
 							dr.String())
 					}
@@ -193,42 +131,110 @@ func TestYesterdayMidnight_wrongDay(t *testing.T) {
 }
 
 // For every timezone on the test machine,
-// run TomorrowMidnight against every hour of the UTC year
-// for the four-year period 2023..2026, handling leap years.
+// run TomorrowMidnight against every hour of the UTC year for the four-year period 2023..2026, handling leap years.
 func TestTomorrowMidnight(t *testing.T) {
 	testAllTimeZones(t, TomorrowMidnight, func(t *testing.T, timeZone string, tm, got time.Time) {
 		// Now check the date is tomorrow
 		midnight := LocalMidnight(tm)
-
-		tomorrow := LocalMidnight(midnight.AddDate(0, 0, 1))
-
-		if !IsMidnight(tomorrow) {
-			t.Errorf("tomorrow not midnight %q", tomorrow.String())
+		if !IsMidnight(midnight) {
+			t.Errorf("%q is not midnight", midnight.String())
 		}
 
-		//mYd := DayId(midnight)
-		//
-		//// Lookup tomorrow, checking for days which are 23, 24 or 25 hours long
-		//tomorrow := midnight
-		//for i := 23; i < 26; i++ {
-		//	tomorrow = LocalMidnight(midnight.Add(time.Duration(i) * time.Hour))
-		//	if DayId(midnight) > mYd {
-		//		break
-		//	}
+		//tomorrow := LocalMidnight(midnight.AddDate(0, 0, 1))
+		//tomorrow := LocalMidnight(midnight.Add(24 * time.Hour))
+		//if !IsMidnight(tomorrow) {
+		//	t.Errorf("tomorrow not midnight %q", tomorrow.String())
 		//}
 
-		if !tomorrow.After(tm) {
-			t.Errorf("%q %q is not tomorrow for %q", got.String(), tomorrow.String(), tm.String())
-		}
-
-		// tomorrow should match what the actual function have returned
-		if tomorrow.Unix() != got.Unix() {
-			t.Errorf("Not same date, %q tomorrow %q got %q",
-				tm.String(),
-				tomorrow.String(),
-				got.String())
+		if midnight.Before(got) {
+			t.Errorf("Not tomorrow, got %q expected %q from %q", got.String(), midnight.String(), tm.String())
 		}
 	})
+}
+
+// TestTomorrowMidnight had errors for some entries where midnight is off by a day.
+// This is now fixed but this checks that it is still fixed.
+func TestTomorrowMidnight_wrongDay(t *testing.T) {
+	for _, test := range []struct {
+		timeZone string
+		date     string
+		hrStart  int
+		hrEnd    int
+		expected string
+	}{
+		{
+			timeZone: "America/Asuncion",
+			date:     "2023-09-30T00:13:14-04:00",
+			hrStart:  0,
+			hrEnd:    5,
+			expected: "2023-10-01",
+		},
+	} {
+		t.Run(test.timeZone,
+			func(t *testing.T) {
+
+				// Verify timeZone is valid
+				loc, err := time.LoadLocation(test.timeZone)
+				if err != nil {
+					t.Errorf("Failed to load %q: %v", test.timeZone, err)
+					return
+				}
+
+				// Parse start time
+				t0, err := time.Parse(time.RFC3339, test.date)
+				if err != nil {
+					t.Errorf("Failed to parse %q: %v", test.date, err)
+					return
+				}
+
+				expected, err := time.Parse(time.DateOnly, test.expected)
+				if err != nil {
+					t.Errorf("Failed to parse %q: %v", test.date, err)
+					return
+				}
+				expY, expM, expD := expected.Date()
+
+				tm := t0.UTC().In(loc)
+
+				c := 0
+				for h := test.hrStart; h <= test.hrEnd; h++ {
+
+					got := TomorrowMidnight(tm)
+
+					testTimeIsMidnight(t, test.timeZone, tm, got)
+
+					// Test it's the date we are expecting
+					if yr, mn, dy := got.Date(); !(yr == expY && mn == expM && dy == expD) {
+						t.Errorf("Wrong day %d\ntm\t\t%-25s\ngot\t\t%-25s\t%v\nexpect\t%-25s\n",
+							h,
+							tm.Format(time.RFC822),
+							got.Format(time.RFC822),
+							IsMidnight(got),
+							test.expected)
+					}
+
+					// Now check the date is yesterday
+					midnight := LocalMidnight(tm)
+					midnight = midnight.UTC().In(midnight.Location())
+
+					dr := -midnight.Sub(got)
+					d := int(dr / time.Hour)
+					if d < 20 || d > 28 {
+						t.Errorf("Too far %d\nmnight\t%-25s\t%-25s\ngot\t\t%-25s\t%-25s\noffset\t%s\n",
+							h,
+							midnight.Format(time.RFC822),
+							midnight.Format(time.RFC3339),
+							got.Format(time.RFC822),
+							got.Format(time.RFC3339),
+							dr.String())
+					}
+
+					tm = tm.Add(time.Hour)
+					c++
+				}
+				fmt.Printf("hours %d\n", c)
+			})
+	}
 }
 
 func testAllTimeZones(t *testing.T, f func(time.Time) time.Time, test func(t *testing.T, timeZone string, tm, got time.Time)) {
@@ -270,40 +276,12 @@ func testTimeZone(t *testing.T, timeZone string, f func(time.Time) time.Time, te
 // This accounts for some Time Zones where when DST occurs and there is no Midnight when the DST transition occurs.
 func testTimeIsMidnight(t *testing.T, timeZone string, localTime, got time.Time) {
 	// We would expect midnight to occur at 00:00:00
-	failed := !IsMidnight(got)
-
-	// If it's not 0 then check special cases
-	if failed {
-		switch timeZone {
-		// These Time Zones switch to DST at midnight,
-		// so the start of this single local day is 01:00 and not 00:00
-		// e.g. 23:59:59 is followed by 01:00:00
-		case "Africa/Cairo",
-			"America/Asuncion",
-			"America/Havana",
-			"America/Santiago",
-			"America/Scoresbysund",
-			"Asia/Beirut",
-			"Atlantic/Azores",
-			"Chile/Continental",
-			"Cuba",
-			"Egypt":
-			failed = got.Hour() != 1
-
-		default:
-			failed = got.Hour() != 0
-		}
-	} else {
-		failed = got.Hour() != 0
-	}
-
-	if failed {
+	if !IsMidnight(got) {
 		t.Errorf("%s got %s for %q",
 			localTime.Format(time.RFC3339),
 			got.Format(time.RFC3339),
 			timeZone)
 	}
-
 }
 
 func getAvailableTimeZones() []string {

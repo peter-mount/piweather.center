@@ -30,6 +30,10 @@ func TomorrowMidnight(t time.Time) time.Time {
 	return midnight(t, 1, time.Hour)
 }
 
+// Locate the appropriate "midnight" from t.
+// c the number of midnights to locate.
+// offset the duration to step whilst locating the midnight,
+// negative to go backwards in time, positive forwards in time.
 func midnight(t time.Time, c int, offset time.Duration) time.Time {
 	if c < 1 || offset.Abs() < time.Hour {
 		panic("Invalid midnight() call")
@@ -57,6 +61,7 @@ func midnight(t time.Time, c int, offset time.Duration) time.Time {
 			t = t.Add(offset)
 		}
 	}
+
 	return t
 }
 
@@ -66,25 +71,10 @@ func IsMidnight(t time.Time) bool {
 	// If we are pedantic, we should add t.Nanosecond()==0 here
 	th, tm, ts := t.Clock()
 	if !t.IsZero() && tm == 0 && ts == 0 {
-		// Check to see if we are on the start date of the current zone, and if so
-		// then return true if the time is the same as the start time.
-		// If not then fall through to the usual check for hour 0.
-		// This handles the odd time zones where, when they switch to DST Midnight is 01:00 and not 00:00
-		zs, _ := t.ZoneBounds()
-		if !zs.IsZero() {
-			zyr, zmn, zdy := zs.Date()
-
-			tyr, tmn, tdy := t.Date()
-
-			if zyr == tyr && zmn == tmn && zdy == tdy {
-				zh := zs.Hour()
-				if zh == 0 {
-					return zh == th
-				}
-			}
-		}
-
-		return th == 0
+		// comparing DST for t and 1 hour earlier allows us to check for DST changes
+		// which happen at midnight - e.g. Cairo
+		t1 := t.Add(-time.Hour)
+		return t.IsDST() != t1.IsDST() || th == 0
 	}
 
 	return false

@@ -37,10 +37,3 @@ func Zone(t time.Time) string {
 	}
 	return zone + ts
 }
-
-// DayId returns a unique id for a specific date.
-// It's equivalent to (Year*366) + YearDay. 366 is used to allow for leap years,
-// so for non-leap years there will be a gap in the sequence between 31-Dec and 1-Jan.
-func DayId(t time.Time) int {
-	return (t.Year() * 366) + t.YearDay()
-}
