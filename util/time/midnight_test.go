@@ -3,6 +3,7 @@ package time
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -140,14 +141,16 @@ func TestTomorrowMidnight(t *testing.T) {
 			t.Errorf("%q is not midnight", midnight.String())
 		}
 
+		ty, tmn, td := midnight.Date()
+		tomorrow := LocalMidnight(time.Date(ty, tmn, td+1, 4, 0, 0, 0, midnight.Location()))
 		//tomorrow := LocalMidnight(midnight.AddDate(0, 0, 1))
 		//tomorrow := LocalMidnight(midnight.Add(24 * time.Hour))
-		//if !IsMidnight(tomorrow) {
-		//	t.Errorf("tomorrow not midnight %q", tomorrow.String())
-		//}
+		if !IsMidnight(tomorrow) {
+			t.Errorf("tomorrow not midnight %q", tomorrow.String())
+		}
 
-		if midnight.Before(got) {
-			t.Errorf("Not tomorrow, got %q expected %q from %q", got.String(), midnight.String(), tm.String())
+		if got.Before(midnight) || tomorrow.Before(got) {
+			t.Errorf("Not tomorrow, got %q expected %q from %q %q", got.String(), midnight.String(), tm.String(), tomorrow.String())
 		}
 	})
 }
@@ -238,13 +241,49 @@ func TestTomorrowMidnight_wrongDay(t *testing.T) {
 }
 
 func testAllTimeZones(t *testing.T, f func(time.Time) time.Time, test func(t *testing.T, timeZone string, tm, got time.Time)) {
-	for _, timeZone := range getAvailableTimeZones() {
-		testTimeZone(t, timeZone, f, test)
+
+	m := make(map[string][]string)
+	for _, zone := range getAvailableTimeZones() {
+		var k, v string
+		s := strings.SplitN(zone, "/", 2)
+		if len(s) == 2 {
+			k, v = s[0], s[1]
+		} else {
+			k, v = "_", s[0]
+		}
+		m[k] = append(m[k], v)
+	}
+
+	var keys []string
+	for k, _ := range m {
+		keys = append(keys, k)
+	}
+	sort.SliceStable(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	for _, k := range keys {
+		if k != "_" {
+			t.Run(k, func(t *testing.T) {
+				testTimeZones(t, k+"/", m[k], f, test)
+			})
+		} else {
+			testTimeZones(t, "", m[k], f, test)
+		}
 	}
 }
 
-func testTimeZone(t *testing.T, timeZone string, f func(time.Time) time.Time, test func(t *testing.T, timeZone string, tm, got time.Time)) {
-	t.Run(timeZone, func(t *testing.T) {
+func testTimeZones(t *testing.T, prefix string, zones []string, f func(time.Time) time.Time, test func(t *testing.T, timeZone string, tm, got time.Time)) {
+	sort.SliceStable(zones, func(i, j int) bool {
+		return zones[i] < zones[j]
+	})
+	for _, timeZone := range zones {
+		testTimeZone(t, prefix, timeZone, f, test)
+	}
+}
+
+func testTimeZone(t *testing.T, prefix, zone string, f func(time.Time) time.Time, test func(t *testing.T, timeZone string, tm, got time.Time)) {
+	timeZone := prefix + zone
+	t.Run(zone, func(t *testing.T) {
 		loc, err := time.LoadLocation(timeZone)
 		if err != nil {
 			t.Errorf("Failed to load %q: %v", timeZone, err)
