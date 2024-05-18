@@ -37,17 +37,3 @@ func Zone(t time.Time) string {
 	}
 	return zone + ts
 }
-
-// LocalMidnight returns the time of midnight in the local time zone before
-// the provided time.
-//
-// Note: truncate to hour then subtract hours to get the start.
-// It might look weird when you could truncate to day, but that truncate
-// seems to set it to 0h UTC, so if we are in BST (UTC+1) then the day
-// starts at 0100 and not 0000 midnight.
-//
-// TODO check this works for other timezones
-func LocalMidnight(t time.Time) time.Time {
-	today := t.Truncate(time.Hour)
-	return today.Add(time.Hour * time.Duration(-today.Hour()))
-}
