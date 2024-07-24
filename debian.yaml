@@ -1,0 +1,19 @@
+package:
+  # Package name and version
+  name: piweathercenter
+  version: 0.0.1
+  maintainer: "Peter Mount <peter@area51.social>"
+  homepage: "https://piweather.center/"
+  description: "Weather station for Raspberry PI class computers"
+  # release number, usually 1 but increment if a bug fix for the above version
+  release: 1
+  # internal: architectures to build an apt archive for
+  architecture:
+    - "linux:amd64:"
+    - "linux:arm:6"
+    - "linux:arm:7"
+    # There's an arm_v7l in raspian lite build?
+    - "linux:arm64:"
+
+# Run lintian on build
+lintian: false
