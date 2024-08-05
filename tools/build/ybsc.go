@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-build/application"
 	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util/arch"
 	"github.com/peter-mount/go-build/util/makefile/target"
@@ -39,7 +40,8 @@ func (s *YbscEncoder) extension(arch arch.Arch, target target.Builder, meta *met
 
 	srcFile := "data/bsc5.dat.gz"
 
-	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib")
+	//destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib")
+	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, "lib"))
 	destFile := filepath.Join(destDir, "bsc5.bin")
 
 	target.Target(destFile, srcFile).

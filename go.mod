@@ -9,11 +9,11 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
-	github.com/peter-mount/go-anim v0.0.0-20240514074503-50cf7ee622d7
-	github.com/peter-mount/go-build v0.0.0-20240724114937-150a454f7b8b
+	github.com/peter-mount/go-anim v0.0.0-20240805103939-38384e891a7c
+	github.com/peter-mount/go-build v0.0.0-20240804094359-01252fe8316a
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240514072728-897c39470117
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
-	github.com/peter-mount/go-script v0.0.0-20240518101237-377a6f8bfbbe
+	github.com/peter-mount/go-script v0.0.0-20240805102742-d0b149a5e9d2
 	github.com/peter-mount/nre-feeds v0.0.0-20240201140817-fd78167946e5
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/soniakeys/meeus/v3 v3.0.1

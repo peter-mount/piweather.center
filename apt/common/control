@@ -1,0 +1,6 @@
+Package: piweathercenter-common
+Version: 0.0.1
+Maintainer: Peter Mount <peter@area51.social>
+Homepage: https://piweather.center/
+Description: Weather station for Raspberry PI class computers
+Architecture: any

@@ -17,3 +17,6 @@ package:
 
 # Run lintian on build
 lintian: false
+
+# Disable apt
+disable: true

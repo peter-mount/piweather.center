@@ -1,6 +1,7 @@
 package build
 
 import (
+	"github.com/peter-mount/go-build/application"
 	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util/arch"
 	"github.com/peter-mount/go-build/util/makefile"
@@ -25,8 +26,12 @@ func (s *Vsop87Encoder) Start() error {
 	return nil
 }
 
+func (s *Vsop87Encoder) destDir(arch arch.Arch) string {
+	return filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, "lib/vsop87b"))
+}
+
 func (s *Vsop87Encoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
-	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib/vsop87b")
+	destDir := s.destDir(arch)
 
 	destDirTarget := target.Target(destDir)
 
@@ -47,7 +52,5 @@ func (s *Vsop87Encoder) makefile(root makefile.Builder, _ target.Builder, _ *met
 	// With gnu-make, this works because it merges this test rule with the normal one
 	// so when test is run, vsop87 is performed first so that the tests have access
 	// to that data
-	root.Rule("test",
-		filepath.Join(s.Build.BuildArch().BaseDir(*s.Encoder.Dest), "lib", "vsop87b"),
-	)
+	root.Rule("test", s.destDir(s.Build.BuildArch()))
 }
