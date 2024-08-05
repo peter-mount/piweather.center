@@ -41,7 +41,7 @@ test: init
 	@${MAKE} --no-print-directory -f Makefile.gen test
 
 build: init #test
-	@${MAKE} --no-print-directory -f Makefile.gen all
+	@APPLICATION_NAME="piweather" ${MAKE} --no-print-directory -f Makefile.gen all
 
 # Builds apt packages for specific platforms
 apt:

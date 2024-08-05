@@ -27,7 +27,7 @@ func (s *Vsop87Encoder) Start() error {
 }
 
 func (s *Vsop87Encoder) destDir(arch arch.Arch) string {
-	return filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, "lib/vsop87b"))
+	return filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, "vsop87b"))
 }
 
 func (s *Vsop87Encoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {

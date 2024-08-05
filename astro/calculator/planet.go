@@ -1,8 +1,8 @@
 package calculator
 
 import (
+	"github.com/peter-mount/go-build/application"
 	"github.com/soniakeys/meeus/v3/planetposition"
-	"path/filepath"
 )
 
 // Planet returns the V87Planet by ID.
@@ -11,7 +11,7 @@ func (c *calculator) Planet(i int) (*planetposition.V87Planet, error) {
 		return planet, nil
 	}
 
-	planet, err := planetposition.LoadPlanetPath(i, filepath.Join(c.rootDir, "vsop87b"))
+	planet, err := planetposition.LoadPlanetPath(i, application.FileName(application.STATIC, "vsop87b"))
 	if err != nil {
 		return nil, err
 	}

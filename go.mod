@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
-	github.com/peter-mount/go-anim v0.0.0-20240805103939-38384e891a7c
+	github.com/peter-mount/go-anim v0.0.0-20240805112912-11025e87965e
 	github.com/peter-mount/go-build v0.0.0-20240804094359-01252fe8316a
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240514072728-897c39470117
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a

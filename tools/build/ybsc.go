@@ -41,7 +41,7 @@ func (s *YbscEncoder) extension(arch arch.Arch, target target.Builder, meta *met
 	srcFile := "data/bsc5.dat.gz"
 
 	//destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "lib")
-	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, "lib"))
+	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC))
 	destFile := filepath.Join(destDir, "bsc5.bin")
 
 	target.Target(destFile, srcFile).
