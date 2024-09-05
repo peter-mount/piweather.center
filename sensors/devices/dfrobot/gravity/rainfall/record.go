@@ -11,8 +11,8 @@ type RainFall struct {
 type Device struct {
 	Device       string `json:"device"`
 	Manufacturer string `json:"manufacturer"`
-	Version      uint16 `json:"version"`
-	Uptime       int    `json:"uptime"`
+	Version      string `json:"version"`
+	Uptime       uint16 `json:"uptime"`
 }
 
 type Record struct {
@@ -22,7 +22,7 @@ type Record struct {
 	BucketCount uint32  `json:"bucket_count"`
 }
 
-func newRainFall(version uint16) RainFall {
+func newRainFall(version string) RainFall {
 	return RainFall{
 		Time: time.Now().Format(time.RFC3339),
 		Device: Device{

@@ -1,8 +1,8 @@
 package rainfall
 
 import (
+	"fmt"
 	smbus2 "github.com/peter-mount/piweather.center/sensors/bus/smbus"
-	"time"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 	// sen0575I2cRegCumulativeRainfall Stores the cumulative rainfall since starting work
 	sen0575I2cRegCumulativeRainfall = 0x10
 	// SEN0575 Stores the low 16 bits of the raw data
-	SEN0575_I2C_REG_RAW_DATA = 0x14
+	sen0575I2cRegRawData = 0x14
 	// sen0575I2cRegSysTime Stores the system time
 	sen0575I2cRegSysTime = 0x18
 
@@ -49,7 +49,7 @@ const (
 type DFRGravityRainFall struct {
 	manager *smbus2.Manager `kernel:"inject"`
 	device  smbus2.SMBus
-	version uint16
+	version string
 }
 
 func (s *DFRGravityRainFall) Start() error {
@@ -66,10 +66,10 @@ func (s *DFRGravityRainFall) ReadSensor() (interface{}, error) {
 	rec := newRainFall(s.version)
 
 	err := s.manager.UseDevice(1, i2cAddr, func(bus smbus2.SMBus) error {
-		uptime, err := s.GetSensorWorkingTime(bus)
-		if err == nil {
-			rec.Device.Uptime = int(uptime.Seconds())
+		var err error
 
+		rec.Device.Uptime, err = s.GetSensorWorkingTime(bus)
+		if err == nil {
 			rec.Record.Total, err = s.GetCumulativeRainFall(bus)
 		}
 
@@ -92,18 +92,23 @@ func (s *DFRGravityRainFall) ReadSensor() (interface{}, error) {
 }
 
 // GetFirmwareVersion returns the firmware version of the SEN0575
-func (s *DFRGravityRainFall) GetFirmwareVersion(bus smbus2.SMBus) (uint16, error) {
-	return bus.ReadRegisterUint16(sen0575I2cRegVersion)
+func (s *DFRGravityRainFall) GetFirmwareVersion(bus smbus2.SMBus) (string, error) {
+	v, err := bus.ReadRegisterUint16(sen0575I2cRegVersion)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%d.%d.%d.%d",
+		(v>>12)&0x0f,
+		(v>>8)&0x0f,
+		(v>>4)&0x0f,
+		v&0x0f,
+	), nil
 }
 
 // GetSensorWorkingTime returns the uptime of the SEN0575
-func (s *DFRGravityRainFall) GetSensorWorkingTime(bus smbus2.SMBus) (time.Duration, error) {
-	ret, err := bus.ReadRegisterUint16(sen0575I2cRegSysTime)
-	if err != nil {
-		return 0, err
-	}
-
-	return time.Minute * time.Duration(ret), nil
+func (s *DFRGravityRainFall) GetSensorWorkingTime(bus smbus2.SMBus) (uint16, error) {
+	return bus.ReadRegisterUint16(sen0575I2cRegSysTime)
 }
 
 func (s *DFRGravityRainFall) GetCumulativeRainFall(bus smbus2.SMBus) (float64, error) {
@@ -134,5 +139,5 @@ func (s *DFRGravityRainFall) GetRainFall(bus smbus2.SMBus, hours uint8) (float64
 }
 
 func (s *DFRGravityRainFall) GetBucketCount(bus smbus2.SMBus) (uint32, error) {
-	return bus.ReadRegisterUint32(SEN0575_I2C_REG_RAW_DATA)
+	return bus.ReadRegisterUint32(sen0575I2cRegRawData)
 }
