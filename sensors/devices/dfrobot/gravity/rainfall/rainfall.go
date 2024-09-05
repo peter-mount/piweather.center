@@ -66,10 +66,10 @@ func (s *DFRGravityRainFall) ReadSensor() (interface{}, error) {
 	rec := newRainFall(s.version)
 
 	err := s.manager.UseDevice(1, i2cAddr, func(bus smbus2.SMBus) error {
-		var err error
-
-		rec.Device.Uptime, err = s.GetSensorWorkingTime(bus)
+		uptime, err := s.GetSensorWorkingTime(bus)
 		if err == nil {
+			rec.Device.Uptime = int(uptime.Seconds())
+
 			rec.Record.Total, err = s.GetCumulativeRainFall(bus)
 		}
 
@@ -79,6 +79,10 @@ func (s *DFRGravityRainFall) ReadSensor() (interface{}, error) {
 
 		if err == nil {
 			rec.Record.Day, err = s.GetRainFall(bus, 24)
+		}
+
+		if err == nil {
+			rec.Record.BucketCount, err = s.GetBucketCount(bus)
 		}
 
 		return err
@@ -127,4 +131,8 @@ func (s *DFRGravityRainFall) GetRainFall(bus smbus2.SMBus, hours uint8) (float64
 	}
 
 	return float64(ret) / 10000.0, nil
+}
+
+func (s *DFRGravityRainFall) GetBucketCount(bus smbus2.SMBus) (uint32, error) {
+	return bus.ReadRegisterUint32(SEN0575_I2C_REG_RAW_DATA)
 }
