@@ -24,6 +24,7 @@ func (c *i2cDevice) ReadRegister(reg uint8, buf []byte) error {
 	}
 
 	copy(buf[:], data[1:len(buf)+1])
+
 	return nil
 }
 

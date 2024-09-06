@@ -3,6 +3,7 @@ package i2c
 import (
 	"encoding/binary"
 	"io"
+	"time"
 	"unsafe"
 )
 
@@ -34,7 +35,11 @@ func (c *i2cDevice) WriteRegister(reg uint8, buf []byte) error {
 	data[0] = byte(len(buf))
 	copy(data[1:], buf)
 
-	return c.smbusCommand(i2cSMBusWrite, reg, i2cSMBusI2CBlockData, unsafe.Pointer(&data[0]))
+	err := c.smbusCommand(i2cSMBusWrite, reg, i2cSMBusI2CBlockData, unsafe.Pointer(&data[0]))
+	if err == nil {
+		time.Sleep(50 * time.Millisecond)
+	}
+	return err
 }
 
 func (c *i2cDevice) WriteRegisterUint8(register, value uint8) error {
@@ -42,19 +47,16 @@ func (c *i2cDevice) WriteRegisterUint8(register, value uint8) error {
 }
 
 func (c *i2cDevice) WriteRegisterUint16(register uint8, value uint16) error {
-	var buf []byte
-	binary.LittleEndian.AppendUint16(buf, value)
+	buf := binary.LittleEndian.AppendUint16(nil, value)
 	return c.WriteRegister(register, buf[:])
 }
 
 func (c *i2cDevice) WriteRegisterUint32(register uint8, value uint32) error {
-	var buf []byte
-	binary.LittleEndian.AppendUint32(buf, value)
+	buf := binary.LittleEndian.AppendUint32(nil, value)
 	return c.WriteRegister(register, buf[:])
 }
 
 func (c *i2cDevice) WriteRegisterUint64(register uint8, value uint64) error {
-	var buf []byte
-	binary.LittleEndian.AppendUint64(buf, value)
+	buf := binary.LittleEndian.AppendUint64(nil, value)
 	return c.WriteRegister(register, buf[:])
 }
