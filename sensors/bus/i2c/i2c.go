@@ -51,7 +51,15 @@ type i2cDevice struct {
 	f *os.File
 }
 
-// Task handles accessing the specific device
+// Task handles accessing the specific device.
+//
+// Tasks are executed with either the UseI2C or UseI2CConcurrent functions.
+//
+// When using UseI2CConcurrent, then they MUST limit themselves to accessing the device and nothing else,
+// and MUST NEVER access multiple devices.
+//
+// This is to ensure that the device is not locked for longer than necessary, or in the case of multiple
+// devices almost certainly cause a deadlock.
 type Task func(I2C) error
 
 // Then returns a new Task which will invoke both tasks in sequence
@@ -103,9 +111,10 @@ func (a Task) execute(bus int, addr uint8) error {
 //
 // If task is nil this does nothing.
 //
-// Note: This function provides direct access to the I2C bus with no locking,
-// so multiple goroutines can access the device at the same time, which might cause
-// concurrency issues with the device.
+// Note: This function provides direct access to the I2C bus with no locking within the process.
+//
+// As there are no concurrency protection with this function, multiple goroutines can access the device at the same time,
+// which might cause concurrency issues with the device.
 //
 // You are recommended to use UseI2CConcurrent instead as that ensures only one Task can access
 // a specific device at any one time within this process.
