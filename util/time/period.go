@@ -73,7 +73,7 @@ func (r Period) Include(b Period) Period {
 // If the Period is zero then a new Period is returned consisting of just
 // the instant represented by Time.
 func (r Period) Add(t time.Time) Period {
-	// Do not include t if it's zero
+	// do not include t if it's zero
 	if t.IsZero() {
 		return r
 	}

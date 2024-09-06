@@ -83,7 +83,7 @@ func UnmarshalDashboard(b []byte, o any) error {
 }
 
 func compress(b []byte) []byte {
-	// Now compress by xor each 2 bytes into 1. Do this multiple times to create a short
+	// Now compress by xor each 2 bytes into 1. do this multiple times to create a short
 	// final uid that should be unique but not take up much space as this
 	// will be sent on every metric update, so we don't want it to be too long.
 	for len(b) > 8 {

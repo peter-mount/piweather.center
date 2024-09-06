@@ -3,7 +3,7 @@ package weathersensor
 import (
 	"encoding/json"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/sensors/devices/dfrobot/gravity/rainfall"
+	"github.com/peter-mount/piweather.center/sensors/devices/dfrobot/sen0575"
 	"time"
 )
 

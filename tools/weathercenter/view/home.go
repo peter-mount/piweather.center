@@ -58,7 +58,7 @@ func (s *Home) Start() error {
 	s.Rest.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		http.Redirect(writer, request, "/dash/home", http.StatusSeeOther)
 	})
-	//s.Rest.Do("/", s.showHome).Methods("GET")
+	//s.Rest.do("/", s.showHome).Methods("GET")
 	s.Rest.Do("/status", s.showStatus).Methods("GET")
 	s.Rest.Do("/status/system", s.showSystem).Methods("GET")
 

@@ -6,7 +6,6 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.1
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-daq/smbus v0.0.0-20201216173259-5725b4593606
 	github.com/gorilla/websocket v1.5.3
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
