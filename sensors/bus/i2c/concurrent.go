@@ -4,20 +4,20 @@ import "sync"
 
 var (
 	mutex   sync.Mutex
-	devices map[Address]*device
+	devices map[address]*device
 )
 
 func init() {
-	devices = make(map[Address]*device)
+	devices = make(map[address]*device)
 }
 
-type Address struct {
+type address struct {
 	bus  int   // The i2c bus for this device
 	addr uint8 // The i2c address of the device on the bus
 }
 
 type device struct {
-	Address
+	address
 	mutex sync.Mutex
 }
 
@@ -31,12 +31,12 @@ func getDevice(bus int, addr uint8) *device {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	address := Address{bus: bus, addr: addr}
+	key := address{bus: bus, addr: addr}
 
-	dev, ok := devices[address]
+	dev, ok := devices[key]
 	if !ok {
-		dev = &device{Address: address}
-		devices[address] = dev
+		dev = &device{address: key}
+		devices[key] = dev
 	}
 
 	return dev
