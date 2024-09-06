@@ -1,16 +1,29 @@
 package smbus
 
-import "sync"
+import (
+	"github.com/go-daq/smbus"
+	"sync"
+)
 
 type i2cBus struct {
-	bus     int
-	devices map[uint8]*smBus
 	mutex   sync.Mutex
+	bus     int              // the i2c bus in use
+	devices map[uint8]*smBus // registered i2c addresses on this bus
 }
 
-func (b *i2cBus) handle(device *smBus, task Task) error {
+func (b *i2cBus) handle(device *smBus, task Task) (err error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
+
+	device.conn, err = smbus.Open(b.bus, device.i2cAddr)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_ = device.conn.Close()
+		device.conn = nil
+	}()
+
 	return task(device)
 }
 
@@ -25,6 +38,7 @@ type SMBus interface {
 type smBus struct {
 	bus     *i2cBus
 	i2cAddr uint8
+	conn    *smbus.Conn
 }
 
 type Task func(SMBus) error

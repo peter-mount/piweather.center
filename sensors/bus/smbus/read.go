@@ -2,20 +2,13 @@ package smbus
 
 import (
 	"encoding/binary"
-	"github.com/go-daq/smbus"
 )
 
 func (d *smBus) ReadRegister(register uint8, length int) ([]byte, error) {
-	c, err := smbus.Open(d.bus.bus, d.i2cAddr)
-	if err != nil {
-		return nil, err
-	}
-	defer c.Close()
-
 	buf := make([]byte, length)
 
-	err = c.ReadBlockData(d.i2cAddr, register, buf)
-
+	err := d.conn.ReadBlockData(d.i2cAddr, register, buf)
+	debug("read ", buf)
 	return buf, err
 }
 
