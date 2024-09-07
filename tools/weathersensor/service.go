@@ -8,10 +8,19 @@ import (
 )
 
 type Service struct {
-	DFRGravityRainFall *rainfall.DFRGravityRainFall `kernel:"inject"`
+	DFRGravityRainFall *rainfall.Sen0575 `kernel:"inject"`
+	ListDevices        *bool             `kernel:"flag,list-devices,List Devices"`
 }
 
 func (s *Service) Start() error {
+	if *s.ListDevices {
+		return s.listDevices()
+	}
+
+	return s.testSensor()
+}
+
+func (s *Service) testSensor() error {
 	for {
 		rec, err := s.ReadSensor()
 		if err != nil {
@@ -25,7 +34,7 @@ func (s *Service) Start() error {
 			log.Println(string(b))
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep( /*5 */ time.Second)
 	}
 }
 
