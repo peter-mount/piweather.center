@@ -1,34 +1,21 @@
 package rainfall
 
-import "time"
-
-type RainFall struct {
-	Time   string `json:"time"`
-	Record Record `json:"record"`
-	Device Device `json:"device"`
-}
-
-type Device struct {
-	Device       string `json:"device"`
-	Manufacturer string `json:"manufacturer"`
-	Version      string `json:"version"`
-	Uptime       uint16 `json:"uptime"`
-}
-
 type Record struct {
-	Hour        float64 `json:"hour"`
-	Day         float64 `json:"day"`
-	Total       float64 `json:"total"`
-	BucketCount uint32  `json:"bucket_count"`
-}
+	// Tips number of bucket tips since last reading.
+	Tips uint32 `json:"tips"`
 
-func newRainFall(version string) RainFall {
-	return RainFall{
-		Time: time.Now().Format(time.RFC3339),
-		Device: Device{
-			Device:       "SEN0575",
-			Manufacturer: "DF Robot",
-			Version:      version,
-		},
-	}
+	// Hour mm of rain in last hour
+	Hour float64 `json:"hour"`
+
+	// Day mm of rain in last 24 hours
+	Day float64 `json:"day"`
+
+	// Total mm of rain since the sensor was powered on
+	Total float64 `json:"total"`
+
+	// BucketCount number of bucket tips since sensor was powered on
+	BucketCount uint32 `json:"bucket_count"`
+
+	// Duration time in seconds since last reading.
+	Duration uint32 `json:"duration"`
 }

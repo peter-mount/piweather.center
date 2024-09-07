@@ -1,28 +1,18 @@
 package rainfall
 
 import (
+	"context"
 	"fmt"
+	"github.com/peter-mount/piweather.center/sensors"
 	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
+	"time"
 )
 
 const (
-	// The address of the input register for high 16-bit cumulative rainfall since working started.
-	SEN0575_INPUT_REG_CUMULATIVE_RAINFALL_H = 0x0009
-	// The address of the input register for raw data (low 16-bit) in memory.
-	SEN0575_INPUT_REG_RAW_DATA_L = 0x000A
-	// The address of the input register for raw data (high 16-bit) in memory.
-	SEN0575_INPUT_REG_RAW_DATA_H = 0x000B
-	// The address of the input register for system working time in memory.
-	SEN0575_INPUT_REG_SYS_TIME = 0x000C
-	// Set the time to calculate cumulative rainfall.
-	SEN0575_HOLDING_REG_RAW_RAIN_HOUR = 0x0006
-	// Set the base rainfall value.
-	SEN0575_HOLDING_REG_RAW_BASE_RAINFALL = 0x0007
-
 	// The address of the input register for PID in memory.
-	SEN0575_I2C_REG_PID = 0x00
+	sen0575I2cRegPid = 0x00
 	// The address of the input register for VID in memory.
-	SEN0575_I2C_REG_VID = 0x02
+	sen0575I2cRegVid = 0x02
 	// sen0575I2cRegVersion The address of the input register for firmware version in memory.
 	sen0575I2cRegVersion = 0x0A
 	// SEN0575 Stores the cumulative rainfall within the set time
@@ -37,60 +27,88 @@ const (
 	// Sets the time for calculating the cumulative rainfall
 	sen0575I2cRegRawRainHour = 0x26
 	// Sets the base value of accumulated rainfall
-	SEN0575_I2C_REG_RAW_BASE_RAINFALL = 0x28
-
-	I2C_MODE  = 0
-	UART_MODE = 1
+	sen0575I2cRegRawBaseRainfall = 0x28
 
 	// i2cAddr of the device
 	i2cAddr = 0x1d
 )
 
-type DFRGravityRainFall struct {
-	version string
+type Sen0575 struct {
+	lastReading     time.Time // time of last reading
+	lastBucketCount uint32    // total bucket tips from last reading
 }
 
-func (s *DFRGravityRainFall) Start() error {
-	return i2c.UseI2CConcurrent(1, i2cAddr, func(c i2c.I2C) error {
-		ver, err := s.GetFirmwareVersion(c)
-		if err == nil {
-			s.version = ver
-		}
-		return err
-	})
+func (s *Sen0575) task(ctx context.Context) error {
+	return nil
 }
 
-func (s *DFRGravityRainFall) ReadSensor() (interface{}, error) {
-	rec := newRainFall(s.version)
+func (s *Sen0575) Start() error {
+	/*	return i2c.UseI2CConcurrent(1, i2cAddr, func(c i2c.I2C) error {
+			ver, err := s.GetFirmwareVersion(c)
+			if err == nil {
+				s.version = ver
+			}
+
+			// Use to recalibrate the bucket
+			//rr = s.SetRainAccumulatedValue(c, 0.2794)
+
+			return err
+		})
+	*/
+
+	// Take initial reading so we can extract the raw tip count between subsequent readings
+	_, err := s.ReadSensor()
+	return err
+}
+
+func (s *Sen0575) ReadSensor() (interface{}, error) {
+	//rec := newRainFall(s.version)
+	rec := Record{}
+	ret := sensors.NewReading(sensors.LookupDevice("sen0575"))
+	ret.Readings = &rec
 
 	err := i2c.UseI2CConcurrent(1, i2cAddr, func(bus i2c.I2C) error {
 		var err error
 
-		rec.Device.Uptime, err = s.GetSensorWorkingTime(bus)
+		now := time.Now()
+
+		//rec.Device.Uptime, err = s.GetSensorWorkingTime(bus)
+		//if err == nil {
+		rec.Total, err = s.GetCumulativeRainFall(bus)
+		//}
+
 		if err == nil {
-			rec.Record.Total, err = s.GetCumulativeRainFall(bus)
+			rec.Hour, err = s.GetRainFall(bus, 1)
 		}
 
 		if err == nil {
-			rec.Record.Hour, err = s.GetRainFall(bus, 1)
+			rec.Day, err = s.GetRainFall(bus, 24)
 		}
 
 		if err == nil {
-			rec.Record.Day, err = s.GetRainFall(bus, 24)
+			rec.BucketCount, err = s.GetBucketCount(bus)
 		}
 
 		if err == nil {
-			rec.Record.BucketCount, err = s.GetBucketCount(bus)
+			// Duration since last reading, accounting for initialisation
+			if !s.lastReading.IsZero() {
+				rec.Duration = uint32(now.Sub(s.lastReading).Seconds())
+			}
+			s.lastReading = now
+
+			// Tips since last reading.
+			rec.Tips = rec.BucketCount - s.lastBucketCount
+			s.lastBucketCount = rec.BucketCount
 		}
 
 		return err
 	})
 
-	return rec, err
+	return ret, err
 }
 
 // GetFirmwareVersion returns the firmware version of the SEN0575
-func (s *DFRGravityRainFall) GetFirmwareVersion(bus i2c.I2C) (string, error) {
+func (s *Sen0575) GetFirmwareVersion(bus i2c.I2C) (string, error) {
 	v, err := bus.ReadRegisterUint16(sen0575I2cRegVersion)
 	if err != nil {
 		return "", err
@@ -105,11 +123,11 @@ func (s *DFRGravityRainFall) GetFirmwareVersion(bus i2c.I2C) (string, error) {
 }
 
 // GetSensorWorkingTime returns the uptime of the SEN0575
-func (s *DFRGravityRainFall) GetSensorWorkingTime(bus i2c.I2C) (uint16, error) {
+func (s *Sen0575) GetSensorWorkingTime(bus i2c.I2C) (uint16, error) {
 	return bus.ReadRegisterUint16(sen0575I2cRegSysTime)
 }
 
-func (s *DFRGravityRainFall) GetCumulativeRainFall(bus i2c.I2C) (float64, error) {
+func (s *Sen0575) GetCumulativeRainFall(bus i2c.I2C) (float64, error) {
 	ret, err := bus.ReadRegisterUint32(sen0575I2cRegCumulativeRainfall)
 	if err != nil {
 		return 0, err
@@ -118,7 +136,7 @@ func (s *DFRGravityRainFall) GetCumulativeRainFall(bus i2c.I2C) (float64, error)
 	return float64(ret) / 10000.0, nil
 }
 
-func (s *DFRGravityRainFall) GetRainFall(bus i2c.I2C, hours uint8) (float64, error) {
+func (s *Sen0575) GetRainFall(bus i2c.I2C, hours uint8) (float64, error) {
 	if hours < 1 || hours > 24 {
 		return 0, hourRangeError
 	}
@@ -136,6 +154,18 @@ func (s *DFRGravityRainFall) GetRainFall(bus i2c.I2C, hours uint8) (float64, err
 	return float64(ret) / 10000.0, nil
 }
 
-func (s *DFRGravityRainFall) GetBucketCount(bus i2c.I2C) (uint32, error) {
+func (s *Sen0575) GetBucketCount(bus i2c.I2C) (uint32, error) {
 	return bus.ReadRegisterUint32(sen0575I2cRegRawData)
+}
+
+// SetRainAccumulatedValue sets the factor to multiply bucket count to get the required
+// rain values in mm.
+//
+// The spec states the bucket's resolution is 0.28mm, but I found that one unit uses 0.274.
+// So if the readings are incorrect then use: err = s.SetRainAccumulatedValue(c, 0.2794)
+// to reset it.
+//
+// You can also use this to reset it if using a new bucket.
+func (s *Sen0575) SetRainAccumulatedValue(bus i2c.I2C, val float64) error {
+	return bus.WriteRegisterUint16(sen0575I2cRegRawBaseRainfall, uint16(val*10000.0))
 }
