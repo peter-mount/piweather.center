@@ -13,12 +13,8 @@ const (
 	BusSPI
 	// BusSerial represents devices used over serial, either TTL, RS232, RS423 etc
 	BusSerial
-	// BusMQTT represents devices using MQTT as the transport
-	BusMQTT
-	// BusAMQP represents devices using AMQP as the transport
-	BusAMQP
 )
 
 var (
-	busLabels = []string{"I2C", "SPI", "Serial", "MQTT", "AMQP"}
+	busLabels = []string{"I2C", "SPI", "Serial"}
 )
