@@ -31,21 +31,18 @@ func (s *sen0575) readSensor(ret *sensors.Reading) error {
 		// Set reading time here as we may have been blocked on the device
 		ret.Time = time.Now()
 
-		//rec.Device.Uptime, err = s.GetSensorWorkingTime(bus)
-		//if err == nil {
-		ret.Readings["total"], err = s.GetCumulativeRainFall(bus)
-		//}
+		ret.Readings["total"], err = s.getCumulativeRainFall(bus)
 
 		if err == nil {
-			ret.Readings["hour"], err = s.GetRainFall(bus, 1)
+			ret.Readings["hour"], err = s.getRainFall(bus, 1)
 		}
 
 		if err == nil {
-			ret.Readings["day"], err = s.GetRainFall(bus, 24)
+			ret.Readings["day"], err = s.getRainFall(bus, 24)
 		}
 
 		if err == nil {
-			ret.Readings["bucketCount"], err = s.GetBucketCount(bus)
+			ret.Readings["bucketCount"], err = s.getBucketCount(bus)
 		}
 
 		if err == nil {

@@ -45,8 +45,8 @@ const (
 	})
 */
 
-// GetFirmwareVersion returns the firmware version of the sen0575
-func (s *sen0575) GetFirmwareVersion(bus i2c.I2C) (string, error) {
+// getFirmwareVersion returns the firmware version of the sen0575
+func (s *sen0575) getFirmwareVersion(bus i2c.I2C) (string, error) {
 	v, err := bus.ReadRegisterUint16(sen0575I2cRegVersion)
 	if err != nil {
 		return "", err
@@ -60,12 +60,13 @@ func (s *sen0575) GetFirmwareVersion(bus i2c.I2C) (string, error) {
 	), nil
 }
 
-// GetSensorWorkingTime returns the uptime of the sen0575
-func (s *sen0575) GetSensorWorkingTime(bus i2c.I2C) (uint16, error) {
+// getSensorWorkingTime returns the uptime of the sen0575
+func (s *sen0575) getSensorWorkingTime(bus i2c.I2C) (uint16, error) {
 	return bus.ReadRegisterUint16(sen0575I2cRegSysTime)
 }
 
-func (s *sen0575) GetCumulativeRainFall(bus i2c.I2C) (value.Value, error) {
+// getCumulativeRainFall returns the total amount of rain since the device was powered on
+func (s *sen0575) getCumulativeRainFall(bus i2c.I2C) (value.Value, error) {
 	ret, err := bus.ReadRegisterUint32(sen0575I2cRegCumulativeRainfall)
 	if err != nil {
 		return measurement.MilliMeters.Value(0), err
@@ -74,7 +75,8 @@ func (s *sen0575) GetCumulativeRainFall(bus i2c.I2C) (value.Value, error) {
 	return measurement.MilliMeters.Value(float64(ret) / 10000.0), nil
 }
 
-func (s *sen0575) GetRainFall(bus i2c.I2C, hours uint8) (value.Value, error) {
+// getRainFall returns the amount of rain detected within hours of the current time
+func (s *sen0575) getRainFall(bus i2c.I2C, hours uint8) (value.Value, error) {
 	if hours < 1 || hours > 24 {
 		return measurement.MilliMeters.Value(0), hourRangeError
 	}
@@ -92,12 +94,13 @@ func (s *sen0575) GetRainFall(bus i2c.I2C, hours uint8) (value.Value, error) {
 	return measurement.MilliMeters.Value(float64(ret) / 10000.0), nil
 }
 
-func (s *sen0575) GetBucketCount(bus i2c.I2C) (value.Value, error) {
+// getBucketCount returns the number of tips the bucket has recorded since the device was powered on
+func (s *sen0575) getBucketCount(bus i2c.I2C) (value.Value, error) {
 	c, err := bus.ReadRegisterUint32(sen0575I2cRegRawData)
 	return value.Integer.Value(float64(c)), err
 }
 
-// SetRainAccumulatedValue sets the factor to multiply bucket count to get the required
+// setRainAccumulatedValue sets the factor to multiply bucket count to get the required
 // rain values in mm.
 //
 // The spec states the bucket's resolution is 0.28mm, but I found that one unit uses 0.274.
@@ -105,6 +108,6 @@ func (s *sen0575) GetBucketCount(bus i2c.I2C) (value.Value, error) {
 // to reset it.
 //
 // You can also use this to reset it if using a new bucket.
-func (s *sen0575) SetRainAccumulatedValue(bus i2c.I2C, val float64) error {
+func (s *sen0575) setRainAccumulatedValue(bus i2c.I2C, val float64) error {
 	return bus.WriteRegisterUint16(sen0575I2cRegRawBaseRainfall, uint16(val*10000.0))
 }
