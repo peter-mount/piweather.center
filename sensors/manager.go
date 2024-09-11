@@ -3,37 +3,57 @@ package sensors
 import (
 	"errors"
 	"fmt"
-	"github.com/peter-mount/go-kernel/v2/util/task"
 	"strings"
 	"sync"
 )
 
 var (
 	mutex   sync.Mutex
-	devices map[string]Device
+	devices map[BusType]map[string]Device
 )
 
 func init() {
-	devices = make(map[string]Device)
+	devices = make(map[BusType]map[string]Device)
+	devices[BusI2C] = make(map[string]Device)
+	devices[BusSPI] = make(map[string]Device)
+	devices[BusSerial] = make(map[string]Device)
 }
 
+// Device defines the functions all devices have to implement
 type Device interface {
+	// Info returns the DeviceInfo for this device
 	Info() DeviceInfo
-	NewTask() task.Task
 }
 
+// DeviceInfo holds metadata about the device.
 type DeviceInfo struct {
-	ID           string
+	// ID of the device
+	ID string
+	// Manufacturer of the device
 	Manufacturer string
-	Model        string
-	Description  string
-	BusType      BusType
+	// Model of the device
+	Model string
+	// Description of what the device does
+	Description string
+	// BusType of the device
+	BusType BusType
+}
+
+// Instance of a device
+type Instance interface {
+	// Init must be called once an instance has been created to initialise the device.
+	Init() error
+	// ReadSensor takes measurements from the device
+	ReadSensor() (*Reading, error)
 }
 
 // RegisterDevice registers a new Device handler.
 // This will panic if the ID has already been registered.
 // IDs are case-insensitive.
 func RegisterDevice(device Device) {
+	if device == nil {
+		panic(errors.New("device is nil"))
+	}
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -43,15 +63,38 @@ func RegisterDevice(device Device) {
 		panic(errors.New("device name cannot be empty"))
 	}
 
-	if _, exists := devices[name]; exists {
-		panic(fmt.Errorf("device with name %s already exists", name))
+	bus := device.Info().BusType
+
+	// Verify the device implements the correct interfaces
+	switch bus {
+	case BusI2C:
+		if _, ok := device.(I2CDevice); !ok {
+			panic(fmt.Errorf("%s device %q does not implement I2CDevice", bus.Label(), name))
+		}
+	default:
+		// TODO implement BusSPI & BusSerial
 	}
 
-	devices[name] = device
+	m := devices[bus]
+	if m == nil {
+		panic(fmt.Errorf("device %q has invalid BusType %d", name, bus))
+	}
+
+	if _, exists := m[name]; exists {
+		panic(fmt.Errorf("%s device with name %q already exists", bus.Label(), name))
+	}
+
+	m[name] = device
 }
 
-func LookupDevice(name string) Device {
+func lookupDevice(bus BusType, name string) Device {
 	mutex.Lock()
 	defer mutex.Unlock()
-	return devices[strings.ToLower(name)]
+
+	m := devices[bus]
+	if m == nil {
+		return nil
+	}
+
+	return m[strings.ToLower(name)]
 }

@@ -1,4 +1,4 @@
-package rainfall
+package sen0575
 
 import "errors"
 

@@ -3,13 +3,13 @@ package weathersensor
 import (
 	"encoding/json"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/sensors/devices/dfrobot/sen0575"
+	"github.com/peter-mount/piweather.center/sensors"
+	_ "github.com/peter-mount/piweather.center/sensors/devices/dfrobot/sen0575"
 	"time"
 )
 
 type Service struct {
-	DFRGravityRainFall *rainfall.Sen0575 `kernel:"inject"`
-	ListDevices        *bool             `kernel:"flag,list-devices,List Devices"`
+	ListDevices *bool `kernel:"flag,list-devices,List Devices"`
 }
 
 func (s *Service) Start() error {
@@ -21,8 +21,23 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) testSensor() error {
+	// Lookup device
+	dev, err := sensors.LookupI2CDevice("sen0575")
+	if err != nil {
+		return err
+	}
+
+	// create instance
+	instance := dev.NewInstance(1, 0x1d)
+
+	// Initialise the instance
+	err = instance.Init()
+	if err != nil {
+		return err
+	}
+
 	for {
-		rec, err := s.ReadSensor()
+		rec, err := instance.ReadSensor()
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -36,8 +51,4 @@ func (s *Service) testSensor() error {
 
 		time.Sleep( /*5 */ time.Second)
 	}
-}
-
-func (s *Service) ReadSensor() (interface{}, error) {
-	return s.DFRGravityRainFall.ReadSensor()
 }

@@ -1,5 +1,7 @@
 package sensors
 
+import "errors"
+
 type BusType uint8
 
 func (b BusType) Label() string {
@@ -16,5 +18,7 @@ const (
 )
 
 var (
-	busLabels = []string{"I2C", "SPI", "Serial"}
+	busLabels      = []string{"I2C", "SPI", "Serial"}
+	deviceNotFound = errors.New("device not found")
+	invalidBus     = errors.New("invalid bus type")
 )

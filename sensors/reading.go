@@ -2,9 +2,11 @@ package sensors
 
 import (
 	"encoding/json"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
 
+// Reading contains the readings from a Device
 type Reading struct {
 	// Time of the reading
 	Time time.Time
@@ -13,10 +15,31 @@ type Reading struct {
 	ID string
 
 	// Readings from the sensor
-	Readings any
+	Readings map[string]value.Value
 
 	// Device model
 	Device string
+}
+
+// Get the named value from Reading.Readings
+func (r *Reading) Get(n string) value.Value {
+	if r.Readings == nil {
+		return value.Value{}
+	}
+	return r.Readings[n]
+}
+
+// Set the named value in Reading.Readings
+func (r *Reading) Set(n string, v value.Value) {
+	// If Time is not set then set it once
+	if r.Time.IsZero() {
+		r.Time = time.Now()
+	}
+
+	if r.Readings == nil {
+		r.Readings = make(map[string]value.Value)
+	}
+	r.Readings[n] = v
 }
 
 func (r *Reading) MarshalJSON() ([]byte, error) {
@@ -49,7 +72,8 @@ func (r *Reading) MarshalJSON() ([]byte, error) {
 
 func NewReading(dev Device) *Reading {
 	return &Reading{
-		Time:   time.Now().UTC(),
-		Device: dev.Info().Model,
+		Time:     time.Now().UTC(), // default to now but usually the device will override it
+		Device:   dev.Info().Model,
+		Readings: make(map[string]value.Value),
 	}
 }

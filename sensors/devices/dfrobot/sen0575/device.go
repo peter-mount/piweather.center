@@ -1,15 +1,19 @@
-package rainfall
+package sen0575
 
 import (
-	"github.com/peter-mount/go-kernel/v2/util/task"
 	"github.com/peter-mount/piweather.center/sensors"
+	"github.com/peter-mount/piweather.center/weather/value"
+	"time"
 )
 
 func init() {
 	sensors.RegisterDevice(&device{})
 }
 
+// device implementation for SEN0575 over I2C
 type device struct {
+	lastReading     time.Time   // time of last reading
+	lastBucketCount value.Value // total bucket tips from last reading
 }
 
 func (d *device) Info() sensors.DeviceInfo {
@@ -22,7 +26,8 @@ func (d *device) Info() sensors.DeviceInfo {
 	}
 }
 
-func (d *device) NewTask() task.Task {
-	i := &Sen0575{}
-	return i.task
+func (d *device) NewInstance(bus int, addr uint8) sensors.Instance {
+	return &sen0575{
+		BasicI2CDevice: sensors.NewBasicI2CDevice(d, bus, addr),
+	}
 }
