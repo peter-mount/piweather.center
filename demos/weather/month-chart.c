@@ -11,9 +11,9 @@ main() {
     endDate = "2024-10-01"
     every = "30m"
 
-    // Size of area
-    w := 1440 // Also number of minutes in 24 hours
-    h := 500
+    // Size of plot area
+    w := 600
+    h := 250
 
 //    dbUrl := "http://192.168.1.140:9001"
     dbUrl := "http://127.0.0.1:8080"
@@ -69,7 +69,7 @@ main() {
         yScale := h / dy
 
         // Graphics context with final image size
-        ctx := animGraphic.NewSizedContext(x0+w+100,y0+100)
+        ctx := animGraphic.NewSizedContext(x0+w,y0+50)
 
         try( ctx ) {
             gc := ctx.Gc()
@@ -78,18 +78,20 @@ main() {
 
             // Draw axes
             try(ctx) {
+                cx := x0 - (zScale*days) + (w/2)
+
                 gc.SetFillColor(colour.Colour("black"))
 
                 // Main title
                 animGraphic.SetFont( gc, "luxi 18 mono bold" )
-                animUtil.DrawString(gc, x0 + (w/2), 40-14-12, title)
+                animUtil.DrawString(gc, cx, 40-14-12, title)
 
                 animGraphic.SetFont( gc, "luxi 14 mono bold" )
-                animUtil.DrawString(gc, x0 + (w/2), 45, "For the period %s to %s", startDate, endDate)
+                animUtil.DrawString(gc, cx, 45, "For the period %s to %s", startDate, endDate)
 
                 // y-axis
                 try(ctx) {
-                    zOffset := zScale*(days-1)
+                    zOffset := zScale*days
                     x0L := x0 - zOffset
                     y0L := y0 - zOffset
                     x1 := x0 + w
@@ -163,7 +165,7 @@ main() {
             try(ctx) {
                 gc.SetStrokeColor( colour.Colour("black") )
 
-                zOffset := zScale*(days-1)
+                zOffset := zScale*days
 
                 gc.BeginPath()
                 // y-axis
@@ -247,7 +249,7 @@ main() {
             try(ctx) {
                 gc.SetStrokeColor( colour.Colour("black") )
 
-                zOffset := zScale*(days-1)
+                zOffset := zScale*days
 
                 gc.BeginPath()
                 // y-axis
