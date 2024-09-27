@@ -28,6 +28,7 @@ type common struct {
 	histogram          func(ql.QueryVisitor, *ql.Histogram) error
 	unit               func(ql.QueryVisitor, *units.Unit) error
 	windRose           func(ql.QueryVisitor, *ql.WindRose) error
+	tableSelect        func(ql.QueryVisitor, *ql.TableSelect) error
 }
 
 func (v *visitor) Query(b *ql.Query) error {
@@ -61,6 +62,10 @@ func (v *visitor) Query(b *ql.Query) error {
 					err = v.WindRose(sel)
 				}
 			}
+		}
+
+		if err == nil {
+			err = v.TableSelect(b.TableSelect)
 		}
 	}
 	return err
@@ -329,6 +334,29 @@ func (v *visitor) WindRose(b *ql.WindRose) error {
 		}
 		if err == nil {
 			err = v.Expression(b.Speed)
+		}
+	}
+	return err
+}
+
+func (v *visitor) TableSelect(b *ql.TableSelect) error {
+	var err error
+	if b != nil {
+		if v._select != nil {
+			err = v.tableSelect(v, b)
+			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = v.Expression(b.Time)
+		}
+		if err == nil {
+			err = v.Expression(b.Metric)
+		}
+		if err == nil {
+			err = v.Unit(b.Unit)
 		}
 	}
 	return err

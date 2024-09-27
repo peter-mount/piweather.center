@@ -26,6 +26,8 @@ type Builder interface {
 	Histogram(f func(ql.QueryVisitor, *ql.Histogram) error) Builder
 	WindRose(f func(ql.QueryVisitor, *ql.WindRose) error) Builder
 
+	TableSelect(func(ql.QueryVisitor, *ql.TableSelect) error) Builder
+
 	Build() ql.QueryVisitor
 }
 
@@ -120,5 +122,10 @@ func (b *builder) Histogram(f func(ql.QueryVisitor, *ql.Histogram) error) Builde
 
 func (b *builder) WindRose(f func(ql.QueryVisitor, *ql.WindRose) error) Builder {
 	b.common.windRose = f
+	return b
+}
+
+func (b *builder) TableSelect(f func(ql.QueryVisitor, *ql.TableSelect) error) Builder {
+	b.common.tableSelect = f
 	return b
 }

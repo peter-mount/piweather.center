@@ -37,3 +37,16 @@ func Zone(t time.Time) string {
 	}
 	return zone + ts
 }
+
+func SameDay(a, b time.Time) bool {
+	if a.IsZero() || b.IsZero() {
+		return false
+	}
+
+	// convert b into a's Time Zone
+	if a.Location() != b.Location() {
+		b = b.In(a.Location())
+	}
+
+	return a.Year() == b.Year() && a.Month() == b.Month() && a.Day() == b.Day()
+}

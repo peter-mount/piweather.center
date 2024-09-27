@@ -32,6 +32,7 @@ func scriptInit(q *ql.Query, err error) (*ql.Query, error) {
 			Duration(durationInit).
 			Unit(unitInit).
 			WindRose(windRoseInit).
+			TableSelect(tableSelect).
 			Build().
 			Query(q)
 	}
@@ -102,6 +103,14 @@ func queryRangeInit(v ql.QueryVisitor, q *ql.QueryRange) error {
 
 func selectInit(_ ql.QueryVisitor, s *ql.Select) error {
 	return assertLimit(s.Pos, s.Limit)
+}
+
+func tableSelect(v ql.QueryVisitor, t *ql.TableSelect) error {
+	var err error
+	if t.Unit != nil {
+		err = v.Unit(t.Unit)
+	}
+	return err
 }
 
 func unitInit(_ ql.QueryVisitor, s *units.Unit) error {

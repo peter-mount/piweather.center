@@ -21,4 +21,5 @@ type QueryVisitor interface {
 	UsingDefinition(*UsingDefinition) error
 	Histogram(*Histogram) error
 	WindRose(*WindRose) error
+	TableSelect(*TableSelect) error
 }

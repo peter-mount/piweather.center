@@ -6,7 +6,7 @@ import (
 )
 
 func New() util.Parser[lang2.Query] {
-	return newParser[lang2.Query](nil)
+	return newParser[lang2.Query](scriptInit)
 }
 
 func NewExpressionParser() util.Parser[lang2.Expression] {

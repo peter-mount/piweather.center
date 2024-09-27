@@ -77,3 +77,56 @@ func NewReading(dev Device) *Reading {
 		Readings: make(map[string]value.Value),
 	}
 }
+
+type Difference struct {
+	// Name of field that is different
+	Name string
+	// Old Value
+	Old value.Value
+	// New Value
+	New value.Value
+	// Time of New Value
+	Time time.Time
+}
+
+// Differences returns any Difference's between this result and a previous Result.
+// This allows us to only submit values when they differ from a previous result
+func (r *Reading) Differences(b *Reading) []Difference {
+	if r.Time.IsZero() || r.Readings == nil || b == nil || b.Time.IsZero() || b.Readings == nil {
+		return nil
+	}
+
+	var ret []Difference
+	for k, newVal := range r.Readings {
+		var different bool
+
+		oldVal, exists := b.Readings[k]
+
+		switch {
+		case exists && oldVal.IsValid() && newVal.IsValid():
+			// We have an old value so if both are valid then include it
+			if notEqual, err := newVal.NotEqual(oldVal); err == nil {
+				different = notEqual
+			}
+
+		case exists && !oldVal.IsValid():
+			// Old value exists but invalid so check new value
+			different = newVal.IsValid()
+
+		case newVal.IsValid():
+			// Value only in new Result so include if it's valid
+			different = true
+		}
+
+		if different {
+			ret = append(ret, Difference{
+				Name: k,
+				Old:  oldVal,
+				New:  newVal,
+				Time: r.Time,
+			})
+		}
+	}
+
+	return ret
+}

@@ -5,13 +5,14 @@ import (
 )
 
 type Query struct {
-	Pos        lexer.Position
-	QueryRange *QueryRange       `parser:"@@"`
-	Using      *UsingDefinitions `parser:"(@@)?"`
-	Histogram  []*Histogram      `parser:"( ( @@ )+"`
-	WindRose   []*WindRose       `parser:"| ( @@ )+"`
-	Limit      int               `parser:"| ( 'limit' @Int )?"`
-	Select     []*Select         `parser:"  ( @@ )+ )"`
+	Pos         lexer.Position
+	QueryRange  *QueryRange       `parser:"@@"`
+	Using       *UsingDefinitions `parser:"(@@)?"`
+	Histogram   []*Histogram      `parser:"( ( @@ )+"`
+	WindRose    []*WindRose       `parser:"| ( @@ )+"`
+	TableSelect *TableSelect      `parser:"| @@ "`
+	Limit       int               `parser:"| ( 'limit' @Int )?"`
+	Select      []*Select         `parser:"  ( @@ )+ )"`
 }
 
 /*
