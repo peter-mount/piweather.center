@@ -20,7 +20,7 @@ func (s *Installer) Start() error {
 }
 
 func (s *Installer) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
-	for _, srcDir := range []string{"demos" /*"include",*/} {
+	for _, srcDir := range []string{"demos", "include"} {
 		destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, filepath.Base(srcDir)))
 
 		target.Target(destDir).
