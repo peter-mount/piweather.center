@@ -154,7 +154,7 @@ func (s *store) closeFile(f *File) {
 			s.removeFile(f.name)
 
 			if log.IsVerbose() {
-				log.Printf("Closed %q", f.name)
+				log.Printf("closed %s", f.name)
 			}
 		}()
 		_ = f.Close()
