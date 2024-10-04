@@ -26,17 +26,64 @@ const (
 	CellDynamic                 // Same as CellString but acts like CellNull, e.g. when determining if a row is empty
 )
 
-func NewNullCell() Cell {
-	return Cell{Type: CellNull}
+func (c *Cell) write(w *writer) error {
+	// If c==nil then use CellNull format
+	var cellType CellType
+	if c == nil {
+		cellType = CellNull
+	} else {
+		cellType = c.Type
+	}
+	err := w.uint8(uint8(cellType))
+
+	switch cellType {
+	case CellString, CellDynamic:
+		err = w.time(c.Time)
+		if err == nil {
+			err = w.string(c.string)
+		}
+	case CellNumeric:
+		err = w.time(c.Time)
+		if err == nil {
+			err = w.value(c.Value)
+		}
+	case CellNull:
+		// do nothing
+	}
+
+	return err
 }
 
-func NewNumericCell(t time.Time, s string, v float64) Cell {
-	return Cell{
-		Type:   CellNumeric,
-		Time:   t,
-		string: s,
-		float:  v,
+func (c *Cell) read(r *reader) error {
+	v, err := r.uint8()
+	if err == nil {
+		c.Type = CellType(v)
+
+		switch c.Type {
+		case CellString, CellDynamic:
+			c.Time, err = r.time()
+			if err == nil {
+				c.string, err = r.string()
+			}
+		case CellNumeric:
+			c.Time, err = r.time()
+			if err == nil {
+				c.Value, err = r.value()
+				if err == nil && c.Value.IsValid() {
+					c.float = c.Value.Float()
+					c.string = c.Value.String()
+				}
+			}
+		case CellNull:
+			// do nothing
+		}
 	}
+
+	return err
+}
+
+func NewNullCell() Cell {
+	return Cell{Type: CellNull}
 }
 
 func NewStringCell(t time.Time, s string) Cell {
@@ -57,7 +104,13 @@ func NewDynamicCell(t time.Time, s string) Cell {
 
 func NewValueCell(t time.Time, v value.Value) Cell {
 	if v.IsValid() {
-		return NewNumericCell(t, v.PlainString(), v.Float())
+		return Cell{
+			Type:   CellNumeric,
+			Time:   t,
+			string: v.PlainString(),
+			float:  v.Float(),
+			Value:  v,
+		}
 	}
 	return NewNullCell()
 }

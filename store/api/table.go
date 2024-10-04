@@ -18,6 +18,63 @@ type Table struct {
 	Rows    []*Row    `json:"rows" xml:"rows" yaml:"rows"`
 }
 
+func (t *Table) write(w *writer) error {
+	err := w.uint16(uint16(len(t.Columns)))
+	if err == nil {
+		for _, c := range t.Columns {
+			err = c.write(w)
+			if err != nil {
+				break
+			}
+		}
+	}
+
+	if err == nil {
+		err = w.uint16(uint16(len(t.Rows)))
+	}
+	if err == nil {
+		for _, r := range t.Rows {
+			err = r.write(w)
+			if err != nil {
+				break
+			}
+		}
+	}
+
+	return err
+}
+
+func (t *Table) read(r *reader) error {
+	var err error
+
+	v, err := r.uint16()
+	if err == nil && v > 0 {
+		for i := 0; i < int(v); i++ {
+			c := &Column{}
+			err = c.read(r)
+			if err != nil {
+				break
+			}
+			t.Columns = append(t.Columns, c)
+		}
+	}
+
+	if err == nil {
+		v, err = r.uint16()
+	}
+	if err == nil && v > 0 {
+		for i := 0; i < int(v); i++ {
+			row := &Row{}
+			err = row.read(r)
+			if err != nil {
+				break
+			}
+			t.Rows = append(t.Rows, row)
+		}
+	}
+
+	return err
+}
 func (t *Table) AddColumn(c *Column) *Table {
 	if c.Width < len(c.Name) {
 		c.Width = len(c.Name)
@@ -131,6 +188,70 @@ type Column struct {
 	unit  *value.Unit // resolved unit
 }
 
+func (c *Column) write(w *writer) error {
+	err := w.int16(int16(c.Index))
+
+	if err == nil {
+		err = w.string(c.Name)
+	}
+
+	if err == nil {
+		err = w.int16(int16(c.Type))
+	}
+
+	if err == nil {
+		err = w.int16(int16(c.Width))
+	}
+
+	if err == nil {
+		// Hash of 0 is nil
+		var h uint64
+		if c.unit != nil {
+			h = c.unit.Hash()
+		}
+		err = w.uint64(h)
+	}
+	return err
+}
+
+func (c *Column) read(r *reader) error {
+	v, err := r.int16()
+	if err == nil {
+		c.Index = int(v)
+	}
+
+	if err == nil {
+		c.Name, err = r.string()
+	}
+
+	if err == nil {
+		v, err = r.int16()
+		c.Type = ColumnType(v)
+	}
+
+	if err == nil {
+		v, err = r.int16()
+		c.Width = int(v)
+	}
+
+	if err == nil {
+		h, err1 := r.uint64()
+		if err1 != nil {
+			return err
+		}
+
+		if h > 0 {
+			u, ok := value.GetUnitByHash(h)
+			if ok {
+				c.unit = u
+				c.Unit = u.Unit()
+			}
+		}
+	}
+
+	return err
+}
+
 // IsFixed returns true if the column is of fixed width
 func (c *Column) IsFixed() bool { return c != nil && (c.Type&ColumnFixed) == ColumnFixed }
 
@@ -220,6 +341,34 @@ func (c *Column) pad(s string, l, e int) string {
 
 // Row Holds details about an individual
 type Row []*Cell // Individual columns
+
+func (r *Row) write(w *writer) error {
+	err := w.uint16(uint16(len(*r)))
+	if err == nil {
+		for _, c := range *r {
+			err = c.write(w)
+			if err != nil {
+				break
+			}
+		}
+	}
+	return err
+}
+
+func (r *Row) read(rd *reader) error {
+	l, err := rd.uint16()
+	if err == nil && l > 0 {
+		for i := 0; i < int(l); i++ {
+			c := &Cell{}
+			err = c.read(rd)
+			if err != nil {
+				break
+			}
+			*r = append(*r, c)
+		}
+	}
+	return err
+}
 
 func (r *Row) add(c Cell) *Row {
 	*r = append(*r, &c)

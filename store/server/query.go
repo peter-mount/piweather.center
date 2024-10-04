@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	api2 "github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
@@ -35,14 +36,26 @@ func (s *Server) query(r *rest.Rest) error {
 	if accept == "" {
 		accept = r.GetHeader("content-type")
 	}
-	if accept == "plain/text" {
+	switch accept {
+
+	case "plain/text":
 		r.Value([]byte(result.String()))
-	} else {
+
+	case "application/binary":
+		err = result.Write(r.Writer())
+		if err != nil {
+			r.Status(http.StatusInternalServerError)
+			log.Println(err)
+		}
+
+	default:
 		r.Value(result)
 	}
 
-	r.Status(result.Status).
-		ContentType(accept)
+	if err == nil {
+		r.Status(result.Status).
+			ContentType(accept)
+	}
 
 	return nil
 }

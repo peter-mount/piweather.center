@@ -3,7 +3,6 @@ package util
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 	"time"
@@ -45,6 +44,11 @@ func ReadValue(b []byte) (value.Value, error) {
 	fb := binary.LittleEndian.Uint64(b[0:8])
 	ub := binary.LittleEndian.Uint64(b[8:16])
 
+	// Null Value
+	if ub == 0 {
+		return value.Value{}, nil
+	}
+
 	u, ok := value.GetUnitByHash(ub)
 	if !ok {
 		return value.Value{}, fmt.Errorf("invalid Value, unknown unit %d", ub)
@@ -55,11 +59,13 @@ func ReadValue(b []byte) (value.Value, error) {
 
 func AppendValue(b []byte, v value.Value) []byte {
 	b = binary.LittleEndian.AppendUint64(b, math.Float64bits(v.Float()))
-	b = binary.LittleEndian.AppendUint64(b, v.Unit().Hash())
 
-	if v.Unit().Hash() == 7599665368900986221 {
-		log.Printf("*** Hash 7599665368900986221 %q %s", v.Unit().ID(), v.String())
+	var hash uint64
+	if v.Unit() != nil {
+		hash = v.Unit().Hash()
 	}
+	b = binary.LittleEndian.AppendUint64(b, hash)
+
 	return b
 }
 
