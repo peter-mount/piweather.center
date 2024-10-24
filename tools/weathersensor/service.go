@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/sensors"
-	_ "github.com/peter-mount/piweather.center/sensors/devices/dfrobot/sen0575"
+	_ "github.com/peter-mount/piweather.center/sensors/devices"
 	"time"
 )
 
