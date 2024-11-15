@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/sensors"
 	"github.com/peter-mount/piweather.center/util/table"
+	"sort"
 )
 
 func (s *Service) listDevices() error {
 	t := table.New("ID", "Bus", "Manufacturer", "Model", "Description", "Mode")
 
 	devs := sensors.ListDevices()
+
+	sort.SliceStable(devs, func(i, j int) bool {
+		return devs[i].ID < devs[j].ID
+	})
 
 	for _, dev := range devs {
 		t.NewRow().
