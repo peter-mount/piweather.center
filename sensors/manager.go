@@ -37,12 +37,16 @@ type DeviceInfo struct {
 	Description string
 	// BusType of the device
 	BusType BusType
+	// PollMode of the device
+	PollMode PollMode
 }
 
 // Instance of a device
 type Instance interface {
 	// Init must be called once an instance has been created to initialise the device.
 	Init() error
+	// NewReading returns a blank Reading for this device
+	NewReading() *Reading
 	// ReadSensor takes measurements from the device
 	ReadSensor() (*Reading, error)
 }

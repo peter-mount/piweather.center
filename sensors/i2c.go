@@ -44,6 +44,10 @@ func (b BasicI2CDevice) NewReading() *Reading {
 	return NewReading(b.device)
 }
 
+func (b BasicI2CDevice) ReadSensor() (*Reading, error) {
+	return nil, deviceNotImplemented
+}
+
 // UseDevice will execute the Task against this device.
 func (b BasicI2CDevice) UseDevice(task i2c.Task) error {
 	return i2c.UseI2CConcurrent(b.bus, b.addr, task)

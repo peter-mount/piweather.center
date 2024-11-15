@@ -18,7 +18,22 @@ const (
 )
 
 var (
-	busLabels      = []string{"I2C", "SPI", "Serial"}
-	deviceNotFound = errors.New("device not found")
-	invalidBus     = errors.New("invalid bus type")
+	busLabels            = []string{"I2C", "SPI", "Serial"}
+	deviceNotFound       = errors.New("device not found")
+	deviceNotImplemented = errors.New("device not implemented")
 )
+
+type PollMode uint8
+
+func (b PollMode) Label() string {
+	return pollLabels[b]
+}
+
+const (
+	// PollReading indicates device should be called at regular intervals
+	PollReading PollMode = iota
+	// PushReading indicates the device will submit readings itself in real time
+	PushReading
+)
+
+var pollLabels = []string{"Poll", "Push"}
