@@ -1,7 +1,9 @@
 package weathersensor
 
 import (
+	"github.com/peter-mount/piweather.center/sensors"
 	_ "github.com/peter-mount/piweather.center/sensors/devices"
+	"go.bug.st/serial"
 )
 
 type Service struct {
@@ -13,7 +15,25 @@ func (s *Service) Start() error {
 		return s.listDevices()
 	}
 
-	return nil //s.testSensor()
+	return s.testSensor()
+}
+
+func (s *Service) testSensor() error {
+	// Lookup device
+	dev, err := sensors.LookupSerialDevice("gmc320")
+	if err != nil {
+		return err
+	}
+
+	// create instance
+	instance := dev.NewInstance("/dev/ttyUSB0", &serial.Mode{
+		BaudRate: 115200,
+		DataBits: 8,
+		Parity:   serial.NoParity,
+		StopBits: 0,
+	})
+
+	return instance.RunDevice(sensors.LogPublisher)
 }
 
 /*

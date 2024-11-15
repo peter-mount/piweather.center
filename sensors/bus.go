@@ -9,18 +9,14 @@ func (b BusType) Label() string {
 }
 
 const (
+	// Used to ensure the entry is set in DeviceInfo
+	busUndefined BusType = iota
 	// BusI2C represents I2C devices
-	BusI2C BusType = iota
+	BusI2C
 	// BusSPI represents SPI devices
 	BusSPI
 	// BusSerial represents devices used over serial, either TTL, RS232, RS423 etc
 	BusSerial
-)
-
-var (
-	busLabels            = []string{"I2C", "SPI", "Serial"}
-	deviceNotFound       = errors.New("device not found")
-	deviceNotImplemented = errors.New("device not implemented")
 )
 
 type PollMode uint8
@@ -30,10 +26,17 @@ func (b PollMode) Label() string {
 }
 
 const (
+	// Used to ensure the entry is set in DeviceInfo
+	pollUndefined PollMode = iota
 	// PollReading indicates device should be called at regular intervals
-	PollReading PollMode = iota
+	PollReading
 	// PushReading indicates the device will submit readings itself in real time
 	PushReading
 )
 
-var pollLabels = []string{"Poll", "Push"}
+var (
+	busLabels            = []string{"", "I2C", "SPI", "Serial"}
+	pollLabels           = []string{"", "Poll", "Push"}
+	deviceNotFound       = errors.New("device not found")
+	deviceNotImplemented = errors.New("device not implemented")
+)

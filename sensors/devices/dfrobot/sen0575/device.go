@@ -23,6 +23,7 @@ func (d *device) Info() sensors.DeviceInfo {
 		Model:        "SEN0575",
 		Description:  "Rain Fall Detector",
 		BusType:      sensors.BusI2C,
+		PollMode:     sensors.PollReading,
 	}
 }
 

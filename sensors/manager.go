@@ -48,7 +48,11 @@ type Instance interface {
 	// NewReading returns a blank Reading for this device
 	NewReading() *Reading
 	// ReadSensor takes measurements from the device
+	// when PollMode == PollReading
 	ReadSensor() (*Reading, error)
+	// RunDevice takes measurements from the device in realtime.
+	// This is only called when PollMode == PushReading
+	RunDevice(Publisher) error
 }
 
 // RegisterDevice registers a new Device handler.
@@ -58,16 +62,24 @@ func RegisterDevice(device Device) {
 	if device == nil {
 		panic(errors.New("device is nil"))
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
 
-	name := strings.ToLower(device.Info().ID)
+	info := device.Info()
+	if info.BusType == busUndefined {
+		panic(fmt.Errorf("bus type undefined for %q", info.ID))
+	}
+	if info.PollMode == pollUndefined {
+		panic(fmt.Errorf("poll mode undefined for %q", info.ID))
+	}
 
+	name := strings.ToLower(info.ID)
 	if name == "" {
 		panic(errors.New("device name cannot be empty"))
 	}
 
-	bus := device.Info().BusType
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	bus := info.BusType
 
 	m := devices[bus]
 	if m == nil {
