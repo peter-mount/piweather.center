@@ -3,27 +3,25 @@ package weathersensor
 import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/sensors"
-	"strings"
+	"github.com/peter-mount/piweather.center/util/table"
 )
 
 func (s *Service) listDevices() error {
+	t := table.New("ID", "Bus", "Manufacturer", "Model", "Description", "Mode")
+
 	devs := sensors.ListDevices()
 
-	format := "%-10.10s %-8.8s %-10.10s %-10.10s %s\n"
-
-	str := fmt.Sprintf(format, "ID", "Bus", "Manufacturer", "Model", "Description")
-
-	fmt.Println(str + strings.Repeat("-", len(str)))
-
 	for _, dev := range devs {
-		fmt.Printf(
-			format,
-			dev.ID,
-			dev.BusType.Label(),
-			dev.Manufacturer,
-			dev.Model,
-			dev.Description)
+		t.NewRow().
+			Add(dev.ID).
+			Add(dev.BusType.Label()).
+			Add(dev.Manufacturer).
+			Add(dev.Model).
+			Add(dev.Description).
+			Add(dev.PollMode.Label())
 	}
+
+	fmt.Println(t.String())
 
 	return nil
 }
