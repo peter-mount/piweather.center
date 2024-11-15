@@ -1,3 +1,5 @@
+//go:build !(aix || plan9 || solaris || windows)
+
 package sensors
 
 import "github.com/peter-mount/piweather.center/sensors/bus/i2c"

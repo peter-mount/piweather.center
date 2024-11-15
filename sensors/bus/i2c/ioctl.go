@@ -1,3 +1,5 @@
+//go:build !(aix || plan9 || solaris || windows)
+
 package i2c
 
 import "syscall"

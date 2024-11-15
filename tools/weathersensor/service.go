@@ -1,11 +1,7 @@
 package weathersensor
 
 import (
-	"encoding/json"
-	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/sensors"
 	_ "github.com/peter-mount/piweather.center/sensors/devices"
-	"time"
 )
 
 type Service struct {
@@ -17,9 +13,10 @@ func (s *Service) Start() error {
 		return s.listDevices()
 	}
 
-	return s.testSensor()
+	return nil //s.testSensor()
 }
 
+/*
 func (s *Service) testSensor() error {
 	// Lookup device
 	dev, err := sensors.LookupI2CDevice("sen0575")
@@ -49,6 +46,7 @@ func (s *Service) testSensor() error {
 			log.Println(string(b))
 		}
 
-		time.Sleep( /*5 */ time.Second)
+		time.Sleep(  time.Second)
 	}
 }
+*/

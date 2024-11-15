@@ -28,3 +28,11 @@ tools:
       arch: ppc64
     - os: linux
       arch: ppc64le
+  # weathersensor is not supported on the following platforms due to
+  # I2C and Serial not being supported on these platforms
+  weathersensor:
+    - os: aix
+    - os: illumos
+    - os: plan9
+    - os: solaris
+#    - os: windows

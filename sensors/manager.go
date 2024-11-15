@@ -65,16 +65,6 @@ func RegisterDevice(device Device) {
 
 	bus := device.Info().BusType
 
-	// Verify the device implements the correct interfaces
-	switch bus {
-	case BusI2C:
-		if _, ok := device.(I2CDevice); !ok {
-			panic(fmt.Errorf("%s device %q does not implement I2CDevice", bus.Label(), name))
-		}
-	default:
-		// TODO implement BusSPI & BusSerial
-	}
-
 	m := devices[bus]
 	if m == nil {
 		panic(fmt.Errorf("device %q has invalid BusType %d", name, bus))
