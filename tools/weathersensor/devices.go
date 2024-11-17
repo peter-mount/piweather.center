@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Service) listDevices() error {
-	t := table.New("ID", "Bus", "Manufacturer", "Model", "Description", "Mode")
+	t := table.New("ID", "Description", "Manufacturer", "Model", "Bus", "Mode")
 
 	devs := sensors.ListDevices()
 
@@ -19,10 +19,10 @@ func (s *Service) listDevices() error {
 	for _, dev := range devs {
 		t.NewRow().
 			Add(dev.ID).
-			Add(dev.BusType.Label()).
+			Add(dev.Description).
 			Add(dev.Manufacturer).
 			Add(dev.Model).
-			Add(dev.Description).
+			Add(dev.BusType.Label()).
 			Add(dev.PollMode.Label())
 	}
 
