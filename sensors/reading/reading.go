@@ -1,8 +1,6 @@
-package sensors
+package reading
 
 import (
-	"encoding/json"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
@@ -24,6 +22,11 @@ type Reading struct {
 	Device string
 }
 
+// IsEmpty returns true if the Reading is nil, it has no Time set, or it has no readings
+func (r *Reading) IsEmpty() bool {
+	return r == nil || len(r.Readings) == 0 || r.Time.IsZero()
+}
+
 // Get the named value from Reading.Readings
 func (r *Reading) Get(n string) value.Value {
 	if r.Readings == nil {
@@ -32,7 +35,7 @@ func (r *Reading) Get(n string) value.Value {
 	return r.Readings[n]
 }
 
-// Set the named value in Reading.Readings
+// Set the named Value
 func (r *Reading) Set(n string, v value.Value) {
 	// If Time is not set then set it once
 	if r.Time.IsZero() {
@@ -42,16 +45,19 @@ func (r *Reading) Set(n string, v value.Value) {
 	if r.Readings == nil {
 		r.Readings = make(map[string]value.Value)
 	}
+
 	if _, exists := r.Readings[n]; !exists {
 		r.keys = append(r.keys, n)
 	}
 	r.Readings[n] = v
 }
 
+// SetInt sets the named value
 func (r *Reading) SetInt(n string, unit *value.Unit, v int) {
 	r.SetFloat64(n, unit, float64(v))
 }
 
+// SetFloat64 sets the named value
 func (r *Reading) SetFloat64(n string, unit *value.Unit, v float64) {
 	r.Set(n, unit.Value(v))
 }
@@ -111,13 +117,6 @@ func (r *Reading) marshallMap(buf []byte, name string, f func(k value.Value) str
 
 	return append(buf, '}')
 }
-func NewReading(dev Device) *Reading {
-	return &Reading{
-		Time:     time.Now().UTC(), // default to now but usually the device will override it
-		Device:   dev.Info().Model,
-		Readings: make(map[string]value.Value),
-	}
-}
 
 type Difference struct {
 	// Name of field that is different
@@ -133,7 +132,7 @@ type Difference struct {
 // Differences returns any Difference's between this result and a previous Result.
 // This allows us to only submit values when they differ from a previous result
 func (r *Reading) Differences(b *Reading) []Difference {
-	if r.Time.IsZero() || r.Readings == nil || b == nil || b.Time.IsZero() || b.Readings == nil {
+	if r.IsEmpty() || b.IsEmpty() {
 		return nil
 	}
 
@@ -170,33 +169,4 @@ func (r *Reading) Differences(b *Reading) []Difference {
 	}
 
 	return ret
-}
-
-type Publisher func(*Reading) error
-
-func (a Publisher) Then(b Publisher) Publisher {
-	if a == nil {
-		return b
-	}
-	if b == nil {
-		return a
-	}
-	return func(r *Reading) error {
-		err := a(r)
-		if err == nil {
-			err = b(r)
-		}
-		return err
-	}
-}
-
-func LogPublisher(r *Reading) error {
-	if log.IsVerbose() {
-		b, err := json.Marshal(r)
-		if err != nil {
-			return err
-		}
-		log.Println(string(b))
-	}
-	return nil
 }

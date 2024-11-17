@@ -1,29 +1,30 @@
 package gmc320
 
 import (
-	"github.com/peter-mount/piweather.center/sensors"
+	"github.com/peter-mount/piweather.center/sensors/bus"
+	device2 "github.com/peter-mount/piweather.center/sensors/device"
 	"go.bug.st/serial"
 )
 
 func init() {
-	sensors.RegisterDevice(&device{})
+	device2.RegisterDevice(&device{})
 }
 
 type device struct{}
 
-func (d *device) Info() sensors.DeviceInfo {
-	return sensors.DeviceInfo{
+func (d *device) Info() device2.DeviceInfo {
+	return device2.DeviceInfo{
 		ID:           "GMC320",
 		Manufacturer: "GQ Electronics LLC",
 		Model:        "GMC320",
 		Description:  "Geiger Counter",
-		BusType:      sensors.BusSerial,
-		PollMode:     sensors.PushReading,
+		BusType:      bus.BusSerial,
+		PollMode:     bus.PushReading,
 	}
 }
 
-func (d *device) NewInstance(portName string, mode *serial.Mode) sensors.Instance {
+func (d *device) NewInstance(portName string, mode *serial.Mode) device2.Instance {
 	return &gmc320{
-		BasicSerialDevice: sensors.NewBasicSerialDevice(d, portName, mode),
+		BasicSerialDevice: device2.NewBasicSerialDevice(d, portName, mode),
 	}
 }

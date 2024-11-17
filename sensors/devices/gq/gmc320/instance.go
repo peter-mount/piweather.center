@@ -1,12 +1,12 @@
 package gmc320
 
 import (
-	"github.com/peter-mount/piweather.center/sensors"
+	device2 "github.com/peter-mount/piweather.center/sensors/device"
 	"time"
 )
 
 type gmc320 struct {
-	sensors.BasicSerialDevice
+	device2.BasicSerialDevice
 	// Readings in realtime mode
 	realtimeReadings []CpmReading
 }
@@ -15,10 +15,6 @@ type CpmReading struct {
 	Time time.Time // Time of reading
 	CPS  int       // Count per second
 	CPM  int       // Count per minute
-}
-
-func (r CpmReading) IsPublishable() bool {
-	return r.CPS > 0 || r.CPM > 0
 }
 
 func (i *gmc320) record(t time.Time, cps int) CpmReading {

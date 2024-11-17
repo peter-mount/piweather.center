@@ -1,14 +1,15 @@
 package sen0575
 
 import (
-	"github.com/peter-mount/piweather.center/sensors"
 	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
+	device2 "github.com/peter-mount/piweather.center/sensors/device"
+	"github.com/peter-mount/piweather.center/sensors/reading"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
 
 type sen0575 struct {
-	sensors.BasicI2CDevice
+	device2.BasicI2CDevice
 	lastReading     time.Time   // time of last reading
 	lastBucketCount value.Value // total bucket tips from last reading
 }
@@ -19,12 +20,12 @@ func (s *sen0575) Init() error {
 }
 
 // ReadSensor reads the current values from the device
-func (s *sen0575) ReadSensor() (*sensors.Reading, error) {
+func (s *sen0575) ReadSensor() (*reading.Reading, error) {
 	ret := s.NewReading()
 	return ret, s.readSensor(ret)
 }
 
-func (s *sen0575) readSensor(ret *sensors.Reading) error {
+func (s *sen0575) readSensor(ret *reading.Reading) error {
 	return s.UseDevice(func(bus i2c.I2C) error {
 		var err error
 

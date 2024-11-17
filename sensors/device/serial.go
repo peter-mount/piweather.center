@@ -1,6 +1,9 @@
-package sensors
+package device
 
 import (
+	"github.com/peter-mount/piweather.center/sensors/bus"
+	"github.com/peter-mount/piweather.center/sensors/publisher"
+	"github.com/peter-mount/piweather.center/sensors/reading"
 	"go.bug.st/serial"
 	"time"
 )
@@ -11,7 +14,7 @@ type SerialDevice interface {
 }
 
 func LookupSerialDevice(name string) (SerialDevice, error) {
-	dev := lookupDevice(BusSerial, name)
+	dev := lookupDevice(bus.BusSerial, name)
 	if dev == nil {
 		return nil, deviceNotFound
 	}
@@ -68,15 +71,15 @@ func (b *BasicSerialDevice) Init() error {
 }
 
 // NewReading creates a new Reading ready for use in taking measurements
-func (b *BasicSerialDevice) NewReading() *Reading {
-	return NewReading(b.device)
+func (b *BasicSerialDevice) NewReading() *reading.Reading {
+	return newReading(b.device)
 }
 
-func (b *BasicSerialDevice) ReadSensor() (*Reading, error) {
+func (b *BasicSerialDevice) ReadSensor() (*reading.Reading, error) {
 	return nil, deviceNotImplemented
 }
 
-func (b *BasicSerialDevice) RunDevice(_ Publisher) error {
+func (b *BasicSerialDevice) RunDevice(_ publisher.Publisher) error {
 	return deviceNotImplemented
 }
 

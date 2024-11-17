@@ -2,7 +2,7 @@ package weathersensor
 
 import (
 	"fmt"
-	"github.com/peter-mount/piweather.center/sensors"
+	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/util/table"
 	"sort"
 )
@@ -10,7 +10,7 @@ import (
 func (s *Service) listDevices() error {
 	t := table.New("ID", "Description", "Manufacturer", "Model", "Bus", "Mode")
 
-	devs := sensors.ListDevices()
+	devs := device.ListDevices()
 
 	sort.SliceStable(devs, func(i, j int) bool {
 		return devs[i].ID < devs[j].ID

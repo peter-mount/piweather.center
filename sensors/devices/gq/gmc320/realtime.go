@@ -1,12 +1,12 @@
 package gmc320
 
 import (
-	"github.com/peter-mount/piweather.center/sensors"
+	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"time"
 )
 
-func (i *gmc320) RunDevice(pub sensors.Publisher) error {
+func (i *gmc320) RunDevice(pub publisher.Publisher) error {
 	return i.Run(func() error {
 		b := make([]byte, 2)
 
@@ -38,14 +38,12 @@ func (i *gmc320) RunDevice(pub sensors.Publisher) error {
 	})
 }
 
-func (i *gmc320) publish(pub sensors.Publisher, rec CpmReading) error {
-	if !rec.IsPublishable() {
-		return nil
-	}
-
+func (i *gmc320) publish(pub publisher.Publisher, rec CpmReading) error {
 	reading := i.NewReading()
 
-	reading.SetInt("cps", measurement.CountPerSecond, rec.CPS)
+	if rec.CPS > 0 {
+		reading.SetInt("cps", measurement.CountPerSecond, rec.CPS)
+	}
 
 	if rec.CPM > 0 {
 		reading.SetInt("cpm", measurement.CountPerMinute, rec.CPM)

@@ -1,8 +1,13 @@
 //go:build !(aix || plan9 || solaris || windows)
 
-package sensors
+package device
 
-import "github.com/peter-mount/piweather.center/sensors/bus/i2c"
+import (
+	"github.com/peter-mount/piweather.center/sensors/bus"
+	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
+	"github.com/peter-mount/piweather.center/sensors/publisher"
+	"github.com/peter-mount/piweather.center/sensors/reading"
+)
 
 // I2CDevice represents a Device that operates over an I2C bus
 type I2CDevice interface {
@@ -13,7 +18,7 @@ type I2CDevice interface {
 
 // LookupI2CDevice returns the named I2CDevice. This will fail with an error if no device has been registered
 func LookupI2CDevice(name string) (I2CDevice, error) {
-	dev := lookupDevice(BusI2C, name)
+	dev := lookupDevice(bus.BusI2C, name)
 	if dev == nil {
 		return nil, deviceNotFound
 	}
@@ -40,15 +45,15 @@ func (b BasicI2CDevice) Init() error {
 }
 
 // NewReading creates a new Reading ready for use in taking measurements
-func (b BasicI2CDevice) NewReading() *Reading {
-	return NewReading(b.device)
+func (b BasicI2CDevice) NewReading() *reading.Reading {
+	return newReading(b.device)
 }
 
-func (b BasicI2CDevice) ReadSensor() (*Reading, error) {
+func (b BasicI2CDevice) ReadSensor() (*reading.Reading, error) {
 	return nil, deviceNotImplemented
 }
 
-func (b BasicI2CDevice) RunDevice(_ Publisher) error {
+func (b BasicI2CDevice) RunDevice(_ publisher.Publisher) error {
 	return deviceNotImplemented
 }
 

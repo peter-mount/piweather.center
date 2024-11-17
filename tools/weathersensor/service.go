@@ -1,8 +1,9 @@
 package weathersensor
 
 import (
-	"github.com/peter-mount/piweather.center/sensors"
+	"github.com/peter-mount/piweather.center/sensors/device"
 	_ "github.com/peter-mount/piweather.center/sensors/devices"
+	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"go.bug.st/serial"
 )
 
@@ -20,7 +21,7 @@ func (s *Service) Start() error {
 
 func (s *Service) testSensor() error {
 	// Lookup device
-	dev, err := sensors.LookupSerialDevice("gmc320")
+	dev, err := device.LookupSerialDevice("gmc320")
 	if err != nil {
 		return err
 	}
@@ -33,7 +34,13 @@ func (s *Service) testSensor() error {
 		StopBits: 0,
 	})
 
-	return instance.RunDevice(sensors.LogPublisher)
+	pub := publisher.NewBuilder().
+		SetId("test.office.geiger").
+		FilterEmpty().
+		Log().
+		Build()
+
+	return instance.RunDevice(pub)
 }
 
 /*

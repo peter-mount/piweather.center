@@ -1,6 +1,4 @@
-package sensors
-
-import "errors"
+package bus
 
 type BusType uint8
 
@@ -35,8 +33,6 @@ const (
 )
 
 var (
-	busLabels            = []string{"", "I2C", "SPI", "Serial"}
-	pollLabels           = []string{"", "Poll", "Push"}
-	deviceNotFound       = errors.New("device not found")
-	deviceNotImplemented = errors.New("device not implemented")
+	busLabels  = []string{"", "I2C", "SPI", "Serial"}
+	pollLabels = []string{"", "Poll", "Push"}
 )
