@@ -1,3 +1,5 @@
+//go:build !(aix || dragonfly || illumos || netbsd || plan9 || solaris || (linux && (loong64 || ppc64 || ppc64le)))
+
 package device
 
 import (
