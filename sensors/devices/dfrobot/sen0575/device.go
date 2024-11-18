@@ -3,8 +3,6 @@ package sen0575
 import (
 	"github.com/peter-mount/piweather.center/sensors/bus"
 	device2 "github.com/peter-mount/piweather.center/sensors/device"
-	"github.com/peter-mount/piweather.center/weather/value"
-	"time"
 )
 
 func init() {
@@ -13,8 +11,6 @@ func init() {
 
 // device implementation for SEN0575 over I2C
 type device struct {
-	lastReading     time.Time   // time of last reading
-	lastBucketCount value.Value // total bucket tips from last reading
 }
 
 func (d *device) Info() device2.DeviceInfo {
