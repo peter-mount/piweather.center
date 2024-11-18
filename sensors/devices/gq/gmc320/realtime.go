@@ -49,7 +49,7 @@ func (i *gmc320) publish(pub publisher.Publisher, rec CpmReading) error {
 		reading.SetInt("cpm", measurement.CountPerMinute, rec.CPM)
 	}
 
-	return pub(reading)
+	return pub.Do(reading)
 }
 
 // toInt16 converts a 2 byte value to an unsigned integer
