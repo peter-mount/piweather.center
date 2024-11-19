@@ -1,11 +1,20 @@
 package weathersensor
 
 import (
+	"flag"
+	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/go-kernel/v2"
+	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/piweather.center/config/sensors"
+	"github.com/peter-mount/piweather.center/config/util"
+	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
 	_ "github.com/peter-mount/piweather.center/sensors/devices"
 )
 
 type Service struct {
-	ListDevices *bool `kernel:"flag,list-devices,List Devices"`
+	ListDevices *bool             `kernel:"flag,list-devices,List Devices"`
+	Daemon      *kernel.Daemon    `kernel:"inject"`
+	Cron        *cron.CronService `kernel:"inject"`
 }
 
 func (s *Service) Start() error {
@@ -13,7 +22,44 @@ func (s *Service) Start() error {
 		return s.listDevices()
 	}
 
-	return nil //s.testSensor()
+	var src *sensors2.Sensors
+	for _, arg := range flag.Args() {
+
+		b, err := sensors.NewParser().
+			ParseFile(arg)
+		if err == nil {
+			src, err = src.Merge(b)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := sensors.NewBuilder[any]().
+		Sensor(s.sensor).
+		Build().
+		Sensors(src); err != nil {
+		return err
+	}
+
+	s.Daemon.SetDaemon()
+	return nil
+}
+
+func (s *Service) sensor(v sensors2.SensorVisitor[any], sensor *sensors2.Sensor) error {
+	var err error
+	switch {
+	case sensor.I2C != nil:
+		err = s.i2cSensor(v, sensor)
+	case sensor.Serial != nil:
+		err = s.serialSensor(v, sensor)
+	default:
+		err = participle.Errorf(sensor.Pos, "invalid device bus for %q", sensor.ID)
+	}
+	if err == nil {
+		err = util.VisitorStop
+	}
+	return err
 }
 
 /*

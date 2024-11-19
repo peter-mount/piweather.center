@@ -53,8 +53,14 @@ func (b BasicI2CDevice) ReadSensor() (*reading.Reading, error) {
 	return nil, deviceNotImplemented
 }
 
-func (b BasicI2CDevice) RunDevice(_ publisher.Publisher) error {
-	return deviceNotImplemented
+func (b BasicI2CDevice) RunDevice(p publisher.Publisher) error {
+	return b.UseDevice(func(c i2c.I2C) error {
+		rec, err := b.ReadSensor()
+		if err == nil {
+			err = p.Do(rec)
+		}
+		return err
+	})
 }
 
 // UseDevice will execute the Task against this device.

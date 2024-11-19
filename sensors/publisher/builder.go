@@ -20,6 +20,7 @@ type Builder interface {
 
 type builder struct {
 	pub         Publisher
+	log         bool
 	filterEmpty bool
 }
 
@@ -37,6 +38,10 @@ func (b *builder) FilterEmpty() Builder {
 }
 
 func (b *builder) Log() Builder {
+	if b.log {
+		return b
+	}
+	b.log = true
 	return b.Then(logPublisher)
 }
 
@@ -47,8 +52,10 @@ func (b *builder) Then(p Publisher) Builder {
 
 func (b *builder) Build() Publisher {
 	pub := b.pub
+
 	if b.filterEmpty {
 		pub = filterEmptyReadings(pub)
 	}
+
 	return pub
 }
