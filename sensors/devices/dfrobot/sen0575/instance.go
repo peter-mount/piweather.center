@@ -3,6 +3,7 @@ package sen0575
 import (
 	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
 	device2 "github.com/peter-mount/piweather.center/sensors/device"
+	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/sensors/reading"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
@@ -23,6 +24,14 @@ func (s *sen0575) Init() error {
 func (s *sen0575) ReadSensor() (*reading.Reading, error) {
 	ret := s.NewReading()
 	return ret, s.readSensor(ret)
+}
+
+func (s *sen0575) RunDevice(p publisher.Publisher) error {
+	rec, err := s.ReadSensor()
+	if err == nil {
+		err = p.Do(rec)
+	}
+	return err
 }
 
 func (s *sen0575) readSensor(ret *reading.Reading) error {
