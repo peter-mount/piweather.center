@@ -19,6 +19,7 @@ type Service struct {
 
 func (s *Service) Start() error {
 	if *s.ListDevices {
+		s.Daemon.ClearDaemon()
 		return s.listDevices()
 	}
 
