@@ -54,6 +54,10 @@ func (v *visitor[T]) Sensor(b *sensors.Sensor) error {
 			err = v.Serial(b.Serial)
 		}
 
+		if err == nil {
+			err = v.Poll(b.Poll)
+		}
+
 		for _, p := range b.Publisher {
 			if err == nil {
 				err = v.Publisher(p)
