@@ -2,8 +2,11 @@
 
 package weathersensor
 
-import sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
+import (
+	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/piweather.center/config/util/sensors"
+)
 
-func (s *Service) i2cSensor(_ sensors2.SensorVisitor[any], _ *sensors2.Sensor) error {
+func (s *Service) i2cSensor(_ sensors.SensorVisitor[any], sensor *sensors.Sensor) error {
 	return participle.Errorf(sensor.Pos, "i2c devices are not supported on this platform")
 }
