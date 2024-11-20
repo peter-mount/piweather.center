@@ -1,7 +1,6 @@
 package aht10
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
 	device2 "github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
@@ -25,24 +24,6 @@ const (
 type aht10 struct {
 	device2.BasicI2CDevice
 	buf []byte
-}
-
-func (s *aht10) Init() error {
-	log.Println("Init")
-	//s.buf = make([]byte, 6)
-	return nil
-	/*	return s.UseDevice(func(bus i2c.I2C) error {
-			err := bus.WriteByte(initDevice)
-			if err != nil {
-				return err
-			}
-			time.Sleep(delay)
-
-			b:=make([]byte, 6)
-
-			return nil
-		})
-	*/
 }
 
 func (s *aht10) ReadSensor() (*reading.Reading, error) {

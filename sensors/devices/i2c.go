@@ -11,4 +11,5 @@ package devices
 import (
 	_ "github.com/peter-mount/piweather.center/sensors/devices/asair/aht10"
 	_ "github.com/peter-mount/piweather.center/sensors/devices/dfrobot/sen0575"
+	_ "github.com/peter-mount/piweather.center/sensors/devices/rohm/bh1750"
 )
