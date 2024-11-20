@@ -3,6 +3,7 @@
 package device
 
 import (
+	"fmt"
 	"github.com/peter-mount/piweather.center/sensors/bus"
 	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
@@ -50,17 +51,11 @@ func (b BasicI2CDevice) NewReading() *reading.Reading {
 }
 
 func (b BasicI2CDevice) ReadSensor() (*reading.Reading, error) {
-	return nil, deviceNotImplemented
+	return nil, fmt.Errorf("device %q does not implement ReadSensor()", b.device.Info().ID)
 }
 
-func (b BasicI2CDevice) RunDevice(p publisher.Publisher) error {
-	return b.UseDevice(func(c i2c.I2C) error {
-		rec, err := b.ReadSensor()
-		if err == nil {
-			err = p.Do(rec)
-		}
-		return err
-	})
+func (b BasicI2CDevice) RunDevice(_ publisher.Publisher) error {
+	return fmt.Errorf("device %q must implement RunDevice due to limitations in go", b.device.Info().ID)
 }
 
 // UseDevice will execute the Task against this device.

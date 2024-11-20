@@ -58,7 +58,7 @@ func (s *state) i2c(_ sensors.SensorVisitor[*state], q *sensors.I2C) error {
 	if q.Bus < 1 || q.Device < 0 {
 		return participle.Errorf(q.Pos, "i2c address %d:%02x is invalid", q.Bus, q.Device)
 	}
-	if q.Device <= 7 || (q.Device&0x78) != 0 {
+	if q.Device <= 7 /*|| (q.Device&0x78) != 0*/ {
 		return participle.Errorf(q.Pos, "i2c address %d:%02x is reserved", q.Bus, q.Device)
 	}
 	return nil

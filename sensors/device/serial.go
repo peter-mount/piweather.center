@@ -3,6 +3,7 @@
 package device
 
 import (
+	"fmt"
 	"github.com/peter-mount/piweather.center/sensors/bus"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/sensors/reading"
@@ -78,11 +79,11 @@ func (b *BasicSerialDevice) NewReading() *reading.Reading {
 }
 
 func (b *BasicSerialDevice) ReadSensor() (*reading.Reading, error) {
-	return nil, deviceNotImplemented
+	return nil, fmt.Errorf("device %q does not implement ReadSensor()", b.device.Info().ID)
 }
 
 func (b *BasicSerialDevice) RunDevice(_ publisher.Publisher) error {
-	return deviceNotImplemented
+	return fmt.Errorf("device %q does not implement RunDevice()", b.device.Info().ID)
 }
 
 func (b *BasicSerialDevice) Read(d []byte) (int, error) {

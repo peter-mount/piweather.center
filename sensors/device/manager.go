@@ -11,10 +11,9 @@ import (
 )
 
 var (
-	mutex                sync.Mutex
-	devices              map[bus.BusType]map[string]Device
-	deviceNotFound       = errors.New("device not found")
-	deviceNotImplemented = errors.New("device not implemented")
+	mutex          sync.Mutex
+	devices        map[bus.BusType]map[string]Device
+	deviceNotFound = errors.New("device not found")
 )
 
 func init() {
@@ -28,7 +27,7 @@ func init() {
 type Instance interface {
 	// Init must be called once an instance has been created to initialise the device.
 	Init() error
-	// newReading returns a blank Reading for this device
+	// NewReading returns a blank Reading for this device
 	NewReading() *reading.Reading
 	// ReadSensor takes measurements from the device
 	// when PollMode == PollReading

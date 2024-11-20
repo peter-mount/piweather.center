@@ -9,5 +9,6 @@ package devices
 	due to syscall.SYS_IOCTL being undefined
 */
 import (
+	_ "github.com/peter-mount/piweather.center/sensors/devices/asair/aht10"
 	_ "github.com/peter-mount/piweather.center/sensors/devices/dfrobot/sen0575"
 )
