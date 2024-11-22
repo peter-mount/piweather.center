@@ -41,6 +41,8 @@ func (i *gmc320) RunDevice(pub publisher.Publisher) error {
 func (i *gmc320) publish(pub publisher.Publisher, rec cpmReading) error {
 	reading := i.NewReading()
 
+	reading.Time = rec.Time
+
 	if rec.CPS > 0 {
 		reading.SetInt("cps", measurement.CountPerSecond, rec.CPS)
 	}
