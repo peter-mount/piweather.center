@@ -38,7 +38,7 @@ func (i *gmc320) RunDevice(pub publisher.Publisher) error {
 	})
 }
 
-func (i *gmc320) publish(pub publisher.Publisher, rec CpmReading) error {
+func (i *gmc320) publish(pub publisher.Publisher, rec cpmReading) error {
 	reading := i.NewReading()
 
 	if rec.CPS > 0 {
