@@ -8,7 +8,6 @@ import (
 	"github.com/peter-mount/piweather.center/config/sensors"
 	"github.com/peter-mount/piweather.center/config/util"
 	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
-	_ "github.com/peter-mount/piweather.center/sensors/devices"
 )
 
 type Service struct {
