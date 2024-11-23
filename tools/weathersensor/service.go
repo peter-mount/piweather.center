@@ -1,13 +1,18 @@
 package weathersensor
 
 import (
+	"context"
 	"flag"
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/config/sensors"
 	"github.com/peter-mount/piweather.center/config/util"
 	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
+	"github.com/peter-mount/piweather.center/sensors/device"
+	"github.com/peter-mount/piweather.center/sensors/publisher"
+	"time"
 )
 
 type Service struct {
@@ -62,63 +67,33 @@ func (s *Service) sensor(v sensors2.SensorVisitor[any], sensor *sensors2.Sensor)
 	return err
 }
 
-/*
-func (s *Service) testSensor() error {
-	// Lookup device
-	dev, err := device.LookupSerialDevice("gmc320")
-	if err != nil {
-		return err
-	}
-
-	// create instance
-	instance := dev.NewInstance("/dev/ttyUSB0", &serial.Mode{
-		BaudRate: 115200,
-		DataBits: 8,
-		Parity:   serial.NoParity,
-		StopBits: 0,
-	})
-
-	pub := publisher.NewBuilder().
-		SetId("test.office.geiger").
-		FilterEmpty().
-		Log().
-		Build()
-
-	return instance.RunDevice(pub)
-}
-*/
-
-/*
-func (s *Service) testSensor() error {
-	// Lookup device
-	dev, err := sensors.LookupI2CDevice("sen0575")
-	if err != nil {
-		return err
-	}
-
-	// create instance
-	instance := dev.NewInstance(1, 0x1d)
-
-	// Initialise the instance
-	err = instance.Init()
-	if err != nil {
-		return err
-	}
-
-	for {
-		rec, err := instance.ReadSensor()
+// PollDevice will configure a task that will poll the given instance based on a cron definition.
+// Any errors returned by the device when it's polled will be reported in the log.
+func (s *Service) PollDevice(dev device.Device, instance device.Instance, publisher publisher.Publisher, cronDef string) error {
+	_, err := s.Cron.AddTask(cronDef, func(_ context.Context) error {
+		err := instance.RunDevice(publisher)
 		if err != nil {
-			log.Println(err)
-		} else {
-			b, err := json.Marshal(&rec)
-			if err != nil {
-				return err
-			}
-
-			log.Println(string(b))
+			log.Printf("device %q error %s",
+				dev.Info().ID,
+				err.Error())
 		}
-
-		time.Sleep(  time.Second)
-	}
+		return nil
+	})
+	return err
 }
-*/
+
+// RunDevice will call the instance in a separate goroutine.
+// Any error returned by the device will be logged, and it will retry the device after a short delay.
+func (s *Service) RunDevice(dev device.Device, instance device.Instance, publisher publisher.Publisher) {
+	go func() {
+		for {
+			err := instance.RunDevice(publisher)
+			if err != nil {
+				log.Printf("device %q error %s",
+					dev.Info().ID,
+					err.Error())
+				time.Sleep(time.Second)
+			}
+		}
+	}()
+}

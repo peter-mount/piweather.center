@@ -3,7 +3,6 @@
 package weathersensor
 
 import (
-	"context"
 	"github.com/peter-mount/go-script/errors"
 	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
 	"github.com/peter-mount/piweather.center/sensors/bus"
@@ -12,13 +11,11 @@ import (
 )
 
 func (s *Service) serialSensor(_ sensors2.SensorVisitor[any], sensor *sensors2.Sensor) error {
-	// Lookup device
 	dev, err := device.LookupSerialDevice(sensor.Device)
 	if err != nil {
 		return errors.Errorf(sensor.Pos, "device %q for %q not found", sensor.Device, sensor.ID)
 	}
 
-	// create instance
 	def := sensor.Serial
 
 	mode := &serial.Mode{
@@ -65,12 +62,10 @@ func (s *Service) serialSensor(_ sensors2.SensorVisitor[any], sensor *sensors2.S
 			return errors.Errorf(sensor.Pos, "serial device %q requires poll period defining", sensor.Device)
 		}
 
-		_, err = s.Cron.AddTask(sensor.Poll.Definition, func(_ context.Context) error {
-			return instance.RunDevice(publisher)
-		})
+		err = s.PollDevice(dev, instance, publisher, sensor.Poll.Definition)
 
 	case bus.PushReading:
-		go instance.RunDevice(publisher)
+		s.RunDevice(dev, instance, publisher)
 	}
 
 	return err
