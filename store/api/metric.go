@@ -16,6 +16,15 @@ type Metric struct {
 	Unix      int64     `json:"unix,omitempty" xml:"unix,attr,omitempty" yaml:"unix,omitempty"`
 }
 
+func NewMetric(metric string, t time.Time, v value.Value) Metric {
+	return Metric{
+		Metric: metric,
+		Time:   t,
+		Value:  v.Float(),
+		Unit:   v.Unit().ID(),
+	}
+}
+
 // IsValid returns true if the Metric has a value
 func (m Metric) IsValid() bool {
 	return !m.Time.IsZero()

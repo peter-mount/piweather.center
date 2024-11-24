@@ -11,6 +11,8 @@ type Builder interface {
 	// Log will cause the Publisher to log readings as they are published
 	Log() Builder
 
+	DB(DBPublisher) Builder
+
 	// Then allows for a custom Publisher to be included within the Final Publisher.
 	Then(Publisher) Builder
 
@@ -22,6 +24,7 @@ type builder struct {
 	pub         Publisher
 	log         bool
 	filterEmpty bool
+	dbPublisher bool
 }
 
 func NewBuilder() Builder {
@@ -43,6 +46,14 @@ func (b *builder) Log() Builder {
 	}
 	b.log = true
 	return b.Then(logPublisher)
+}
+
+func (b *builder) DB(db DBPublisher) Builder {
+	if b.dbPublisher {
+		return b
+	}
+	b.dbPublisher = true
+	return b.Then(dbPublisher(db))
 }
 
 func (b *builder) Then(p Publisher) Builder {

@@ -42,8 +42,8 @@ type Sensor struct {
 }
 
 type Publisher struct {
-	Pos         lexer.Position
-	Log         bool       `parser:"( @'log'"`
-	FilterEmpty bool       `parser:"| @'filterempty'"`
-	Amqp        *amqp.Amqp `parser:"| @@ )"`
+	Pos  lexer.Position
+	Log  bool       `parser:"( @'log'"`
+	DB   bool       `parser:"| @'db'"`
+	Amqp *amqp.Amqp `parser:"| @@ )"`
 }

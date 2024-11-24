@@ -12,13 +12,15 @@ import (
 	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
+	"github.com/peter-mount/piweather.center/store/broker"
 	"time"
 )
 
 type Service struct {
-	ListDevices *bool             `kernel:"flag,list-devices,List Devices"`
-	Daemon      *kernel.Daemon    `kernel:"inject"`
-	Cron        *cron.CronService `kernel:"inject"`
+	ListDevices    *bool                 `kernel:"flag,list-devices,List Devices"`
+	Daemon         *kernel.Daemon        `kernel:"inject"`
+	Cron           *cron.CronService     `kernel:"inject"`
+	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 }
 
 func (s *Service) Start() error {
