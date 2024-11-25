@@ -353,3 +353,36 @@ func (v Value) Calculate(b Value, f Calculation) (Value, error) {
 	r := v.Value(f(v.Float(), c.Float()))
 	return r, r.BoundsError()
 }
+
+// Enforce returns a new Value so that it's within the bounds b...c,
+// or an error if either v, b or c are invalid,
+// if either b or c cannot be transformed to v's unit,
+// or if the result is itself invalid.
+func (v Value) Enforce(b, c Value) (Value, error) {
+	b1, err := b.As(v.Unit())
+	if err != nil {
+		return Value{}, err
+	}
+
+	c1, err := c.As(v.Unit())
+	if err != nil {
+		return Value{}, err
+	}
+
+	r := v.Value(Enforce(v.Float(), b1.Float(), c1.Float()))
+	return r, r.BoundsError()
+}
+
+// Enforce a so that it's within the bounds b...c
+func Enforce(a, b, c float64) float64 {
+	if GreaterThan(b, c) {
+		b, c = c, b
+	}
+	if LessThanEqual(a, b) {
+		return b
+	}
+	if GreaterThanEqual(a, c) {
+		return c
+	}
+	return a
+}
