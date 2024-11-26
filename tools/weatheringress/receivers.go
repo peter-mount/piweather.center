@@ -114,18 +114,34 @@ func (s *Ingress) startHttp(ctx context.Context) error {
 		return nil
 	}
 
+	var bodyFunc func(*rest.Rest) []byte
+	switch sensor.Source.Http.Method {
+	case http.MethodGet:
+		bodyFunc = getBody
+	case http.MethodPost:
+		bodyFunc = postBody
+	default:
+		return fmt.Errorf("method %q is not valid", sensor.Source.Http.Method)
+	}
+
 	return s.EndpointManager.RegisterHttpEndpoint(
 		"inbound",
 		"/api/inbound/"+sensor.Source.Http.Path,
 		sensor.ID,
 		sensor.Name,
-		http.MethodPost,
+		sensor.Source.Http.Method,
 		"http",
 		func(ctx context.Context) error {
 			r := rest.GetRest(ctx)
-			body, _ := io.ReadAll(r.Request().Body)
+
+			body := bodyFunc(r)
+
+			if sensor.Source.Http.Debug {
+				log.Printf("%s:%s:%s %q", sensor.ID, sensor.Name, sensor.Source.Http.Method, string(body))
+			}
 
 			p, err := payload.FromBytes(sensor.ID, sensor.Format, sensor.Timestamp, body)
+
 			switch {
 			case err != nil:
 				log.Println(err)
@@ -139,4 +155,13 @@ func (s *Ingress) startHttp(ctx context.Context) error {
 					VisitSensors(sensor)
 			}
 		})
+}
+
+func getBody(r *rest.Rest) []byte {
+	return []byte(r.Request().URL.RawQuery)
+}
+
+func postBody(r *rest.Rest) []byte {
+	body, _ := io.ReadAll(r.Request().Body)
+	return body
 }

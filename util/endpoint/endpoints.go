@@ -3,6 +3,7 @@ package endpoint
 import (
 	"context"
 	"fmt"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/task"
 	"sort"
@@ -114,6 +115,7 @@ func (s *EndpointManager) addEndpoint(e *endpoint) error {
 	}
 
 	s.endPoints[e.endpoint.Category] = append(s.endPoints[e.endpoint.Category], e)
+	log.Printf("created path %s:%s", e.endpoint.Method, e.endpoint.Endpoint)
 	return nil
 }
 

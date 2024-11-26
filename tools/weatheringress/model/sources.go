@@ -10,14 +10,18 @@ import (
 // You can define multiple entries here
 type Source struct {
 	WUnderground string      `yaml:"wunderground,omitempty"`
-	Http         *Http       `yaml:"ecowitt,omitempty"`
+	Http         *Http       `yaml:"http,omitempty"`
 	Amqp         *amqp.Queue `yaml:"amqp,omitempty"`
 	Mqtt         *mqtt.Queue `yaml:"mqtt,omitempty"`
 }
 
 type Http struct {
+	// Method, one of "GET" or "POST"
+	Method string `yaml:"method,omitempty"`
 	// Path under /api/http/
 	Path string `json:"path" xml:"path,attr" yaml:"path"`
 	// PassKey unique to the unit. "" to allow all
 	PassKey string `json:"passKey,omitempty" xml:"passKey,attr,omitempty" yaml:"passKey,omitempty"`
+	// Debug true to log the received data
+	Debug bool `json:"debug,omitempty" xml:"debug,omitempty" yaml:"debug,omitempty"`
 }
