@@ -34,6 +34,15 @@ func (m Metric) String() string {
 	return fmt.Sprintf("Metric[%q,%q,%q,%f]", m.Metric, m.Time.Format(time.RFC3339), m.Unit, m.Value)
 }
 
+// ToValue returns Metric as a value.Value
+func (m Metric) ToValue() (value.Value, bool) {
+	unit, ok := value.GetUnit(m.Unit)
+	if ok {
+		return unit.Value(m.Value), true
+	}
+	return value.Value{}, false
+}
+
 type MetricValue struct {
 	Time  time.Time `json:"time" xml:"time,attr"`
 	Unit  string    `json:"unit" xml:"unit,attr"`

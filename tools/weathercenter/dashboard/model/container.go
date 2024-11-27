@@ -18,14 +18,14 @@ type Container struct {
 	Components ComponentList `yaml:"components"`
 }
 
+type initializer interface {
+	init(*Dashboard)
+}
+
 func (c *Container) init(d *Dashboard) {
 	c.Component.init(d)
 	for _, e := range c.Components {
-		if ct, ok := e.(*Container); ok {
-			ct.init(d)
-		} else if ct, ok := e.(*Query); ok {
-			ct.init(d)
-		} else if ct, ok := e.(*Value); ok {
+		if ct, ok := e.(initializer); ok {
 			ct.init(d)
 		}
 	}

@@ -73,6 +73,7 @@
 .dash-compass,
 .dash-gauge,
 .dash-inclinometer,
+.dash-multivalue,
 .dash-rain-gauge,
 .dash-text,
 .dash-value,
@@ -87,31 +88,57 @@
     padding: 1px;
 }
 
+.dash-multivalue,
 .dash-value {
-    width: 10em;
     border: 1px solid black;
     min-height: 1em;
     vertical-align: top;
 }
+.dash-value {
+    width: 10em;
+}
 
+.dash-multivalue .label, .dash-multivalue .metric, .dash-multivalue .metric-time,
 .dash-value .label, .dash-value .metric {
     display: inline-block;
     padding: 0;
+}
+
+.dash-multivalue .metric,
+.dash-value .label, .dash-value .metric {
     width: 5em;
 }
 
+.dash-multivalue .label {
+    width: 15em;
+}
+
+.dash-multivalue .metric-time {
+    width: 10em;
+}
+
+.dash-multivalue .label,
 .dash-value .label {
-    text-align: right;
     font-weight: bold;
     vertical-align: top;
 }
 
+.dash-value .label {
+    text-align: right;
+}
+
+.dash-multivalue .metric,
+.dash-multivalue .metric-time,
 .dash-value .metric {
     text-align: right;
     font-weight: normal;
     vertical-align: top;
 }
 
+
+.dash-multivalue .label span,
+.dash-multivalue .metric span,
+.dash-multivalue .metric-time span,
 .dash-value .label span,
 .dash-value .metric span {
     display: block;

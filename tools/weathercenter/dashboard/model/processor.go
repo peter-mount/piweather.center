@@ -25,15 +25,22 @@ type Action struct {
 	Index map[string]api.Metric `json:"index"`
 }
 
+// IsValid returns true if the Action should be pushed to clients
 func (a Action) IsValid() bool {
 	return a.ID != "" && a.Index != nil && len(a.Index) > 0
 }
 
+// Add an indexed metric
 func (a Action) Add(i int, m api.Metric) Action {
+	return a.AddSuffix(i, "", m)
+}
+
+// AddSuffix adds an indexed metric with the supplied suffix to its id.
+func (a Action) AddSuffix(i int, s string, m api.Metric) Action {
 	if a.Index == nil {
 		a.Index = make(map[string]api.Metric)
 	}
-	a.Index[strconv.Itoa(i)] = m
+	a.Index[strconv.Itoa(i)+s] = m
 	return a
 }
 

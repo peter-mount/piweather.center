@@ -22,7 +22,7 @@ type Value struct {
 	Max       *float64 `yaml:"max,omitempty"`    // Max axis value
 	Ticks     *float64 `yaml:"ticks,omitempty"`  // Number of ticks on axis
 	Unit      string   `yaml:"unit,omitempty"`   // Unit for display, defaults to first metric
-	Metric    []Metric `yaml:"metric,omitempty"` // Multiple metrics
+	Metric    []Metric `yaml:"metric,omitempty"` // Multiple Metrics
 }
 
 // Process a Metric

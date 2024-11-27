@@ -1,0 +1,11 @@
+{{- template "componentStart" . }}
+<span class="label">{{- range $i,$m := .Metrics }}<span>{{.Metric}}</span>{{end -}}</span>
+<span class="metric">
+{{- range $i,$m := .Metrics }}{{$s := $m.ValueString}}<span{{if $.IsLive}} id="{{$.ID}}.txt{{$i}}"{{end}}>{{if eq $s ""}}&nbsp;{{else}}{{$s}}{{end}}</span>{{- end -}}
+</span>
+{{- if .Time -}}
+<span class="metric-time">
+{{- range $i,$m := .Metrics }}{{$s := $m.TimeString}}<span{{if $.IsLive}} id="{{$.ID}}.txt{{$i}}T"{{end}}>{{if eq $s ""}}&nbsp;{{else}}{{$s}}{{end}}</span>{{- end -}}
+</span>
+{{- end -}}
+{{- template "componentEnd" . -}}

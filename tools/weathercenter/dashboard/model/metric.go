@@ -25,6 +25,15 @@ const (
 	MetricTimeZone  = "timezone"
 )
 
+func NewMetric(v api.Metric) Metric {
+	m := Metric{
+		Metric: v.Metric,
+		Time:   MetricDateTimeZ,
+	}
+	m.setValue(v)
+	return m
+}
+
 func (m *Metric) setValue(v api.Metric) {
 	if v.IsValid() {
 		m.metric = v
@@ -54,6 +63,9 @@ func (m *Metric) MetricTime() time.Time {
 }
 
 func (m *Metric) TimeString() string {
+	if !m.Value.IsValid() {
+		return ""
+	}
 	switch strings.ToLower(m.Time) {
 	case MetricDateTime:
 		return m.metric.Time.Format("2006-01-02T15:04:05")
@@ -81,6 +93,14 @@ func (m *Metric) String() string {
 		if m.Time != "" {
 			return m.TimeString()
 		}
+		return m.Value.String()
+	}
+
+	return ""
+}
+
+func (m *Metric) ValueString() string {
+	if m.Value.IsValid() {
 		return m.Value.String()
 	}
 
