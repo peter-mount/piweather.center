@@ -43,8 +43,15 @@ func (i *gmc320) publish(pub publisher.Publisher, rec cpmReading) error {
 
 	reading.Time = rec.Time
 
-	reading.SetInt("cps", measurement.CountPerSecond, rec.CPS)
+	// Only publish CPS if its positive or has changed since the last reading.
+	// This means that it always publishes when it has a value but when it hits zero
+	// then it only publishes the first 0, then nothing afterward.
+	if rec.CPS > 0 || rec.CPS != i.lastCps {
+		reading.SetInt("cps", measurement.CountPerSecond, rec.CPS)
+	}
+	i.lastCps = rec.CPS
 
+	// Only publish CPM if we have a value - e.g. usually this only gets published once we have a minutes worth of data
 	if rec.CPM > 0 {
 		reading.SetInt("cpm", measurement.CountPerMinute, rec.CPM)
 	}

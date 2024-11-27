@@ -9,6 +9,8 @@ type gmc320 struct {
 	device2.BasicSerialDevice
 	// Readings in realtime mode
 	realtimeReadings []cpmReading
+	// The last CPS value, used to reduce the number of entries published
+	lastCps int
 }
 
 type cpmReading struct {
