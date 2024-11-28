@@ -38,7 +38,7 @@ func (s *Live) getDashboard() *model.Dashboard {
 }
 
 // return the data required by the templates
-func (s *Live) getData() any {
+func (s *Live) getData() map[string]interface{} {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/store/api"
 	"strings"
 )
@@ -31,7 +30,6 @@ func (c *MultiValue) init(d *Dashboard) {
 	c.Component.init(d)
 
 	pattern := strings.TrimSpace(c.Pattern)
-	log.Printf("****\n%q pattern %q", c.ID, c.pattern)
 
 	switch {
 	case pattern == "*":
@@ -48,7 +46,6 @@ func (c *MultiValue) init(d *Dashboard) {
 	}
 
 	c.initialized = true
-	log.Printf("****\n%q pattern %q init %v", c.ID, c.pattern, c.initialized)
 }
 
 // Process a Metric

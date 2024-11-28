@@ -16,6 +16,7 @@ import (
 	amqp2 "github.com/peter-mount/piweather.center/util/mq/amqp"
 	"github.com/rabbitmq/amqp091-go"
 	"path/filepath"
+	"time"
 )
 
 // Server represents the primary service running the fully integrated weather station.
@@ -45,9 +46,20 @@ func (s *Server) Start() error {
 	s.listener = api.NewListener()
 	go s.listener.Run()
 
-	// Get latest metrics from DB
-	if err := s.loadLatestMetrics(); err != nil {
-		return err
+	// Get latest metrics from DB.
+	// This will try to load 10 times for when the DB is not yet available
+	// e.g. when the system has just rebooted and systemd starts things too quickly
+	log.Printf("Loading metrics...")
+	for attempt := 10; attempt >= 0; attempt-- {
+		err := s.loadLatestMetrics()
+		if err != nil {
+			if attempt == 0 {
+				return err
+			}
+			log.Printf("Failed to load metrics, waiting for DB: attempts left %d", attempt)
+			time.Sleep(time.Second)
+		}
+
 	}
 
 	// Websocket handler for live metrics

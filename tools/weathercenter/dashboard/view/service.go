@@ -2,6 +2,7 @@ package view
 
 import (
 	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/mux"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
@@ -32,9 +33,12 @@ type Service struct {
 }
 
 const (
-	dashDir    = "dashboards"
-	fileSuffix = ".yaml"
-	webPath    = "/dash/{dash:.{1,}}"
+	dashDir          = "dashboards"
+	fileSuffix       = ".yaml"
+	webPath          = "/dash/{dash:.{1,}}"
+	stationHome      = "/s/{stationId}"
+	stationHomeS     = "/s/{stationId}/"
+	stationDashboard = "/s/{stationId}/{dash:.{1,}}"
 )
 
 func (s *Service) Start() error {
@@ -68,8 +72,16 @@ func (s *Service) Start() error {
 	// start watching for changes
 	s.Config.WatchDirectory(dashDir, model.DashboardFactory, s.updateDashboard, model.UnmarshalDashboard)
 
-	// Service dashboards
-	s.Rest.Handle(webPath, s.show).Methods("GET")
+	// Old static dashboard TODO remove later
+	s.Rest.HandleFunc(webPath, func(writer http.ResponseWriter, request *http.Request) {
+		dash := mux.Vars(request)["dash"]
+		http.Redirect(writer, request, "/s/home/"+dash, http.StatusSeeOther)
+	})
+
+	// Station dashboards
+	s.Rest.Handle(stationHome, s.showStationHome).Methods("GET")
+	s.Rest.Handle(stationHomeS, s.showStationHome).Methods("GET")
+	s.Rest.Handle(stationDashboard, s.showDashboard).Methods("GET")
 
 	return nil
 }
@@ -95,13 +107,16 @@ func (s *Service) getDashboard(n string) *model.Dashboard {
 }
 
 func (s *Service) setDashboard(n string, d *model.Dashboard) {
-	// Force the type field, needed for template resolution
-	if d != nil {
-		d.Type = "dashboard"
+	if d == nil {
+		return
 	}
+
+	// Force the type field, needed for template resolution
+	d.Type = "dashboard"
 
 	d.Init(*s.Server.DBServer)
 
+	var useCron bool
 	if d.Update != "" {
 		id, err := s.Cron.AddFunc(d.Update, func() {
 			d.Init(*s.Server.DBServer)
@@ -112,6 +127,7 @@ func (s *Service) setDashboard(n string, d *model.Dashboard) {
 		})
 		if err == nil {
 			d.CronId = int(id)
+			useCron = true
 			log.Printf("Cron: Adding %q %d", n, d.CronId)
 		}
 	}
@@ -119,13 +135,20 @@ func (s *Service) setDashboard(n string, d *model.Dashboard) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	// Remove any existing cron job
 	if oid, exists := s.cronIds[n]; exists {
+		delete(s.cronIds, n)
 		defer func() {
 			log.Printf("Cron: Removing %q %d", n, oid)
 			s.Cron.Remove(cron2.EntryID(oid))
 		}()
 	}
-	s.cronIds[n] = d.CronId
+	if useCron {
+		// record ID only if we are creating a new one.
+		// Note: cronId can be 0 so we can't do this blindly,
+		//hence the bool indicating we have actually created one
+		s.cronIds[n] = d.CronId
+	}
 
 	l := s.dashboards[n]
 	if l == nil {
@@ -155,8 +178,18 @@ func (s *Service) updateDashboard(event fsnotify.Event, o any) error {
 	return nil
 }
 
-func (s *Service) show(r *rest.Rest) error {
-	dash := r.Var("dash")
+// showStationHome handles /s/{stationId} which shows the "home" dashboard
+func (s *Service) showStationHome(r *rest.Rest) error {
+	return s.showDashboardImpl(r, "home")
+}
+
+// showDashboard handles /s/{stationId}/{dash} to allow a custom dashboard to be shown
+func (s *Service) showDashboard(r *rest.Rest) error {
+	return s.showDashboardImpl(r, r.Var("dash"))
+}
+
+func (s *Service) showDashboardImpl(r *rest.Rest, dash string) error {
+	serverId := r.Var("stationId")
 
 	live := s.getLive(dash)
 
@@ -169,5 +202,11 @@ func (s *Service) show(r *rest.Rest) error {
 		r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
 	}
 
-	return s.Template.ExecuteTemplate(r, "dash/main.html", live.getData())
+	data := live.getData()
+
+	if serverId != "" {
+		data["serverId"] = serverId
+	}
+
+	return s.Template.ExecuteTemplate(r, "dash/main.html", data)
 }
