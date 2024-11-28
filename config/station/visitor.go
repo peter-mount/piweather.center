@@ -351,10 +351,12 @@ func (c *visitor[T]) Stations(d *Stations) error {
 			return nil
 		}
 
-		for _, s := range d.Stations {
-			err = c.Station(s)
-			if err != nil {
-				break
+		if err == nil {
+			for _, s := range d.Stations {
+				err = c.Station(s)
+				if err != nil {
+					break
+				}
 			}
 		}
 

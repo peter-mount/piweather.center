@@ -10,11 +10,11 @@ import (
 	"strings"
 )
 
-func NewParser() util.Parser[Station] {
-	return util.NewParser[Station](nil, nil, stationInit)
+func NewParser() util.Parser[Stations] {
+	return util.NewParser[Stations](nil, nil, stationInit)
 }
 
-func stationInit(q *Station, err error) (*Station, error) {
+func stationInit(q *Stations, err error) (*Stations, error) {
 
 	if err == nil {
 		s := &state{
@@ -29,24 +29,34 @@ func stationInit(q *Station, err error) (*Station, error) {
 			Metric(s.metric).
 			MetricPattern(s.metricPattern).
 			Station(s.station).
+			Stations(s.stations).
 			Unit(s.unit).
 			Value(s.value).
 			Build().
 			Set(s).
-			Station(q)
+			Stations(q)
 	}
 
 	return q, err
 }
 
 type state struct {
-	stationId     string // copy of the stationId
-	stationPrefix string // stationId + "."
-	sensorPrefix  string // sensorId + "."
-	dashboards    map[string]*Dashboard
+	stationId     string                // copy of the stationId being processed
+	stationPrefix string                // stationId + "."
+	sensorPrefix  string                // sensorId + "."
+	stationIds    map[string]*Station   // map of Stations
+	dashboards    map[string]*Dashboard // map of Dashboards within a Station
+}
+
+func (s *state) stations(v Visitor[*state], d *Stations) error {
+	s.stationIds = make(map[string]*Station)
+	return nil
 }
 
 func (s *state) station(_ Visitor[*state], d *Station) error {
+	// reset dashboards
+	s.dashboards = make(map[string]*Dashboard)
+
 	var err error
 
 	// Enforce lower case name
@@ -68,9 +78,21 @@ func (s *state) station(_ Visitor[*state], d *Station) error {
 		if d.Location == nil {
 			d.Location = &location.Location{Pos: d.Pos}
 		}
+
+		// Ensure stationId is unique
+		err = assertStationUnique(&s.stationIds, d)
 	}
 
 	return errors.Error(d.Pos, err)
+}
+
+func assertStationUnique(m *map[string]*Station, s *Station) error {
+	n := strings.ToLower(s.Name)
+	if e, exists := (*m)[n]; exists {
+		return errors.Errorf(s.Pos, "station %q already defined at %s", s.Name, e.Pos)
+	}
+	(*m)[n] = s
+	return nil
 }
 
 func (s *state) location(_ Visitor[*state], d *location.Location) error {

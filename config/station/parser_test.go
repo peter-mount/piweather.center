@@ -49,7 +49,21 @@ func TestNewParser(t *testing.T) {
 					name:   "name trimmed",
 					script: `station( " home " )`,
 				},
-				// Location
+				{
+					name:   "id unique",
+					script: `station("name1") station("name2")`,
+				},
+				{
+					name:        "id not unique",
+					expectError: `station "name1" already defined at`,
+					script:      `station("name1") station("name2") station("name1")`,
+				},
+			},
+		},
+		// Location
+		{
+			name: "location",
+			tests: []test{
 				{
 					name:   "location",
 					script: `station("home" location("London" "51.5" "0.5"))`,
