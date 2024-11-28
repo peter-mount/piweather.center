@@ -4,6 +4,7 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/util"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 )
 
@@ -16,7 +17,13 @@ type Metric struct {
 	Pos  lexer.Position
 	Name string      `parser:"@String"`
 	Unit *units.Unit `parser:"@@?"`
-	As   string      `parser:"('as' @String)?"`
+}
+
+func (m *Metric) Convert(v value.Value) (value.Value, error) {
+	if m.Unit != nil {
+		return v.As(m.Unit.Unit())
+	}
+	return v, nil
 }
 
 type MetricPattern struct {

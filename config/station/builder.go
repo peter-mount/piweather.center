@@ -3,6 +3,7 @@ package station
 import (
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Builder[T any] interface {
@@ -13,6 +14,7 @@ type Builder[T any] interface {
 	CronTab(func(Visitor[T], *time.CronTab) error) Builder[T]
 	Dashboard(func(Visitor[T], *Dashboard) error) Builder[T]
 	DashboardList(func(Visitor[T], *DashboardList) error) Builder[T]
+	Gauge(func(Visitor[T], *Gauge) error) Builder[T]
 	Location(func(Visitor[T], *location.Location) error) Builder[T]
 	Metric(func(Visitor[T], *Metric) error) Builder[T]
 	MetricList(func(Visitor[T], *MetricList) error) Builder[T]
@@ -20,12 +22,12 @@ type Builder[T any] interface {
 	MultiValue(func(Visitor[T], *MultiValue) error) Builder[T]
 	Station(func(Visitor[T], *Station) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
+	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
 	Value(func(Visitor[T], *Value) error) Builder[T]
 	Build() Visitor[T]
 }
 
 type builder[T any] struct {
-	location.LocationBuilderBase[T]
 	common[T]
 }
 
@@ -72,6 +74,11 @@ func (b *builder[T]) DashboardList(f func(Visitor[T], *DashboardList) error) Bui
 	return b
 }
 
+func (b *builder[T]) Gauge(f func(Visitor[T], *Gauge) error) Builder[T] {
+	b.gauge = f
+	return b
+}
+
 func (b *builder[T]) Location(f func(Visitor[T], *location.Location) error) Builder[T] {
 	b.location = f
 	return b
@@ -87,13 +94,13 @@ func (b *builder[T]) MetricList(f func(Visitor[T], *MetricList) error) Builder[T
 	return b
 }
 
-func (b *builder[T]) MultiValue(f func(Visitor[T], *MultiValue) error) Builder[T] {
-	b.multiValue = f
+func (b *builder[T]) MetricPattern(f func(Visitor[T], *MetricPattern) error) Builder[T] {
+	b.metricPattern = f
 	return b
 }
 
-func (b *builder[T]) MetricPattern(f func(Visitor[T], *MetricPattern) error) Builder[T] {
-	b.metricPattern = f
+func (b *builder[T]) MultiValue(f func(Visitor[T], *MultiValue) error) Builder[T] {
+	b.multiValue = f
 	return b
 }
 
@@ -104,6 +111,11 @@ func (b *builder[T]) Station(f func(Visitor[T], *Station) error) Builder[T] {
 
 func (b *builder[T]) Stations(f func(Visitor[T], *Stations) error) Builder[T] {
 	b.stations = f
+	return b
+}
+
+func (b *builder[T]) Unit(f func(Visitor[T], *units.Unit) error) Builder[T] {
+	b.unit = f
 	return b
 }
 

@@ -20,6 +20,13 @@ func (s *Unit) Unit() *value.Unit {
 	return s.unit
 }
 
+func (s *Unit) Convert(v value.Value) (value.Value, error) {
+	if s == nil {
+		return v, nil
+	}
+	return v.As(s.unit)
+}
+
 func (s *Unit) Init() error {
 	if s == nil || s.Using == "" {
 		return nil

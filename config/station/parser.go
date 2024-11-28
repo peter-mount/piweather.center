@@ -4,7 +4,9 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
+	"github.com/peter-mount/piweather.center/config/util/units"
 	util2 "github.com/peter-mount/piweather.center/util"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 )
 
@@ -22,10 +24,12 @@ func stationInit(q *Station, err error) (*Station, error) {
 		err = NewBuilder[*state]().
 			Container(s.container).
 			Dashboard(s.dashboard).
+			Gauge(s.gauge).
 			Location(s.location).
 			Metric(s.metric).
 			MetricPattern(s.metricPattern).
 			Station(s.station).
+			Unit(s.unit).
 			Value(s.value).
 			Build().
 			Set(s).
@@ -70,6 +74,8 @@ func (s *state) station(_ Visitor[*state], d *Station) error {
 }
 
 func (s *state) location(_ Visitor[*state], d *location.Location) error {
+	var err error
+
 	d.Name = strings.TrimSpace(d.Name)
 	d.Longitude = strings.TrimSpace(d.Longitude)
 	d.Latitude = strings.TrimSpace(d.Latitude)
@@ -86,10 +92,12 @@ func (s *state) location(_ Visitor[*state], d *location.Location) error {
 	}
 
 	if d.Longitude == "" || d.Latitude == "" {
-		return errors.Errorf(d.Pos, "both latitude AND longitude are required")
+		err = errors.Errorf(d.Pos, "both latitude AND longitude are required")
 	}
 
-	err := d.Init()
+	if err == nil {
+		err = d.Init()
+	}
 
 	return errors.Error(d.Pos, err)
 }
@@ -103,30 +111,37 @@ func (s *state) container(_ Visitor[*state], d *Container) error {
 }
 
 func (s *state) dashboard(_ Visitor[*state], d *Dashboard) error {
+	var err error
+
 	// Enforce lower case name
 	d.Name = strings.ToLower(strings.TrimSpace(d.Name))
 	if d.Name == "" {
-		return errors.Errorf(d.Pos, "dashboard name is required")
+		err = errors.Errorf(d.Pos, "dashboard name is required")
 	}
-	if strings.ContainsAny(d.Name, ". _") {
-		return errors.Errorf(d.Pos, "dashboard name must not contain '.', '_' or spaces")
+	if err == nil && strings.ContainsAny(d.Name, ". _") {
+		err = errors.Errorf(d.Pos, "dashboard name must not contain '.', '_' or spaces")
 	}
 
 	// Check name is unique
-	if e, exists := s.dashboards[d.Name]; exists {
-		return errors.Errorf(d.Pos, "dashboard %q already exists at %s", d.Name, e.Pos.String())
-	}
-	s.dashboards[d.Name] = d
-
-	// Ensure Component exists, require by templates
-	if d.Component == nil {
-		d.Component = &Component{}
+	if err == nil {
+		if e, exists := s.dashboards[d.Name]; exists {
+			err = errors.Errorf(d.Pos, "dashboard %q already exists at %s", d.Name, e.Pos.String())
+		}
 	}
 
-	return nil
+	if err == nil {
+		s.dashboards[d.Name] = d
+
+		// Ensure Component exists, require by templates
+		if d.Component == nil {
+			d.Component = &Component{}
+		}
+	}
+
+	return errors.Error(d.Pos, err)
 }
 
-func (s *state) multivalue(_ Visitor[*state], d *MultiValue) error {
+func (s *state) multiValue(_ Visitor[*state], d *MultiValue) error {
 	// Ensure Component exists, require by templates
 	if d.Component == nil {
 		d.Component = &Component{}
@@ -143,22 +158,64 @@ func (s *state) value(_ Visitor[*state], d *Value) error {
 	return nil
 }
 
+func (s *state) gauge(_ Visitor[*state], d *Gauge) error {
+	var err error
+
+	// Ensure Component exists, require by templates
+	if d.Component == nil {
+		d.Component = &Component{}
+	}
+
+	// ensure min < max
+	if value.GreaterThan(d.Min, d.Max) {
+		d.Min, d.Max = d.Max, d.Min
+	}
+
+	// default values
+	if value.IsZero(d.Min) && value.IsZero(d.Max) {
+		// Default to 0...100
+		d.Min, d.Max = 0.0, 100.0
+	}
+
+	if d.Ticks == 0 {
+		// Default to 10 ticks
+		d.Ticks = 10
+	}
+
+	// verify state
+	switch {
+	case value.Equal(d.Min, d.Max):
+		err = errors.Errorf(d.Pos, "Min and Max must not be the same")
+
+	case d.Ticks < 0:
+		err = errors.Errorf(d.Pos, "Ticks %d is invalid", d.Ticks)
+
+	case d.Metrics == nil || len(d.Metrics.Metrics) == 0:
+		// We must have at least 1 metric for gauges
+		err = errors.Errorf(d.Pos, "No metrics provided for Gauge")
+	}
+
+	return errors.Error(d.Pos, err)
+}
+
 func (s *state) metric(_ Visitor[*state], d *Metric) error {
+	var err error
+
 	// enforce metrics to be lower case
 	d.Name = strings.ToLower(strings.TrimSpace(d.Name))
 
 	if d.Name == "" {
-		return errors.Errorf(d.Pos, "metric name is required")
+		err = errors.Errorf(d.Pos, "metric name is required")
 	}
 
-	if strings.ContainsAny(d.Name, " _") {
-		return errors.Errorf(d.Pos, "metric name must not include '_' or spaces")
+	if err == nil && strings.ContainsAny(d.Name, " ") {
+		err = errors.Errorf(d.Pos, "metric name must not include spaces")
 	}
 
 	// Prefix with the stationId & sensorId to become a full metric id
 	d.Name = s.stationPrefix + s.sensorPrefix + d.Name
 
-	return nil
+	return errors.Error(d.Pos, err)
 }
 
 func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
@@ -166,8 +223,8 @@ func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
 
 	t, p := util2.ParsePatternType(d.Pattern)
 
-	if strings.ContainsAny(p, " _*") {
-		err = errors.Errorf(d.Pos, "pattern must not include '_', '*' or spaces")
+	if strings.ContainsAny(p, " *") {
+		err = errors.Errorf(d.Pos, "pattern must not include '*' or spaces")
 	}
 
 	// Disallow equality as that makes no sense for this component
@@ -188,4 +245,8 @@ func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
 	}
 
 	return err
+}
+
+func (s *state) unit(_ Visitor[*state], d *units.Unit) error {
+	return errors.Error(d.Pos, d.Init())
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
 type Visitor[T any] interface {
@@ -15,6 +16,7 @@ type Visitor[T any] interface {
 	CronTab(*time.CronTab) error
 	Dashboard(*Dashboard) error
 	DashboardList(*DashboardList) error
+	Gauge(*Gauge) error
 	Location(*location.Location) error
 	Metric(*Metric) error
 	MetricList(*MetricList) error
@@ -23,7 +25,10 @@ type Visitor[T any] interface {
 	Station(*Station) error
 	Stations(*Stations) error
 	Value(*Value) error
+
+	// Get returns the attached value T
 	Get() T
+	// Set the attached value T
 	Set(T) Visitor[T]
 }
 
@@ -40,6 +45,7 @@ type common[T any] struct {
 	crontab            func(Visitor[T], *time.CronTab) error
 	dashboard          func(Visitor[T], *Dashboard) error
 	dashboardList      func(Visitor[T], *DashboardList) error
+	gauge              func(Visitor[T], *Gauge) error
 	location           func(Visitor[T], *location.Location) error
 	metric             func(Visitor[T], *Metric) error
 	metricList         func(Visitor[T], *MetricList) error
@@ -47,6 +53,7 @@ type common[T any] struct {
 	multiValue         func(Visitor[T], *MultiValue) error
 	station            func(Visitor[T], *Station) error
 	stations           func(Visitor[T], *Stations) error
+	unit               func(Visitor[T], *units.Unit) error
 	value              func(Visitor[T], *Value) error
 }
 
@@ -103,7 +110,7 @@ func (c *visitor[T]) ComponentListEntry(d *ComponentListEntry) error {
 		}
 
 		if err == nil {
-			err = c.Dashboard(d.Dashboard)
+			err = c.Gauge(d.Gauge)
 		}
 
 		if err == nil {
@@ -169,7 +176,7 @@ func (c *visitor[T]) Dashboard(d *Dashboard) error {
 		}
 
 		if err == nil {
-			err = c.ComponentList(d.Components)
+			err = c.ComponentListEntry(d.Components)
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -201,6 +208,33 @@ func (c *visitor[T]) DashboardList(d *DashboardList) error {
 	return err
 }
 
+func (c *visitor[T]) Gauge(d *Gauge) error {
+	var err error
+	if d != nil {
+		if c.gauge != nil {
+			err = c.gauge(c, d)
+		}
+		if util.IsVisitorStop(err) {
+			return nil
+		}
+
+		if err == nil {
+			err = c.Component(d.Component)
+		}
+
+		if err == nil {
+			err = c.Unit(d.Unit)
+		}
+
+		if err == nil {
+			err = c.MetricList(d.Metrics)
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Location(d *location.Location) error {
 	var err error
 	if d != nil && c.location != nil {
@@ -216,6 +250,13 @@ func (c *visitor[T]) Metric(d *Metric) error {
 	if d != nil {
 		if c.metric != nil {
 			err = c.metric(c, d)
+		}
+		if util.IsVisitorStop(err) {
+			return nil
+		}
+
+		if err == nil {
+			err = c.Unit(d.Unit)
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -250,6 +291,26 @@ func (c *visitor[T]) MetricPattern(d *MetricPattern) error {
 	if d != nil {
 		if c.metricPattern != nil {
 			err = c.metricPattern(c, d)
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) MultiValue(d *MultiValue) error {
+	var err error
+	if d != nil {
+		if c.multiValue != nil {
+			err = c.multiValue(c, d)
+		}
+
+		if err == nil {
+			err = c.Component(d.Component)
+		}
+
+		if err == nil {
+			err = c.MetricPattern(d.Pattern)
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -302,6 +363,18 @@ func (c *visitor[T]) Stations(d *Stations) error {
 	return err
 }
 
+func (c *visitor[T]) Unit(d *units.Unit) error {
+	var err error
+	if d != nil {
+		if c.unit != nil {
+			err = c.unit(c, d)
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Value(d *Value) error {
 	var err error
 	if d != nil {
@@ -316,26 +389,6 @@ func (c *visitor[T]) Value(d *Value) error {
 
 		if err == nil {
 			err = c.MetricList(d.Metrics)
-		}
-
-		err = errors.Error(d.Pos, err)
-	}
-	return err
-}
-
-func (c *visitor[T]) MultiValue(d *MultiValue) error {
-	var err error
-	if d != nil {
-		if c.multiValue != nil {
-			err = c.multiValue(c, d)
-		}
-
-		if err == nil {
-			err = c.Component(d.Component)
-		}
-
-		if err == nil {
-			err = c.MetricPattern(d.Pattern)
 		}
 
 		err = errors.Error(d.Pos, err)

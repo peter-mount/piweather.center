@@ -277,6 +277,11 @@ station( "home"
 				{
 					name:        "equality",
 					expectError: "No wildcard provided",
+					script:      `station("home" dashboard("home" multiValue( "metric_valid" )))`,
+				},
+				{
+					name:        "equality",
+					expectError: "No wildcard provided",
 					script:      `station("home" dashboard("home" multiValue( "metric.invalid" )))`,
 				},
 				{
@@ -294,10 +299,47 @@ station( "home"
 					expectError: "pattern must not include",
 					script:      `station("home" dashboard("home" multiValue( "metric invalid" )))`,
 				},
+			},
+		},
+		// gauge
+		{
+			name: "gauge",
+			tests: []test{
 				{
-					name:        "equality",
-					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "metric_invalid" )))`,
+					name:   "gauge",
+					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" )))`,
+				},
+				{
+					name:        "gauge no metrics",
+					expectError: "No metrics provided",
+					script:      `station("home" dashboard("home" gauge( "label" )))`,
+				},
+			},
+		},
+		// metric
+		{
+			name: "metric",
+			tests: []test{
+				{
+					name:   "plain",
+					script: `station("home" dashboard("dash" value( "" "sensor.test") ))`,
+				},
+				{
+					name:   "plain",
+					script: `station("home" dashboard("dash" value( "" "sensor.test.sub") ))`,
+				},
+				{
+					name:   "plain",
+					script: `station("home" dashboard("dash" value( "" "sensor.test_sub") ))`,
+				},
+				{
+					name:   "valid unit",
+					script: `station("home" dashboard("dash" value( "label" "sensor.test" unit "celsius") ))`,
+				},
+				{
+					name:        "invalid unit",
+					expectError: "unsupported unit",
+					script:      `station("home" dashboard("dash" value( "label" "sensor.test" unit "invalid") ))`,
 				},
 			},
 		},

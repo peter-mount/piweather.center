@@ -12,8 +12,8 @@ type ComponentList struct {
 
 type ComponentListEntry struct {
 	Pos        lexer.Position
-	Dashboard  *Dashboard  `parser:"( @@"`
-	Container  *Container  `parser:"| @@"`
+	Container  *Container  `parser:"( @@"`
+	Gauge      *Gauge      `parser:"| @@"`
 	MultiValue *MultiValue `parser:"| @@"`
 	Value      *Value      `parser:"| @@ )"`
 }
@@ -27,9 +27,9 @@ type Container struct {
 
 type Dashboard struct {
 	Pos        lexer.Position
-	Name       string         `parser:"'dashboard' '(' @String?"`
-	Live       bool           `parser:"@'live'?"`
-	Update     *time.CronTab  `parser:"('update' @@)?"`
-	Component  *Component     `parser:"@@"`
-	Components *ComponentList `parser:"@@ ')'"`
+	Name       string              `parser:"'dashboard' '(' @String?"`
+	Live       bool                `parser:"@'live'?"`
+	Update     *time.CronTab       `parser:"('update' @@)?"`
+	Component  *Component          `parser:"@@"`
+	Components *ComponentListEntry `parser:"@@? ')'"`
 }
