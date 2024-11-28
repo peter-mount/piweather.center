@@ -19,14 +19,16 @@ func stationInit(q *Station, err error) (*Station, error) {
 			dashboards: make(map[string]*Dashboard),
 		}
 
-		err = NewBuilder[state]().
+		err = NewBuilder[*state]().
 			Container(s.container).
 			Dashboard(s.dashboard).
+			Location(s.location).
 			Metric(s.metric).
 			MetricPattern(s.metricPattern).
 			Station(s.station).
 			Value(s.value).
 			Build().
+			Set(s).
 			Station(q)
 	}
 
@@ -40,36 +42,59 @@ type state struct {
 	dashboards    map[string]*Dashboard
 }
 
-func (s *state) station(_ Visitor[state], d *Station) error {
+func (s *state) station(_ Visitor[*state], d *Station) error {
+	var err error
+
 	// Enforce lower case name
 	d.Name = strings.ToLower(strings.TrimSpace(d.Name))
 
 	if d.Name == "" {
-		return errors.Errorf(d.Pos, "station id is required")
+		err = errors.Errorf(d.Pos, "station id is required")
 	}
 
-	if strings.ContainsAny(d.Name, ". _") {
-		return errors.Errorf(d.Pos, "station id must not contain '.', '_' or spaces")
+	if err == nil && strings.ContainsAny(d.Name, ". _") {
+		err = errors.Errorf(d.Pos, "station id must not contain '.', '_' or spaces")
 	}
 
-	s.stationId = d.Name
-	s.stationPrefix = s.stationId + "."
+	if err == nil {
+		s.stationId = d.Name
+		s.stationPrefix = s.stationId + "."
 
-	// Ensure we have a Location, so set to Null Island
-	if d.Location == nil {
-		d.Location = &location.Location{
-			Pos:       d.Pos,
-			Name:      d.Name,
-			Latitude:  "0.0",
-			Longitude: "0.0",
-			Altitude:  0,
+		// Ensure we have a Location
+		if d.Location == nil {
+			d.Location = &location.Location{Pos: d.Pos}
 		}
 	}
 
-	return nil
+	return errors.Error(d.Pos, err)
 }
 
-func (s *state) container(_ Visitor[state], d *Container) error {
+func (s *state) location(_ Visitor[*state], d *location.Location) error {
+	d.Name = strings.TrimSpace(d.Name)
+	d.Longitude = strings.TrimSpace(d.Longitude)
+	d.Latitude = strings.TrimSpace(d.Latitude)
+	d.Notes = strings.TrimSpace(d.Notes)
+
+	if d.Name == "" {
+		d.Name = s.stationId
+	}
+
+	if d.Longitude == "" && d.Latitude == "" {
+		// set to Null Island
+		d.Longitude = "0.0"
+		d.Latitude = "0.0"
+	}
+
+	if d.Longitude == "" || d.Latitude == "" {
+		return errors.Errorf(d.Pos, "both latitude AND longitude are required")
+	}
+
+	err := d.Init()
+
+	return errors.Error(d.Pos, err)
+}
+
+func (s *state) container(_ Visitor[*state], d *Container) error {
 	// Ensure Component exists, require by templates
 	if d.Component == nil {
 		d.Component = &Component{}
@@ -77,7 +102,7 @@ func (s *state) container(_ Visitor[state], d *Container) error {
 	return nil
 }
 
-func (s *state) dashboard(_ Visitor[state], d *Dashboard) error {
+func (s *state) dashboard(_ Visitor[*state], d *Dashboard) error {
 	// Enforce lower case name
 	d.Name = strings.ToLower(strings.TrimSpace(d.Name))
 	if d.Name == "" {
@@ -101,7 +126,7 @@ func (s *state) dashboard(_ Visitor[state], d *Dashboard) error {
 	return nil
 }
 
-func (s *state) multivalue(_ Visitor[state], d *MultiValue) error {
+func (s *state) multivalue(_ Visitor[*state], d *MultiValue) error {
 	// Ensure Component exists, require by templates
 	if d.Component == nil {
 		d.Component = &Component{}
@@ -110,7 +135,7 @@ func (s *state) multivalue(_ Visitor[state], d *MultiValue) error {
 	return nil
 }
 
-func (s *state) value(_ Visitor[state], d *Value) error {
+func (s *state) value(_ Visitor[*state], d *Value) error {
 	// Ensure Component exists, require by templates
 	if d.Component == nil {
 		d.Component = &Component{}
@@ -118,7 +143,7 @@ func (s *state) value(_ Visitor[state], d *Value) error {
 	return nil
 }
 
-func (s *state) metric(_ Visitor[state], d *Metric) error {
+func (s *state) metric(_ Visitor[*state], d *Metric) error {
 	// enforce metrics to be lower case
 	d.Name = strings.ToLower(strings.TrimSpace(d.Name))
 
@@ -136,7 +161,7 @@ func (s *state) metric(_ Visitor[state], d *Metric) error {
 	return nil
 }
 
-func (s *state) metricPattern(_ Visitor[state], d *MetricPattern) error {
+func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
 	var err error
 
 	t, p := util2.ParsePatternType(d.Pattern)

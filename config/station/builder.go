@@ -6,7 +6,6 @@ import (
 )
 
 type Builder[T any] interface {
-	location.LocationBuilder[T]
 	Component(func(Visitor[T], *Component) error) Builder[T]
 	ComponentList(func(Visitor[T], *ComponentList) error) Builder[T]
 	ComponentListEntry(func(Visitor[T], *ComponentListEntry) error) Builder[T]
@@ -14,6 +13,7 @@ type Builder[T any] interface {
 	CronTab(func(Visitor[T], *time.CronTab) error) Builder[T]
 	Dashboard(func(Visitor[T], *Dashboard) error) Builder[T]
 	DashboardList(func(Visitor[T], *DashboardList) error) Builder[T]
+	Location(func(Visitor[T], *location.Location) error) Builder[T]
 	Metric(func(Visitor[T], *Metric) error) Builder[T]
 	MetricList(func(Visitor[T], *MetricList) error) Builder[T]
 	MetricPattern(func(Visitor[T], *MetricPattern) error) Builder[T]
@@ -34,12 +34,7 @@ func NewBuilder[T any]() Builder[T] {
 }
 
 func (b *builder[T]) Build() Visitor[T] {
-	return &visitor[T]{
-		common: b.common,
-		LocationVisitorBase: location.LocationVisitorBase[T]{
-			LocationVisitorCommon: b.LocationBuilderBase.LocationVisitorCommon,
-		},
-	}
+	return &visitor[T]{common: b.common}
 }
 
 func (b *builder[T]) Component(f func(Visitor[T], *Component) error) Builder[T] {
@@ -77,6 +72,11 @@ func (b *builder[T]) DashboardList(f func(Visitor[T], *DashboardList) error) Bui
 	return b
 }
 
+func (b *builder[T]) Location(f func(Visitor[T], *location.Location) error) Builder[T] {
+	b.location = f
+	return b
+}
+
 func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 	b.metric = f
 	return b
@@ -88,7 +88,7 @@ func (b *builder[T]) MetricList(f func(Visitor[T], *MetricList) error) Builder[T
 }
 
 func (b *builder[T]) MultiValue(f func(Visitor[T], *MultiValue) error) Builder[T] {
-	b.multivalue = f
+	b.multiValue = f
 	return b
 }
 

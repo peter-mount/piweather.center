@@ -8,7 +8,6 @@ import (
 )
 
 type Visitor[T any] interface {
-	location.LocationVisitor[T]
 	Component(*Component) error
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
@@ -16,6 +15,7 @@ type Visitor[T any] interface {
 	CronTab(*time.CronTab) error
 	Dashboard(*Dashboard) error
 	DashboardList(*DashboardList) error
+	Location(*location.Location) error
 	Metric(*Metric) error
 	MetricList(*MetricList) error
 	MetricPattern(*MetricPattern) error
@@ -23,11 +23,13 @@ type Visitor[T any] interface {
 	Station(*Station) error
 	Stations(*Stations) error
 	Value(*Value) error
+	Get() T
+	Set(T) Visitor[T]
 }
 
 type visitor[T any] struct {
-	location.LocationVisitorBase[T]
 	common[T]
+	data T
 }
 
 type common[T any] struct {
@@ -38,13 +40,23 @@ type common[T any] struct {
 	crontab            func(Visitor[T], *time.CronTab) error
 	dashboard          func(Visitor[T], *Dashboard) error
 	dashboardList      func(Visitor[T], *DashboardList) error
+	location           func(Visitor[T], *location.Location) error
 	metric             func(Visitor[T], *Metric) error
 	metricList         func(Visitor[T], *MetricList) error
 	metricPattern      func(Visitor[T], *MetricPattern) error
-	multivalue         func(Visitor[T], *MultiValue) error
+	multiValue         func(Visitor[T], *MultiValue) error
 	station            func(Visitor[T], *Station) error
 	stations           func(Visitor[T], *Stations) error
 	value              func(Visitor[T], *Value) error
+}
+
+func (c *visitor[T]) Get() T {
+	return c.data
+}
+
+func (c *visitor[T]) Set(data T) Visitor[T] {
+	c.data = data
+	return c
 }
 
 func (c *visitor[T]) Component(d *Component) error {
@@ -189,6 +201,16 @@ func (c *visitor[T]) DashboardList(d *DashboardList) error {
 	return err
 }
 
+func (c *visitor[T]) Location(d *location.Location) error {
+	var err error
+	if d != nil && c.location != nil {
+		err = c.location(c, d)
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Metric(d *Metric) error {
 	var err error
 	if d != nil {
@@ -304,8 +326,8 @@ func (c *visitor[T]) Value(d *Value) error {
 func (c *visitor[T]) MultiValue(d *MultiValue) error {
 	var err error
 	if d != nil {
-		if c.multivalue != nil {
-			err = c.multivalue(c, d)
+		if c.multiValue != nil {
+			err = c.multiValue(c, d)
 		}
 
 		if err == nil {

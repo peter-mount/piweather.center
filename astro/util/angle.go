@@ -81,13 +81,29 @@ func ParseAngle(s string) (unit.Angle, error) {
 	}
 
 	var neg bool
+	// check for prefix
 	switch s[0] {
-	case '-', 'S', 's':
+	case '-', 'S', 's', 'W', 'w':
 		neg = true
 		s = s[1:]
-	case '+', 'N', 'n':
+	case '+', 'N', 'n', 'E', 'e':
 		neg = false
 		s = s[1:]
+	}
+
+	if s == "" {
+		return 0, noAngle
+	}
+
+	// Check for suffix
+	sl := len(s) - 1
+	switch s[sl] {
+	case 'S', 's', 'W', 'w':
+		neg = true
+		s = s[:sl]
+	case 'N', 'n', 'E', 'e':
+		neg = false
+		s = s[:sl]
 	}
 
 	if s == "" {

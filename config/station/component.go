@@ -24,7 +24,7 @@ type Value struct {
 
 type MultiValue struct {
 	Pos       lexer.Position
-	Component *Component     `parser:"'multivalue' '(' @@"`
+	Component *Component     `parser:"'multiValue' '(' @@"`
 	Pattern   *MetricPattern `parser:"@@"`
 	Time      bool           `parser:"@'time'? ')'"`
 }

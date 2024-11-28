@@ -49,6 +49,47 @@ func TestNewParser(t *testing.T) {
 					name:   "name trimmed",
 					script: `station( " home " )`,
 				},
+				// Location
+				{
+					name:   "location",
+					script: `station("home" location("London" "51.5" "0.5"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "-51.5" "-0.5"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "N51.5" "E0.5"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "N51:30" "E0:30"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "51.5N" "0.5E"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "51:30N" "0:30E"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "S51.5" "W0.5"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "S51:30" "W0:30"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "51.5S" "0.5W"))`,
+				},
+				{
+					name:   "location",
+					script: `station("home" location("London" "51:30S" "0:30W"))`,
+				},
 			},
 		},
 		// General syntax
@@ -80,7 +121,7 @@ station( "home"
 		)
 	)
 	dashboard( "stats" 
-		multivalue( "*" )
+		multiValue( "*" )
 	)
 )`,
 				},
@@ -163,100 +204,100 @@ station( "home"
 				},
 			},
 		},
-		// multivalue
+		// multiValue
 		{
-			name: "multivalue",
+			name: "multiValue",
 			tests: []test{
 				// These are the same - match all
 				{
 					name:   "all",
-					script: `station("home" dashboard("home" multivalue( "" )))`,
+					script: `station("home" dashboard("home" multiValue( "" )))`,
 				},
 				{
 					name:   "all",
-					script: `station("home" dashboard("home" multivalue( "*" )))`,
+					script: `station("home" dashboard("home" multiValue( "*" )))`,
 				},
 				{
 					name:   "all",
-					script: `station("home" dashboard("home" multivalue( "**" )))`,
+					script: `station("home" dashboard("home" multiValue( "**" )))`,
 				},
 				// Prefix matches
 				{
 					name:   "prefix",
-					script: `station("home" dashboard("home" multivalue( "*text" )))`,
+					script: `station("home" dashboard("home" multiValue( "*text" )))`,
 				},
 				{
 					name:   "prefix",
-					script: `station("home" dashboard("home" multivalue( "*sensor.temp" )))`,
+					script: `station("home" dashboard("home" multiValue( "*sensor.temp" )))`,
 				},
 				{
 					name:        "prefix",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "*metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "*metric*invalid" )))`,
 				},
 				{
 					name:        "prefix",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "*metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "*metric*invalid" )))`,
 				},
 				// Suffix mattches
 				{
 					name:   "suffix",
-					script: `station("home" dashboard("home" multivalue( "text*" )))`,
+					script: `station("home" dashboard("home" multiValue( "text*" )))`,
 				},
 				{
 					name:   "suffix",
-					script: `station("home" dashboard("home" multivalue( "sensor.temp*" )))`,
+					script: `station("home" dashboard("home" multiValue( "sensor.temp*" )))`,
 				},
 				{
 					name:        "suffix",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "metric*invalid*" )))`,
+					script:      `station("home" dashboard("home" multiValue( "metric*invalid*" )))`,
 				},
 				// Contains
 				{
 					name:   "contains",
-					script: `station("home" dashboard("home" multivalue( "*text*" )))`,
+					script: `station("home" dashboard("home" multiValue( "*text*" )))`,
 				},
 				{
 					name:   "contains",
-					script: `station("home" dashboard("home" multivalue( "*sensor.temp*" )))`,
+					script: `station("home" dashboard("home" multiValue( "*sensor.temp*" )))`,
 				},
 				{
 					name:        "contains",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "***" )))`,
+					script:      `station("home" dashboard("home" multiValue( "***" )))`,
 				},
 				{
 					name:        "contains",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "*metric*invalid*" )))`,
+					script:      `station("home" dashboard("home" multiValue( "*metric*invalid*" )))`,
 				},
 				// Equality which should always fail
 				{
 					name:        "equality",
 					expectError: "No wildcard provided",
-					script:      `station("home" dashboard("home" multivalue( "metric.invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "metric.invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "metric*invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "metric*invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "metric invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "metric invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multivalue( "metric_invalid" )))`,
+					script:      `station("home" dashboard("home" multiValue( "metric_invalid" )))`,
 				},
 			},
 		},
