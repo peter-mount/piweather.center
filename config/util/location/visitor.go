@@ -1,5 +1,7 @@
 package location
 
+import "github.com/peter-mount/go-script/errors"
+
 type LocationVisitor[T any] interface {
 	Location(*Location) error
 }
@@ -28,6 +30,8 @@ func (v *LocationVisitorBase[T]) Location(b *Location) error {
 	var err error
 	if b != nil && v.location != nil {
 		err = v.location(v, b)
+
+		err = errors.Error(b.Pos, err)
 	}
 	return err
 }
