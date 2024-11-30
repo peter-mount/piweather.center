@@ -3,6 +3,7 @@ package renderer
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
 	"net/http"
 )
@@ -17,6 +18,7 @@ func (r *Renderer) Start() error {
 		Container(Container).
 		Gauge(Gauge).
 		Dashboard(Dashboard).
+		MultiValue(MultiValue).
 		Value(Value).
 		Build()
 	return nil
@@ -39,7 +41,7 @@ func (r *Renderer) Render(stationId, dashboardId string) (string, int) {
 		Set(s).
 		Dashboard(dash.Dashboard())
 
-	if err != nil {
+	if err != nil && !util.IsVisitorStop(err) {
 		log.Printf("render %s:%s got %v", stationId, dashboardId, err)
 		return "", http.StatusInternalServerError
 	}

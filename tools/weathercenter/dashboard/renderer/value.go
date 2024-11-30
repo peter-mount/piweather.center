@@ -24,19 +24,12 @@ func Value(v station.Visitor[*State], d *station.Value) error {
 
 			e = e.Span().Class("metric")
 
-			for i, m := range d.Metrics.Metrics {
-				var t string
-				if metric, exists := stn.GetMetric(m.Name); exists {
-					if v, ok := metric.ToValue(); ok {
-						t = v.String()
-					}
-				}
-
+			for i, m := range d.Metrics.GetValues(stn) {
 				e = e.Span()
 				if s.IsLive() {
 					e = e.Attr("id", "%s.txt%d", d.Component.GetID(), i)
 				}
-				e = e.TextNbsp(t).End()
+				e = e.TextNbsp(m.String()).End()
 			}
 
 			e = e.End() // span
