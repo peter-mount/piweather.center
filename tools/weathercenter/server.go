@@ -8,7 +8,8 @@ import (
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/memory"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
+	view2 "github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/view"
 	_ "github.com/peter-mount/piweather.center/tools/weathercenter/menu"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/view"
@@ -24,12 +25,13 @@ type Server struct {
 	Rest *rest.Server `kernel:"inject"`
 	//Config    service.Config    `kernel:"inject"`
 	_              *view.Home            `kernel:"inject"`
+	Stations       *state.Stations       `kernel:"inject"`
+	ViewService    *view2.Service        `kernel:"inject"`
 	Templates      *template.Manager     `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
 	Amqp           amqp2.Pool            `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	QueueName      *string               `kernel:"flag,metric-queue,DB queue name,database.web"`
-	DBServer       *string               `kernel:"flag,metric-db,DB url"`
 	mqQueue        *amqp2.Queue
 	liveServer     *ws.Server
 	listener       api.Listener
@@ -40,7 +42,7 @@ func (s *Server) Start() error {
 	rootDir := filepath.Dir(s.Templates.GetRootDir())
 	staticDir := filepath.Join(rootDir, "static")
 	log.Printf("Static content: %s", staticDir)
-	s.Rest.Static("/"+model.UID(), staticDir)
+	s.Rest.Static("/"+state.UID(), staticDir)
 
 	// The listener handler
 	s.listener = api.NewListener()

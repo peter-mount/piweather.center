@@ -25,9 +25,28 @@ func NewMetric(metric string, t time.Time, v value.Value) Metric {
 	}
 }
 
+// IsNewerThan returns true if this metric is after another one in time
+func (m Metric) IsNewerThan(other Metric) bool {
+	mZ, otherZ := m.Time.IsZero(), other.Time.IsZero()
+	switch {
+	// if both are zero, or just us then false.
+	// Note order we test here is important!
+	case mZ && otherZ, mZ:
+		return false
+
+	// If other is zero, then true - mZ is always true here
+	case otherZ:
+		return true
+
+	default:
+
+		return m.Time.After(other.Time)
+	}
+}
+
 // IsValid returns true if the Metric has a value
 func (m Metric) IsValid() bool {
-	return !m.Time.IsZero()
+	return m.Metric != "" && !m.Time.IsZero()
 }
 
 func (m Metric) String() string {

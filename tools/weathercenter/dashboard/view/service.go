@@ -7,34 +7,38 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	"github.com/peter-mount/piweather.center/tools/weathercenter"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
+	"github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/store/client"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/renderer"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/util/config"
-	cron2 "gopkg.in/robfig/cron.v2"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 )
 
 type Service struct {
-	Cron       *cron.CronService     `kernel:"inject"`
-	Rest       *rest.Server          `kernel:"inject"`
-	Config     config.Manager        `kernel:"inject"`
-	Template   *template.Manager     `kernel:"inject"`
-	Server     *weathercenter.Server `kernel:"inject"`
+	Cron     *cron.CronService `kernel:"inject"`
+	Rest     *rest.Server      `kernel:"inject"`
+	Config   config.Manager    `kernel:"inject"`
+	Template *template.Manager `kernel:"inject"`
+	//Server     *weathercenter.Server `kernel:"inject"`
+	Stations   *state.Stations    `kernel:"inject"`
+	Renderer   *renderer.Renderer `kernel:"inject"`
+	DBServer   *string            `kernel:"flag,metric-db,DB url"`
 	mutex      sync.Mutex
 	dashDir    string
+	parser     util.Parser[station.Stations]
 	dashboards map[string]*Live // loaded dashboard instances
-	cronIds    map[string]int   // Map of cron ids
 }
 
 const (
-	dashDir          = "dashboards"
-	fileSuffix       = ".yaml"
+	dashDir          = "stations"
+	fileSuffix       = ".station"
 	webPath          = "/dash/{dash:.{1,}}"
 	stationHome      = "/s/{stationId}"
 	stationHomeS     = "/s/{stationId}/"
@@ -42,35 +46,36 @@ const (
 )
 
 func (s *Service) Start() error {
+	s.parser = station.NewParser()
+
 	s.dashboards = make(map[string]*Live)
-	s.cronIds = make(map[string]int)
 
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 
 	// Load existing dashboards
-	err := walk.NewPathWalker().
-		Then(func(path string, info os.FileInfo) error {
-			b, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-
-			o := model.DashboardFactory()
-			err = model.UnmarshalDashboard(b, o)
-			if err == nil {
-				s.setDashboard(s.stripPath(path), o.(*model.Dashboard))
-			}
-			return err
+	var files []string
+	if err := walk.NewPathWalker().
+		Then(func(path string, _ os.FileInfo) error {
+			files = append(files, path)
+			log.Printf("Found %q", path)
+			return nil
 		}).
 		PathHasSuffix(fileSuffix).
 		IsFile().
-		Walk(s.dashDir)
-	if err != nil && !os.IsNotExist(err) {
+		Walk(s.dashDir); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
+	// Load all the loadedStations
+	if stations, err := station.NewParser().ParseFiles(files...); err != nil {
+		return err
+	} else {
+		s.Stations.AddStations(stations)
+	}
+
 	// start watching for changes
-	s.Config.WatchDirectory(dashDir, model.DashboardFactory, s.updateDashboard, model.UnmarshalDashboard)
+	//s.Config.WatchDirectory(s.dashDir, model.DashboardFactory, s.updateDashboard, model.UnmarshalDashboard)
+	//s.Config.WatchDirectoryParser(s.dashDir, model.DashboardFactory, s.updateDashboard, s.unmarshaller)
 
 	// Old static dashboard TODO remove later
 	s.Rest.HandleFunc(webPath, func(writer http.ResponseWriter, request *http.Request) {
@@ -83,7 +88,11 @@ func (s *Service) Start() error {
 	s.Rest.Handle(stationHomeS, s.showStationHome).Methods("GET")
 	s.Rest.Handle(stationDashboard, s.showDashboard).Methods("GET")
 
-	return nil
+	return s.loadLatestMetrics()
+}
+
+func (s *Service) unmarshaller(name string) (any, error) {
+	return s.parser.ParseFile(name)
 }
 
 func (s *Service) stripPath(n string) string {
@@ -98,76 +107,21 @@ func (s *Service) getLive(n string) *Live {
 	return s.dashboards[n]
 }
 
-func (s *Service) getDashboard(n string) *model.Dashboard {
-	l := s.getLive(n)
-	if l == nil {
-		return nil
-	}
-	return l.dashboard
-}
-
-func (s *Service) setDashboard(n string, d *model.Dashboard) {
-	if d == nil {
-		return
-	}
-
-	// Force the type field, needed for template resolution
-	d.Type = "dashboard"
-
-	d.Init(*s.Server.DBServer)
-
-	var useCron bool
-	if d.Update != "" {
-		id, err := s.Cron.AddFunc(d.Update, func() {
-			d.Init(*s.Server.DBServer)
-			// Make a new Uid so client refreshes
-			d.CronSeq++
-			uid := strings.Split(d.Uid, "-")
-			d.Uid = uid[0] + "-" + strconv.Itoa(d.CronSeq)
-		})
-		if err == nil {
-			d.CronId = int(id)
-			useCron = true
-			log.Printf("Cron: Adding %q %d", n, d.CronId)
-		}
-	}
-
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	// Remove any existing cron job
-	if oid, exists := s.cronIds[n]; exists {
-		delete(s.cronIds, n)
-		defer func() {
-			log.Printf("Cron: Removing %q %d", n, oid)
-			s.Cron.Remove(cron2.EntryID(oid))
-		}()
-	}
-	if useCron {
-		// record ID only if we are creating a new one.
-		// Note: cronId can be 0 so we can't do this blindly,
-		//hence the bool indicating we have actually created one
-		s.cronIds[n] = d.CronId
-	}
-
-	l := s.dashboards[n]
-	if l == nil {
-		l = s.newLiveServer(n, d)
-		s.dashboards[n] = l
-	} else {
-		l.newDashboard(d)
-	}
-}
-
 func (s *Service) updateDashboard(event fsnotify.Event, o any) error {
 	if strings.HasSuffix(event.Name, fileSuffix) {
 		switch event.Op {
 		case fsnotify.Create, fsnotify.Write:
-			d := o.(*model.Dashboard)
-			s.setDashboard(s.stripPath(event.Name), d)
+			// FIXME need to work on this
+			//d := o.(*station.Stations)
+
+			//s.Stations.AddStations(d)
 
 		case fsnotify.Remove:
-			s.setDashboard(s.stripPath(event.Name), nil)
+			// FIXME need to work on this
+			//return s.OnStations(func(stations *station.Stations) error {
+			//	s.setStations(stations.Remove(event.Name))
+			//	return nil
+			//})
 
 			// Default do nothing
 		default:
@@ -188,25 +142,51 @@ func (s *Service) showDashboard(r *rest.Rest) error {
 	return s.showDashboardImpl(r, r.Var("dash"))
 }
 
-func (s *Service) showDashboardImpl(r *rest.Rest, dash string) error {
+func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
 	serverId := r.Var("stationId")
 
-	live := s.getLive(dash)
+	content, status := s.Renderer.Render(serverId, dashName)
 
-	if live == nil {
-		r.Status(http.StatusNotFound)
-		return nil
+	content = `<html><head><title>test</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <link href="/` + state.UID() + `/css/dash.css" rel="stylesheet"/>
+</head><body>` + content + `</div></div>
+</body></html>`
+	r.Status(status).
+		ContentType("text/html").
+		Value([]byte(content))
+
+	//live := s.getLive(serverId + "." + dash)
+	//if live == nil {
+	//	r.Status(http.StatusNotFound)
+	//	return nil
+	//}
+
+	//if live.getDashboard().Refresh > 0 {
+	//	r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
+	//}
+
+	//data := dash.GetData()
+	//
+	//return s.Template.ExecuteTemplate(r, "dash/main.html", data)
+
+	return nil
+}
+
+// loadLatestMetrics retrieves the current metrics from the DB server
+func (s *Service) loadLatestMetrics() error {
+	if *s.DBServer != "" {
+		c := &client.Client{Url: *s.DBServer}
+		r, err := c.LatestMetrics()
+		if err != nil {
+			return err
+		}
+		if r != nil {
+			s.Stations.Load(r.Metrics)
+		}
 	}
-
-	if live.getDashboard().Refresh > 0 {
-		r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
-	}
-
-	data := live.getData()
-
-	if serverId != "" {
-		data["serverId"] = serverId
-	}
-
-	return s.Template.ExecuteTemplate(r, "dash/main.html", data)
+	return nil
 }

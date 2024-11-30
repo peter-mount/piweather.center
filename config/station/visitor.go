@@ -9,6 +9,7 @@ import (
 )
 
 type Visitor[T any] interface {
+	Axis(*Axis) error
 	Component(*Component) error
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
@@ -30,6 +31,9 @@ type Visitor[T any] interface {
 	Get() T
 	// Set the attached value T
 	Set(T) Visitor[T]
+	// Clone the visitor - used when you need to pass an alternate data object in multiple goroutines.
+	// Note: The attached value T is not included in the clone
+	Clone() Visitor[T]
 }
 
 type visitor[T any] struct {
@@ -38,6 +42,7 @@ type visitor[T any] struct {
 }
 
 type common[T any] struct {
+	axis               func(Visitor[T], *Axis) error
 	component          func(Visitor[T], *Component) error
 	componentList      func(Visitor[T], *ComponentList) error
 	componentListEntry func(Visitor[T], *ComponentListEntry) error
@@ -64,6 +69,18 @@ func (c *visitor[T]) Get() T {
 func (c *visitor[T]) Set(data T) Visitor[T] {
 	c.data = data
 	return c
+}
+
+func (c *visitor[T]) Clone() Visitor[T] {
+	return &visitor[T]{common: c.common}
+}
+
+func (c *visitor[T]) Axis(d *Axis) error {
+	var err error
+	if d != nil && c.axis != nil {
+		err = c.axis(c, d)
+	}
+	return err
 }
 
 func (c *visitor[T]) Component(d *Component) error {
@@ -224,6 +241,10 @@ func (c *visitor[T]) Gauge(d *Gauge) error {
 
 		if err == nil {
 			err = c.Unit(d.Unit)
+		}
+
+		if err == nil {
+			err = c.Axis(d.Axis)
 		}
 
 		if err == nil {

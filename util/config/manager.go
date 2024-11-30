@@ -38,6 +38,7 @@ type Manager interface {
 	ReadAndWatch(n string, f Factory, u Updater, um Unmarshaller) error
 	// WatchDirectory watches a directory and passes all changes to a single Updater
 	WatchDirectory(d string, f Factory, u Updater, um Unmarshaller)
+	WatchDirectoryParser(d string, f Factory, u Updater, um Parser)
 }
 
 type manager struct {

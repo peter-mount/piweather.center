@@ -135,7 +135,7 @@ station( "home"
 		)
 	)
 	dashboard( "stats" 
-		multiValue( "*" )
+		multivalue( "*" )
 	)
 )`,
 				},
@@ -218,100 +218,100 @@ station( "home"
 				},
 			},
 		},
-		// multiValue
+		// multivalue
 		{
-			name: "multiValue",
+			name: "multivalue",
 			tests: []test{
 				// These are the same - match all
 				{
 					name:   "all",
-					script: `station("home" dashboard("home" multiValue( "" )))`,
+					script: `station("home" dashboard("home" multivalue( "" )))`,
 				},
 				{
 					name:   "all",
-					script: `station("home" dashboard("home" multiValue( "*" )))`,
+					script: `station("home" dashboard("home" multivalue( "*" )))`,
 				},
 				{
 					name:   "all",
-					script: `station("home" dashboard("home" multiValue( "**" )))`,
+					script: `station("home" dashboard("home" multivalue( "**" )))`,
 				},
 				// Prefix matches
 				{
 					name:   "prefix",
-					script: `station("home" dashboard("home" multiValue( "*text" )))`,
+					script: `station("home" dashboard("home" multivalue( "*text" )))`,
 				},
 				{
 					name:   "prefix",
-					script: `station("home" dashboard("home" multiValue( "*sensor.temp" )))`,
+					script: `station("home" dashboard("home" multivalue( "*sensor.temp" )))`,
 				},
 				{
 					name:        "prefix",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "*metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "*metric*invalid" )))`,
 				},
 				{
 					name:        "prefix",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "*metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "*metric*invalid" )))`,
 				},
 				// Suffix mattches
 				{
 					name:   "suffix",
-					script: `station("home" dashboard("home" multiValue( "text*" )))`,
+					script: `station("home" dashboard("home" multivalue( "text*" )))`,
 				},
 				{
 					name:   "suffix",
-					script: `station("home" dashboard("home" multiValue( "sensor.temp*" )))`,
+					script: `station("home" dashboard("home" multivalue( "sensor.temp*" )))`,
 				},
 				{
 					name:        "suffix",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "metric*invalid*" )))`,
+					script:      `station("home" dashboard("home" multivalue( "metric*invalid*" )))`,
 				},
 				// Contains
 				{
 					name:   "contains",
-					script: `station("home" dashboard("home" multiValue( "*text*" )))`,
+					script: `station("home" dashboard("home" multivalue( "*text*" )))`,
 				},
 				{
 					name:   "contains",
-					script: `station("home" dashboard("home" multiValue( "*sensor.temp*" )))`,
+					script: `station("home" dashboard("home" multivalue( "*sensor.temp*" )))`,
 				},
 				{
 					name:        "contains",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "***" )))`,
+					script:      `station("home" dashboard("home" multivalue( "***" )))`,
 				},
 				{
 					name:        "contains",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "*metric*invalid*" )))`,
+					script:      `station("home" dashboard("home" multivalue( "*metric*invalid*" )))`,
 				},
 				// Equality which should always fail
 				{
 					name:        "equality",
 					expectError: "No wildcard provided",
-					script:      `station("home" dashboard("home" multiValue( "metric_valid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "metric_valid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "No wildcard provided",
-					script:      `station("home" dashboard("home" multiValue( "metric.invalid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "metric.invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "metric*invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "metric*invalid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "metric*invalid" )))`,
 				},
 				{
 					name:        "equality",
 					expectError: "pattern must not include",
-					script:      `station("home" dashboard("home" multiValue( "metric invalid" )))`,
+					script:      `station("home" dashboard("home" multivalue( "metric invalid" )))`,
 				},
 			},
 		},
@@ -327,6 +327,42 @@ station( "home"
 					name:        "gauge no metrics",
 					expectError: "No metrics provided",
 					script:      `station("home" dashboard("home" gauge( "label" )))`,
+				},
+				{
+					name:   "unit",
+					script: `station("home" dashboard("home" gauge( "label" unit "celsius" "ecowitt.temp" )))`,
+				},
+				{
+					name:   "axis",
+					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" max 10 )))`,
+				},
+				{
+					name:   "axis",
+					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" max 10.5 )))`,
+				},
+				{
+					name:   "axis",
+					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" min 5 max 10 )))`,
+				},
+				{
+					name:   "axisxx",
+					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" min 5 max 10 ticks 2)))`,
+				},
+				{
+					name:   "axis",
+					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" max 10 ticks 10 )))`,
+				},
+				{
+					name:   "axis neg min",
+					script: `station("home" dashboard("home" gauge( "Temperature" "ecowitt.temp" min -10 max 40 ticks 10 ) ))`,
+				},
+				{
+					name:   "axis",
+					script: `station("home" dashboard("home" gauge( "Temperature" "ecowitt.temp" "pseudo1.maxtemp" min -10 max 40 ticks 10 ) ))`,
+				},
+				{
+					name:   "axis",
+					script: `station("home" dashboard("home" gauge( "Temperature" "ecowitt.temp" "pseudo1.maxtemp" "pseudo1.mintemp" min -10 max 40 ticks 10 ) ))`,
 				},
 			},
 		},
@@ -375,7 +411,7 @@ station( "home"
 				}
 
 				t.Run(subTestName, func(t *testing.T) {
-					_, err := p.ParseString(testName+"/"+subTestName, tte.script)
+					q, err := p.ParseString(testName+"/"+subTestName, tte.script)
 
 					if tte.expectError == "" {
 						if err != nil {
@@ -388,6 +424,16 @@ station( "home"
 						if !strings.Contains(err.Error(), tte.expectError) {
 							t.Fatalf("Expected %q got %v", tte.expectError, err)
 						}
+					}
+
+					if testName == "syntax" {
+						_ = NewBuilder[any]().
+							ComponentListEntry(func(_ Visitor[any], d *ComponentListEntry) error {
+								fmt.Printf("%q %v\n", d.GetType(), d)
+								return nil
+							}).
+							Build().
+							Stations(q)
 					}
 				})
 

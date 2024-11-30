@@ -7,6 +7,7 @@ import (
 )
 
 type Builder[T any] interface {
+	Axis(func(Visitor[T], *Axis) error) Builder[T]
 	Component(func(Visitor[T], *Component) error) Builder[T]
 	ComponentList(func(Visitor[T], *ComponentList) error) Builder[T]
 	ComponentListEntry(func(Visitor[T], *ComponentListEntry) error) Builder[T]
@@ -37,6 +38,11 @@ func NewBuilder[T any]() Builder[T] {
 
 func (b *builder[T]) Build() Visitor[T] {
 	return &visitor[T]{common: b.common}
+}
+
+func (b *builder[T]) Axis(f func(Visitor[T], *Axis) error) Builder[T] {
+	b.axis = f
+	return b
 }
 
 func (b *builder[T]) Component(f func(Visitor[T], *Component) error) Builder[T] {

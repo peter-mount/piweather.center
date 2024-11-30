@@ -13,6 +13,7 @@ type updater struct {
 	factory      Factory
 	updater      Updater
 	unmarshaller Unmarshaller
+	parser       Parser
 }
 
 // Factory creates a struct to pass to an Unmarshaller then an Updater
@@ -25,14 +26,21 @@ type Updater func(fsnotify.Event, any) error
 // Usually this is yaml.Unmarshal but it can be a custom format
 type Unmarshaller func([]byte, interface{}) error
 
+type Parser func(string) (any, error)
+
 func (m *manager) WatchDirectory(d string, f Factory, u Updater, um Unmarshaller) {
 	d = filepath.Clean(d) + pathSep
-	m.add(d, f, u, um)
+	m.addUnmarshaller(d, f, u, um)
+}
+
+func (m *manager) WatchDirectoryParser(d string, f Factory, u Updater, um Parser) {
+	d = filepath.Clean(d) + pathSep
+	m.addParser(d, f, u, um)
 }
 
 func (m *manager) ReadAndWatch(n string, f Factory, u Updater, um Unmarshaller) error {
 	// Add the Updater
-	m.add(n, f, u, um)
+	m.addUnmarshaller(n, f, u, um)
 
 	// Implicitly read the file here
 	fn := filepath.Join(m.EtcDir(), n)
@@ -76,21 +84,33 @@ func (m *manager) run() {
 	}
 }
 
-func (m *manager) add(n string, f Factory, u Updater, um Unmarshaller) {
+func (m *manager) addUnmarshaller(n string, f Factory, u Updater, um Unmarshaller) {
+	m.add(n, &updater{
+		factory:      f,
+		updater:      u,
+		unmarshaller: um,
+	})
+}
+
+func (m *manager) addParser(n string, f Factory, u Updater, p Parser) {
+	m.add(n, &updater{
+		factory: f,
+		updater: u,
+		parser:  p,
+	})
+}
+
+func (m *manager) add(n string, u *updater) {
 
 	n = filepath.Clean(n)
 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	m.watching[n] = append(m.watching[n], &updater{
-		factory:      f,
-		updater:      u,
-		unmarshaller: um,
-	})
+	m.watching[n] = append(m.watching[n], u)
 
 	if len(m.watching[n]) == 1 {
-		p := filepath.Join(m.EtcDir(), n)
+		p := n //filepath.Join(m.EtcDir(), n)
 		err := m.watcher.Add(p)
 		if err == nil {
 			log.Printf("Config: watching %q", n)
@@ -134,19 +154,33 @@ func (m *manager) load(event fsnotify.Event) {
 
 			log.Printf("Config: update %q", event.Name)
 
-			// Read the file just once
-			b, err := os.ReadFile(event.Name)
-			if err != nil {
-				log.Printf("Config: read failed %q %v", event.Name, err)
-				return
-			}
+			var b []byte
+			var o any
+			var err error
 
 			for _, w := range watchers {
-				// Unmarshal to the required object for this specific watcher
-				o := w.factory()
-				err = w.unmarshaller(b, o)
+				switch {
+				case w.unmarshaller != nil:
+					if b == nil {
+						// Read the file just once
+						b, err = os.ReadFile(event.Name)
+						/*
+							if err != nil {
+								log.Printf("Config: read failed %q %v", event.Name, err)
+								return
+							}
+						*/
+					}
 
-				if err == nil {
+					// Unmarshal to the required object for this specific watcher
+					o = w.factory()
+					err = w.unmarshaller(b, o)
+
+				case w.parser != nil:
+					o, err = w.parser(event.Name)
+				}
+
+				if err == nil && o != nil {
 					// Notify watcher of the update
 					err = w.updater(event, o)
 				}

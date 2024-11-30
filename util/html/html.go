@@ -34,15 +34,21 @@ func (p Point) String() string {
 // Class adds a css class name to the Element.
 // This takes a format string like fmt.Sprintf()
 func (e *Element) Class(c string, a ...interface{}) *Element {
-	e.class = append(e.class, fmt.Sprintf(c, a...))
+	s := fmt.Sprintf(c, a...)
+	if s != "" {
+		e.class = append(e.class, s)
+	}
 	return e
 }
 
 func (e *Element) Attr(name, format string, args ...interface{}) *Element {
-	e.attrs = append(e.attrs, Attr{
-		Name:  name,
-		Value: fmt.Sprintf(format, args...),
-	})
+	s := fmt.Sprintf(format, args...)
+	if s != "" {
+		e.attrs = append(e.attrs, Attr{
+			Name:  name,
+			Value: s,
+		})
+	}
 	return e
 }
 
@@ -144,6 +150,16 @@ func (e *Element) Text(s ...string) *Element {
 		ne.text = a
 	}
 	return ne
+}
+
+// TextNbsp appends each provided string as a text Element.
+func (e *Element) TextNbsp(s ...string) *Element {
+	for i, a := range s {
+		if a == "" {
+			s[i] = "&nbsp;"
+		}
+	}
+	return e.Text(s...)
 }
 
 type SequenceHandler func(int, *Element) *Element

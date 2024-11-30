@@ -2,9 +2,10 @@ package template
 
 import (
 	"errors"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file/record"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
@@ -51,7 +52,7 @@ func (m *Manager) PostInit() error {
 		"ReplaceAll":           strings.ReplaceAll,
 		"getReading":           m.getReading,
 		"getLatestReadingTime": m.getLatestReadingTime,
-		"instanceUid":          model.UID,
+		"instanceUid":          state.UID,
 		"maxRowValue":          maxRowValue,
 		"windRoseBreakdown":    windRoseBreakdown,
 	}
@@ -192,7 +193,7 @@ func js(s string) template.JS {
 	return template.JS(s)
 }
 
-func (s *Manager) showComponent(c model.Instance) (template.HTML, error) {
+func (s *Manager) showComponent(c station.ComponentType) (template.HTML, error) {
 	return s.Template("dash/"+strings.ToLower(c.GetType())+".html", c)
 }
 

@@ -1,5 +1,10 @@
 package html
 
+import (
+	"strconv"
+	"strings"
+)
+
 func (e *Element) Svg() *Element {
 	return e.Element("svg").
 		Attr("xmlns", "http://www.w3.org/2000/svg").
@@ -78,6 +83,14 @@ func (e *Element) StrokeWidth(v string, a ...interface{}) *Element {
 	return e.Attr("stroke-width", v, a...)
 }
 
+func (e *Element) StrokeDasharray(i ...int) *Element {
+	var s []string
+	for _, v := range i {
+		s = append(s, strconv.Itoa(v))
+	}
+	return e.Attr("stroke-dasharray", strings.Join(s, ","))
+}
+
 // SvgText is the text Element, cannot use Text() as that adds plain text
 func (e *Element) SvgText() *Element {
 	return e.Element("text")
@@ -93,6 +106,14 @@ func (e *Element) Circle() *Element {
 
 func (e *Element) G() *Element {
 	return e.Element("g")
+}
+
+func (e *Element) AnimateTransform() *Element {
+	return e.Element("animateTransform")
+}
+
+func (e *Element) Path() *Element {
+	return e.Element("path")
 }
 
 func (e *Element) Polygon() *Element {

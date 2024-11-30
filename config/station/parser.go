@@ -22,6 +22,7 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 		}
 
 		err = NewBuilder[*state]().
+			Axis(s.axis).
 			Container(s.container).
 			Dashboard(s.dashboard).
 			Gauge(s.gauge).
@@ -46,6 +47,10 @@ type state struct {
 	sensorPrefix  string                // sensorId + "."
 	stationIds    map[string]*Station   // map of Stations
 	dashboards    map[string]*Dashboard // map of Dashboards within a Station
+}
+
+func (s *state) prefixMetric(m string) string {
+	return s.stationPrefix + s.sensorPrefix + m
 }
 
 func (s *state) stations(v Visitor[*state], d *Stations) error {
@@ -129,15 +134,27 @@ func (s *state) container(_ Visitor[*state], d *Container) error {
 	if d.Component == nil {
 		d.Component = &Component{}
 	}
+	// Ensure we have an entry present so we don't need to check this in templates
+	if d.Components == nil {
+		d.Components = &ComponentList{}
+	}
+
 	return nil
 }
 
 func (s *state) dashboard(_ Visitor[*state], d *Dashboard) error {
 	var err error
 
+	// sensorPrefix is not used for dashboards
+	s.sensorPrefix = ""
+	if s.stationPrefix == "" {
+		// should never occur
+		err = errors.Errorf(d.Pos, "stationPrefix not defined")
+	}
+
 	// Enforce lower case name
 	d.Name = strings.ToLower(strings.TrimSpace(d.Name))
-	if d.Name == "" {
+	if err == nil && d.Name == "" {
 		err = errors.Errorf(d.Pos, "dashboard name is required")
 	}
 	if err == nil && strings.ContainsAny(d.Name, ". _") {
@@ -152,6 +169,11 @@ func (s *state) dashboard(_ Visitor[*state], d *Dashboard) error {
 	}
 
 	if err == nil {
+		// Ensure we have an entry present so we don't need to check this in templates
+		if d.Components == nil {
+			d.Components = &ComponentListEntry{}
+		}
+
 		s.dashboards[d.Name] = d
 
 		// Ensure Component exists, require by templates
@@ -180,13 +202,8 @@ func (s *state) value(_ Visitor[*state], d *Value) error {
 	return nil
 }
 
-func (s *state) gauge(_ Visitor[*state], d *Gauge) error {
+func (s *state) axis(_ Visitor[*state], d *Axis) error {
 	var err error
-
-	// Ensure Component exists, require by templates
-	if d.Component == nil {
-		d.Component = &Component{}
-	}
 
 	// ensure min < max
 	if value.GreaterThan(d.Min, d.Max) {
@@ -211,8 +228,20 @@ func (s *state) gauge(_ Visitor[*state], d *Gauge) error {
 
 	case d.Ticks < 0:
 		err = errors.Errorf(d.Pos, "Ticks %d is invalid", d.Ticks)
+	}
 
-	case d.Metrics == nil || len(d.Metrics.Metrics) == 0:
+	return errors.Error(d.Pos, err)
+}
+
+func (s *state) gauge(_ Visitor[*state], d *Gauge) error {
+	var err error
+
+	// Ensure Component exists, require by templates
+	if d.Component == nil {
+		d.Component = &Component{}
+	}
+
+	if d.Metrics == nil || len(d.Metrics.Metrics) == 0 {
 		// We must have at least 1 metric for gauges
 		err = errors.Errorf(d.Pos, "No metrics provided for Gauge")
 	}
@@ -235,7 +264,7 @@ func (s *state) metric(_ Visitor[*state], d *Metric) error {
 	}
 
 	// Prefix with the stationId & sensorId to become a full metric id
-	d.Name = s.stationPrefix + s.sensorPrefix + d.Name
+	d.Name = s.prefixMetric(d.Name)
 
 	return errors.Error(d.Pos, err)
 }
@@ -263,7 +292,7 @@ func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
 		d.Pattern = strings.ToLower(p)
 		d.Type = t
 
-		d.Prefix = s.stationPrefix + s.sensorPrefix
+		d.Prefix = s.prefixMetric("")
 	}
 
 	return err
