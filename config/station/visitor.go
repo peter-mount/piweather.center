@@ -79,6 +79,9 @@ func (c *visitor[T]) Axis(d *Axis) error {
 	var err error
 	if d != nil && c.axis != nil {
 		err = c.axis(c, d)
+		if util.IsVisitorStop(err) {
+			return nil
+		}
 	}
 	return err
 }
@@ -87,6 +90,9 @@ func (c *visitor[T]) Component(d *Component) error {
 	var err error
 	if d != nil && c.component != nil {
 		err = c.component(c, d)
+		if util.IsVisitorStop(err) {
+			return nil
+		}
 	}
 	return err
 }
@@ -96,6 +102,9 @@ func (c *visitor[T]) ComponentList(d *ComponentList) error {
 	if d != nil {
 		if c.componentList != nil {
 			err = c.componentList(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -117,9 +126,9 @@ func (c *visitor[T]) ComponentListEntry(d *ComponentListEntry) error {
 	if d != nil {
 		if c.componentListEntry != nil {
 			err = c.componentListEntry(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -148,9 +157,9 @@ func (c *visitor[T]) Container(d *Container) error {
 	if d != nil {
 		if c.container != nil {
 			err = c.container(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -171,6 +180,9 @@ func (c *visitor[T]) CronTab(d *time.CronTab) error {
 	if d != nil {
 		if c.crontab != nil {
 			err = c.crontab(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -183,9 +195,9 @@ func (c *visitor[T]) Dashboard(d *Dashboard) error {
 	if d != nil {
 		if c.dashboard != nil {
 			err = c.dashboard(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -206,9 +218,9 @@ func (c *visitor[T]) DashboardList(d *DashboardList) error {
 	if d != nil {
 		if c.dashboardList != nil {
 			err = c.dashboardList(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -230,9 +242,9 @@ func (c *visitor[T]) Gauge(d *Gauge) error {
 	if d != nil {
 		if c.gauge != nil {
 			err = c.gauge(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -260,6 +272,9 @@ func (c *visitor[T]) Location(d *location.Location) error {
 	var err error
 	if d != nil && c.location != nil {
 		err = c.location(c, d)
+		if util.IsVisitorStop(err) {
+			return nil
+		}
 
 		err = errors.Error(d.Pos, err)
 	}
@@ -271,9 +286,9 @@ func (c *visitor[T]) Metric(d *Metric) error {
 	if d != nil {
 		if c.metric != nil {
 			err = c.metric(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -290,9 +305,9 @@ func (c *visitor[T]) MetricList(d *MetricList) error {
 	if d != nil {
 		if c.metricList != nil {
 			err = c.metricList(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		for _, s := range d.Metrics {
@@ -312,6 +327,9 @@ func (c *visitor[T]) MetricPattern(d *MetricPattern) error {
 	if d != nil {
 		if c.metricPattern != nil {
 			err = c.metricPattern(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -324,6 +342,9 @@ func (c *visitor[T]) MultiValue(d *MultiValue) error {
 	if d != nil {
 		if c.multiValue != nil {
 			err = c.multiValue(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -344,9 +365,9 @@ func (c *visitor[T]) Station(d *Station) error {
 	if d != nil {
 		if c.station != nil {
 			err = c.station(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -367,9 +388,9 @@ func (c *visitor[T]) Stations(d *Stations) error {
 	if d != nil {
 		if c.stations != nil {
 			err = c.stations(c, d)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		if err == nil {
@@ -391,6 +412,9 @@ func (c *visitor[T]) Unit(d *units.Unit) error {
 	if d != nil {
 		if c.unit != nil {
 			err = c.unit(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -401,13 +425,16 @@ func (c *visitor[T]) Unit(d *units.Unit) error {
 func (c *visitor[T]) Value(d *Value) error {
 	var err error
 	if d != nil {
-		err = c.Component(d.Component)
 
-		if err == nil && c.value != nil {
+		if c.value != nil {
 			err = c.value(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
-		if util.IsVisitorStop(err) {
-			return nil
+
+		if err == nil {
+			err = c.Component(d.Component)
 		}
 
 		if err == nil {
