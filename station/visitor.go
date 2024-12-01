@@ -20,6 +20,12 @@ type visitorState struct {
 	component *Component // Component at this point in time
 	metric    api.Metric // The metric being processed
 	response  *Response  // The response being built
+	idSeq     int        // ID sequence within a dashboard
+}
+
+func (s *visitorState) nextId() string {
+	s.idSeq++
+	return string(encode([]byte{uid[0], uid[1], byte(s.idSeq & 0xff), byte((s.idSeq >> 8) & 0xff)}))
 }
 
 func newVisitorState(s *Stations) *visitorState {
@@ -58,6 +64,7 @@ func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error 
 	st := v.Get()
 	de := newDashboard(st.station, d)
 	st.dashboard = de
+	st.idSeq = 0
 	st.station.addDashboard(de)
 
 	var useCron bool
@@ -87,6 +94,7 @@ func addMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) erro
 	dash := st.dashboard
 
 	if dash != nil && d.Pattern != nil {
+		d.Component.ID = st.nextId()
 		comp := dash.GetOrCreateComponent(d.GetID())
 
 		// Prepopulate if we have metrics already available
@@ -110,10 +118,12 @@ func addMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) erro
 }
 
 func addGauge(v station.Visitor[*visitorState], d *station.Gauge) error {
+	d.Component.ID = v.Get().nextId()
 	return addMetricListImpl(v, d.GetID(), d.Metrics)
 }
 
 func addValue(v station.Visitor[*visitorState], d *station.Value) error {
+	d.Component.ID = v.Get().nextId()
 	return addMetricListImpl(v, d.GetID(), d.Metrics)
 }
 

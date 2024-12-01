@@ -147,6 +147,11 @@ func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
 
 	content, status := s.Renderer.Render(serverId, dashName)
 
+	//if live.getDashboard().Refresh > 0 {
+	//	r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
+	//}
+	r.AddHeader("Refresh", "10")
+
 	content = `<html><head><title>test</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -163,10 +168,6 @@ func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
 	//if live == nil {
 	//	r.Status(http.StatusNotFound)
 	//	return nil
-	//}
-
-	//if live.getDashboard().Refresh > 0 {
-	//	r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
 	//}
 
 	//data := dash.GetData()
