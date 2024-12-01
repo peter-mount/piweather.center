@@ -25,6 +25,7 @@ type Visitor[T any] interface {
 	MultiValue(*MultiValue) error
 	Station(*Station) error
 	Stations(*Stations) error
+	Unit(*units.Unit) error
 	Value(*Value) error
 
 	// Get returns the attached value T
