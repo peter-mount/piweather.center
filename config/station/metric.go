@@ -37,6 +37,7 @@ func (m *MetricList) GetValues(f GetMetric) []value.Value {
 		for _, m := range m.Metrics {
 			if metric, exists := f.GetMetric(m.Name); exists {
 				v, _ := metric.ToValue()
+				v, _ = m.Convert(v)
 				r = append(r, v)
 			} else {
 				r = append(r, value.Value{})

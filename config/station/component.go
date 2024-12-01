@@ -129,3 +129,18 @@ func (c *Gauge) Convert(v value.Value) (value.Value, error) {
 
 	return v, errors.Error(c.Pos, err)
 }
+
+func (c *Gauge) ConvertAll(vals []value.Value) ([]value.Value, error) {
+	var err error
+
+	if c.Unit != nil {
+		for i, v := range vals {
+			vals[i], err = c.Unit.Convert(v)
+			if err != nil {
+				return nil, errors.Error(c.Metrics.Metrics[i].Pos, err)
+			}
+		}
+	}
+
+	return vals, nil
+}

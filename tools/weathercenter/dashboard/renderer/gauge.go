@@ -40,7 +40,10 @@ func barometer(v station.Visitor[*State], d *station.Gauge) error {
 		Component(v, d, d.Component, func(s *State) error {
 			dash := s.Dashboard()
 			stn := dash.Station()
-			metricValues := d.Metrics.GetValues(stn)
+			metricValues, err := d.ConvertAll(d.Metrics.GetValues(stn))
+			if err != nil {
+				return err
+			}
 			axis := d.Axis.GenAxis(225)
 
 			s.Builder().
@@ -128,7 +131,10 @@ func compass(v station.Visitor[*State], d *station.Gauge) error {
 		Component(v, d, d.Component, func(s *State) error {
 			dash := s.Dashboard()
 			stn := dash.Station()
-			metricValues := d.Metrics.GetValues(stn)
+			metricValues, err := d.ConvertAll(d.Metrics.GetValues(stn))
+			if err != nil {
+				return err
+			}
 
 			s.Builder().
 				Svg().
@@ -223,7 +229,10 @@ func gauge(v station.Visitor[*State], d *station.Gauge) error {
 		Component(v, d, d.Component, func(s *State) error {
 			dash := s.Dashboard()
 			stn := dash.Station()
-			metricValues := d.Metrics.GetValues(stn)
+			metricValues, err := d.ConvertAll(d.Metrics.GetValues(stn))
+			if err != nil {
+				return err
+			}
 			axis := d.Axis.GenAxis(180)
 
 			s.Builder().
@@ -295,7 +304,10 @@ func inclinometer(v station.Visitor[*State], d *station.Gauge) error {
 		Component(v, d, d.Component, func(s *State) error {
 			dash := s.Dashboard()
 			stn := dash.Station()
-			metricValues := d.Metrics.GetValues(stn)
+			metricValues, err := d.ConvertAll(d.Metrics.GetValues(stn))
+			if err != nil {
+				return err
+			}
 			axis := station.GenAxis(-90, 90, 9, 180)
 
 			s.Builder().
@@ -388,7 +400,11 @@ func rainGauge(v station.Visitor[*State], d *station.Gauge) error {
 		Component(v, d, d.Component, func(s *State) error {
 			dash := s.Dashboard()
 			stn := dash.Station()
-			metric := d.Metrics.GetValues(stn)[0]
+			metricValues, err := d.ConvertAll(d.Metrics.GetValues(stn))
+			if err != nil {
+				return err
+			}
+			metric := metricValues[0]
 			val := metric.Float()
 
 			axis := station.AutoScale(0, math.Max(2, val), rainHeight-10)

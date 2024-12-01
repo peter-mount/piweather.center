@@ -21,7 +21,7 @@ func (s *Unit) Unit() *value.Unit {
 }
 
 func (s *Unit) Convert(v value.Value) (value.Value, error) {
-	if s == nil {
+	if s == nil || s.unit == nil || !v.IsValid() {
 		return v, nil
 	}
 	return v.As(s.unit)
