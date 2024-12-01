@@ -14,16 +14,17 @@ const (
 	TextAnchor       = "text-anchor"
 	Transform        = "transform"
 
-	Black  = "black"
-	Middle = "middle"
-	None   = "none"
-	White  = "white"
-	Red    = "red"
-	Blue   = "blue"
-	Green  = "green"
-	Yellow = "yellow"
-	Purple = "purple"
-	Cyan   = "cyan"
+	Black     = "black"
+	Middle    = "middle"
+	None      = "none"
+	White     = "white"
+	Red       = "red"
+	Blue      = "blue"
+	Green     = "green"
+	Yellow    = "yellow"
+	Purple    = "purple"
+	Cyan      = "cyan"
+	LightBlue = "lightblue"
 )
 
 func fix(f float64) string {

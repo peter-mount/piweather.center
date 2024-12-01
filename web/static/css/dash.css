@@ -74,7 +74,7 @@
 .dash-gauge,
 .dash-inclinometer,
 .dash-multivalue,
-.dash-rain-gauge,
+.dash-raingauge,
 .dash-text,
 .dash-value,
 .dash-wind-rose,
@@ -145,7 +145,7 @@
     font-size: 80%;
 }
 
-.dash-rain-gauge {
+.dash-raingauge {
     width: 5em;
     padding-left: 0;
     margin-left: 0;

@@ -96,7 +96,7 @@ func (c *MultiValue) GetType() string {
 
 type Gauge struct {
 	Pos       lexer.Position
-	Type      string      `parser:"@('gauge'|'barometer'|'compass'|'inclinometer') '('"`
+	Type      string      `parser:"@('gauge'|'barometer'|'compass'|'inclinometer'|'raingauge') '('"`
 	Component *Component  `parser:"@@"`
 	Label     string      `parser:"@String"`
 	Unit      *units.Unit `parser:"(@@)?"`

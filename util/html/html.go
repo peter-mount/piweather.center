@@ -127,6 +127,13 @@ func (e *Element) Exec(f func(*Element) *Element) *Element {
 	return f(e)
 }
 
+// ExecEnd executes a function passing the current Element to it.
+// On it's return, the current Element will be ended.
+func (e *Element) ExecEnd(f func(*Element)) *Element {
+	f(e)
+	return e.End()
+}
+
 // If calls a function if a condition is true.
 // The returned instance will be the returned instance from that function or the current Element if the condition was false.
 func (e *Element) If(p bool, f func(*Element) *Element) *Element {
