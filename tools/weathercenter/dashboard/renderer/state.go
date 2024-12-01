@@ -51,7 +51,8 @@ func (s *State) With(v station.Visitor[*State], e *html.Element, f StateHandler)
 }
 
 func (s *State) Component(v station.Visitor[*State], d station.ComponentType, c *station.Component, f StateHandler) error {
-	e := s.b.Div()
+	e := s.b
+
 	if c.Title != "" {
 		e = e.Div().Class("dash-title-box").
 			Div().Class("dash-title-title").
@@ -59,14 +60,18 @@ func (s *State) Component(v station.Visitor[*State], d station.ComponentType, c 
 			End()
 	}
 
-	e = e.Class("dash-%s", d.GetType()).
+	e = e.Div().
+		Class("dash-%s", d.GetType()).
 		Class(c.Class).
 		Attr("style", c.Style)
 
 	err := s.With(v, e, f)
 
 	if err == nil {
+		// Close the enclosing dash-{type} div
 		e = e.End()
+
+		// Close the enclosing dash-title-box div
 		if c.Title != "" {
 			e = e.End()
 		}
