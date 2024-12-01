@@ -9,9 +9,9 @@ import (
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
+	station3 "github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/renderer"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/util/config"
 	"net/http"
@@ -27,7 +27,7 @@ type Service struct {
 	Config   config.Manager    `kernel:"inject"`
 	Template *template.Manager `kernel:"inject"`
 	//Server     *weathercenter.Server `kernel:"inject"`
-	Stations   *state.Stations    `kernel:"inject"`
+	Stations   *station3.Stations `kernel:"inject"`
 	Renderer   *renderer.Renderer `kernel:"inject"`
 	DBServer   *string            `kernel:"flag,metric-db,DB url"`
 	mutex      sync.Mutex
@@ -152,7 +152,7 @@ func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <link href="/` + state.UID() + `/css/dash.css" rel="stylesheet"/>
+    <link href="/` + station3.UID() + `/css/dash.css" rel="stylesheet"/>
 </head><body>` + content + `</div></div>
 </body></html>`
 	r.Status(status).

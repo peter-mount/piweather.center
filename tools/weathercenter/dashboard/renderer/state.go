@@ -2,7 +2,7 @@ package renderer
 
 import (
 	"github.com/peter-mount/piweather.center/config/station"
-	state2 "github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
+	state2 "github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/util/html"
 )
 

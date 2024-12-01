@@ -4,12 +4,12 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
+	station2 "github.com/peter-mount/piweather.center/station"
 	"net/http"
 )
 
 type Renderer struct {
-	Stations      *state.Stations `kernel:"inject"`
+	Stations      *station2.Stations `kernel:"inject"`
 	renderVisitor station.Visitor[*State]
 }
 

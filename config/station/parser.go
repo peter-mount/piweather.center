@@ -221,7 +221,7 @@ func (s *state) axis(_ Visitor[*state], d *Axis) error {
 		d.Ticks = 10
 	}
 
-	// verify state
+	// verify station
 	switch {
 	case value.Equal(d.Min, d.Max):
 		err = errors.Errorf(d.Pos, "Min and Max must not be the same")

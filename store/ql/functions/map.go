@@ -321,7 +321,7 @@ func funcTimeOf(ex ql.Executor, v ql2.QueryVisitor, f *ql2.Function, args []ql.V
 		ex.Push(r)
 
 	default:
-		return participle.Errorf(f.Pos, "Invalid state %d args expected 0..1", len(args))
+		return participle.Errorf(f.Pos, "Invalid station %d args expected 0..1", len(args))
 	}
 
 	return util.VisitorStop

@@ -1,4 +1,4 @@
-package state
+package station
 
 import (
 	"github.com/peter-mount/piweather.center/config/station"

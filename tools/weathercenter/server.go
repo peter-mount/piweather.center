@@ -5,10 +5,10 @@ import (
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
+	station2 "github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/store/memory"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
 	view2 "github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/view"
 	_ "github.com/peter-mount/piweather.center/tools/weathercenter/menu"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
@@ -25,7 +25,7 @@ type Server struct {
 	Rest *rest.Server `kernel:"inject"`
 	//Config    service.Config    `kernel:"inject"`
 	_              *view.Home            `kernel:"inject"`
-	Stations       *state.Stations       `kernel:"inject"`
+	Stations       *station2.Stations    `kernel:"inject"`
 	ViewService    *view2.Service        `kernel:"inject"`
 	Templates      *template.Manager     `kernel:"inject"`
 	Latest         memory.Latest         `kernel:"inject"`
@@ -42,7 +42,7 @@ func (s *Server) Start() error {
 	rootDir := filepath.Dir(s.Templates.GetRootDir())
 	staticDir := filepath.Join(rootDir, "static")
 	log.Printf("Static content: %s", staticDir)
-	s.Rest.Static("/"+state.UID(), staticDir)
+	s.Rest.Static("/"+station2.UID(), staticDir)
 
 	// The listener handler
 	s.listener = api.NewListener()

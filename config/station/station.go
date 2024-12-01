@@ -96,10 +96,11 @@ func (a *Stations) replace(m *map[string]*Station, c *Stations, e *Station) erro
 
 type Station struct {
 	util.CheckSum
-	Pos        lexer.Position
-	Name       string             `parser:"'station' '(' @String"`
-	Location   *location.Location `parser:"@@?"`
-	Dashboards *DashboardList     `parser:"@@ ')'"`
+	Pos      lexer.Position
+	Name     string             `parser:"'station' '(' @String"`
+	Location *location.Location `parser:"@@?"`
+
+	Dashboards *DashboardList `parser:"@@ ')'"`
 }
 
 // HomeDashboard returns the home dashboard which is by definition the first dashboard in the definition

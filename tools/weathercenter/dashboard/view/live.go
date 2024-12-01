@@ -1,19 +1,15 @@
 package view
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/state"
+	station2 "github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/ws"
-	"sort"
-	"strings"
 	"sync"
 )
 
 type Live struct {
 	server    *Service               // Parent service
-	dashboard *state.Dashboard       // Attached dashboard
+	dashboard *station2.Dashboard    // Attached dashboard
 	websocket *ws.Server             // websocket server for a dashboard
 	js        map[string]interface{} // Javascript templates for this dashboard
 	mutex     sync.Mutex
@@ -37,7 +33,9 @@ var (
 		Build()
 )
 
-func (s *Service) newLiveServer(d *state.Dashboard) *Live {
+/*
+
+func (s *Service) newLiveServer(d *station.Dashboard) *Live {
 	l := &Live{
 		server: s,
 	}
@@ -51,11 +49,11 @@ func (s *Service) newLiveServer(d *state.Dashboard) *Live {
 	return l
 }
 
-func (s *Live) getStation() *state.Station {
+func (s *Live) getStation() *station.Station {
 	return s.getDashboard().Station()
 }
 
-func (s *Live) getDashboard() *state.Dashboard {
+func (s *Live) getDashboard() *station.Dashboard {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.dashboard
@@ -81,8 +79,8 @@ func (s *Live) getData() map[string]interface{} {
 	}
 }
 
-// Set the dashboard for this instance and update the state
-func (s *Live) newDashboard(d *state.Dashboard) {
+// Set the dashboard for this instance and update the station
+func (s *Live) newDashboard(d *station.Dashboard) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.dashboard = d
@@ -127,3 +125,4 @@ func (s *Live) notify(m api.Metric) {
 		}
 	}
 }
+*/

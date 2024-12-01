@@ -28,7 +28,7 @@ type Executor struct {
 }
 
 type exState struct {
-	prevState   *exState  // link to previous state
+	prevState   *exState  // link to previous station
 	time        time.Time // Query time
 	timeRange   api.Range // Query range
 	selectLimit int       // Max number of rows to return in a query
