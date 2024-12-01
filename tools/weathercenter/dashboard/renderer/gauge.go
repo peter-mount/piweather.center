@@ -77,7 +77,7 @@ func barometer(v station.Visitor[*State], d *station.Gauge) error {
 			}
 
 			// condition labels
-			svg = svg.G().Attr(FontSize, "80%%")
+			svg = svg.G().Attr(FontSize, "80%")
 			for i, l := range barometerLabels {
 				svg = svg.G().
 					Attr(Transform, Rotate(d.Axis.EnsureWithin(barometerAngles[i], axis.Delta, -112.5))).
@@ -91,11 +91,11 @@ func barometer(v station.Visitor[*State], d *station.Gauge) error {
 				if s.IsLive() {
 					svg = svg.Attr(ID, "%s.txt0", d.GetID())
 				}
-				svg = svg.Y(35).Attr(FontSize, "150%%").Text(metricValues[0].String()).End()
+				svg = svg.Y(35).Attr(FontSize, "150%").Text(metricValues[0].String()).End()
 			}
 
 			if d.Label != "" {
-				svg = svg.SvgText().Y(55).Attr(FontSize, "150%%").Text(d.Label).End()
+				svg = svg.SvgText().Y(55).Attr(FontSize, "150%").Text(d.Label).End()
 			}
 
 			// The display hands
@@ -161,14 +161,14 @@ func compass(v station.Visitor[*State], d *station.Gauge) error {
 					End()
 			}
 			if d.Label != "" {
-				svg = svg.SvgText().Y(-45).Attr(FontSize, "150%%").Text(d.Label).End()
+				svg = svg.SvgText().Y(-45).Attr(FontSize, "150%").Text(d.Label).End()
 			}
 			if len(metricValues) > 0 {
 				svg = svg.SvgText()
 				if s.IsLive() {
 					svg = svg.Attr(ID, "%s.txt0", d.GetID())
 				}
-				svg = svg.Y(45).Attr(FontSize, "150%%").Text(fix(metricValues[0].Float())).End()
+				svg = svg.Y(45).Attr(FontSize, "150%").Text(fix(metricValues[0].Float())).End()
 			}
 			svg = svg.End() // g
 
@@ -257,7 +257,7 @@ func gauge(v station.Visitor[*State], d *station.Gauge) error {
 			}
 
 			if d.Label != "" {
-				svg = svg.SvgText().Y(55).Attr(FontSize, "150%%").Text(d.Label).End()
+				svg = svg.SvgText().Y(55).Attr(FontSize, "150%").Text(d.Label).End()
 			}
 
 			// The display hands
@@ -327,11 +327,11 @@ func inclinometer(v station.Visitor[*State], d *station.Gauge) error {
 				if s.IsLive() {
 					svg = svg.Attr(ID, "%s.txt0", d.GetID())
 				}
-				svg = svg.Y(-35).Attr(FontSize, "150%%").Text(metricValues[0].String()).End()
+				svg = svg.Y(-35).Attr(FontSize, "150%").Text(metricValues[0].String()).End()
 			}
 
 			if d.Label != "" {
-				svg = svg.SvgText().Y(-55).Attr(FontSize, "150%%").Text(d.Label).End()
+				svg = svg.SvgText().Y(-55).Attr(FontSize, "150%").Text(d.Label).End()
 			}
 			svg = svg.End() // g rot -90
 

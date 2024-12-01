@@ -31,10 +31,18 @@ func (p Point) String() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
+func printfOptimized(format string, a []interface{}) string {
+	s := format
+	if len(a) > 0 {
+		s = fmt.Sprintf(s, a...)
+	}
+	return s
+}
+
 // Class adds a css class name to the Element.
 // This takes a format string like fmt.Sprintf()
 func (e *Element) Class(c string, a ...interface{}) *Element {
-	s := fmt.Sprintf(c, a...)
+	s := printfOptimized(c, a)
 	if s != "" {
 		e.class = append(e.class, s)
 	}
@@ -42,7 +50,7 @@ func (e *Element) Class(c string, a ...interface{}) *Element {
 }
 
 func (e *Element) Attr(name, format string, args ...interface{}) *Element {
-	s := fmt.Sprintf(format, args...)
+	s := printfOptimized(format, args)
 	if s != "" {
 		e.attrs = append(e.attrs, Attr{
 			Name:  name,
@@ -138,8 +146,8 @@ func (e *Element) RootElement() *Element {
 }
 
 // Textf appends a Text Element based on a fmt.Sprintf() formatted string.
-func (e *Element) Textf(f string, s ...interface{}) *Element {
-	return e.Text(fmt.Sprintf(f, s...))
+func (e *Element) Textf(f string, a ...interface{}) *Element {
+	return e.Text(printfOptimized(f, a))
 }
 
 // Text appends each provided string as a text Element.
