@@ -44,6 +44,11 @@ func (s *Script) Merge(b *Script) (*Script, error) {
 	return s, nil
 }
 
+type CalculationList struct {
+	Pos          lexer.Position
+	Calculations []*Calculation `parser:"(@@)*"`
+}
+
 // Calculation defines a metric to calculate
 type Calculation struct {
 	Pos        lexer.Position
