@@ -2,9 +2,12 @@ package file
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/util"
+	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -16,8 +19,13 @@ func GenKey(metric string, t time.Time) string {
 	t = t.UTC()
 
 	// Path for home.test.temp for 2023 Oct 20 12:13:14 UTC becomes home/test/temp/2023/10/20.mdb
-	name := filepath.Join(strings.Split(metric, ".")...)
+	name := GetMetricBasePath(metric)
 	return filepath.Join(name, util.Itoa(t.Year(), 4), util.Itoa(int(t.Month()), 2), util.Itoa(t.Day(), 2)+".mdb")
+}
+
+// GetMetricBasePath returns the metrics base bath within the database.
+func GetMetricBasePath(metric string) string {
+	return filepath.Join(strings.Split(metric, ".")...)
 }
 
 // removeFile removes an entry from openFiles
@@ -181,4 +189,29 @@ func (s *store) closeOldestFile() {
 		}
 		files = files[1:]
 	}
+}
+
+func (s *store) GetFiles(metric string) ([]string, error) {
+	var r []string
+
+	basePath := filepath.Join(*s.BaseDir, GetMetricBasePath(metric))
+
+	err := walk.NewPathWalker().
+		Then(func(path string, info os.FileInfo) error {
+			p, err := filepath.Rel(basePath, path)
+			if err == nil && len(p) > 0 {
+				ps := strings.SplitN(p, string(filepath.Separator), 2)
+				// Only accept integer here - e.g. should be a year
+				year, err1 := strconv.Atoi(ps[0])
+				if err1 == nil && year >= 100 {
+					r = append(r, p)
+				}
+			}
+			return err
+		}).
+		PathHasSuffix(".mdb").
+		IsFile().
+		Walk(basePath)
+
+	return r, err
 }
