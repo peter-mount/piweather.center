@@ -100,8 +100,8 @@ type Gauge struct {
 	Component *Component  `parser:"@@"`
 	Label     string      `parser:"@String"`
 	Unit      *units.Unit `parser:"(@@)?"`
-	Metrics   *MetricList `parser:"@@"`
-	Axis      *Axis       `parser:"(@@)? ')'"`
+	Axis      *Axis       `parser:"(@@)?"`
+	Metrics   *MetricList `parser:"@@ ')'"`
 }
 
 func (c *Gauge) AcceptMetric(v api.Metric) bool {
