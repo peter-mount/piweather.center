@@ -51,7 +51,7 @@ func (s *State) With(v station.Visitor[*State], e *html.Element, f StateHandler)
 }
 
 func (s *State) Component(v station.Visitor[*State], d station.ComponentType, c *station.Component, f StateHandler) error {
-	e := s.b
+	e := s.Builder()
 
 	if c.Title != "" {
 		e = e.Div().Class("dash-title-box").
