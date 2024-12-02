@@ -6,13 +6,13 @@ import (
 )
 
 func init() {
-	Radian = value.NewUnit("Radian", "Radians", " rad", 4)
-	Degree = value.NewUnit("Degree", "Degrees", "°", 1)
-	ArcMinute = value.NewUnit("ArcMinute", "Arc Minute", "'", 3)
-	ArcSecond = value.NewUnit("ArcSecond", "Arc Second", "\"", 3)
-	Gradian = value.NewUnit("Gradian", "Gradian", " grad", 3)
-	HourAngle = value.NewUnit("HourAngle", "Hour Angle", " ha", 3)
-	Turn = value.NewUnit("Turn", "Turn", " turn", 6)
+	Radian = value.NewUnit("Radian", "Radians", " rad", 4, nil)
+	Degree = value.NewUnit("Degree", "Degrees", "°", 1, nil)
+	ArcMinute = value.NewUnit("ArcMinute", "Arc Minute", "'", 3, nil)
+	ArcSecond = value.NewUnit("ArcSecond", "Arc Second", "\"", 3, nil)
+	Gradian = value.NewUnit("Gradian", "Gradian", " grad", 3, nil)
+	HourAngle = value.NewUnit("HourAngle", "Hour Angle", " ha", 3, nil)
+	Turn = value.NewUnit("Turn", "Turn", " turn", 6, nil)
 
 	// Turn is the default unit
 	value.NewBasicBiTransform(Turn, Degree, 360)

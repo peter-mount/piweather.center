@@ -76,6 +76,7 @@
 .dash-multivalue,
 .dash-raingauge,
 .dash-text,
+.dash-forecast,
 .dash-value,
 .dash-wind-rose,
 .dash-wind-rose-line,
@@ -88,12 +89,14 @@
     padding: 1px;
 }
 
+.dash-forecast,
 .dash-multivalue,
 .dash-value {
     border: 1px solid black;
     min-height: 1em;
     vertical-align: top;
 }
+.dash-forecast,
 .dash-value {
     width: 10em;
 }
@@ -104,7 +107,6 @@
     padding: 0;
 }
 
-.dash-multivalue .metric,
 .dash-value .label, .dash-value .metric {
     width: 5em;
 }
@@ -113,8 +115,14 @@
     width: 15em;
 }
 
+.dash-forecast,
+.dash-multivalue .metric,
 .dash-multivalue .metric-time {
     width: 10em;
+}
+
+.dash-multivalue span:not(:last-child) {
+    border-bottom: 1px solid lightgrey;
 }
 
 .dash-multivalue .label,
@@ -127,6 +135,11 @@
     text-align: right;
 }
 
+.dash-forecast {
+    text-align: center;
+    font-weight: bold;
+}
+
 .dash-multivalue .metric,
 .dash-multivalue .metric-time,
 .dash-value .metric {
@@ -135,7 +148,7 @@
     vertical-align: top;
 }
 
-
+.dash-forecast span,
 .dash-multivalue .label span,
 .dash-multivalue .metric span,
 .dash-multivalue .metric-time span,
@@ -168,11 +181,13 @@
     width: 10.2em;
     max-width: 10.2em;
 }
+.col-bordered .dash-forecast,
 .col-bordered .dash-value {
     border: 0;
     margin-right: 0;
     margin-left: 0;
 }
+.col-bordered .dash-forecast:not(:last-child),
 .col-bordered .dash-value:not(:last-child) {
     border-bottom: 1px solid black;
 }

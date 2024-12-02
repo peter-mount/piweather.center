@@ -1,5 +1,20 @@
 package forecast
 
+import "github.com/peter-mount/piweather.center/weather/value"
+
+func init() {
+	Zambretti = value.NewUnit("zambretti", "Zambretti Forecast", "Zambretti Severity", 0,
+		func(f float64) string {
+			return ZambrettiSeverity(f).String()
+		})
+	ForecastGroup = value.NewGroup("Forecast", Zambretti)
+}
+
+var (
+	Zambretti     *value.Unit
+	ForecastGroup *value.Group
+)
+
 var (
 	forecast = []string{
 		"Settled fine",
