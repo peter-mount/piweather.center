@@ -184,22 +184,7 @@ func addMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) erro
 	if dash != nil && d.Pattern != nil {
 		d.Component.ID = st.nextId()
 		comp := dash.GetOrCreateComponent(d.GetID())
-
-		// Prepopulate if we have metrics already available
-		metrics := st.station.AcceptMetrics(d.Pattern)
-		if len(metrics) > 0 {
-			for i, m := range metrics {
-				if dash.AcceptMetric(m) {
-					comp.AddMetric(i, "", m)
-
-					if d.Time {
-						comp.AddMetric(i, "T", m)
-					}
-				}
-			}
-
-			comp.SortMetrics()
-		}
+		comp.Sorted()
 	}
 
 	return util.VisitorStop
@@ -217,23 +202,18 @@ func visitMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) er
 			comp := dash.GetComponent(d.GetID())
 			if comp != nil && d.AcceptMetric(m) {
 				// Submit and if the metric is not present then add it
-				if found := comp.Submit(st.response, d, -1, m); !found {
-					mn := m.Metric
-					idx := comp.NumMetrics(mn)
-					comp.AddMetric(idx, "", mn)
-
+				mn := m.Metric
+				cei := comp.GetMetrics(mn)
+				if len(cei) == 0 {
+					comp.AddMetric(0, "", mn)
 					if d.Time {
-						comp.AddMetric(idx, "T", mn)
+						comp.AddMetric(0, "T", mn)
 					}
-					// reorder the metrics
-					comp.SortMetrics()
-
-					// resubmit
-					if comp.Submit(st.response, d, -1, m) {
-						// force a page refresh
-						st.response.Uid = ""
-					}
+					// force a page refresh
+					st.response.Uid = ""
 				}
+
+				comp.Submit(st.response, d, -1, m)
 
 				st.station.SetMetric(m)
 			}

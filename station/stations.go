@@ -58,7 +58,12 @@ func (s *Stations) Start() error {
 func (s *Stations) GetStation(id string) *Station {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	return s.stations[id]
+	st := s.stations[id]
+	if st != nil {
+		// Ensure that the station points back to us
+		st.stations = s
+	}
+	return st
 }
 
 // AddStations adds all stations, replacing any existing ones.

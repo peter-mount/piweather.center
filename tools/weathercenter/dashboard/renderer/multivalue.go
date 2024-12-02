@@ -3,6 +3,7 @@ package renderer
 import (
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/util/html"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"time"
@@ -18,6 +19,11 @@ func MultiValue(v station.Visitor[*State], d *station.MultiValue) error {
 			dash := s.Dashboard()
 			stn := dash.Station()
 
+			comp := s.Dashboard().GetComponent(d.GetID())
+			if comp == nil {
+				return nil
+			}
+
 			metrics := stn.AcceptMetrics(d)
 			var metricValues []value.Value
 			var metricTimes []string
@@ -32,39 +38,52 @@ func MultiValue(v station.Visitor[*State], d *station.MultiValue) error {
 				}
 			}
 
-			e := s.Builder()
+			s.Builder().
+				Table().
+				THead().TR().
+				TH().Text("Metric").End().
+				TH().Text("Latest Value").End().
+				If(d.Time, func(e *html.Element) *html.Element {
+					return e.TH().Text("Time updated").End()
+				}).
+				End().End(). // tr thead
+				TBody().
+				Exec(func(e *html.Element) *html.Element {
+					for i, m := range metrics {
+						cei := comp.GetMetrics(m)
+						// cei can be empty for a metric who's not fully configured so we ignore them here
+						if len(cei) > 0 {
+							idx := cei[0].Index
 
-			e = e.Span().Class("label")
-			for _, m := range metrics {
-				e = e.Span().TextNbsp(strings.SplitN(m, ".", 2)[1]).End()
-			}
-			e = e.End()
-
-			e = e.Span().Class("metric")
-			for i, mv := range metricValues {
-				t := ""
-				if mv.IsValid() {
-					t = mv.String()
-				}
-				e = e.Span()
-				if s.IsLive() {
-					e = e.Attr("id", "%s.txt%d", d.Component.GetID(), i)
-				}
-				e = e.TextNbsp(t).End()
-			}
-			e = e.End() // span
-
-			if d.Time {
-				e = e.Span().Class("metric-time")
-				for i, t := range metricTimes {
-					e = e.Span()
-					if s.IsLive() {
-						e = e.Attr("id", "%s.txt%dT", d.Component.GetID(), i)
+							mv := metricValues[i]
+							t := ""
+							if mv.IsValid() {
+								t = mv.String()
+							}
+							e = e.TR().
+								// Metric column
+								TD().Text(strings.SplitN(m, ".", 2)[1]).End(). // td
+								// Value column
+								TD().
+								If(s.IsLive(), func(e *html.Element) *html.Element {
+									return e.Attr("id", "%s.txt%d", d.Component.GetID(), idx)
+								}).
+								Text(t).
+								End(). // td
+								// Time column
+								If(d.Time, func(e *html.Element) *html.Element {
+									return e.TD().
+										If(s.IsLive(), func(e *html.Element) *html.Element {
+											return e.Attr("id", "%s.txt%dT", d.Component.GetID(), idx)
+										}).
+										Text(metricTimes[i]).
+										End() // td
+								}).
+								End() // tr
+						}
 					}
-					e = e.TextNbsp(t).End()
-				}
-				e = e.End() // span
-			}
+					return e
+				})
 
 			return nil
 		})

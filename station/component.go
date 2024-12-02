@@ -12,6 +12,7 @@ type Component struct {
 	id               string                           // component ID
 	metricNames      []string                         // metric ID's in this component
 	metricNamesIndex map[string][]ComponentEntryIndex // map of ID's keyed by metric ID
+	sorted           bool                             // true for multiview
 }
 
 func newComponent(id string, dashboard *Dashboard) *Component {
@@ -26,6 +27,12 @@ type ComponentEntryIndex struct {
 	Index  int
 	Suffix string
 	Metric string
+}
+
+func (e *Component) Sorted() {
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
+	e.sorted = true
 }
 
 // Id of the component being managed
@@ -109,6 +116,10 @@ func (e *Component) addMetric(idx int, suffix, metricId string) bool {
 	// Update the map with the new slice
 	e.metricNamesIndex[metricId] = mni
 
+	if e.sorted {
+		e.sortMetrics()
+	}
+
 	return true
 }
 
@@ -134,6 +145,10 @@ func (e *Component) GetMetricNames() []string {
 func (e *Component) SortMetrics() {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
+	e.sortMetrics()
+}
+
+func (e *Component) sortMetrics() {
 
 	sort.SliceStable(e.metricNames, func(i, j int) bool {
 		return e.metricNames[i] < e.metricNames[j]
@@ -141,29 +156,25 @@ func (e *Component) SortMetrics() {
 
 	// Update the StateEntryIndex with the new index
 	for i, name := range e.metricNames {
-		mni, exists := e.metricNamesIndex[name]
-		if exists {
-			for j, v := range mni {
-				v.Index = i
-				mni[j] = v
-			}
+		mni, _ := e.metricNamesIndex[name]
+		for j, v := range mni {
+			v.Index = i
+			mni[j] = v
 		}
+		e.metricNamesIndex[name] = mni
 	}
 }
 
 // Submit a metric to it's components
 //
 // Note: idx is the index required, or -1 for all
-func (e *Component) Submit(r *Response, c ResponseComponent, idx int, m api.Metric) bool {
-	found := false
+func (e *Component) Submit(r *Response, c ResponseComponent, idx int, m api.Metric) {
 	if r != nil {
 		metrics := e.GetMetrics(m.Metric)
 		for _, v := range metrics {
 			if v.Index == idx || idx < 0 {
 				r.SetComponent(c, v, m)
-				found = true
 			}
 		}
 	}
-	return found
 }
