@@ -58,6 +58,10 @@ func (s *Station) Stations() *Stations {
 	return s.stations
 }
 
+func (s *Station) GetUid() string {
+	return s.uid
+}
+
 func (s *Station) addDashboard(d *Dashboard) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -115,6 +119,10 @@ func (s *Station) AcceptMetrics(a AcceptMetric) []string {
 }
 
 func (s *Station) GetDashboard(id string) *Dashboard {
+	if s == nil {
+		return nil
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.dashboards[id]

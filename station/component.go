@@ -31,6 +31,27 @@ type ComponentEntryIndex struct {
 // Id of the component being managed
 func (e *Component) Id() string { return e.id }
 
+func (e *Component) AcceptMetric(m api.Metric) bool {
+	if e.dashboard.AcceptMetric(m.Metric) {
+		e.mutex.Lock()
+		defer e.mutex.Unlock()
+		_, exists := e.metricNamesIndex[m.Metric]
+		return exists
+	}
+
+	return false
+}
+
+func (e *Component) NumMetrics(metricId string) int {
+	e.mutex.Lock()
+	defer e.mutex.Unlock()
+	mni, exists := e.metricNamesIndex[metricId]
+	if exists {
+		return len(mni)
+	}
+	return 0
+}
+
 func (e *Component) GetMetrics(metricId string) []ComponentEntryIndex {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -130,21 +151,19 @@ func (e *Component) SortMetrics() {
 	}
 }
 
-func (e *Component) AcceptMetric(m api.Metric) bool {
-	if e.dashboard.AcceptMetric(m.Metric) {
-		e.mutex.Lock()
-		defer e.mutex.Unlock()
-
-	}
-
-	return false
-}
-
-func (e *Component) Submit(r *Response, c ResponseComponent, m api.Metric) {
-	if r != nil && e.AcceptMetric(m) {
+// Submit a metric to it's components
+//
+// Note: idx is the index required, or -1 for all
+func (e *Component) Submit(r *Response, c ResponseComponent, idx int, m api.Metric) bool {
+	found := false
+	if r != nil {
 		metrics := e.GetMetrics(m.Metric)
 		for _, v := range metrics {
-			r.SetComponent(c, v, m)
+			if v.Index == idx || idx < 0 {
+				r.SetComponent(c, v, m)
+				found = true
+			}
 		}
 	}
+	return found
 }

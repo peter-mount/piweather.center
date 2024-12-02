@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+func init() {
+	registerJs("value", `Object.keys(idx).forEach(i=>{setText(id,i,idx[i].formatted)})`)
+}
+
 func Value(v station.Visitor[*State], d *station.Value) error {
 	err := v.Get().
 		Component(v, d, d.Component, func(s *State) error {

@@ -14,13 +14,13 @@ type AcceptMetric interface {
 }
 
 type visitorState struct {
-	stations  *Stations  // Link to root Stations instance
-	station   *Station   // Station being processed
-	dashboard *Dashboard // Dashboard being processed
-	component *Component // Component at this point in time
-	metric    api.Metric // The metric being processed
-	response  *Response  // The response being built
-	idSeq     int        // ID sequence within a dashboard
+	stations  *Stations   // Link to root Stations instance
+	station   *Station    // Station being processed
+	dashboard *Dashboard  // Dashboard being processed
+	metric    api.Metric  // The metric being processed
+	idSeq     int         // ID sequence within a dashboard
+	response  *Response   // The response currently being built within a dashboard
+	responses []*Response // Slice of built responses
 }
 
 func (s *visitorState) nextId() string {
@@ -70,7 +70,7 @@ func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error 
 	var useCron bool
 	if d.Update != nil {
 		id, err := st.stations.Cron.AddFunc(d.Update.Definition, func() {
-			//d.Init(*s.Server.DBServer)
+			// TODO check we need to update the UID here?
 			// Make a new Uid so client refreshes
 			st.dashboard.cronSeq++
 			uid := strings.Split(st.dashboard.uid, "-")
@@ -86,6 +86,94 @@ func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error 
 
 	log.Printf("Added Dashboard \"%s/%s\"", st.station.station.Name, d.Name)
 
+	return nil
+}
+
+// visitDashboard will stop processing if the dashboard does not exist
+func visitDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error {
+	st := v.Get()
+
+	// If somehow we have no station set then stop processing the Dashboard
+	if st.station == nil {
+		st.dashboard = nil
+		return util.VisitorStop
+	}
+
+	// Stop here if the dashboard isn't registered - should never occur
+	st.dashboard = st.station.GetDashboard(d.Name)
+	if st.dashboard == nil {
+		return util.VisitorStop
+	}
+
+	return nil
+}
+
+// notifyDashboard calls visitDashboard but will then create a Response for this dashboard if the dashboard is live
+func notifyDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error {
+	err := visitDashboard(v, d)
+
+	// The dashboard is live so build a response
+	if err == nil && d.Live {
+		st := v.Get()
+
+		st.response = &Response{
+			Station:   st.station.Station().Name,
+			Dashboard: d.Name,
+			// Set the response uid which is unique to the station (or stations loaded from the same file)
+			Uid: st.dashboard.uid,
+		}
+
+		err = v.ComponentListEntry(d.Components)
+		if err == nil || util.IsVisitorStop(err) {
+			// Add the response to responses and stop here as we've already visited the component
+			if st.response.IsValid() {
+				st.responses = append(st.responses, st.response)
+			}
+			st.response = nil
+
+			// Stop processing the dashboard as we have done that here
+			err = util.VisitorStop
+		}
+	}
+
+	return err
+}
+
+// visitStation sets the station within the context
+func visitStation(v station.Visitor[*visitorState], d *station.Station) error {
+	st := v.Get()
+
+	st.station = st.stations.GetStation(d.Name)
+
+	// If no station or the station then stop processing it
+	if st.station == nil {
+		return util.VisitorStop
+	}
+
+	return nil
+}
+
+// visitStationFilterMetric calls visitStation but then will stop processing
+// the station if the metric being passed is not accepted by the station.
+func visitStationFilterMetric(v station.Visitor[*visitorState], d *station.Station) error {
+	err := visitStation(v, d)
+	if err == nil {
+		st := v.Get()
+		m := st.metric
+
+		// If the station does not accept the metric then stop processing it
+		if !st.station.AcceptMetric(m.Metric) {
+			err = util.VisitorStop
+		}
+	}
+
+	return err
+}
+
+func visitStations(v station.Visitor[*visitorState], _ *station.Stations) error {
+	st := v.Get()
+	st.station = nil
+	st.dashboard = nil
 	return nil
 }
 
@@ -117,6 +205,44 @@ func addMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) erro
 	return util.VisitorStop
 }
 
+func visitMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) error {
+	st := v.Get()
+	resp := st.response
+	if resp != nil {
+		dash := st.dashboard
+
+		m := st.metric
+
+		if dash != nil && d.Pattern != nil && m.IsValid() {
+			comp := dash.GetComponent(d.GetID())
+			if comp != nil && d.AcceptMetric(m) {
+				// Submit and if the metric is not present then add it
+				if found := comp.Submit(st.response, d, -1, m); !found {
+					mn := m.Metric
+					idx := comp.NumMetrics(mn)
+					comp.AddMetric(idx, "", mn)
+
+					if d.Time {
+						comp.AddMetric(idx, "T", mn)
+					}
+					// reorder the metrics
+					comp.SortMetrics()
+
+					// resubmit
+					if comp.Submit(st.response, d, -1, m) {
+						// force a page refresh
+						st.response.Uid = ""
+					}
+				}
+
+				st.station.SetMetric(m)
+			}
+		}
+	}
+
+	return util.VisitorStop
+}
+
 func addGauge(v station.Visitor[*visitorState], d *station.Gauge) error {
 	d.Component.ID = v.Get().nextId()
 	return addMetricListImpl(v, d.GetID(), d.Metrics)
@@ -125,6 +251,14 @@ func addGauge(v station.Visitor[*visitorState], d *station.Gauge) error {
 func addValue(v station.Visitor[*visitorState], d *station.Value) error {
 	d.Component.ID = v.Get().nextId()
 	return addMetricListImpl(v, d.GetID(), d.Metrics)
+}
+
+func visitGauge(v station.Visitor[*visitorState], d *station.Gauge) error {
+	return visitMetricListImpl(v, d, d.Metrics)
+}
+
+func visitValue(v station.Visitor[*visitorState], d *station.Value) error {
+	return visitMetricListImpl(v, d, d.Metrics)
 }
 
 func addMetricListImpl(v station.Visitor[*visitorState], id string, d *station.MetricList) error {
@@ -144,100 +278,7 @@ func addMetricListImpl(v station.Visitor[*visitorState], id string, d *station.M
 	return util.VisitorStop
 }
 
-func visitDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error {
-	st := v.Get()
-
-	// If somehow we have no station set then stop processing the Dashboard
-	if st.station == nil {
-		st.dashboard = nil
-		return util.VisitorStop
-	}
-
-	st.dashboard = st.station.GetDashboard(d.Name)
-	if st.dashboard == nil {
-		return util.VisitorStop
-	}
-
-	return nil
-}
-
-// visitStation sets the station within the context
-func visitStation(v station.Visitor[*visitorState], d *station.Station) error {
-	st := v.Get()
-
-	st.station = st.stations.GetStation(d.Name)
-
-	// If no station or the station then stop processing it
-	if st.station == nil {
-		return util.VisitorStop
-	}
-
-	// Set the response uid which is unique to the station (or stations loaded from the same file)
-	if st.response != nil {
-		st.response.Uid = st.station.uid
-	}
-
-	return nil
-}
-
-// visitStationFilterMetric calls visitStation but then will stop processing
-// the station if the metric being passed is not accepted by the station.
-func visitStationFilterMetric(v station.Visitor[*visitorState], d *station.Station) error {
-	err := visitStation(v, d)
-	if err == nil {
-		st := v.Get()
-		m := st.metric
-
-		// If the station does not accept the metric then stop processing it
-		if !m.IsValid() || !st.station.AcceptMetric(m.Metric) {
-			err = util.VisitorStop
-		}
-	}
-
-	return err
-}
-
-func visitStations(v station.Visitor[*visitorState], _ *station.Stations) error {
-	st := v.Get()
-	st.station = nil
-	st.dashboard = nil
-	return nil
-}
-
-func visitMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) error {
-	st := v.Get()
-	resp := st.response
-	if resp != nil {
-		dash := st.dashboard
-
-		m := st.metric
-
-		if dash != nil && d.Pattern != nil && m.IsValid() {
-			comp := dash.GetComponent(d.GetID())
-			if comp != nil {
-				st.component = comp
-
-				if d.AcceptMetric(m) {
-					// TODO check if component has the metric or needs refresh if new
-					comp.Submit(st.response, d, m)
-					st.station.SetMetric(m)
-				}
-			}
-		}
-	}
-
-	return util.VisitorStop
-}
-
-func visitGauge(v station.Visitor[*visitorState], d *station.Gauge) error {
-	return visitComponentImpl(v, d, d.Metrics)
-}
-
-func visitValue(v station.Visitor[*visitorState], d *station.Value) error {
-	return visitComponentImpl(v, d, d.Metrics)
-}
-
-func visitComponentImpl(v station.Visitor[*visitorState], d ResponseComponent, l *station.MetricList) error {
+func visitMetricListImpl(v station.Visitor[*visitorState], d ResponseComponent, l *station.MetricList) error {
 	st := v.Get()
 	dash := st.dashboard
 	m := st.metric
@@ -245,10 +286,24 @@ func visitComponentImpl(v station.Visitor[*visitorState], d ResponseComponent, l
 	if dash != nil && l != nil && m.IsValid() {
 		comp := dash.GetComponent(d.GetID())
 		if comp != nil {
-			for _, e := range l.Metrics {
+			for idx, e := range l.Metrics {
 				if e.AcceptMetric(m) {
-					comp.Submit(st.response, d, m)
+					// set the metric in the DB
 					st.station.SetMetric(m)
+
+					// Now check for different unit
+					if metric, exists := st.station.GetMetric(m.Metric); exists {
+						val, _ := metric.ToValue()
+						val, _ = e.Convert(val)
+						comp.Submit(st.response, d, idx, api.Metric{
+							Metric:    m.Metric,
+							Time:      m.Time,
+							Unit:      val.Unit().ID(),
+							Value:     val.Float(),
+							Formatted: val.String(),
+							Unix:      m.Unix,
+						})
+					}
 				}
 			}
 			return nil

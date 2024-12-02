@@ -22,6 +22,7 @@ type Stations struct {
 func (s *Stations) Start() error {
 	s.stations = make(map[string]*Station)
 
+	// Visitor to add a station & it's dashboards to this instance
 	s.newStationVisitor = station.NewBuilder[*visitorState]().
 		Dashboard(addDashboard).
 		Gauge(addGauge).
@@ -31,8 +32,9 @@ func (s *Stations) Start() error {
 		Value(addValue).
 		Build()
 
+	// Visitor to add metrics to the station and to create Response's if a Dashboard is live
 	s.notifyVisitor = station.NewBuilder[*visitorState]().
-		Dashboard(visitDashboard).
+		Dashboard(notifyDashboard).
 		Gauge(visitGauge).
 		MultiValue(visitMultiValue).
 		Station(visitStationFilterMetric).
@@ -40,10 +42,14 @@ func (s *Stations) Start() error {
 		Value(visitValue).
 		Build()
 
+	// Visitor used to load metrics. Identical to notifyVisitor but without creating responses
 	s.loadVisitor = station.NewBuilder[*visitorState]().
 		Dashboard(visitDashboard).
+		Gauge(visitGauge).
+		MultiValue(visitMultiValue).
 		Station(visitStationFilterMetric).
 		Stations(visitStations).
+		Value(visitValue).
 		Build()
 
 	return nil
@@ -84,20 +90,20 @@ func (s *Stations) RemoveStation(stationId string) {
 	delete(s.stations, stationId)
 }
 
-func (s *Stations) Notify(m api.Metric) *Response {
+func (s *Stations) Notify(m api.Metric) []*Response {
 	if m.IsValid() {
 		name := strings.SplitN(m.Metric, ".", 2)
 		st := s.GetStation(name[0])
 		if st != nil {
 			state := newVisitorState(s)
 			state.metric = m
-			state.response = &Response{}
 
 			_ = s.notifyVisitor.Clone().
 				Set(state).
 				Station(st.Station())
 
-			return state.response
+			// Return the build responses, one per Dashboard
+			return state.responses
 		}
 	}
 
@@ -111,7 +117,7 @@ func (s *Stations) Load(metrics []api.Metric) {
 	})
 
 	state := newVisitorState(s)
-	v := s.notifyVisitor.Clone().Set(state)
+	v := s.loadVisitor.Clone().Set(state)
 
 	var st *Station
 	lastName := ""

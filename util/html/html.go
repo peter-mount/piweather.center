@@ -233,6 +233,11 @@ func (e *Element) Div() *Element {
 	return e.Element("div")
 }
 
+// Script Element. This is open so End() must be called to terminate it.
+func (e *Element) Script() *Element {
+	return e.Element("script")
+}
+
 // Span Element. This is open so End() must be called to terminate it.
 func (e *Element) Span() *Element {
 	return e.Element("span")

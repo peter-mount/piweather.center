@@ -4,7 +4,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/mux"
 	"github.com/peter-mount/go-kernel/v2/cron"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/config/station"
@@ -22,11 +21,10 @@ import (
 )
 
 type Service struct {
-	Cron     *cron.CronService `kernel:"inject"`
-	Rest     *rest.Server      `kernel:"inject"`
-	Config   config.Manager    `kernel:"inject"`
-	Template *template.Manager `kernel:"inject"`
-	//Server     *weathercenter.Server `kernel:"inject"`
+	Cron       *cron.CronService  `kernel:"inject"`
+	Rest       *rest.Server       `kernel:"inject"`
+	Config     config.Manager     `kernel:"inject"`
+	Template   *template.Manager  `kernel:"inject"`
 	Stations   *station3.Stations `kernel:"inject"`
 	Renderer   *renderer.Renderer `kernel:"inject"`
 	DBServer   *string            `kernel:"flag,metric-db,DB url"`
@@ -57,7 +55,6 @@ func (s *Service) Start() error {
 	if err := walk.NewPathWalker().
 		Then(func(path string, _ os.FileInfo) error {
 			files = append(files, path)
-			log.Printf("Found %q", path)
 			return nil
 		}).
 		PathHasSuffix(fileSuffix).
@@ -71,6 +68,10 @@ func (s *Service) Start() error {
 		return err
 	} else {
 		s.Stations.AddStations(stations)
+		err = s.UpdateJS(stations)
+		if err != nil {
+			return err
+		}
 	}
 
 	// start watching for changes
@@ -98,13 +99,6 @@ func (s *Service) unmarshaller(name string) (any, error) {
 func (s *Service) stripPath(n string) string {
 	n = strings.TrimPrefix(n, s.dashDir)
 	return strings.TrimPrefix(strings.TrimSuffix(n, fileSuffix), "/")
-}
-
-func (s *Service) getLive(n string) *Live {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	return s.dashboards[n]
 }
 
 func (s *Service) updateDashboard(event fsnotify.Event, o any) error {
@@ -143,23 +137,25 @@ func (s *Service) showDashboard(r *rest.Rest) error {
 }
 
 func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
-	serverId := r.Var("stationId")
+	stationId := r.Var("stationId")
 
-	content, status := s.Renderer.Render(serverId, dashName)
+	content, status := s.Renderer.Render(stationId, dashName)
+	if status == http.StatusOK {
+		//if live.getDashboard().Refresh > 0 {
+		//	r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
+		//}
+		//r.AddHeader("Refresh", "10")
 
-	//if live.getDashboard().Refresh > 0 {
-	//	r.AddHeader("Refresh", strconv.Itoa(live.getDashboard().Refresh))
-	//}
-	r.AddHeader("Refresh", "10")
-
-	content = `<html><head><title>test</title>
+		content = `<!DOCTYPE html><html><head><title>test</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <link href="/` + station3.UID() + `/css/dash.css" rel="stylesheet"/>
-</head><body>` + content + `</div></div>
+</head><body><script>0</script>` + content + `</div></div>
 </body></html>`
+	}
+
 	r.Status(status).
 		ContentType("text/html").
 		Value([]byte(content))

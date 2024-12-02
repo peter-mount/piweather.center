@@ -73,7 +73,7 @@ func (c *Container) GetType() string {
 
 type Dashboard struct {
 	Pos        lexer.Position
-	Name       string              `parser:"'dashboard' '(' @String?"`
+	Name       string              `parser:"'dashboard' '(' @String"`
 	Live       bool                `parser:"@'live'?"`
 	Update     *time.CronTab       `parser:"('update' @@)?"`
 	Component  *Component          `parser:"@@"`

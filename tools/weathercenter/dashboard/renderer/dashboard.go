@@ -21,5 +21,13 @@ func Dashboard(v station.Visitor[*State], d *station.Dashboard) error {
 		return err
 	}
 
+	if s.IsLive() {
+		stn := s.Dashboard().Station()
+		script := s.GenerateJavaScript(stn.Station().Name, d.Name, stn.GetUid())
+		if script != "" {
+			s.Builder().Script().Text(script).End()
+		}
+	}
+
 	return util.VisitorStop
 }

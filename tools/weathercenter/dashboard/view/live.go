@@ -2,127 +2,121 @@ package view
 
 import (
 	"github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/config/util"
 	station2 "github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/renderer"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/ws"
 	"sync"
 )
 
+// Live handles sending metrics to clients over a websocket
 type Live struct {
-	server    *Service               // Parent service
-	dashboard *station2.Dashboard    // Attached dashboard
-	websocket *ws.Server             // websocket server for a dashboard
-	js        map[string]interface{} // Javascript templates for this dashboard
 	mutex     sync.Mutex
+	server    *Service            // Parent service
+	dashboard *station2.Dashboard // Attached dashboard
+	websocket *ws.Server          // websocket server for a dashboard
+	//js        map[string]interface{} // Javascript templates for this dashboard
+	live bool // always matches Dashboard.Live
 }
 
-var (
-	updateJsVisitor = station.NewBuilder[*Live]().
-		ComponentListEntry(func(v station.Visitor[*Live], c *station.ComponentListEntry) error {
-			s := v.Get()
-			t := c.GetType()
-			if t != "" {
-				n := "dash/" + t + ".js"
-				if s.server.Template.HasTemplate(n) {
-					s.mutex.Lock()
-					defer s.mutex.Unlock()
-					s.js[t] = true
-				}
-			}
-			return nil
-		}).
-		Build()
-)
-
-/*
-
-func (s *Service) newLiveServer(d *station.Dashboard) *Live {
-	l := &Live{
-		server: s,
+func (s *Service) UpdateJS(stations *station.Stations) error {
+	type state struct {
+		station *station.Station
 	}
 
-	log.Printf("1")
-	l.newDashboard(d)
+	return station.NewBuilder[*state]().
+		Station(func(v station.Visitor[*state], s *station.Station) error {
+			v.Get().station = s
+			return nil
+		}).
+		Dashboard(func(v station.Visitor[*state], d *station.Dashboard) error {
+			st := v.Get()
 
-	// Listen for live metric updates sharing the single queue
-	//s.Server.Listener().Add(l.notify)
+			if d.Live {
+				// reset any existing Live, or create a new one if the first time
+				s.getOrCreateLive(st.station.Name, d.Name).
+					reset(true)
+			} else {
+				// reset and disable any existing Live if it was previously active
+				s.GetLive(st.station.Name, d.Name).
+					reset(false)
+			}
+
+			return util.VisitorStop
+		}).
+		//ComponentListEntry(func(v station.Visitor[*state], c *station.ComponentListEntry) error {
+		//	t := c.GetType()
+		//	if renderer.HasJavaScript(t) {
+		//		v.Get().js[t] = true
+		//	}
+		//	return nil
+		//}).
+		Build().
+		Set(&state{}).
+		Stations(stations)
+}
+
+func (s *Service) getDashKey(stN, dashN string) string {
+	if dash := s.Stations.GetStation(stN).GetDashboard(dashN); dash == nil {
+		return ""
+	}
+	return stN + ":" + dashN
+}
+
+func (s *Service) GetLive(stN, dashN string) *Live {
+	k := s.getDashKey(stN, dashN)
+	if k == "" {
+		return nil
+	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.dashboards[k]
+}
+
+func (s *Service) getOrCreateLive(stN, dashN string) *Live {
+	k := s.getDashKey(stN, dashN)
+	if k == "" {
+		return nil
+	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	l, exists := s.dashboards[k]
+
+	if !exists {
+		l = &Live{server: s, websocket: ws.NewServer()}
+		s.dashboards[k] = l
+
+		s.Rest.HandleFunc(renderer.LiveWsPath(stN, dashN), l.websocket.Handle)
+
+		go l.websocket.Run()
+	}
 
 	return l
 }
 
-func (s *Live) getStation() *station.Station {
-	return s.getDashboard().Station()
-}
-
-func (s *Live) getDashboard() *station.Dashboard {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	return s.dashboard
-}
-
-// return the data required by the templates
-func (s *Live) getData() map[string]interface{} {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	var js []string
-	for k, _ := range s.js {
-		js = append(js, k)
-	}
-	sort.SliceStable(js, func(i, j int) bool {
-		return js[i] < js[j]
-	})
-
-	return map[string]interface{}{
-		"dash":  s.dashboard.Dashboard().Name,
-		"board": s.dashboard,
-		"js":    js,
+// reset sets Live so it's either disabled or active depending on the new Dashboard state
+func (s *Live) reset(live bool /*, js map[string]interface{}*/) {
+	if s != nil {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+		s.live = live
+		//s.js = js
 	}
 }
 
-// Set the dashboard for this instance and update the station
-func (s *Live) newDashboard(d *station.Dashboard) {
+func (s *Live) IsLive() bool {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.dashboard = d
-
-	s.js = make(map[string]interface{})
-	s.updateJs()
-
-	// Enable websocket if the dashboard expects live updates
-	// Note: Changing Dashboard.Live to false will not remove the websocket,
-	// but this allows us to only create them for those that do need them
-	if s.websocket == nil && d.Dashboard().Live {
-		s.websocket = ws.NewServer()
-		s.server.Rest.HandleFunc(strings.Join([]string{
-			"/live/dash",
-			d.Station().Station().Name,
-			d.Dashboard().Name,
-		}, "/"),
-			s.websocket.Handle)
-
-		go s.websocket.Run()
-	}
+	return s.live
 }
 
-// Update the list of javascript templates
-func (s *Live) updateJs() {
-	_ = updateJsVisitor.Clone().
-		Set(s).
-		Dashboard(s.dashboard.Dashboard())
-}
-
-func (s *Live) notify(m api.Metric) {
-	log.Printf("notify %q %.2f", m.Metric, m.Value)
-	if m.IsValid() {
-		d := s.getDashboard()
-		if d != nil {
-			resp := s.server.Stations.Notify(m)
-
-			// Only send if we have something to update
-			if b, valid := resp.Json(); valid {
-				s.websocket.Send(b)
-			}
+func (s *Live) Notify(resp *station2.Response) {
+	if s.IsLive() && resp.IsValid() {
+		// Only send if we have something to update
+		if b, valid := resp.Json(); valid {
+			s.websocket.Send(b)
 		}
 	}
 }
-*/

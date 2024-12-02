@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+func init() {
+	registerJs("multivalue", `Object.keys(idx).forEach(i=>{setText(id,i,idx[i].formatted)})`)
+}
+
 func MultiValue(v station.Visitor[*State], d *station.MultiValue) error {
 	err := v.Get().
 		Component(v, d, d.Component, func(s *State) error {

@@ -11,19 +11,77 @@ import (
 	"strings"
 )
 
+const (
+	_barometer    = "barometer"
+	_compass      = "compass"
+	_gauge        = "gauge"
+	_inclinometer = "inclinometer"
+	_rainGauge    = "raingauge"
+)
+
+func init() {
+	registerJs(_barometer, `Object.keys(idx).forEach(i=>{`+
+		`let m=idx[i],d=document.getElementById(id+".svg"),`+
+		`min=d.dataset.min,`+
+		`max=d.dataset.max,`+
+		`delta=d.dataset.delta,`+
+		`ofs=d.dataset["d"+i],`+
+		`v=ensureWithin(m.value,min,max);setText(id,i,m.formatted);`+
+		`setRotate(id,i,((v-min)*delta)-112.5-ofs)`+
+		`})`)
+	registerJs(_compass, `Object.keys(idx).forEach(i=>{`+
+		`let m=idx[i],d=document.getElementById(id+".svg"),`+
+		`v=m.value,`+
+		`a=v-d.dataset["d"+i];`+
+		`setRotate(id,i,a);`+
+		`setText(id,i,""+Math.floor(v)+'°')`+
+		`})`)
+	registerJs(_gauge, `Object.keys(idx).forEach(i=>{`+
+		`let m=idx[i],d=document.getElementById(id+".svg"),`+
+		`min=d.dataset.min,`+
+		`max=d.dataset.max,`+
+		`delta=d.dataset.delta,`+
+		`ofs=d.dataset["d"+i],`+
+		`v=ensureWithin(m.value,min,max);`+
+		`setText(id,i,m.formatted);`+
+		`setRotate(id,i,((v-min)*delta)-90-ofs)`+
+		`})`)
+	registerJs(_inclinometer, `Object.keys(idx).forEach(i=>{`+
+		`let m=idx[i],e=document.getElementById(id+".ptr"+i),`+
+		`v=90-ensureWithin(m.value,-90,90);`+
+		`setText(id,i,m.formatted);`+
+		`e.setAttribute("transform","rotate("+v+")")`+
+		`})`)
+	registerJs(_rainGauge, `Object.keys(idx).forEach(i=>{`+
+		`let m=idx[i],d=document.getElementById(id+".svg"),`+
+		`min=d.dataset.min,`+
+		`max=d.dataset.max,`+
+		`scale=d.dataset.scale,`+
+		`height=d.dataset.height,`+
+		`v=m.value,`+
+		`y=scale*(v-min);`+
+		// Update means we exceed the axis so reload to get a new axis
+		`if(v>max){location.reload();return}`+
+		`let e=document.getElementById(id+".rect");`+
+		`e.setAttribute("y",height-y);`+
+		`e.setAttribute("height",y);`+
+		`setText(id,i,m.formatted)`+
+		`})`)
+}
+
 func Gauge(v station.Visitor[*State], d *station.Gauge) error {
 	err := util.VisitorStop
 
 	switch d.GetType() {
-	case "barometer":
+	case _barometer:
 		err = barometer(v, d)
-	case "compass":
+	case _compass:
 		err = compass(v, d)
-	case "gauge":
+	case _gauge:
 		err = gauge(v, d)
-	case "inclinometer":
+	case _inclinometer:
 		err = inclinometer(v, d)
-	case "raingauge":
+	case _rainGauge:
 		err = rainGauge(v, d)
 	}
 
