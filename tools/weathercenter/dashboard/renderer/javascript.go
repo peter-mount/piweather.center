@@ -40,7 +40,9 @@ window.addEventListener("load",wsListener);function wsListener(evt){` +
 		`fd=d&&from>ang;` +
 		`e.setAttribute("from",from-(fd?360:0));` +
 		`e.setAttribute("to",ang-(td?360:0));` +
-		`e.beginElement()}` +
+		`e.beginElement();` +
+		`console.log("rot",from,fd,ang,td,from-(fd?360:0),ang-(td?360:0));` +
+		`}` +
 		`}` +
 		// setText(id,i,t)
 		`;function setText(id,i,t){` +

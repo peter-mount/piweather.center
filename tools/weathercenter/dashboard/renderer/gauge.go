@@ -37,7 +37,8 @@ func init() {
 		`setText(id,i,""+Math.floor(v)+'°')`+
 		`})`)
 	registerJs(_gauge, `Object.keys(idx).forEach(i=>{`+
-		`let m=idx[i],d=document.getElementById(id+".svg"),`+
+		`let m=idx[i],`+
+		`d=document.getElementById(id+".svg"),`+
 		`min=d.dataset.min,`+
 		`max=d.dataset.max,`+
 		`delta=d.dataset.delta,`+
@@ -45,6 +46,7 @@ func init() {
 		`v=ensureWithin(m.value,min,max);`+
 		`setText(id,i,m.formatted);`+
 		`setRotate(id,i,((v-min)*delta)-90-ofs)`+
+		`;console.log(id);`+
 		`})`)
 	registerJs(_inclinometer, `Object.keys(idx).forEach(i=>{`+
 		`let m=idx[i],e=document.getElementById(id+".ptr"+i),`+
@@ -205,7 +207,7 @@ func compass(v station.Visitor[*State], d *station.Gauge) error {
 						Attr("data-max", fix(d.Axis.Max))
 					for i, v := range metricValues {
 						if v.IsValid() {
-							svg = svg.Attr("data-metric"+strconv.Itoa(i), fix(v.Float()))
+							svg = svg.Attr("data-d"+strconv.Itoa(i), fix(v.Float()))
 						}
 					}
 					return svg
@@ -305,7 +307,8 @@ func gauge(v station.Visitor[*State], d *station.Gauge) error {
 						Attr("data-delta", fix(axis.Delta))
 					for i, v := range metricValues {
 						if v.IsValid() {
-							svg = svg.Attr("data-metric"+strconv.Itoa(i), fix(v.Float()))
+							svg = svg.Attr("data-d"+strconv.Itoa(i),
+								fix(d.Axis.EnsureWithin(v.Float(), axis.Delta, -90)))
 						}
 					}
 					return svg
