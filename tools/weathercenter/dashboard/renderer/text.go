@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
@@ -49,14 +50,22 @@ func Forecast(v station.Visitor[*State], d *station.Forecast) error {
 
 				if str != "" {
 					txt = str
-					s.Dashboard().Station().SetMetric(api.Metric{
-						Metric:    "home.ecowitt.forecast",
-						Time:      t,
-						Unit:      forecast.Zambretti.ID(),
-						Value:     float64(zam),
-						Formatted: zam.String(),
-						Unix:      t.Unix(),
-					})
+
+					// Hack, for now notify a dummy metric for the forecast until calculator handle it
+					if st := s.Dashboard().Station().Stations(); st != nil {
+						go func() {
+							time.Sleep(time.Second)
+							log.Printf("Pub forecast")
+							st.Notify(api.Metric{
+								Metric:    "home.ecowitt.forecast",
+								Time:      t,
+								Unit:      forecast.Zambretti.ID(),
+								Value:     float64(zam),
+								Formatted: zam.String(),
+								Unix:      t.Unix(),
+							})
+						}()
+					}
 				}
 			}
 			s.Builder().Span().TextNbsp(txt).End().End()
