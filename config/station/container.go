@@ -14,13 +14,17 @@ type ComponentList struct {
 type ComponentListEntry struct {
 	Pos        lexer.Position
 	Container  *Container  `parser:"( @@"`
+	Forecast   *Forecast   `parser:"| @@ "`
 	Gauge      *Gauge      `parser:"| @@"`
 	MultiValue *MultiValue `parser:"| @@"`
+	Text       *Text       `parser:"| @@"`
 	Value      *Value      `parser:"| @@ )"`
 }
 
 func (c *ComponentListEntry) AcceptMetric(v api.Metric) bool {
 	switch {
+	case c.Forecast != nil:
+		return c.Forecast.AcceptMetric(v)
 	case c.Gauge != nil:
 		return c.Gauge.AcceptMetric(v)
 	case c.MultiValue != nil:
@@ -34,10 +38,14 @@ func (c *ComponentListEntry) AcceptMetric(v api.Metric) bool {
 
 func (c *ComponentListEntry) GetID() string {
 	switch {
+	case c.Forecast != nil:
+		return c.Forecast.Component.GetID()
 	case c.Gauge != nil:
 		return c.Gauge.Component.GetID()
 	case c.MultiValue != nil:
 		return c.MultiValue.Component.GetID()
+	case c.Text != nil:
+		return c.Text.GetID()
 	case c.Value != nil:
 		return c.Value.Component.GetID()
 	default:
@@ -49,10 +57,14 @@ func (c *ComponentListEntry) GetType() string {
 	switch {
 	case c.Container != nil:
 		return c.Container.GetType()
+	case c.Forecast != nil:
+		return c.Forecast.GetType()
 	case c.Gauge != nil:
 		return c.Gauge.GetType()
 	case c.MultiValue != nil:
 		return c.MultiValue.GetType()
+	case c.Text != nil:
+		return c.Text.GetType()
 	case c.Value != nil:
 		return c.Value.GetType()
 	default:

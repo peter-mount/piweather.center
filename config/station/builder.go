@@ -15,6 +15,7 @@ type Builder[T any] interface {
 	CronTab(func(Visitor[T], *time.CronTab) error) Builder[T]
 	Dashboard(func(Visitor[T], *Dashboard) error) Builder[T]
 	DashboardList(func(Visitor[T], *DashboardList) error) Builder[T]
+	Forecast(func(Visitor[T], *Forecast) error) Builder[T]
 	Gauge(func(Visitor[T], *Gauge) error) Builder[T]
 	Location(func(Visitor[T], *location.Location) error) Builder[T]
 	Metric(func(Visitor[T], *Metric) error) Builder[T]
@@ -23,6 +24,7 @@ type Builder[T any] interface {
 	MultiValue(func(Visitor[T], *MultiValue) error) Builder[T]
 	Station(func(Visitor[T], *Station) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
+	Text(func(Visitor[T], *Text) error) Builder[T]
 	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
 	Value(func(Visitor[T], *Value) error) Builder[T]
 	Build() Visitor[T]
@@ -80,6 +82,11 @@ func (b *builder[T]) DashboardList(f func(Visitor[T], *DashboardList) error) Bui
 	return b
 }
 
+func (b *builder[T]) Forecast(f func(Visitor[T], *Forecast) error) Builder[T] {
+	b.forecast = f
+	return b
+}
+
 func (b *builder[T]) Gauge(f func(Visitor[T], *Gauge) error) Builder[T] {
 	b.gauge = f
 	return b
@@ -117,6 +124,11 @@ func (b *builder[T]) Station(f func(Visitor[T], *Station) error) Builder[T] {
 
 func (b *builder[T]) Stations(f func(Visitor[T], *Stations) error) Builder[T] {
 	b.stations = f
+	return b
+}
+
+func (b *builder[T]) Text(f func(Visitor[T], *Text) error) Builder[T] {
+	b.text = f
 	return b
 }
 

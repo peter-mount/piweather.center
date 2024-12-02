@@ -16,9 +16,11 @@ type Renderer struct {
 func (r *Renderer) Start() error {
 	r.renderVisitor = station.NewBuilder[*State]().
 		Container(Container).
-		Gauge(Gauge).
 		Dashboard(Dashboard).
+		Forecast(Forecast).
+		Gauge(Gauge).
 		MultiValue(MultiValue).
+		Text(Text).
 		Value(Value).
 		Build()
 	return nil

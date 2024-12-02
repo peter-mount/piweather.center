@@ -17,6 +17,7 @@ type Visitor[T any] interface {
 	CronTab(*time.CronTab) error
 	Dashboard(*Dashboard) error
 	DashboardList(*DashboardList) error
+	Forecast(*Forecast) error
 	Gauge(*Gauge) error
 	Location(*location.Location) error
 	Metric(*Metric) error
@@ -25,6 +26,7 @@ type Visitor[T any] interface {
 	MultiValue(*MultiValue) error
 	Station(*Station) error
 	Stations(*Stations) error
+	Text(*Text) error
 	Unit(*units.Unit) error
 	Value(*Value) error
 
@@ -51,6 +53,7 @@ type common[T any] struct {
 	crontab            func(Visitor[T], *time.CronTab) error
 	dashboard          func(Visitor[T], *Dashboard) error
 	dashboardList      func(Visitor[T], *DashboardList) error
+	forecast           func(Visitor[T], *Forecast) error
 	gauge              func(Visitor[T], *Gauge) error
 	location           func(Visitor[T], *location.Location) error
 	metric             func(Visitor[T], *Metric) error
@@ -59,6 +62,7 @@ type common[T any] struct {
 	multiValue         func(Visitor[T], *MultiValue) error
 	station            func(Visitor[T], *Station) error
 	stations           func(Visitor[T], *Stations) error
+	text               func(Visitor[T], *Text) error
 	unit               func(Visitor[T], *units.Unit) error
 	value              func(Visitor[T], *Value) error
 }
@@ -137,11 +141,19 @@ func (c *visitor[T]) ComponentListEntry(d *ComponentListEntry) error {
 		}
 
 		if err == nil {
+			err = c.Forecast(d.Forecast)
+		}
+
+		if err == nil {
 			err = c.Gauge(d.Gauge)
 		}
 
 		if err == nil {
 			err = c.MultiValue(d.MultiValue)
+		}
+
+		if err == nil {
+			err = c.Text(d.Text)
 		}
 
 		if err == nil {
@@ -231,6 +243,37 @@ func (c *visitor[T]) DashboardList(d *DashboardList) error {
 					break
 				}
 			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Forecast(d *Forecast) error {
+	var err error
+	if d != nil {
+		if c.forecast != nil {
+			err = c.forecast(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.Component(d.Component)
+		}
+
+		if err == nil {
+			err = c.Metric(d.Temperature)
+		}
+
+		if err == nil {
+			err = c.Metric(d.Pressure)
+		}
+
+		if err == nil {
+			err = c.Metric(d.WindDirection)
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -401,6 +444,26 @@ func (c *visitor[T]) Stations(d *Stations) error {
 					break
 				}
 			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Text(d *Text) error {
+	var err error
+	if d != nil {
+
+		if c.text != nil {
+			err = c.text(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.Component(d.Component)
 		}
 
 		err = errors.Error(d.Pos, err)

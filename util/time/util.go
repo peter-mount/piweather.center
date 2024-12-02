@@ -50,3 +50,13 @@ func SameDay(a, b time.Time) bool {
 
 	return a.Year() == b.Year() && a.Month() == b.Month() && a.Day() == b.Day()
 }
+
+func LatestTime(v ...time.Time) time.Time {
+	var t time.Time
+	for _, e := range v {
+		if t.IsZero() || e.After(t) {
+			t = e
+		}
+	}
+	return t
+}
