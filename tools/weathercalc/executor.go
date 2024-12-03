@@ -1,11 +1,15 @@
 package weathercalc
 
 import (
+	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
+	"github.com/peter-mount/piweather.center/store/api"
+	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
 	_ "github.com/peter-mount/piweather.center/weather/forecast"
@@ -15,11 +19,12 @@ import (
 )
 
 type executor struct {
-	calc   *Calculation
-	latest memory.Latest
-	stack  []StackEntry
-	time   value.Time
-	stacks [][]StackEntry
+	service *Calculator
+	calc    *Calculation
+	latest  memory.Latest
+	stack   []StackEntry
+	time    value.Time
+	stacks  [][]StackEntry
 }
 
 type StackEntry struct {
@@ -90,8 +95,9 @@ func (e *executor) setMetric(m string, v StackEntry) {
 
 func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time, error) {
 	e := executor{
-		calc:   c,
-		latest: calc.Latest,
+		service: calc,
+		calc:    c,
+		latest:  calc.Latest,
 		// Time at the location
 		time: c.station.Location.Time(),
 	}
@@ -103,6 +109,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		Function(e.function).
 		LocationExpression(e.locationExpression).
 		Metric(e.metric).
+		MetricExpression(e.metricExpression).
 		Unit(e.unit).
 		UseFirst(e.useFirst).
 		Build().
@@ -162,7 +169,7 @@ func (e *executor) expression(v station2.Visitor[*Calculator], b *station2.Expre
 	case b.Function != nil:
 		err = v.Function(b.Function)
 	case b.Metric != nil:
-		err = v.Metric(b.Metric)
+		err = v.MetricExpression(b.Metric)
 	case b.Location != nil:
 		err = v.LocationExpression(b.Location)
 	}
@@ -198,6 +205,43 @@ func (e *executor) metricImpl(n string) error {
 		e.pushNull()
 	}
 	return nil
+}
+
+func (e *executor) metricExpression(v station2.Visitor[*Calculator], b *station2.MetricExpression) error {
+	var err error
+	var res *api.Result
+
+	// Offset so call DB to get the metric after the offset
+	if b.HasOffset() {
+		if b.GetOffset() >= 0 {
+			return participle.Errorf(b.Pos, "Expected offset into the past, got %q", b.Offset)
+		}
+
+		q := fmt.Sprintf(`between "now" add %q and "now" limit 1 select timeof(),first(%s)`, b.Offset, b.Metric.Name)
+
+		cl := client.Client{Url: *e.service.DBServer}
+		res, err = cl.Query(q)
+		if err == nil {
+			if len(res.Table) > 0 {
+				if t := res.Table[0]; !t.IsEmpty() {
+					if r := t.Rows[0]; r.Size() > 1 {
+						tc := r.Cell(0)
+						vc := r.Cell(1)
+						if vc.Value.IsValid() {
+							e.push(tc.Time, vc.Value)
+							return util.VisitorStop
+						}
+					}
+				}
+			}
+
+			// No result so set null
+			e.pushNull()
+			return util.VisitorStop
+		}
+	}
+
+	return errors.Error(b.Pos, err)
 }
 
 func (e *executor) useFirst(_ station2.Visitor[*Calculator], b *station2.UseFirst) error {

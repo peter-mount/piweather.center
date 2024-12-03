@@ -26,6 +26,7 @@ type Builder[T any] interface {
 	Location(func(Visitor[T], *location.Location) error) Builder[T]
 	LocationExpression(func(Visitor[T], *LocationExpression) error) Builder[T]
 	Metric(func(Visitor[T], *Metric) error) Builder[T]
+	MetricExpression(func(Visitor[T], *MetricExpression) error) Builder[T]
 	MetricList(func(Visitor[T], *MetricList) error) Builder[T]
 	MetricPattern(func(Visitor[T], *MetricPattern) error) Builder[T]
 	MultiValue(func(Visitor[T], *MultiValue) error) Builder[T]
@@ -142,6 +143,11 @@ func (b *builder[T]) LocationExpression(f func(Visitor[T], *LocationExpression) 
 
 func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 	b.metric = f
+	return b
+}
+
+func (b *builder[T]) MetricExpression(f func(Visitor[T], *MetricExpression) error) Builder[T] {
+	b.metricExpression = f
 	return b
 }
 

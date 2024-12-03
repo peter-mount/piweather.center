@@ -10,6 +10,7 @@ import (
 	util2 "github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
+	"time"
 )
 
 func NewParser() util.Parser[Stations] {
@@ -33,6 +34,7 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 			Gauge(s.gauge).
 			Location(s.location).
 			Metric(s.metric).
+			MetricExpression(s.metricExpression).
 			MetricPattern(s.metricPattern).
 			Station(s.station).
 			Stations(s.stations).
@@ -307,6 +309,16 @@ func (s *state) metric(_ Visitor[*state], d *Metric) error {
 
 	// Prefix with the stationId & sensorId to become a full metric id
 	d.Name = s.prefixMetric(d.Name)
+
+	return errors.Error(d.Pos, err)
+}
+
+func (s *state) metricExpression(_ Visitor[*state], d *MetricExpression) error {
+	var err error
+
+	if d.Offset != "" {
+		d.offset, err = time.ParseDuration(d.Offset)
+	}
 
 	return errors.Error(d.Pos, err)
 }

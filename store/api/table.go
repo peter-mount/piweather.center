@@ -120,6 +120,10 @@ func (t *Table) RowCount() int {
 	return len(t.Rows)
 }
 
+func (t *Table) IsEmpty() bool {
+	return len(t.Rows) == 0
+}
+
 // Finalise ensures all columns are defined and filters out rows with no data in them
 func (t *Table) Finalise() {
 	var tr []*Row
@@ -341,6 +345,18 @@ func (c *Column) pad(s string, l, e int) string {
 
 // Row Holds details about an individual
 type Row []*Cell // Individual columns
+
+func (r *Row) IsEmpty() bool {
+	return len(*r) == 0
+}
+
+func (r *Row) CellCount() int {
+	return len(*r)
+}
+
+func (r *Row) Cell(i int) *Cell {
+	return (*r)[i]
+}
 
 func (r *Row) write(w *writer) error {
 	err := w.uint16(uint16(len(*r)))

@@ -28,6 +28,7 @@ type Visitor[T any] interface {
 	Location(*location.Location) error
 	LocationExpression(*LocationExpression) error
 	Metric(*Metric) error
+	MetricExpression(*MetricExpression) error
 	MetricList(*MetricList) error
 	MetricPattern(*MetricPattern) error
 	MultiValue(*MultiValue) error
@@ -72,6 +73,7 @@ type common[T any] struct {
 	location           func(Visitor[T], *location.Location) error
 	locationExpression func(Visitor[T], *LocationExpression) error
 	metric             func(Visitor[T], *Metric) error
+	metricExpression   func(Visitor[T], *MetricExpression) error
 	metricList         func(Visitor[T], *MetricList) error
 	metricPattern      func(Visitor[T], *MetricPattern) error
 	multiValue         func(Visitor[T], *MultiValue) error
@@ -365,7 +367,7 @@ func (c *visitor[T]) Expression(b *Expression) error {
 		}
 
 		if err == nil && b.Metric != nil {
-			err = c.Metric(b.Metric)
+			err = c.MetricExpression(b.Metric)
 		}
 
 		if err == nil && b.Location != nil {
@@ -519,6 +521,25 @@ func (c *visitor[T]) Metric(d *Metric) error {
 
 		if err == nil {
 			err = c.Unit(d.Unit)
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) MetricExpression(d *MetricExpression) error {
+	var err error
+	if d != nil {
+		if c.metricExpression != nil {
+			err = c.metricExpression(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.Metric(d.Metric)
 		}
 
 		err = errors.Error(d.Pos, err)
