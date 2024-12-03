@@ -65,6 +65,9 @@ func addStation(v station.Visitor[*visitorState], d *station.Station) error {
 	if st.loadOption.Not(CalculationOption) {
 		d.Calculations = nil
 	}
+	if st.loadOption.Not(SensorOption) {
+		d.Sensors = nil
+	}
 
 	log.Printf("Added Station %q", d.Name)
 

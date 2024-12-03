@@ -22,6 +22,7 @@ type Visitor[T any] interface {
 	DashboardList(*DashboardList) error
 	Expression(*Expression) error
 	Function(*Function) error
+	I2C(d *I2C) error
 	Gauge(*Gauge) error
 	Load(*Load) error
 	Location(*location.Location) error
@@ -31,6 +32,10 @@ type Visitor[T any] interface {
 	MetricList(*MetricList) error
 	MetricPattern(*MetricPattern) error
 	MultiValue(*MultiValue) error
+	Publisher(*Publisher) error
+	Sensor(*Sensor) error
+	SensorList(*SensorList) error
+	Serial(*Serial) error
 	Station(*Station) error
 	Stations(*Stations) error
 	Text(*Text) error
@@ -67,6 +72,7 @@ type common[T any] struct {
 	expression         func(Visitor[T], *Expression) error
 	function           func(Visitor[T], *Function) error
 	gauge              func(Visitor[T], *Gauge) error
+	i2c                func(Visitor[T], *I2C) error
 	load               func(Visitor[T], *Load) error
 	location           func(Visitor[T], *location.Location) error
 	locationExpression func(Visitor[T], *LocationExpression) error
@@ -75,6 +81,10 @@ type common[T any] struct {
 	metricList         func(Visitor[T], *MetricList) error
 	metricPattern      func(Visitor[T], *MetricPattern) error
 	multiValue         func(Visitor[T], *MultiValue) error
+	publisher          func(Visitor[T], *Publisher) error
+	sensor             func(Visitor[T], *Sensor) error
+	sensorList         func(Visitor[T], *SensorList) error
+	serial             func(Visitor[T], *Serial) error
 	station            func(Visitor[T], *Station) error
 	stations           func(Visitor[T], *Stations) error
 	text               func(Visitor[T], *Text) error
@@ -432,6 +442,21 @@ func (c *visitor[T]) Gauge(d *Gauge) error {
 	return err
 }
 
+func (c *visitor[T]) I2C(d *I2C) error {
+	var err error
+	if d != nil {
+		if c.i2c != nil {
+			err = c.i2c(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Load(b *Load) error {
 	var err error
 	if b != nil {
@@ -564,6 +589,96 @@ func (c *visitor[T]) MultiValue(d *MultiValue) error {
 
 		if err == nil {
 			err = c.MetricPattern(d.Pattern)
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Publisher(d *Publisher) error {
+	var err error
+	if d != nil {
+		if c.publisher != nil {
+			err = c.publisher(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Sensor(d *Sensor) error {
+	var err error
+	if d != nil {
+		if c.sensor != nil {
+			err = c.sensor(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.I2C(d.I2C)
+		}
+
+		if err == nil {
+			err = c.Serial(d.Serial)
+		}
+
+		if err == nil {
+			err = c.CronTab(d.Poll)
+		}
+
+		if err == nil {
+			for _, e := range d.Publisher {
+				err = c.Publisher(e)
+				if err != nil {
+					break
+				}
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) SensorList(d *SensorList) error {
+	var err error
+	if d != nil {
+		if c.sensorList != nil {
+			err = c.sensorList(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			for _, e := range d.Sensors {
+				err = c.Sensor(e)
+				if err != nil {
+					break
+				}
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Serial(d *Serial) error {
+	var err error
+	if d != nil {
+		if c.serial != nil {
+			err = c.serial(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
 
 		err = errors.Error(d.Pos, err)

@@ -32,10 +32,13 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 			CronTab(s.cronTab).
 			Dashboard(s.dashboard).
 			Gauge(s.gauge).
+			I2C(s.i2c).
 			Location(s.location).
 			Metric(s.metric).
 			MetricExpression(s.metricExpression).
 			MetricPattern(s.metricPattern).
+			Sensor(s.sensor).
+			Serial(s.serial).
 			Station(s.station).
 			Stations(s.stations).
 			Unit(s.unit).
@@ -55,6 +58,7 @@ type state struct {
 	stationIds    map[string]*Station     // map of Stations
 	calculations  map[string]*Calculation // map of calculations within a Station
 	dashboards    map[string]*Dashboard   // map of Dashboards within a Station
+	sensors       map[string]*Sensor      // map of Sensors within a station
 }
 
 func (s *state) prefixMetric(m string) string {
@@ -354,4 +358,52 @@ func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
 
 func (s *state) unit(_ Visitor[*state], d *units.Unit) error {
 	return errors.Error(d.Pos, d.Init())
+}
+
+func (s *state) i2c(_ Visitor[*state], d *I2C) error {
+	if d.Bus < 1 || d.Device < 1 {
+		return participle.Errorf(d.Pos, "invalid i2c address, got (%d:%d)", d.Bus, d.Device)
+	}
+	return nil
+}
+
+func (s *state) sensorList(_ Visitor[*state], d *SensorList) error {
+	s.sensors = make(map[string]*Sensor)
+	return nil
+}
+
+func (s *state) sensor(_ Visitor[*state], d *Sensor) error {
+
+	d.Target = strings.TrimSpace(d.Target)
+	d.Device = strings.TrimSpace(d.Device)
+
+	if d.Target == "" {
+		return participle.Errorf(d.Pos, "no device defined")
+	}
+	if d.Device == "" {
+		return participle.Errorf(d.Pos, "no device defined")
+	}
+
+	// Check Target is unique
+	if e, exists := s.sensors[d.Target]; exists {
+		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target, e.Pos)
+	}
+
+	// Note: Device will be checked at runtime
+
+	return nil
+}
+
+func (s *state) serial(_ Visitor[*state], d *Serial) error {
+	d.Port = strings.TrimSpace(d.Port)
+	if d.Port == "" {
+		return participle.Errorf(d.Pos, "no serial port defined")
+	}
+
+	// TODO define a common list of baud rates here?
+	if d.BaudRate < 300 {
+		return participle.Errorf(d.Pos, "Invalid baud rate")
+	}
+
+	return nil
 }

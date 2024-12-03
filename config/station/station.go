@@ -100,6 +100,7 @@ type Station struct {
 	Name         string             `parser:"'station' '(' @String"`
 	Location     *location.Location `parser:"@@?"`
 	Calculations *CalculationList   `parser:"@@"`
+	Sensors      *SensorList        `parser:"@@"`
 	Dashboards   *DashboardList     `parser:"@@ ')'"`
 }
 

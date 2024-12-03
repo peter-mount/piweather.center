@@ -77,6 +77,8 @@ const (
 	CalculationOption = 0x01
 	// DashboardOption indicates that LoadDirectory should include Dashboards
 	DashboardOption = 0x02
+	// SensorOption indicates that LoadDirectory should include Sensors
+	SensorOption = 0x04
 )
 
 func (s *Stations) LoadDirectory(path, fileSuffix string, loadOption LoadOption) (*station.Stations, error) {

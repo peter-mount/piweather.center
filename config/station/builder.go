@@ -21,6 +21,7 @@ type Builder[T any] interface {
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
 	Function(func(Visitor[T], *Function) error) Builder[T]
 	Gauge(func(Visitor[T], *Gauge) error) Builder[T]
+	I2C(func(Visitor[T], *I2C) error) Builder[T]
 	Load(func(Visitor[T], *Load) error) Builder[T]
 	Location(func(Visitor[T], *location.Location) error) Builder[T]
 	LocationExpression(func(Visitor[T], *LocationExpression) error) Builder[T]
@@ -29,6 +30,10 @@ type Builder[T any] interface {
 	MetricList(func(Visitor[T], *MetricList) error) Builder[T]
 	MetricPattern(func(Visitor[T], *MetricPattern) error) Builder[T]
 	MultiValue(func(Visitor[T], *MultiValue) error) Builder[T]
+	Publisher(func(Visitor[T], *Publisher) error) Builder[T]
+	Sensor(func(Visitor[T], *Sensor) error) Builder[T]
+	SensorList(func(Visitor[T], *SensorList) error) Builder[T]
+	Serial(func(Visitor[T], *Serial) error) Builder[T]
 	Station(func(Visitor[T], *Station) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
 	Text(func(Visitor[T], *Text) error) Builder[T]
@@ -120,6 +125,11 @@ func (b *builder[T]) Gauge(f func(Visitor[T], *Gauge) error) Builder[T] {
 	return b
 }
 
+func (b *builder[T]) I2C(f func(Visitor[T], *I2C) error) Builder[T] {
+	b.i2c = f
+	return b
+}
+
 func (b *builder[T]) Load(f func(Visitor[T], *Load) error) Builder[T] {
 	b.load = f
 	return b
@@ -157,6 +167,26 @@ func (b *builder[T]) MetricPattern(f func(Visitor[T], *MetricPattern) error) Bui
 
 func (b *builder[T]) MultiValue(f func(Visitor[T], *MultiValue) error) Builder[T] {
 	b.multiValue = f
+	return b
+}
+
+func (b *builder[T]) Publisher(f func(Visitor[T], *Publisher) error) Builder[T] {
+	b.publisher = f
+	return b
+}
+
+func (b *builder[T]) Sensor(f func(Visitor[T], *Sensor) error) Builder[T] {
+	b.sensor = f
+	return b
+}
+
+func (b *builder[T]) SensorList(f func(Visitor[T], *SensorList) error) Builder[T] {
+	b.sensorList = f
+	return b
+}
+
+func (b *builder[T]) Serial(f func(Visitor[T], *Serial) error) Builder[T] {
+	b.serial = f
 	return b
 }
 
