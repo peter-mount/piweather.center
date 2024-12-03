@@ -46,7 +46,6 @@ func init() {
 		`v=ensureWithin(m.value,min,max);`+
 		`setText(id,i,m.formatted);`+
 		`setRotate(id,i,((v-min)*delta)-90-ofs)`+
-		`;console.log(id);`+
 		`})`)
 	registerJs(_inclinometer, `Object.keys(idx).forEach(i=>{`+
 		`let m=idx[i],e=document.getElementById(id+".ptr"+i),`+
@@ -333,7 +332,7 @@ func gauge(v station.Visitor[*State], d *station.Gauge) error {
 					// Display the main metric value
 					if len(metricValues) > 0 {
 						svg = svg.SvgText().
-							Attr(ID, "%s.txt%i", d.Component.GetID(), 0).
+							Attr(ID, "%s.txt0", d.Component.GetID()).
 							Y(35).
 							Text(metricValues[0].String()).
 							End()

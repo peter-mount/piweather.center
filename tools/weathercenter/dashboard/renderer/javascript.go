@@ -21,13 +21,13 @@ window.addEventListener("load",wsListener);function wsListener(evt){` +
 		`ws.onclose=function(evt){ws=null;setTimeout(wsListener,2000)};` +
 		// on message dispatch to correct handler
 		`ws.onmessage=function(evt){` +
-		` let msg=JSON.parse(evt.data),acts=msg.actions;` +
-		` if(msg.uid!==dashUid){location.reload();return}` +
-		` Object.keys(acts).forEach(k=>{` +
-		`  let f=actions[k];if(f){` +
-		`   let ids=acts[k];Object.keys(ids).forEach(id=>{f(id,ids[id])})` +
-		`  }` +
-		` })` +
+		`let msg=JSON.parse(evt.data),acts=msg.actions;` +
+		`if(msg.uid!==dashUid){location.reload();return}` +
+		`Object.keys(acts).forEach(k=>{` +
+		`let f=actions[k];if(f){` +
+		`let ids=acts[k];Object.keys(ids).forEach(id=>{f(id,ids[id])})` +
+		`}` +
+		`})` +
 		`};` +
 		`return false;}` +
 		// rotate by angle
@@ -41,7 +41,6 @@ window.addEventListener("load",wsListener);function wsListener(evt){` +
 		`e.setAttribute("from",from-(fd?360:0));` +
 		`e.setAttribute("to",ang-(td?360:0));` +
 		`e.beginElement();` +
-		`console.log("rot",from,fd,ang,td,from-(fd?360:0),ang-(td?360:0));` +
 		`}` +
 		`}` +
 		// setText(id,i,t)
@@ -50,7 +49,7 @@ window.addEventListener("load",wsListener);function wsListener(evt){` +
 		`if(e!==null){e.textContent=t}` +
 		`}` +
 		// ensure within bounds
-		`;function ensureWithin(v,min,max){return Math.max(min,Math.min(v,max))}`
+		`;function ensureWithin(v,min,max){return Math.max(min,Math.min(v,max))};`
 )
 
 func LiveWsPath(s, d string) string {
