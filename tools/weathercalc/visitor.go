@@ -2,7 +2,6 @@ package weathercalc
 
 import (
 	station2 "github.com/peter-mount/piweather.center/config/station"
-	"log"
 )
 
 type calcState struct {
@@ -21,8 +20,6 @@ func addCalculation(v station2.Visitor[*calcState], c *station2.Calculation) err
 	if err == nil {
 		st := v.Get()
 		calc := st.calc
-
-		log.Printf("Target %q", c.Target)
 
 		// RESET EVERY cron definition
 		if c.ResetEvery != nil {
@@ -67,7 +64,6 @@ func addCalculation(v station2.Visitor[*calcState], c *station2.Calculation) err
 
 func addMetric(v station2.Visitor[*calcState], c *station2.Metric) error {
 	s := v.Get()
-	log.Printf("Metric %q", c.Name)
 	s.calc.addMetric(c.Name, s.c, s.station)
 	return nil
 }

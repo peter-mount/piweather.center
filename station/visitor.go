@@ -69,8 +69,6 @@ func addStation(v station.Visitor[*visitorState], d *station.Station) error {
 		d.Sensors = nil
 	}
 
-	log.Printf("Added Station %q", d.Name)
-
 	return nil
 }
 
@@ -79,9 +77,6 @@ func addCalculation(v station.Visitor[*visitorState], d *station.Calculation) er
 	calc := newCalculation(st.station, d)
 	st.calculation = calc
 	st.station.addCalculation(calc)
-
-	log.Printf("Added calculation %q", d.Target)
-
 	return util.VisitorStop
 }
 

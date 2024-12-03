@@ -83,24 +83,49 @@ func (calc *Calculator) loadLatestMetrics() error {
 	if *calc.DBServer != "" {
 		c := &client.Client{Url: *calc.DBServer}
 
-		r, err := c.LatestMetrics()
-		if err != nil {
-			return err
+		// form a map of the metrics we are interested in
+		m := make(map[string]interface{})
+		for k, _ := range calc.targets {
+			m[k] = true
+		}
+		for k, _ := range calc.metrics {
+			m[k] = true
 		}
 
-		// r can be nil if there are no results returned from the DB
-		if r != nil {
-			for _, m := range r.Metrics {
-				u, ok := value.GetUnit(m.Unit)
-				if ok {
-					calc.Latest.Append(m.Metric, record.Record{
-						Time:  m.Time,
-						Value: u.Value(m.Value),
-					})
+		for k, _ := range m {
+			q := `between "now" add "-24h" and "now" add "1h" every "24h" select timeof(last(` + k + `)),` + k
+			r, err := c.Query(q)
+			if err != nil {
+				log.Printf("%q %v", q, err)
+			}
+			if r != nil && len(r.Table) > 0 {
+				if t := r.Table[0]; !t.IsEmpty() {
+					if r := t.Rows[0]; r.Size() > 1 {
+						tc := r.Cell(0)
+						vc := r.Cell(1)
+						if vc.Value.IsValid() {
+
+							calc.Latest.Append(k, record.Record{
+								Time:  tc.Time,
+								Value: vc.Value,
+							})
+
+							m1 := api.Metric{
+								Metric:    k,
+								Time:      tc.Time,
+								Unit:      vc.Value.Unit().ID(),
+								Value:     vc.Value.Float(),
+								Formatted: vc.Value.String(),
+								Unix:      tc.Time.Unix(),
+							}
+							if m1.IsValid() {
+								calc.accept(m1)
+							}
+						}
+					}
 				}
 			}
 		}
-
 	}
 	return nil
 }
