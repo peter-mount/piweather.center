@@ -708,6 +708,10 @@ func (c *visitor[T]) Station(d *Station) error {
 			err = c.DashboardList(d.Dashboards)
 		}
 
+		if err == nil {
+			err = c.SensorList(d.Sensors)
+		}
+
 		err = errors.Error(d.Pos, err)
 	}
 	return err

@@ -1,14 +1,14 @@
 package weathersensor
 
 import (
-	"github.com/peter-mount/piweather.center/config/util/sensors"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 )
 
-func (s *Service) publisher(sensor *sensors.Sensor) publisher.Publisher {
+func (s *Service) publisher(sensor *station.Sensor) publisher.Publisher {
 
 	pubBuilder := publisher.NewBuilder().
-		SetId(sensor.ID).
+		SetId(sensor.Target).
 		FilterEmpty()
 
 	for _, p := range sensor.Publisher {

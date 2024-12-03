@@ -4,9 +4,9 @@ package weathersensor
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/peter-mount/piweather.center/config/util/sensors"
+	"github.com/peter-mount/piweather.center/config/station"
 )
 
-func (s *Service) serialSensor(_ sensors.SensorVisitor[any], sensor *sensors.Sensor) error {
+func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial) error {
 	return participle.Errorf(sensor.Pos, "serial devices are not supported on this platform")
 }

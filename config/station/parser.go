@@ -384,6 +384,9 @@ func (s *state) sensor(_ Visitor[*state], d *Sensor) error {
 		return participle.Errorf(d.Pos, "no device defined")
 	}
 
+	// Ensure we have our stationId present
+	d.Target = s.prefixMetric(d.Target)
+
 	// Check Target is unique
 	if e, exists := s.sensors[d.Target]; exists {
 		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target, e.Pos)

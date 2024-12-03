@@ -2,17 +2,16 @@ package weathersensor
 
 import (
 	"context"
-	"flag"
-	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/config/sensors"
-	"github.com/peter-mount/piweather.center/config/util"
-	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
+	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
+	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/broker"
+	"github.com/peter-mount/piweather.center/util/config"
+	"path/filepath"
 	"time"
 )
 
@@ -20,8 +19,16 @@ type Service struct {
 	ListDevices    *bool                 `kernel:"flag,list-devices,List Devices"`
 	Daemon         *kernel.Daemon        `kernel:"inject"`
 	Cron           *cron.CronService     `kernel:"inject"`
+	Config         config.Manager        `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
+	Stations       *station.Stations     `kernel:"inject"`
+	dashDir        string
 }
+
+const (
+	dashDir    = "stations"
+	fileSuffix = ".sensor"
+)
 
 func (s *Service) Start() error {
 	if *s.ListDevices {
@@ -29,23 +36,22 @@ func (s *Service) Start() error {
 		return s.listDevices()
 	}
 
-	var src *sensors2.Sensors
-	for _, arg := range flag.Args() {
+	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 
-		b, err := sensors.NewParser().
-			ParseFile(arg)
-		if err == nil {
-			src, err = src.Merge(b)
-		}
-		if err != nil {
-			return err
-		}
+	// Load existing dashboards
+	stations, err := s.Stations.LoadDirectory(s.dashDir, fileSuffix, station.SensorOption)
+	if err != nil {
+		return err
 	}
 
-	if err := sensors.NewBuilder[any]().
+	if err := station2.NewBuilder[*state]().
+		I2C(s.i2cSensor).
 		Sensor(s.sensor).
+		Serial(s.serialSensor).
+		Station(s.station).
 		Build().
-		Sensors(src); err != nil {
+		Set(&state{service: s}).
+		Stations(stations); err != nil {
 		return err
 	}
 
@@ -53,20 +59,20 @@ func (s *Service) Start() error {
 	return nil
 }
 
-func (s *Service) sensor(v sensors2.SensorVisitor[any], sensor *sensors2.Sensor) error {
-	var err error
-	switch {
-	case sensor.I2C != nil:
-		err = s.i2cSensor(v, sensor)
-	case sensor.Serial != nil:
-		err = s.serialSensor(v, sensor)
-	default:
-		err = participle.Errorf(sensor.Pos, "invalid device bus for %q", sensor.ID)
-	}
-	if err == nil {
-		err = util.VisitorStop
-	}
-	return err
+type state struct {
+	service *Service
+	station *station2.Station
+	sensor  *station2.Sensor
+}
+
+func (s *Service) station(v station2.Visitor[*state], d *station2.Station) error {
+	v.Get().station = d
+	return nil
+}
+
+func (s *Service) sensor(v station2.Visitor[*state], d *station2.Sensor) error {
+	v.Get().sensor = d
+	return nil
 }
 
 // PollDevice will configure a task that will poll the given instance based on a cron definition.

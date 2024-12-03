@@ -4,65 +4,38 @@ package weathersensor
 
 import (
 	"github.com/peter-mount/go-script/errors"
-	sensors2 "github.com/peter-mount/piweather.center/config/util/sensors"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/sensors/bus"
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"go.bug.st/serial"
 )
 
-func (s *Service) serialSensor(_ sensors2.SensorVisitor[any], sensor *sensors2.Sensor) error {
-	dev, err := device.LookupSerialDevice(sensor.Device)
+func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial) error {
+	st := v.Get()
+
+	dev, err := device.LookupSerialDevice(st.sensor.Device)
 	if err != nil {
-		return errors.Errorf(sensor.Pos, "device %q for %q not found", sensor.Device, sensor.ID)
+		return errors.Errorf(sensor.Pos, "device %q for %q not found", st.sensor.Device, st.sensor.Target)
 	}
 
-	def := sensor.Serial
-
 	mode := &serial.Mode{
-		BaudRate: def.BaudRate,
+		BaudRate: sensor.BaudRate,
 		DataBits: 8,
 		Parity:   serial.NoParity,
 		StopBits: serial.OneStopBit,
 	}
 
-	switch def.DataBits {
-	case 5, 6, 7, 8:
-		mode.DataBits = def.DataBits
-	default:
-		mode.DataBits = 8
-	}
+	instance := dev.NewInstance(sensor.Port, mode)
 
-	switch def.Parity {
-	case "odd":
-		mode.Parity = serial.OddParity
-	case "even":
-		mode.Parity = serial.EvenParity
-	case "none", "no":
-		mode.Parity = serial.NoParity
-	default:
-		mode.Parity = serial.NoParity
-	}
-
-	switch def.StopBits {
-	case "1":
-		mode.StopBits = serial.OneStopBit
-	case "1.5":
-		mode.StopBits = serial.OnePointFiveStopBits
-	case "2":
-		mode.StopBits = serial.TwoStopBits
-	}
-
-	instance := dev.NewInstance(def.Port, mode)
-
-	publisher := s.publisher(sensor)
+	publisher := s.publisher(st.sensor)
 
 	switch dev.Info().PollMode {
 	case bus.PollReading:
-		if sensor.Poll == nil || sensor.Poll.Definition == "" {
-			return errors.Errorf(sensor.Pos, "serial device %q requires poll period defining", sensor.Device)
+		if st.sensor.Poll == nil || st.sensor.Poll.Definition == "" {
+			return errors.Errorf(sensor.Pos, "serial device %q requires poll period defining", st.sensor.Device)
 		}
 
-		err = s.PollDevice(dev, instance, publisher, sensor.Poll.Definition)
+		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition)
 
 	case bus.PushReading:
 		s.RunDevice(dev, instance, publisher)

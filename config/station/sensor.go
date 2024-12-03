@@ -17,7 +17,7 @@ type Sensor struct {
 	I2C       *I2C          `parser:"( @@"`
 	Serial    *Serial       `parser:"| @@ )"`
 	Poll      *time.CronTab `parser:"('poll' '(' @@ ')')?"`
-	Publisher []*Publisher  `parser:"'publish' '(' @@+ ')'"`
+	Publisher []*Publisher  `parser:"'publish' '(' @@+ ')' ')'"`
 }
 
 type Publisher struct {
@@ -29,14 +29,14 @@ type Publisher struct {
 type I2C struct {
 	Pos lexer.Position
 	// smbus is a subset of i2c so it's an alias here
-	Bus    int `parser:"('i2c'|'smbus') '(' @Int"`
-	Device int `parser:"':' @Int ')'"`
+	Bus    int `parser:"('i2c'|'smbus') '(' @Number"`
+	Device int `parser:"':' @Number ')'"`
 }
 
 type Serial struct {
 	Pos      lexer.Position
-	Port     string `parser:"'serial' '(port)' @String"`
-	BaudRate int    `parser:"@Int ')'"`
+	Port     string `parser:"'serial' '(' @String"`
+	BaudRate int    `parser:"@Number ')'"`
 	//DataBits int    `parser:"('data' @('5'|'6'|'7'|'8'))?"`
 	//Parity   string `parser:"('parity' @('no'|'none'|'odd'|'even'))?"`
 	//StopBits string `parser:"('stop' @('1'|'1.5'|'2'))?"`
