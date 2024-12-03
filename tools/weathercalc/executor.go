@@ -3,7 +3,6 @@ package weathercalc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	lang2 "github.com/peter-mount/piweather.center/config/calc"
 	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
@@ -16,7 +15,6 @@ import (
 )
 
 type executor struct {
-	script *lang2.Script
 	calc   *Calculation
 	latest memory.Latest
 	stack  []StackEntry

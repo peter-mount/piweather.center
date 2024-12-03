@@ -3,7 +3,7 @@ package weathercalc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/config/calc"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
@@ -11,7 +11,7 @@ import (
 )
 
 // load a metric's value on startup if they specify getting the value from the db
-func (calc *Calculator) loadFromDB(c *calc.Calculation) error {
+func (calc *Calculator) loadFromDB(c *station.Calculation) error {
 	b := c.Load
 
 	if *calc.DBServer == "" {
