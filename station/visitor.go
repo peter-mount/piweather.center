@@ -14,13 +14,16 @@ type AcceptMetric interface {
 }
 
 type visitorState struct {
-	stations  *Stations   // Link to root Stations instance
-	station   *Station    // Station being processed
-	dashboard *Dashboard  // Dashboard being processed
-	metric    api.Metric  // The metric being processed
-	idSeq     int         // ID sequence within a dashboard
-	response  *Response   // The response currently being built within a dashboard
-	responses []*Response // Slice of built responses
+	stations     *Stations                       // Link to root Stations instance
+	station      *Station                        // Station being processed
+	dashboard    *Dashboard                      // Dashboard being processed
+	calculation  *Calculation                    // Calculation being processed
+	metric       api.Metric                      // The metric being processed
+	idSeq        int                             // ID sequence within a dashboard
+	response     *Response                       // The response currently being built within a dashboard
+	responses    []*Response                     // Slice of built responses
+	loadOption   LoadOption                      // If set defines how LoadDirectory operates
+	calculations map[string]*station.Calculation // Map of calculations, used to ensure
 }
 
 func (s *visitorState) nextId() string {
@@ -55,9 +58,28 @@ func addStation(v station.Visitor[*visitorState], d *station.Station) error {
 
 	st.stations.addStation(se)
 
+	// Remove children we do not require
+	if st.loadOption.Not(DashboardOption) {
+		d.Dashboards = nil
+	}
+	if st.loadOption.Not(CalculationOption) {
+		d.Calculations = nil
+	}
+
 	log.Printf("Added Station %q", d.Name)
 
 	return nil
+}
+
+func addCalculation(v station.Visitor[*visitorState], d *station.Calculation) error {
+	st := v.Get()
+	calc := newCalculation(st.station, d)
+	st.calculation = calc
+	st.station.addCalculation(calc)
+
+	log.Printf("Added calculation %q", d.Target)
+
+	return util.VisitorStop
 }
 
 func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error {
@@ -137,6 +159,15 @@ func notifyDashboard(v station.Visitor[*visitorState], d *station.Dashboard) err
 	}
 
 	return err
+}
+
+func addMetric(v station.Visitor[*visitorState], d *station.Metric) error {
+	st := v.Get()
+	calc := st.calculation
+	if calc != nil {
+		calc.AddMetric(d.Name)
+	}
+	return nil
 }
 
 // visitStation sets the station within the context

@@ -25,6 +25,8 @@ func init() {
 
 	// Conversions between units other than PressurePA. These convert to PressurePA first then to the final one
 	Pressure = value.NewGroup("Pressure", PressurePA, PressureHPA, PressureKPA, PressurePSI, PressureInHg, PressureMmHg, PressureBar, PressureCBar, PressureMBar)
+
+	value.NewCalculator("pressuremsl", value.AssertCalculator(value.Calculator3arg(PressureMeanSeaLevel), Pressure.AssertValue, Temperature.AssertValue, Length.AssertValue))
 }
 
 var (

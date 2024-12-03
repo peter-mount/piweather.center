@@ -1,11 +1,9 @@
 package renderer
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
-	"github.com/peter-mount/piweather.center/store/api"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/forecast"
 	"github.com/peter-mount/piweather.center/weather/measurement"
@@ -46,26 +44,26 @@ func Forecast(v station.Visitor[*State], d *station.Forecast) error {
 				p1, _ := pressure.ToValue()
 				wd, _ := windDir.ToValue()
 
-				zam, str := calcForecast(t, t1, p1, wd, loc)
+				_, str := calcForecast(t, t1, p1, wd, loc)
 
 				if str != "" {
 					txt = str
 
 					// Hack, for now notify a dummy metric for the forecast until calculator handle it
-					if st := s.Dashboard().Station().Stations(); st != nil {
-						go func() {
-							time.Sleep(time.Second)
-							log.Printf("Pub forecast")
-							st.Notify(api.Metric{
-								Metric:    "home.ecowitt.forecast",
-								Time:      t,
-								Unit:      forecast.Zambretti.ID(),
-								Value:     float64(zam),
-								Formatted: zam.String(),
-								Unix:      t.Unix(),
-							})
-						}()
-					}
+					//if st := s.Dashboard().Station().Stations(); st != nil {
+					//	go func() {
+					//		time.Sleep(time.Second)
+					//		log.Printf("Pub forecast")
+					//		st.Notify(api.Metric{
+					//			Metric:    "home.ecowitt.forecast",
+					//			Time:      t,
+					//			Unit:      forecast.Zambretti.ID(),
+					//			Value:     float64(zam),
+					//			Formatted: zam.String(),
+					//			Unix:      t.Unix(),
+					//		})
+					//	}()
+					//}
 				}
 			}
 			s.Builder().Span().TextNbsp(txt).End().End()

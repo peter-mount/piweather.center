@@ -2,7 +2,6 @@ package station
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/calc"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
 )
@@ -98,10 +97,10 @@ func (a *Stations) replace(m *map[string]*Station, c *Stations, e *Station) erro
 type Station struct {
 	util.CheckSum
 	Pos          lexer.Position
-	Name         string                `parser:"'station' '(' @String"`
-	Location     *location.Location    `parser:"@@?"`
-	Calculations *calc.CalculationList `parser:"@@"`
-	Dashboards   *DashboardList        `parser:"@@ ')'"`
+	Name         string             `parser:"'station' '(' @String"`
+	Location     *location.Location `parser:"@@?"`
+	Calculations *CalculationList   `parser:"@@"`
+	Dashboards   *DashboardList     `parser:"@@ ')'"`
 }
 
 // HomeDashboard returns the home dashboard which is by definition the first dashboard in the definition

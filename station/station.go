@@ -12,13 +12,14 @@ import (
 
 type Station struct {
 	mutex        sync.Mutex
-	stations     *Stations             // Stations containing this station
-	station      *station.Station      // Stad *Dashboardtion associated with this instance
-	metricPrefix string                // metric prefix to limit metrics to this station
-	metrics      map[string]api.Metric // map of current Metric values for this Station
-	dashboards   map[string]*Dashboard // map of Dashboards
-	uid          string                // uid of the original Stations file loaded
-	cronIds      map[string]int        // Map of cron ids
+	stations     *Stations               // Stations containing this station
+	station      *station.Station        // Stad *Dashboardtion associated with this instance
+	metricPrefix string                  // metric prefix to limit metrics to this station
+	metrics      map[string]api.Metric   // map of current Metric values for this Station
+	dashboards   map[string]*Dashboard   // map of Dashboards
+	calculations map[string]*Calculation // map of Calculations
+	uid          string                  // uid of the original Stations file loaded
+	cronIds      map[string]int          // Map of cron ids
 }
 
 func newStation(s *station.Station) *Station {
@@ -27,6 +28,7 @@ func newStation(s *station.Station) *Station {
 		metricPrefix: s.Name + ".",
 		metrics:      make(map[string]api.Metric),
 		dashboards:   make(map[string]*Dashboard),
+		calculations: make(map[string]*Calculation),
 		cronIds:      make(map[string]int),
 	}
 }
@@ -66,6 +68,12 @@ func (s *Station) addDashboard(d *Dashboard) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.dashboards[d.dashboard.Name] = d
+}
+
+func (s *Station) addCalculation(d *Calculation) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.calculations[d.calculation.Target] = d
 }
 
 // GetMetric returns the current value of a Metric
@@ -126,4 +134,14 @@ func (s *Station) GetDashboard(id string) *Dashboard {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.dashboards[id]
+}
+
+func (s *Station) GetCalculation(target string) *Calculation {
+	if s == nil {
+		return nil
+	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.calculations[target]
 }
