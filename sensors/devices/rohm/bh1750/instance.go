@@ -29,6 +29,8 @@ type bh1750 struct {
 	buf []byte
 	// If true then use H2 mode which has 0.5lx resolution. Used in low light levels
 	mode bool
+	// The last reading
+	lastReading float64
 }
 
 func (s *bh1750) ReadSensor() (*reading.Reading, error) {
@@ -52,9 +54,12 @@ func (s *bh1750) readSensor(ret *reading.Reading) error {
 			return err
 		}
 
-		if value.IsPositive(lux) {
+		// Always record when we have lux, but also record the first 0 value so we know when it's
+		// dark - otherwise there are times when we get stuck with a positive value present when it's really 0
+		if lux > 0.0 || lux != s.lastReading {
 			ret.SetFloat64("lux", measurement.Lux, lux)
 		}
+		s.lastReading = lux
 
 		return nil
 	})
