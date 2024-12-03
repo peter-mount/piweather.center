@@ -26,14 +26,14 @@ func (v Value) Unit() *Unit {
 // String returns this Value as a string with the appropriate Unit attached
 func (v Value) String() string {
 	if v.u == nil {
-		return invalidValue.Error()
+		return ""
 	}
 	return v.u.String(v.v)
 }
 
 func (v Value) PlainString() string {
 	if v.u == nil {
-		return invalidValue.Error()
+		return ""
 	}
 	return v.u.PlainString(v.v)
 }
