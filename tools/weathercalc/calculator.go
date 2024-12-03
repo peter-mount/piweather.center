@@ -195,15 +195,13 @@ func (calc *Calculator) calculate(c *Calculation) {
 
 		if err = calc.DatabaseBroker.PublishMetric(metric); err != nil {
 			log.Printf("post %q failed %v", c.ID(), metric)
-		} else {
-			log.Printf("post %q %v", c.ID(), metric)
 		}
 
 		// Pass the calculated result back into the calculator so any dependencies
 		// may then be calculated immediately
-		if c.Src().Expression != nil {
-			calc.accept(metric)
-		}
+		//if c.Src().Expression != nil {
+		calc.Accept(metric)
+		//}
 	}
 }
 
@@ -214,6 +212,10 @@ type Calculation struct {
 	lastUpdate time.Time             // Time calculation last run
 	lastValue  value.Value           // Last value
 	time       value.Time            // Time with location
+}
+
+func (c *Calculation) String() string {
+	return "Calc(" + c.src.Target + ")"
 }
 
 func NewCalculation(src *station2.Calculation, station *station2.Station) *Calculation {
