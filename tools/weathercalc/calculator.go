@@ -195,6 +195,8 @@ func (calc *Calculator) calculate(c *Calculation) {
 
 		if err = calc.DatabaseBroker.PublishMetric(metric); err != nil {
 			log.Printf("post %q failed %v", c.ID(), metric)
+		} else {
+			log.Printf("post %q %v", c.ID(), metric)
 		}
 
 		// Pass the calculated result back into the calculator so any dependencies

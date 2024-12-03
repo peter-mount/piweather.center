@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/server"
+	_ "github.com/peter-mount/piweather.center/weather/forecast"
 	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"os"
 )

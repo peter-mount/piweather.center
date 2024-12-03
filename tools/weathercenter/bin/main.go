@@ -7,6 +7,8 @@ import (
 	_ "github.com/peter-mount/piweather.center/homeassistant"
 	"github.com/peter-mount/piweather.center/tools/weathercenter"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/view"
+	_ "github.com/peter-mount/piweather.center/weather/forecast"
+	_ "github.com/peter-mount/piweather.center/weather/measurement"
 	"os"
 )
 
