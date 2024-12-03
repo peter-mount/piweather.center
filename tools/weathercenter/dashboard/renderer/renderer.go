@@ -17,7 +17,6 @@ func (r *Renderer) Start() error {
 	r.renderVisitor = station.NewBuilder[*State]().
 		Container(Container).
 		Dashboard(Dashboard).
-		Forecast(Forecast).
 		Gauge(Gauge).
 		MultiValue(MultiValue).
 		Text(Text).

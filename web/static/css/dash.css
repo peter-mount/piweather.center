@@ -101,6 +101,17 @@
     width: 10em;
 }
 
+.value-2 .label, .value-2x2 .label {
+    visibility: hidden;
+    display: none;
+}
+.value-2 .metric, .value-2x2 .metric {
+    width: 10em !important;
+    text-align: center !important;
+}
+.value-2x2 .metric {
+    height: 2em;
+}
 .dash-multivalue .label, .dash-multivalue .metric, .dash-multivalue .metric-time,
 .dash-value .label, .dash-value .metric {
     display: inline-block;

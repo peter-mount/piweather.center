@@ -21,7 +21,6 @@ type Visitor[T any] interface {
 	Dashboard(*Dashboard) error
 	DashboardList(*DashboardList) error
 	Expression(*Expression) error
-	Forecast(*Forecast) error
 	Function(*Function) error
 	Gauge(*Gauge) error
 	Load(*Load) error
@@ -66,7 +65,6 @@ type common[T any] struct {
 	dashboard          func(Visitor[T], *Dashboard) error
 	dashboardList      func(Visitor[T], *DashboardList) error
 	expression         func(Visitor[T], *Expression) error
-	forecast           func(Visitor[T], *Forecast) error
 	function           func(Visitor[T], *Function) error
 	gauge              func(Visitor[T], *Gauge) error
 	load               func(Visitor[T], *Load) error
@@ -221,10 +219,6 @@ func (c *visitor[T]) ComponentListEntry(d *ComponentListEntry) error {
 
 		if err == nil {
 			err = c.Container(d.Container)
-		}
-
-		if err == nil {
-			err = c.Forecast(d.Forecast)
 		}
 
 		if err == nil {
@@ -400,36 +394,6 @@ func (c *visitor[T]) Function(d *Function) error {
 					break
 				}
 			}
-		}
-
-		err = errors.Error(d.Pos, err)
-	}
-	return err
-}
-func (c *visitor[T]) Forecast(d *Forecast) error {
-	var err error
-	if d != nil {
-		if c.forecast != nil {
-			err = c.forecast(c, d)
-			if util.IsVisitorStop(err) {
-				return nil
-			}
-		}
-
-		if err == nil {
-			err = c.Component(d.Component)
-		}
-
-		if err == nil {
-			err = c.Metric(d.Temperature)
-		}
-
-		if err == nil {
-			err = c.Metric(d.Pressure)
-		}
-
-		if err == nil {
-			err = c.Metric(d.WindDirection)
 		}
 
 		err = errors.Error(d.Pos, err)

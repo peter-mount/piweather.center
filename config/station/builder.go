@@ -19,7 +19,6 @@ type Builder[T any] interface {
 	Dashboard(func(Visitor[T], *Dashboard) error) Builder[T]
 	DashboardList(func(Visitor[T], *DashboardList) error) Builder[T]
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
-	Forecast(func(Visitor[T], *Forecast) error) Builder[T]
 	Function(func(Visitor[T], *Function) error) Builder[T]
 	Gauge(func(Visitor[T], *Gauge) error) Builder[T]
 	Load(func(Visitor[T], *Load) error) Builder[T]
@@ -108,11 +107,6 @@ func (b *builder[T]) DashboardList(f func(Visitor[T], *DashboardList) error) Bui
 
 func (b *builder[T]) Expression(f func(Visitor[T], *Expression) error) Builder[T] {
 	b.expression = f
-	return b
-}
-
-func (b *builder[T]) Forecast(f func(Visitor[T], *Forecast) error) Builder[T] {
-	b.forecast = f
 	return b
 }
 
