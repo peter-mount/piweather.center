@@ -4,10 +4,12 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
 	lang2 "github.com/peter-mount/piweather.center/config/calc"
+	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
+	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
@@ -89,23 +91,24 @@ func (e *executor) setMetric(m string, v StackEntry) {
 
 func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time, error) {
 	e := executor{
-		script: calc.Script(),
 		calc:   c,
 		latest: calc.Latest,
-		time:   calc.script.State.GetLocation(c.Src().At).Time(),
+		// Time at the location
+		time: c.station.Location.Time(),
 	}
 
-	v := lang2.NewBuilder[*Calculator]().
+	err := station2.NewBuilder[*Calculator]().
 		Calculation(e.calculation).
 		Current(e.current).
 		Expression(e.expression).
 		Function(e.function).
+		LocationExpression(e.locationExpression).
 		Metric(e.metric).
 		Unit(e.unit).
 		UseFirst(e.useFirst).
-		Build()
-	v.SetData(calc)
-	err := v.Calculation(c.Src())
+		Build().
+		Set(calc).
+		Calculation(c.Src())
 
 	r, exists := e.pop()
 	if err != nil {
@@ -120,7 +123,7 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 	return r.Value, r.Time, nil
 }
 
-func (e *executor) calculation(v lang2.CalcVisitor[*Calculator], b *lang2.Calculation) error {
+func (e *executor) calculation(v station2.Visitor[*Calculator], b *station2.Calculation) error {
 	e.resetStack()
 
 	// If usefirst set check to see we have a latest value, if not then set the default value
@@ -152,7 +155,7 @@ func (e *executor) calculation(v lang2.CalcVisitor[*Calculator], b *lang2.Calcul
 	return util.VisitorStop
 }
 
-func (e *executor) expression(v lang2.CalcVisitor[*Calculator], b *lang2.Expression) error {
+func (e *executor) expression(v station2.Visitor[*Calculator], b *station2.Expression) error {
 	var err error
 	switch {
 	case b.Current != nil:
@@ -161,6 +164,8 @@ func (e *executor) expression(v lang2.CalcVisitor[*Calculator], b *lang2.Express
 		err = v.Function(b.Function)
 	case b.Metric != nil:
 		err = v.Metric(b.Metric)
+	case b.Location != nil:
+		err = v.LocationExpression(b.Location)
 	}
 
 	if err == nil && b.Using != nil {
@@ -178,11 +183,11 @@ func (e *executor) expression(v lang2.CalcVisitor[*Calculator], b *lang2.Express
 	return util.VisitorStop
 }
 
-func (e *executor) current(_ lang2.CalcVisitor[*Calculator], _ *lang2.Current) error {
+func (e *executor) current(_ station2.Visitor[*Calculator], _ *station2.Current) error {
 	return e.metricImpl(e.calc.ID())
 }
 
-func (e *executor) metric(_ lang2.CalcVisitor[*Calculator], b *lang2.Metric) error {
+func (e *executor) metric(_ station2.Visitor[*Calculator], b *station2.Metric) error {
 	return e.metricImpl(b.Name)
 }
 
@@ -196,7 +201,7 @@ func (e *executor) metricImpl(n string) error {
 	return nil
 }
 
-func (e *executor) useFirst(_ lang2.CalcVisitor[*Calculator], b *lang2.UseFirst) error {
+func (e *executor) useFirst(_ station2.Visitor[*Calculator], b *station2.UseFirst) error {
 	rec, exists := e.latest.Latest(e.calc.ID())
 	if !exists {
 		rec, exists = e.latest.Latest(b.Metric.Name)
@@ -210,7 +215,7 @@ func (e *executor) useFirst(_ lang2.CalcVisitor[*Calculator], b *lang2.UseFirst)
 	return nil
 }
 
-func (e *executor) unit(_ lang2.CalcVisitor[*Calculator], b *units.Unit) error {
+func (e *executor) unit(_ station2.Visitor[*Calculator], b *units.Unit) error {
 	v, present := e.pop()
 	if present {
 		nv, err := v.Value.As(b.Unit())
@@ -224,7 +229,7 @@ func (e *executor) unit(_ lang2.CalcVisitor[*Calculator], b *units.Unit) error {
 	return nil
 }
 
-func (e *executor) function(v lang2.CalcVisitor[*Calculator], b *lang2.Function) error {
+func (e *executor) function(v station2.Visitor[*Calculator], b *station2.Function) error {
 	e.save()
 
 	calc, err := value.GetCalculator(b.Name)
@@ -268,5 +273,31 @@ func (e *executor) function(v lang2.CalcVisitor[*Calculator], b *lang2.Function)
 		return util.VisitorStop
 	}
 
+	return err
+}
+
+func (e *executor) locationExpression(v station2.Visitor[*Calculator], b *station2.LocationExpression) error {
+	var err error
+	if b != nil {
+		var val value.Value
+
+		loc := e.calc.Station().Location
+		ll := loc.LatLong()
+		switch {
+		case b.Altitude:
+			val = measurement.Meters.Value(loc.Altitude)
+		case b.Latitude:
+			val = measurement.Degree.Value(ll.Latitude.Deg())
+		case b.Longitude:
+			val = measurement.Degree.Value(ll.Longitude.Deg())
+		default:
+		}
+
+		if val.IsValid() {
+			e.push(time.Now(), val)
+		} else {
+			e.pushNull()
+		}
+	}
 	return err
 }

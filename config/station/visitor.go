@@ -10,16 +10,23 @@ import (
 
 type Visitor[T any] interface {
 	Axis(*Axis) error
+	Calculation(*Calculation) error
+	CalculationList(*CalculationList) error
 	Component(*Component) error
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
 	Container(*Container) error
 	CronTab(*time.CronTab) error
+	Current(*Current) error
 	Dashboard(*Dashboard) error
 	DashboardList(*DashboardList) error
+	Expression(*Expression) error
 	Forecast(*Forecast) error
+	Function(*Function) error
 	Gauge(*Gauge) error
+	Load(*Load) error
 	Location(*location.Location) error
+	LocationExpression(*LocationExpression) error
 	Metric(*Metric) error
 	MetricList(*MetricList) error
 	MetricPattern(*MetricPattern) error
@@ -28,6 +35,7 @@ type Visitor[T any] interface {
 	Stations(*Stations) error
 	Text(*Text) error
 	Unit(*units.Unit) error
+	UseFirst(*UseFirst) error
 	Value(*Value) error
 
 	// Get returns the attached value T
@@ -46,16 +54,23 @@ type visitor[T any] struct {
 
 type common[T any] struct {
 	axis               func(Visitor[T], *Axis) error
+	calculation        func(Visitor[T], *Calculation) error
+	calculationList    func(Visitor[T], *CalculationList) error
 	component          func(Visitor[T], *Component) error
 	componentList      func(Visitor[T], *ComponentList) error
 	componentListEntry func(Visitor[T], *ComponentListEntry) error
 	container          func(Visitor[T], *Container) error
 	crontab            func(Visitor[T], *time.CronTab) error
+	current            func(Visitor[T], *Current) error
 	dashboard          func(Visitor[T], *Dashboard) error
 	dashboardList      func(Visitor[T], *DashboardList) error
+	expression         func(Visitor[T], *Expression) error
 	forecast           func(Visitor[T], *Forecast) error
+	function           func(Visitor[T], *Function) error
 	gauge              func(Visitor[T], *Gauge) error
+	load               func(Visitor[T], *Load) error
 	location           func(Visitor[T], *location.Location) error
+	locationExpression func(Visitor[T], *LocationExpression) error
 	metric             func(Visitor[T], *Metric) error
 	metricList         func(Visitor[T], *MetricList) error
 	metricPattern      func(Visitor[T], *MetricPattern) error
@@ -64,6 +79,7 @@ type common[T any] struct {
 	stations           func(Visitor[T], *Stations) error
 	text               func(Visitor[T], *Text) error
 	unit               func(Visitor[T], *units.Unit) error
+	useFirst           func(Visitor[T], *UseFirst) error
 	value              func(Visitor[T], *Value) error
 }
 
@@ -82,22 +98,87 @@ func (c *visitor[T]) Clone() Visitor[T] {
 
 func (c *visitor[T]) Axis(d *Axis) error {
 	var err error
-	if d != nil && c.axis != nil {
-		err = c.axis(c, d)
-		if util.IsVisitorStop(err) {
-			return nil
+	if d != nil {
+		if c.axis != nil {
+			err = c.axis(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Calculation(d *Calculation) error {
+	var err error
+	if d != nil {
+		if c.calculation != nil {
+			err = c.calculation(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.CronTab(d.Every)
+		}
+
+		if err == nil {
+			err = c.CronTab(d.ResetEvery)
+		}
+
+		if err == nil {
+			err = c.Load(d.Load)
+		}
+
+		if err == nil {
+			err = c.UseFirst(d.UseFirst)
+		}
+
+		if err == nil {
+			err = c.Expression(d.Expression)
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) CalculationList(d *CalculationList) error {
+	var err error
+	if d != nil {
+		if c.calculationList != nil {
+			err = c.calculationList(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		for _, e := range d.Calculations {
+			err = c.Calculation(e)
+			if err != nil {
+				break
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
 	}
 	return err
 }
 
 func (c *visitor[T]) Component(d *Component) error {
 	var err error
-	if d != nil && c.component != nil {
-		err = c.component(c, d)
-		if util.IsVisitorStop(err) {
-			return nil
+	if d != nil {
+		if c.component != nil {
+			err = c.component(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
 		}
+
+		err = errors.Error(d.Pos, err)
 	}
 	return err
 }
@@ -203,6 +284,21 @@ func (c *visitor[T]) CronTab(d *time.CronTab) error {
 	return err
 }
 
+func (c *visitor[T]) Current(b *Current) error {
+	var err error
+	if b != nil {
+		if c.current != nil {
+			err = c.current(c, b)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Dashboard(d *Dashboard) error {
 	var err error
 	if d != nil {
@@ -250,6 +346,64 @@ func (c *visitor[T]) DashboardList(d *DashboardList) error {
 	return err
 }
 
+func (c *visitor[T]) Expression(b *Expression) error {
+	var err error
+	if b != nil {
+		if c.expression != nil {
+			err = c.expression(c, b)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil && b.Current != nil {
+			err = c.Current(b.Current)
+		}
+
+		if err == nil && b.Function != nil {
+			err = c.Function(b.Function)
+		}
+
+		if err == nil && b.Metric != nil {
+			err = c.Metric(b.Metric)
+		}
+
+		if err == nil && b.Location != nil {
+			err = c.LocationExpression(b.Location)
+		}
+
+		if err == nil && b.Using != nil {
+			err = c.Unit(b.Using)
+		}
+
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) Function(d *Function) error {
+	var err error
+	if d != nil {
+		if c.function != nil {
+			err = c.function(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			for _, e := range d.Expressions {
+				err = c.Expression(e)
+				if err != nil {
+					break
+				}
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
 func (c *visitor[T]) Forecast(d *Forecast) error {
 	var err error
 	if d != nil {
@@ -312,10 +466,38 @@ func (c *visitor[T]) Gauge(d *Gauge) error {
 	return err
 }
 
+func (c *visitor[T]) Load(b *Load) error {
+	var err error
+	if b != nil {
+		if c.load != nil {
+			err = c.load(c, b)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Location(d *location.Location) error {
 	var err error
 	if d != nil && c.location != nil {
 		err = c.location(c, d)
+		if util.IsVisitorStop(err) {
+			return nil
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) LocationExpression(d *LocationExpression) error {
+	var err error
+	if d != nil && c.locationExpression != nil {
+		err = c.locationExpression(c, d)
 		if util.IsVisitorStop(err) {
 			return nil
 		}
@@ -419,6 +601,10 @@ func (c *visitor[T]) Station(d *Station) error {
 		}
 
 		if err == nil {
+			err = c.CalculationList(d.Calculations)
+		}
+
+		if err == nil {
 			err = c.DashboardList(d.Dashboards)
 		}
 
@@ -454,7 +640,6 @@ func (c *visitor[T]) Stations(d *Stations) error {
 func (c *visitor[T]) Text(d *Text) error {
 	var err error
 	if d != nil {
-
 		if c.text != nil {
 			err = c.text(c, d)
 			if util.IsVisitorStop(err) {
@@ -486,10 +671,28 @@ func (c *visitor[T]) Unit(d *units.Unit) error {
 	return err
 }
 
+func (c *visitor[T]) UseFirst(b *UseFirst) error {
+	var err error
+	if b != nil {
+		if c.useFirst != nil {
+			err = c.useFirst(c, b)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.Metric(b.Metric)
+		}
+
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
 func (c *visitor[T]) Value(d *Value) error {
 	var err error
 	if d != nil {
-
 		if c.value != nil {
 			err = c.value(c, d)
 			if util.IsVisitorStop(err) {

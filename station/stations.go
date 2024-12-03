@@ -2,8 +2,10 @@ package station
 
 import (
 	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/store/api"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -24,8 +26,10 @@ func (s *Stations) Start() error {
 
 	// Visitor to add a station & it's dashboards to this instance
 	s.newStationVisitor = station.NewBuilder[*visitorState]().
+		Calculation(addCalculation).
 		Dashboard(addDashboard).
 		Gauge(addGauge).
+		Metric(addMetric).
 		MultiValue(addMultiValue).
 		Station(addStation).
 		Stations(visitStations).
@@ -55,6 +59,53 @@ func (s *Stations) Start() error {
 	return nil
 }
 
+// LoadOption defines how LoadDirectory operates when loading station config
+type LoadOption uint8
+
+func (l LoadOption) Is(b LoadOption) bool {
+	return l == 0 || l&b == b
+}
+
+func (l LoadOption) Not(b LoadOption) bool {
+	return !l.Is(b)
+}
+
+const (
+	// AllOption indicates all options apply
+	AllOption LoadOption = 0xff
+	// CalculationOption indicates that LoadDirectory should include Calculations.
+	CalculationOption = 0x01
+	// DashboardOption indicates that LoadDirectory should include Dashboards
+	DashboardOption = 0x02
+)
+
+func (s *Stations) LoadDirectory(path, fileSuffix string, loadOption LoadOption) (*station.Stations, error) {
+	var files []string
+	if err := walk.NewPathWalker().
+		Then(func(path string, _ os.FileInfo) error {
+			files = append(files, path)
+			return nil
+		}).
+		PathHasSuffix(fileSuffix).
+		IsFile().
+		Walk(path); err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	// Load all the loadedStations
+	if stations, err := station.NewParser().ParseFiles(files...); err != nil {
+		return nil, err
+	} else {
+		state := newVisitorState(s)
+		state.loadOption = loadOption
+		_ = s.newStationVisitor.Clone().
+			Set(state).
+			Stations(stations)
+
+		return stations, nil
+	}
+}
+
 func (s *Stations) GetStation(id string) *Station {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -64,15 +115,6 @@ func (s *Stations) GetStation(id string) *Station {
 		st.stations = s
 	}
 	return st
-}
-
-// AddStations adds all stations, replacing any existing ones.
-// This function is usually called at startup rather than when updating
-// stations later.
-func (s *Stations) AddStations(stations *station.Stations) {
-	_ = s.newStationVisitor.Clone().
-		Set(newVisitorState(s)).
-		Stations(stations)
 }
 
 // AddStation adds a new station, replacing any existing one

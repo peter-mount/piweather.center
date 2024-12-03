@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/rest"
-	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
 	station3 "github.com/peter-mount/piweather.center/station"
@@ -14,7 +13,6 @@ import (
 	"github.com/peter-mount/piweather.center/tools/weathercenter/template"
 	"github.com/peter-mount/piweather.center/util/config"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -51,27 +49,13 @@ func (s *Service) Start() error {
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 
 	// Load existing dashboards
-	var files []string
-	if err := walk.NewPathWalker().
-		Then(func(path string, _ os.FileInfo) error {
-			files = append(files, path)
-			return nil
-		}).
-		PathHasSuffix(fileSuffix).
-		IsFile().
-		Walk(s.dashDir); err != nil && !os.IsNotExist(err) {
+	stations, err := s.Stations.LoadDirectory(s.dashDir, fileSuffix, station3.DashboardOption)
+	if err != nil {
 		return err
 	}
-
-	// Load all the loadedStations
-	if stations, err := station.NewParser().ParseFiles(files...); err != nil {
+	err = s.UpdateJS(stations)
+	if err != nil {
 		return err
-	} else {
-		s.Stations.AddStations(stations)
-		err = s.UpdateJS(stations)
-		if err != nil {
-			return err
-		}
 	}
 
 	// start watching for changes

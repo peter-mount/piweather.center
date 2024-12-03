@@ -1,9 +1,11 @@
 package station
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
+	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	util2 "github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -23,7 +25,10 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 
 		err = NewBuilder[*state]().
 			Axis(s.axis).
+			Calculation(s.calculation).
+			CalculationList(s.calculationList).
 			Container(s.container).
+			CronTab(s.cronTab).
 			Dashboard(s.dashboard).
 			Gauge(s.gauge).
 			Location(s.location).
@@ -42,11 +47,12 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 }
 
 type state struct {
-	stationId     string                // copy of the stationId being processed
-	stationPrefix string                // stationId + "."
-	sensorPrefix  string                // sensorId + "."
-	stationIds    map[string]*Station   // map of Stations
-	dashboards    map[string]*Dashboard // map of Dashboards within a Station
+	stationId     string                  // copy of the stationId being processed
+	stationPrefix string                  // stationId + "."
+	sensorPrefix  string                  // sensorId + "."
+	stationIds    map[string]*Station     // map of Stations
+	calculations  map[string]*Calculation // map of calculations within a Station
+	dashboards    map[string]*Dashboard   // map of Dashboards within a Station
 }
 
 func (s *state) prefixMetric(m string) string {
@@ -59,7 +65,7 @@ func (s *state) stations(v Visitor[*state], d *Stations) error {
 }
 
 func (s *state) station(_ Visitor[*state], d *Station) error {
-	// reset dashboards
+	s.calculations = make(map[string]*Calculation)
 	s.dashboards = make(map[string]*Dashboard)
 
 	var err error
@@ -129,6 +135,28 @@ func (s *state) location(_ Visitor[*state], d *location.Location) error {
 	return errors.Error(d.Pos, err)
 }
 
+func (s *state) calculation(_ Visitor[*state], d *Calculation) error {
+	target := strings.ToLower(d.Target)
+
+	if e, exists := s.calculations[target]; exists {
+		return participle.Errorf(d.Pos, "calculation for %q already defined at %s", d.Target, e.Pos.String())
+	}
+
+	d.Target = s.prefixMetric(target)
+	s.calculations[target] = d
+	return nil
+}
+
+func (s *state) calculationList(_ Visitor[*state], d *CalculationList) error {
+	// sensorPrefix is not used for calculations
+	s.sensorPrefix = ""
+	if s.stationPrefix == "" {
+		// should never occur
+		return errors.Errorf(d.Pos, "stationPrefix not defined")
+	}
+	return nil
+}
+
 func (s *state) container(_ Visitor[*state], d *Container) error {
 	// Ensure Component exists, require by templates
 	if d.Component == nil {
@@ -140,6 +168,10 @@ func (s *state) container(_ Visitor[*state], d *Container) error {
 	}
 
 	return nil
+}
+
+func (s *state) cronTab(_ Visitor[*state], d *time2.CronTab) error {
+	return d.Init()
 }
 
 func (s *state) dashboard(_ Visitor[*state], d *Dashboard) error {
@@ -183,6 +215,16 @@ func (s *state) dashboard(_ Visitor[*state], d *Dashboard) error {
 	}
 
 	return errors.Error(d.Pos, err)
+}
+
+func (s *state) initFunction(_ Visitor[*state], l *Function) error {
+	l.Name = strings.ToLower(l.Name)
+
+	if !value.CalculatorExists(l.Name) {
+		return participle.Errorf(l.Pos, "function %q is undefined", l.Name)
+	}
+
+	return nil
 }
 
 func (s *state) multiValue(_ Visitor[*state], d *MultiValue) error {
