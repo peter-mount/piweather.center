@@ -93,6 +93,20 @@ func Calculator3arg(f func(_, _, _ Value) (Value, error)) Calculator {
 	}
 }
 
+// Calculator4arg utility to convert a function that takes three Value's into a Calculator
+func Calculator4arg(f func(_, _, _, _ Value) (Value, error)) Calculator {
+	return func(_ Time, args ...Value) (Value, error) {
+		return f(args[0], args[1], args[2], args[3])
+	}
+}
+
+// TimedCalculator4arg utility to convert a function that takes a Time and four Value's into a Calculator
+func TimedCalculator4arg(f func(_ Time, _, _, _, _ Value) (Value, error)) Calculator {
+	return func(t Time, args ...Value) (Value, error) {
+		return f(t, args[0], args[1], args[2], args[3])
+	}
+}
+
 func Basic1ArgCalculator(f func(float64) float64) Calculator {
 	return func(_ Time, value ...Value) (Value, error) {
 		if len(value) != 1 {

@@ -1,6 +1,9 @@
 package forecast
 
-import "github.com/peter-mount/piweather.center/weather/value"
+import (
+	"github.com/peter-mount/piweather.center/weather/measurement"
+	"github.com/peter-mount/piweather.center/weather/value"
+)
 
 func init() {
 	Zambretti = value.NewUnit("zambretti", "Zambretti Forecast", "Zambretti Severity", 0,
@@ -8,6 +11,14 @@ func init() {
 			return ZambrettiSeverity(f).String()
 		})
 	ForecastGroup = value.NewGroup("Forecast", Zambretti)
+
+	value.NewCalculator("zambretti", value.AssertCalculator(
+		value.TimedCalculator4arg(zambrettiCalculator),
+		measurement.Pressure.AssertValue,
+		measurement.Pressure.AssertValue,
+		measurement.Angle.AssertValue,
+		measurement.Angle.AssertValue,
+	))
 }
 
 var (
@@ -67,4 +78,9 @@ func (z ZambrettiSeverity) Index() int {
 		return 25
 	}
 	return int(z)
+}
+
+// Value returns the ZambrettiSeverity as a value.Value
+func (z ZambrettiSeverity) Value() value.Value {
+	return Zambretti.Value(float64(z.Index()))
 }

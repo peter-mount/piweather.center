@@ -26,6 +26,22 @@ const (
 	hpaConstant = hpaRange / hpaSteps
 )
 
+func zambrettiCalculator(t value.Time, pressure0, pressure1, windDirection, latitude value.Value) (value.Value, error) {
+	var err error
+	latitude, err = latitude.As(measurement.Degree)
+	if err == nil {
+		h := HemisphereFor(latitude.Float())
+
+		zs, err1 := CalculateZambrettiForecast(t.Time(), h, pressure0, pressure1, windDirection)
+		if err1 != nil {
+			err = err1
+		} else {
+			return zs.Value(), nil
+		}
+	}
+	return value.Value{}, err
+}
+
 // CalculateZambrettiForecast will return the ZambrettiSeverity representing a weather forecast.
 //
 // t is the Time of the forecast.
@@ -34,10 +50,10 @@ const (
 //
 // pressure0 is the previous pressure at mean sea level, ideally 3 hours before t.
 //
-// pressure is the  pressure at mean sea level at t.
+// pressure is the pressure at mean sea level at t.
 //
 // windDirection is the wind direction at t.
-func CalculateZambrettiForecast(t time.Time, h Hemisphere, pressure0, pressure value.Value, windDirection value.Value) (ZambrettiSeverity, error) {
+func CalculateZambrettiForecast(t time.Time, h Hemisphere, pressure0, pressure, windDirection value.Value) (ZambrettiSeverity, error) {
 	trend, err := GetTrend(pressure0, pressure)
 	if err != nil {
 		return 0, err
