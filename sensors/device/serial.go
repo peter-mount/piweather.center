@@ -24,7 +24,7 @@ func registerSerialDevice(device Device) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if _, exists := serialDevices[name]; exists {
-		panic(fmt.Errorf("serial %s device with name %q already exists", name))
+		panic(fmt.Errorf("serial device with name %q already exists", name))
 	}
 	serialDevices[name] = device
 }

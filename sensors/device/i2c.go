@@ -23,7 +23,7 @@ func registerI2CDevice(device Device) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	if _, exists := i2cDevices[name]; exists {
-		panic(fmt.Errorf("i2c %s device with name %q already exists", name))
+		panic(fmt.Errorf("i2c device with name %q already exists", name))
 	}
 	i2cDevices[name] = device
 }

@@ -44,6 +44,6 @@ func RegisterDevice(device Device) {
 	case bus.BusSerial:
 		registerSerialDevice(device)
 	default:
-		panic(fmt.Errorf("unknown bus type: %s", info.BusType))
+		panic(fmt.Errorf("unknown bus type: %s", info.BusType.Label()))
 	}
 }
