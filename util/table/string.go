@@ -19,23 +19,27 @@ func (t *Table) String() string {
 	}
 
 	var cs []string
-	l := 0
-	for _, col := range t.columns {
+	var sep string
+	for i, col := range t.columns {
 		cs = append(cs, pad(col.width, col.name))
-		l = l + col.width + 1
+		if i > 0 {
+			sep = sep + "-+-"
+		}
+		sep = sep + strings.Repeat("-", col.width)
 	}
 
-	s = append(s,
-		strings.Join(cs, " "),
-		strings.Repeat("-", l-1))
+	colSep := " | "
+	s = append(s, sep, strings.Join(cs, colSep), sep)
 
 	for _, row := range t.rows {
 		cs = nil
 		for c, cell := range row.cells {
 			cs = append(cs, pad(t.columns[c].width, cell.value))
 		}
-		s = append(s, strings.Join(cs, " "))
+		s = append(s, strings.Join(cs, colSep))
 	}
+
+	s = append(s, sep)
 
 	return strings.Join(s, "\n")
 }

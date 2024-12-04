@@ -2,6 +2,7 @@ package table
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 )
 
@@ -43,6 +44,19 @@ func (t *Table) NewRow() *Row {
 	r := &Row{table: t}
 	t.rows = append(t.rows, r)
 	return r
+}
+
+func (t *Table) SortTable(cols ...int) *Table {
+	sort.SliceStable(t.rows, func(i, j int) bool {
+		for _, col := range cols {
+			vi, vj := t.rows[i].cells[col].value, t.rows[j].cells[col].value
+			if vi != vj {
+				return vi < vj
+			}
+		}
+		return false
+	})
+	return t
 }
 
 func (r *Row) Add(s string) *Row {
