@@ -2,6 +2,7 @@ package weathersensor
 
 import (
 	"context"
+	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
@@ -50,6 +51,8 @@ func (s *Service) Start() error {
 	}
 
 	s.Daemon.SetDaemon()
+
+	log.Println(version.Version)
 	return nil
 }
 

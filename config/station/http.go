@@ -8,10 +8,10 @@ import (
 
 type Http struct {
 	Pos              lexer.Position
-	Method           string               `parser:"'http' @('get'|'post') '('"`                // Http method to accept
-	Format           *HttpFormat          `parser:"@@?"`                                       // Format of the data, default is json
-	Timestamp        *string              `parser:"('timestamp' '(' ('now' | @String)? ')')?"` // Timestamp source parameter, time.Now() if not defined
-	SourceParameters *SourceParameterList `parser:"@@ ')'"`                                    // Parameters to read from source
+	Method           string               `parser:"'http' @('get'|'post') '('"` // Http method to accept
+	Format           *HttpFormat          `parser:"@@?"`                        // Format of the data, default is json
+	Timestamp        *SourcePath          `parser:"('timestamp' '(' @@ ')')?"`  // Timestamp source parameter, time.Now() if not defined
+	SourceParameters *SourceParameterList `parser:"@@ ')'"`                     // Parameters to read from source
 }
 
 func (c *visitor[T]) Http(d *Http) error {
@@ -29,12 +29,23 @@ func (c *visitor[T]) Http(d *Http) error {
 		}
 
 		if err == nil {
+			err = c.SourcePath(d.Timestamp)
+		}
+
+		if err == nil {
 			err = c.SourceParameterList(d.SourceParameters)
 		}
 
 		err = errors.Error(d.Pos, err)
 	}
 	return err
+}
+
+func initHttp(v Visitor[*initState], d *Http) error {
+	s := v.Get()
+	s.sensorParameters = make(map[string]*SourceParameter)
+	s.sourcePath = nil
+	return nil
 }
 
 func (b *builder[T]) Http(f func(Visitor[T], *Http) error) Builder[T] {

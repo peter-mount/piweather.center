@@ -23,6 +23,7 @@ var (
 		Dashboard(initDashboard).
 		DashboardList(initDashboardList).
 		Gauge(initGauge).
+		Http(initHttp).
 		I2C(initI2c).
 		Location(initLocation).
 		Metric(initMetric).
@@ -32,7 +33,8 @@ var (
 		SensorList(initSensorList).
 		Serial(initSerial).
 		SourceParameter(initSourceParameter).
-		SourceParameterList(initSourceParameterList).
+		SourceWithin(initSourceWithin).
+		SourcePath(initSourcePath).
 		Station(initStation).
 		Stations(initStations).
 		Unit(initUnit).
@@ -60,6 +62,7 @@ type initState struct {
 	dashboards       map[string]*Dashboard       // map of Dashboards within a Station
 	sensors          map[string]*Sensor          // map of Sensors within a station
 	sensorParameters map[string]*SourceParameter // Map of SourceParameter's used to ensure output is unique
+	sourcePath       []string                    // Prefix for source path, used with SourceWithin
 }
 
 func (s *initState) prefixMetric(m string) string {

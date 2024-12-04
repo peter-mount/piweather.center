@@ -3,18 +3,16 @@ package station
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
-	"strings"
 )
 
 type SourceParameter struct {
 	Pos    lexer.Position
-	Metric *Metric     `parser:"@@ '='"`  // Metric to create with optional destination unit
-	Source string      `parser:"@String"` // Parameter path to get the value
-	Unit   *units.Unit `parser:"@@"`      // Unit of Source - required
+	Metric *Metric     `parser:"@@ '='"` // Metric to create with optional destination unit
+	Source *SourcePath `parser:"@@"`     // Parameter path to get the value
+	Unit   *units.Unit `parser:"@@"`     // Unit of Source - required
 }
 
 func (c *visitor[T]) SourceParameter(d *SourceParameter) error {
@@ -33,10 +31,14 @@ func (c *visitor[T]) SourceParameter(d *SourceParameter) error {
 		}
 
 		if err == nil {
+			err = c.SourcePath(d.Source)
+		}
+
+		if err == nil {
 			err = c.Unit(d.Unit)
 		}
 
-		return errors.Error(d.Pos, err)
+		err = errors.Error(d.Pos, err)
 	}
 
 	return err
@@ -46,11 +48,13 @@ func initSourceParameter(v Visitor[*initState], d *SourceParameter) error {
 	s := v.Get()
 
 	err := v.Metric(d.Metric)
+
 	if err == nil {
-		d.Source = strings.TrimSpace(d.Source)
-		if d.Source == "" {
-			err = participle.Errorf(d.Pos, "metric Source is required")
-		}
+		err = v.SourcePath(d.Source)
+	}
+
+	if err == nil {
+		err = v.Unit(d.Unit)
 	}
 
 	if err == nil {
@@ -58,8 +62,6 @@ func initSourceParameter(v Visitor[*initState], d *SourceParameter) error {
 			err = participle.Errorf(d.Metric.Pos, "metric %q already defined at %s", d.Metric.Name, e.Metric.Pos)
 		} else {
 			s.sensorParameters[d.Metric.Name] = d
-
-			log.Printf("source %q from %q", d.Metric.Name, d.Source)
 		}
 	}
 

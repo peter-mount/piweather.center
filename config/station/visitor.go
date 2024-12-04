@@ -40,6 +40,9 @@ type Visitor[T any] interface {
 	Serial(*Serial) error
 	SourceParameter(*SourceParameter) error
 	SourceParameterList(*SourceParameterList) error
+	SourceParameterListEntry(*SourceParameterListEntry) error
+	SourcePath(*SourcePath) error
+	SourceWithin(d *SourceWithin) error
 	Station(*Station) error
 	Stations(*Stations) error
 	Text(*Text) error
@@ -62,43 +65,46 @@ type visitor[T any] struct {
 }
 
 type common[T any] struct {
-	axis                func(Visitor[T], *Axis) error
-	calculation         func(Visitor[T], *Calculation) error
-	calculationList     func(Visitor[T], *CalculationList) error
-	component           func(Visitor[T], *Component) error
-	componentList       func(Visitor[T], *ComponentList) error
-	componentListEntry  func(Visitor[T], *ComponentListEntry) error
-	container           func(Visitor[T], *Container) error
-	crontab             func(Visitor[T], *time.CronTab) error
-	current             func(Visitor[T], *Current) error
-	dashboard           func(Visitor[T], *Dashboard) error
-	dashboardList       func(Visitor[T], *DashboardList) error
-	expression          func(Visitor[T], *Expression) error
-	function            func(Visitor[T], *Function) error
-	gauge               func(Visitor[T], *Gauge) error
-	http                func(Visitor[T], *Http) error
-	httpFormat          func(Visitor[T], *HttpFormat) error
-	i2c                 func(Visitor[T], *I2C) error
-	load                func(Visitor[T], *Load) error
-	location            func(Visitor[T], *location.Location) error
-	locationExpression  func(Visitor[T], *LocationExpression) error
-	metric              func(Visitor[T], *Metric) error
-	metricExpression    func(Visitor[T], *MetricExpression) error
-	metricList          func(Visitor[T], *MetricList) error
-	metricPattern       func(Visitor[T], *MetricPattern) error
-	multiValue          func(Visitor[T], *MultiValue) error
-	publisher           func(Visitor[T], *Publisher) error
-	sensor              func(Visitor[T], *Sensor) error
-	sensorList          func(Visitor[T], *SensorList) error
-	serial              func(Visitor[T], *Serial) error
-	sourceParameter     func(Visitor[T], *SourceParameter) error
-	sourceParameterList func(Visitor[T], *SourceParameterList) error
-	station             func(Visitor[T], *Station) error
-	stations            func(Visitor[T], *Stations) error
-	text                func(Visitor[T], *Text) error
-	unit                func(Visitor[T], *units.Unit) error
-	useFirst            func(Visitor[T], *UseFirst) error
-	value               func(Visitor[T], *Value) error
+	axis                     func(Visitor[T], *Axis) error
+	calculation              func(Visitor[T], *Calculation) error
+	calculationList          func(Visitor[T], *CalculationList) error
+	component                func(Visitor[T], *Component) error
+	componentList            func(Visitor[T], *ComponentList) error
+	componentListEntry       func(Visitor[T], *ComponentListEntry) error
+	container                func(Visitor[T], *Container) error
+	crontab                  func(Visitor[T], *time.CronTab) error
+	current                  func(Visitor[T], *Current) error
+	dashboard                func(Visitor[T], *Dashboard) error
+	dashboardList            func(Visitor[T], *DashboardList) error
+	expression               func(Visitor[T], *Expression) error
+	function                 func(Visitor[T], *Function) error
+	gauge                    func(Visitor[T], *Gauge) error
+	http                     func(Visitor[T], *Http) error
+	httpFormat               func(Visitor[T], *HttpFormat) error
+	i2c                      func(Visitor[T], *I2C) error
+	load                     func(Visitor[T], *Load) error
+	location                 func(Visitor[T], *location.Location) error
+	locationExpression       func(Visitor[T], *LocationExpression) error
+	metric                   func(Visitor[T], *Metric) error
+	metricExpression         func(Visitor[T], *MetricExpression) error
+	metricList               func(Visitor[T], *MetricList) error
+	metricPattern            func(Visitor[T], *MetricPattern) error
+	multiValue               func(Visitor[T], *MultiValue) error
+	publisher                func(Visitor[T], *Publisher) error
+	sensor                   func(Visitor[T], *Sensor) error
+	sensorList               func(Visitor[T], *SensorList) error
+	serial                   func(Visitor[T], *Serial) error
+	sourceParameter          func(Visitor[T], *SourceParameter) error
+	sourceParameterList      func(Visitor[T], *SourceParameterList) error
+	sourceParameterListEntry func(Visitor[T], *SourceParameterListEntry) error
+	sourcePath               func(Visitor[T], *SourcePath) error
+	sourceWithin             func(Visitor[T], *SourceWithin) error
+	station                  func(Visitor[T], *Station) error
+	stations                 func(Visitor[T], *Stations) error
+	text                     func(Visitor[T], *Text) error
+	unit                     func(Visitor[T], *units.Unit) error
+	useFirst                 func(Visitor[T], *UseFirst) error
+	value                    func(Visitor[T], *Value) error
 }
 
 func (c *visitor[T]) Get() T {

@@ -8,7 +8,7 @@ import (
 
 type SourceParameterList struct {
 	Pos        lexer.Position
-	Parameters []*SourceParameter `parser:"@@+"`
+	Parameters []*SourceParameterListEntry `parser:"@@*"`
 }
 
 func (c *visitor[T]) SourceParameterList(d *SourceParameterList) error {
@@ -24,7 +24,7 @@ func (c *visitor[T]) SourceParameterList(d *SourceParameterList) error {
 
 		if err == nil {
 			for _, e := range d.Parameters {
-				err = c.SourceParameter(e)
+				err = c.SourceParameterListEntry(e)
 				if err != nil {
 					break
 				}
@@ -35,11 +35,6 @@ func (c *visitor[T]) SourceParameterList(d *SourceParameterList) error {
 	}
 
 	return err
-}
-
-func initSourceParameterList(v Visitor[*initState], d *SourceParameterList) error {
-	v.Get().sensorParameters = make(map[string]*SourceParameter)
-	return nil
 }
 
 func (b *builder[T]) SourceParameterList(f func(Visitor[T], *SourceParameterList) error) Builder[T] {
