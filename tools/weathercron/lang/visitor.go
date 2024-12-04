@@ -1,6 +1,8 @@
 package lang
 
-import "errors"
+import (
+	"github.com/peter-mount/piweather.center/config/util"
+)
 
 type Visitor[T any] interface {
 	At(*At) error
@@ -40,22 +42,13 @@ func (v *visitor[T]) SetData(data T) Visitor[T] {
 	}
 }
 
-// VisitorStop is an error which causes the current step in a Visitor to stop processing.
-// It's used to enable a Visitor to handle all processing of a node within itself rather
-// than the Visitor proceeding to any child nodes of that node.
-var VisitorStop = errors.New("visitor stop")
-
-func IsVisitorStop(err error) bool {
-	return err != nil && errors.Is(err, VisitorStop)
-}
-
 func (v *visitor[T]) Script(b *Script) error {
 	var err error
 	if b != nil {
 		if v.script != nil {
 			err = v.script(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -76,7 +69,7 @@ func (v *visitor[T]) At(b *At) error {
 		if v.cron != nil {
 			err = v.at(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -89,7 +82,7 @@ func (v *visitor[T]) Cron(b *Cron) error {
 		if v.cron != nil {
 			err = v.cron(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -102,7 +95,7 @@ func (v *visitor[T]) Every(b *Every) error {
 		if v.every != nil {
 			err = v.every(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -115,7 +108,7 @@ func (v *visitor[T]) Rule(b *Rule) error {
 		if v.rule != nil {
 			err = v.rule(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -128,7 +121,7 @@ func (v *visitor[T]) Schedule(b *Schedule) error {
 		if v.schedule != nil {
 			err = v.schedule(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -153,7 +146,7 @@ func (v *visitor[T]) TaskRule(b *TaskRule) error {
 		if v.taskRule != nil {
 			err = v.taskRule(v, b)
 		}
-		if IsVisitorStop(err) {
+		if util.IsVisitorStop(err) {
 			return nil
 		}
 	}
