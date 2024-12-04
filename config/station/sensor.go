@@ -12,7 +12,7 @@ type SensorList struct {
 
 type Sensor struct {
 	Pos       lexer.Position
-	Target    string        `parser:"'sensor' '(' @String"`
+	Target    *Metric       `parser:"'sensor' '(' @@"`
 	Device    string        `parser:"'driver' '(' @String ')'"`
 	I2C       *I2C          `parser:"( @@"`
 	Serial    *Serial       `parser:"| @@ )"`

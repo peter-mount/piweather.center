@@ -8,7 +8,7 @@ import (
 func (s *Service) publisher(sensor *station.Sensor) publisher.Publisher {
 
 	pubBuilder := publisher.NewBuilder().
-		SetId(sensor.Target).
+		SetId(sensor.Target.Name).
 		FilterEmpty()
 
 	for _, p := range sensor.Publisher {

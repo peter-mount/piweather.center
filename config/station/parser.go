@@ -38,6 +38,7 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 			MetricExpression(s.metricExpression).
 			MetricPattern(s.metricPattern).
 			Sensor(s.sensor).
+			SensorList(s.sensorList).
 			Serial(s.serial).
 			Station(s.station).
 			Stations(s.stations).
@@ -372,26 +373,25 @@ func (s *state) sensorList(_ Visitor[*state], d *SensorList) error {
 }
 
 func (s *state) sensor(_ Visitor[*state], d *Sensor) error {
-
-	d.Target = strings.TrimSpace(d.Target)
-	d.Device = strings.TrimSpace(d.Device)
-
-	if d.Target == "" {
-		return participle.Errorf(d.Pos, "no device defined")
+	// Should never occur
+	if d.Target == nil {
+		return participle.Errorf(d.Pos, "target is required")
 	}
+
+	if d.Target.Unit != nil {
+		return participle.Errorf(d.Target.Unit.Pos, "unit is invalid as a target for sensors")
+	}
+
+	d.Device = strings.TrimSpace(d.Device)
 	if d.Device == "" {
 		return participle.Errorf(d.Pos, "no device defined")
 	}
 
-	// Ensure we have our stationId present
-	d.Target = s.prefixMetric(d.Target)
-
-	// Check Target is unique
-	if e, exists := s.sensors[d.Target]; exists {
-		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target, e.Pos)
+	// Check Target is unique within the station
+	if e, exists := s.sensors[d.Target.Name]; exists {
+		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target.Name, e.Pos)
 	}
-
-	// Note: Device will be checked at runtime
+	s.sensors[d.Target.Name] = d
 
 	return nil
 }

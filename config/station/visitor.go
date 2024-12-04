@@ -622,6 +622,10 @@ func (c *visitor[T]) Sensor(d *Sensor) error {
 		}
 
 		if err == nil {
+			err = c.Metric(d.Target)
+		}
+
+		if err == nil {
 			err = c.I2C(d.I2C)
 		}
 
