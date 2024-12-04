@@ -3,6 +3,7 @@
 package weathersensor
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/sensors/bus"
@@ -34,9 +35,21 @@ func (s *Service) i2cSensor(v station.Visitor[*state], sensor *station.I2C) erro
 
 		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition)
 
+		s.addSensor(
+			"i2c",
+			st.station.Name,
+			st.sensor.Target.OriginalName,
+			"poll "+st.sensor.Poll.Definition,
+			fmt.Sprintf("%d:0x%02x", sensor.Bus, sensor.Device),
+			"")
+
 	case bus.PushReading:
-		return errors.Errorf(sensor.Pos, "push readings not supported for i2c")
+		err = errors.Errorf(sensor.Pos, "push readings not supported for i2c")
 	}
 
-	return err
+	if err == nil {
+		s.sensorCount++
+	}
+
+	return errors.Error(sensor.Pos, err)
 }

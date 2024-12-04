@@ -14,9 +14,10 @@ import (
 // This is used either as inbound, e.g. we need to retrieve the named metric,
 // or outbound as in the target metric in a calculation
 type Metric struct {
-	Pos  lexer.Position
-	Name string      `parser:"@String"` // metric name
-	Unit *units.Unit `parser:"@@?"`     // optional Unit we require the metric to be in
+	Pos          lexer.Position
+	Name         string      `parser:"@String"` // metric name
+	Unit         *units.Unit `parser:"@@?"`     // optional Unit we require the metric to be in
+	OriginalName string      // Set by init, original Name before any changes
 }
 
 func (c *visitor[T]) Metric(d *Metric) error {
@@ -50,12 +51,17 @@ func initMetric(v Visitor[*initState], d *Metric) error {
 		err = errors.Errorf(d.Pos, "metric name is required")
 	}
 
-	if err == nil && strings.ContainsAny(d.Name, " ") {
-		err = errors.Errorf(d.Pos, "metric name must not include spaces")
+	if err == nil && strings.ContainsAny(d.Name, " /") {
+		err = errors.Errorf(d.Pos, "metric name must not include '/' or spaces")
 	}
 
 	// Prefix with the stationId & sensorId to become a full metric id
-	d.Name = s.prefixMetric(d.Name)
+	if err == nil {
+		if d.OriginalName == "" {
+			d.OriginalName = d.Name
+		}
+		d.Name = s.prefixMetric(d.Name)
+	}
 
 	return errors.Error(d.Pos, err)
 }

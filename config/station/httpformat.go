@@ -4,9 +4,14 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
+	"strings"
 )
 
 type HttpFormatType uint8
+
+func (t HttpFormatType) String() string {
+	return httpFormatName[t]
+}
 
 const (
 	// HttpFormatJson indicates data will be in JSON
@@ -19,6 +24,10 @@ const (
 	HttpFormatPost
 	// HttpFormatCarbon is formatted string: "key value timestamp" where timestamp is in unix seconds
 	HttpFormatCarbon
+)
+
+var (
+	httpFormatName = []string{"json", "xml", "yaml", "post", "carbon"}
 )
 
 // HttpFormat defines the format of the incoming data.
@@ -69,4 +78,21 @@ func (d *HttpFormat) GetType() HttpFormatType {
 		}
 	}
 	return HttpFormatJson
+}
+
+func ParseHttpFormatType(s string) HttpFormatType {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "carbon":
+		return HttpFormatCarbon
+	case "json":
+		return HttpFormatJson
+	case "post", "query", "querystring", "form":
+		return HttpFormatPost
+	case "xml":
+		return HttpFormatXml
+	case "yaml", "yml":
+		return HttpFormatYaml
+	default:
+		return HttpFormatJson
+	}
 }

@@ -20,6 +20,9 @@ type Reading struct {
 
 	// Device model
 	Device string
+
+	// Source of the message, only used by http
+	Source string
 }
 
 // IsEmpty returns true if the Reading is nil, it has no Time set, or it has no readings

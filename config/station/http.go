@@ -8,10 +8,10 @@ import (
 
 type Http struct {
 	Pos              lexer.Position
-	Method           string               `parser:"'http' @('get'|'post') '('"` // Http method to accept
-	Format           *HttpFormat          `parser:"@@?"`                        // Format of the data, default is json
-	Timestamp        *SourcePath          `parser:"('timestamp' '(' @@ ')')?"`  // Timestamp source parameter, time.Now() if not defined
-	SourceParameters *SourceParameterList `parser:"@@ ')'"`                     // Parameters to read from source
+	Method           string               `parser:"'http' @('get'|'post'|'put'|'patch') '('"` // Http method to accept
+	Format           *HttpFormat          `parser:"@@?"`                                      // Format of the data, default is json
+	Timestamp        *SourcePath          `parser:"('timestamp' '(' @@ ')')?"`                // Timestamp source parameter, time.Now() if not defined
+	SourceParameters *SourceParameterList `parser:"@@ ')'"`                                   // Parameters to read from source
 }
 
 func (c *visitor[T]) Http(d *Http) error {

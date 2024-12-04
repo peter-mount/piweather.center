@@ -2,17 +2,23 @@ package weathersensor
 
 import (
 	"context"
+	errors2 "errors"
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-kernel/v2/rest"
+	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/util/config"
+	"github.com/peter-mount/piweather.center/util/table"
 	"path/filepath"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -22,7 +28,14 @@ type Service struct {
 	Config         config.Manager        `kernel:"inject"`
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	Stations       *station.Stations     `kernel:"inject"`
-	dashDir        string
+	Rest           *rest.Server          `kernel:"inject"`
+	WebPrefix      *string               `kernel:"flag,web-prefix,Prefix for http endpoints,/i"`
+	// internal from here
+	dashDir     string
+	mutex       sync.Mutex
+	httpSensors map[string]map[string]map[string]*station2.Http // lookup for each http sensor for rest service
+	sensorTable *table.Table                                    // Used for debugging
+	sensorCount int                                             // Number of sensors defined
 }
 
 const (
@@ -30,8 +43,10 @@ const (
 	fileSuffix = ".sensor"
 )
 
-func (s *Service) Start() error {
+func (s *Service) PostInit() error {
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
+	s.httpSensors = make(map[string]map[string]map[string]*station2.Http)
+	s.sensorTable = table.New("Station", "Sensor", "Type", "Path", "Method", "Options")
 
 	// Load existing dashboards
 	stations, err := s.Stations.LoadDirectory(s.dashDir, fileSuffix, station.SensorOption)
@@ -39,20 +54,87 @@ func (s *Service) Start() error {
 		return err
 	}
 
-	if err := station2.NewBuilder[*state]().
+	// Configure the sensors
+	err = station2.NewBuilder[*state]().
+		Http(s.httpSensor).
 		I2C(s.i2cSensor).
 		Sensor(s.sensor).
 		Serial(s.serialSensor).
 		Station(s.station).
 		Build().
 		Set(&state{service: s}).
-		Stations(stations); err != nil {
+		Stations(stations)
+	if err != nil {
 		return err
+	}
+
+	// Fail is we have no sensors defined
+	if s.sensorCount == 0 {
+		return errors2.New("no sensors defined")
+	}
+
+	// Disable http if we don't need it
+	if len(s.httpSensors) == 0 {
+		s.Rest.Disable()
+	}
+
+	return nil
+}
+
+func (s *Service) webPath(stationId, sensorId string) string {
+	return strings.Join([]string{*s.WebPrefix, stationId, sensorId}, "/")
+}
+
+func (s *Service) Start() error {
+
+	// Add the web endpoint for each method requested
+	if len(s.httpSensors) > 0 {
+		webPath := s.webPath("{stationId}", "{sensorId}")
+		for k, _ := range s.httpSensors {
+			s.Rest.Handle(webPath, s.handleHttp).Methods(k)
+		}
 	}
 
 	s.Daemon.SetDaemon()
 
-	log.Println(version.Version)
+	if log.IsVerbose() {
+		log.Println(version.Version)
+		log.Printf("Sensors:\n%s", s.sensorTable.SortTable(0, 1, 2).String())
+	}
+	return nil
+}
+
+func (s *Service) addHttp(method, stationId, sensorId string, d *station2.Http) error {
+	s.addSensor("http", stationId, sensorId, d.Method, s.webPath(stationId, sensorId), "")
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	m1, ok := s.httpSensors[method]
+	if !ok {
+		m1 = make(map[string]map[string]*station2.Http)
+		s.httpSensors[method] = m1
+	}
+	m2, ok := m1[stationId]
+	if !ok {
+		m2 = make(map[string]*station2.Http)
+		m1[stationId] = m2
+	}
+
+	if e, ok := m2[sensorId]; ok {
+		return errors.Errorf(d.Pos, "http %s already present at %s", d.Method, e.Pos)
+	}
+
+	m2[sensorId] = d
+	return nil
+}
+
+func (s *Service) GetHttp(method, stationId, sensorId string) *station2.Http {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if m1, ok := s.httpSensors[method]; ok {
+		if m2, ok := m1[stationId]; ok {
+			return m2[sensorId]
+		}
+	}
 	return nil
 }
 
@@ -101,4 +183,8 @@ func (s *Service) RunDevice(dev device.Device, instance device.Instance, publish
 			}
 		}
 	}()
+}
+
+func (s *Service) addSensor(bus, stationId, sensorId, mode, path, options string) {
+	s.sensorTable.NewRow().Add(stationId).Add(sensorId).Add(bus).Add(path).Add(mode).Add(options)
 }

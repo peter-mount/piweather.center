@@ -6,7 +6,6 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/time"
-	"log"
 )
 
 type Sensor struct {
@@ -34,32 +33,40 @@ func (c *visitor[T]) Sensor(d *Sensor) error {
 		}
 
 		if err == nil {
-			err = c.Http(d.Http)
-		}
-
-		if err == nil {
-			err = c.I2C(d.I2C)
-		}
-
-		if err == nil {
-			err = c.Serial(d.Serial)
-		}
-
-		if err == nil {
-			err = c.CronTab(d.Poll)
-		}
-
-		if err == nil {
-			for _, e := range d.Publisher {
-				err = c.Publisher(e)
-				if err != nil {
-					break
-				}
-			}
+			err = c.sensorCommon(d)
 		}
 
 		err = errors.Error(d.Pos, err)
 	}
+	return err
+}
+
+// Shared by visitor.Sensor() and initSensor()
+// Used specifically to ensure we visit everything EXCEPT the target metric during init
+func (c *visitor[T]) sensorCommon(d *Sensor) error {
+	var err error
+	switch {
+	case d.Http != nil:
+		err = c.Http(d.Http)
+	case d.I2C != nil:
+		err = c.I2C(d.I2C)
+	case d.Serial != nil:
+		err = c.Serial(d.Serial)
+	}
+
+	if err == nil {
+		err = c.CronTab(d.Poll)
+	}
+
+	if err == nil {
+		for _, e := range d.Publisher {
+			err = c.Publisher(e)
+			if err != nil {
+				break
+			}
+		}
+	}
+
 	return err
 }
 
@@ -82,9 +89,8 @@ func initSensor(v Visitor[*initState], d *Sensor) error {
 	s.sensors[d.Target.Name] = d
 
 	s.sensorPrefix = d.Target.Name + "."
-	log.Printf("sensor %q", d.Target.Name)
 
-	return nil
+	return (v.(*visitor[*initState])).sensorCommon(d)
 }
 
 func (b *builder[T]) Sensor(f func(Visitor[T], *Sensor) error) Builder[T] {

@@ -21,7 +21,7 @@ type Stations struct {
 	loadVisitor       station.Visitor[*visitorState] // Visitor to handle new metrics
 }
 
-func (s *Stations) Start() error {
+func (s *Stations) PostInit() error {
 	s.stations = make(map[string]*Station)
 
 	// Visitor to add a station & it's dashboards to this instance

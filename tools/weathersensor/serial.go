@@ -3,6 +3,7 @@
 package weathersensor
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/sensors/bus"
@@ -37,9 +38,29 @@ func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial
 
 		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition)
 
+		s.addSensor(
+			"serial",
+			st.station.Name,
+			st.sensor.Target.OriginalName,
+			"poll "+st.sensor.Poll.Definition,
+			sensor.Port,
+			fmt.Sprintf("%d", sensor.BaudRate))
+
 	case bus.PushReading:
 		s.RunDevice(dev, instance, publisher)
+
+		s.addSensor(
+			"serial",
+			st.station.Name,
+			st.sensor.Target.OriginalName,
+			"push",
+			sensor.Port,
+			fmt.Sprintf("%d", sensor.BaudRate))
 	}
 
-	return err
+	if err == nil {
+		s.sensorCount++
+	}
+
+	return errors.Error(sensor.Pos, err)
 }
