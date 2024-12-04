@@ -1,11 +1,9 @@
 package station
 
 import (
-	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
-	"strings"
 )
 
 type Serial struct {
@@ -31,25 +29,6 @@ func (c *visitor[T]) Serial(d *Serial) error {
 		err = errors.Error(d.Pos, err)
 	}
 	return err
-}
-
-func initSerial(_ Visitor[*initState], d *Serial) error {
-	d.Driver = strings.TrimSpace(d.Driver)
-	if d.Driver == "" {
-		return participle.Errorf(d.Pos, "no Driver defined")
-	}
-
-	d.Port = strings.TrimSpace(d.Port)
-	if d.Port == "" {
-		return participle.Errorf(d.Pos, "no serial port defined")
-	}
-
-	// TODO define a common list of baud rates here?
-	if d.BaudRate < 300 {
-		return participle.Errorf(d.Pos, "Invalid baud rate")
-	}
-
-	return nil
 }
 
 func (b *builder[T]) Serial(f func(Visitor[T], *Serial) error) Builder[T] {

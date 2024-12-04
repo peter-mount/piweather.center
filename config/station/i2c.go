@@ -1,11 +1,9 @@
 package station
 
 import (
-	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
-	"strings"
 )
 
 type I2C struct {
@@ -29,18 +27,6 @@ func (c *visitor[T]) I2C(d *I2C) error {
 		err = errors.Error(d.Pos, err)
 	}
 	return err
-}
-
-func initI2c(_ Visitor[*initState], d *I2C) error {
-	d.Driver = strings.TrimSpace(d.Driver)
-	if d.Driver == "" {
-		return participle.Errorf(d.Pos, "no Driver defined")
-	}
-
-	if d.Bus < 1 || d.Device < 1 {
-		return participle.Errorf(d.Pos, "invalid i2c address, got (%d:%d)", d.Bus, d.Device)
-	}
-	return nil
 }
 
 func (b *builder[T]) I2C(f func(Visitor[T], *I2C) error) Builder[T] {
