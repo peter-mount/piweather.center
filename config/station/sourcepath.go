@@ -53,3 +53,7 @@ func initSourcePath(v Visitor[*initState], d *SourcePath) error {
 
 	return nil
 }
+
+func (d *SourcePath) String() string {
+	return strings.Join(d.Path, ".")
+}

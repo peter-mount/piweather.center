@@ -27,6 +27,13 @@ func (s *Unit) Convert(v value.Value) (value.Value, error) {
 	return v.As(s.unit)
 }
 
+func (s *Unit) Value(f float64) value.Value {
+	if s != nil && s.unit != nil {
+		return s.unit.Value(f)
+	}
+	return value.Value{}
+}
+
 func (s *Unit) Init() error {
 	if s == nil || s.Using == "" {
 		return nil

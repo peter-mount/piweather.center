@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/sensors/reading"
 	"github.com/peter-mount/piweather.center/store/api"
-	"strings"
 )
 
 // logPublisher is a Publisher which will log the Reading as JSON to the log
@@ -52,11 +51,7 @@ type DBPublisher interface {
 func dbPublisher(p DBPublisher) Publisher {
 	return func(r *reading.Reading) error {
 		for key, value := range r.Readings {
-			metric := api.NewMetric(
-				strings.Join([]string{r.ID, key}, "."),
-				r.Time,
-				value,
-			)
+			metric := api.NewMetric(key, r.Time, value)
 			err := p.PublishMetric(metric)
 			if err != nil {
 				return err

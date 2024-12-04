@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/tools/weathersensor/payload"
 	"io"
 	"net/http"
 	"strings"
@@ -14,7 +13,7 @@ import (
 func (s *Service) httpSensor(v station.Visitor[*state], d *station.Http) error {
 	st := v.Get()
 
-	err := s.addHttp(strings.ToUpper(d.Method), st.station.Name, st.sensor.Target.OriginalName, d)
+	err := s.addHttp(strings.ToUpper(d.Method), st.station.Name, st.sensor.Target.OriginalName, st.sensor)
 
 	if err == nil {
 		s.sensorCount++
@@ -26,7 +25,6 @@ func (s *Service) httpSensor(v station.Visitor[*state], d *station.Http) error {
 func (s *Service) handleHttp(r *rest.Rest) error {
 	stationId := r.Var("stationId")
 	sensorId := r.Var("sensorId")
-	log.Printf("http for %q %q", stationId, sensorId)
 
 	d := s.GetHttp(r.Request().Method, stationId, sensorId)
 	if d == nil {
@@ -35,24 +33,25 @@ func (s *Service) handleHttp(r *rest.Rest) error {
 	}
 
 	var body []byte
-	switch d.Method {
+	switch d.Http.Method {
 	case "get":
 		body = []byte(r.Request().URL.RawQuery)
 	case "post", "put", "patch":
 		body, _ = io.ReadAll(r.Request().Body)
-	default:
+	}
+	if len(body) == 0 {
 		r.Status(http.StatusBadRequest)
 		return nil
 	}
 
-	p, err := payload.FromBytes(sensorId, d.Format.GetType(), d.Timestamp, body)
-	if err == nil && p != nil {
-		//
-		log.Printf("Got %s\ntime %v", string(body), p.Time())
-	}
+	err := s.process(stationId+"."+sensorId, d, body)
 	if err != nil {
-		log.Println(err)
+		r.Status(http.StatusInternalServerError).
+			ContentType("text/plain; charset=utf-8").
+			Value(errors.Error(d.Pos, err).Error())
+
+		log.Printf("http %s for %s.%s: %v", d.Http.Method, stationId, sensorId, err)
 	}
 
-	return errors.Error(d.Pos, err)
+	return nil
 }

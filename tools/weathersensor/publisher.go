@@ -17,6 +17,7 @@ func (s *Service) publisher(sensor *station.Sensor) publisher.Publisher {
 			pubBuilder = pubBuilder.Log()
 		case p.DB:
 			pubBuilder = pubBuilder.DB(s.DatabaseBroker)
+			//pubBuilder = pubBuilder.DB(s)
 		}
 	}
 

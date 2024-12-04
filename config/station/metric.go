@@ -56,10 +56,8 @@ func initMetric(v Visitor[*initState], d *Metric) error {
 	}
 
 	// Prefix with the stationId & sensorId to become a full metric id
-	if err == nil {
-		if d.OriginalName == "" {
-			d.OriginalName = d.Name
-		}
+	if err == nil && d.OriginalName == "" {
+		d.OriginalName = d.Name
 		d.Name = s.prefixMetric(d.Name)
 	}
 

@@ -22,7 +22,7 @@ func registerI2CDevice(device Device) {
 	name := strings.ToLower(device.Info().ID)
 	mutex.Lock()
 	defer mutex.Unlock()
-	if _, exists := serialDevices[name]; exists {
+	if _, exists := i2cDevices[name]; exists {
 		panic(fmt.Errorf("i2c %s device with name %q already exists", name))
 	}
 	i2cDevices[name] = device

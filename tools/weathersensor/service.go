@@ -13,6 +13,7 @@ import (
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/station"
+	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/broker"
 	"github.com/peter-mount/piweather.center/util/config"
 	"github.com/peter-mount/piweather.center/util/table"
@@ -31,11 +32,12 @@ type Service struct {
 	Rest           *rest.Server          `kernel:"inject"`
 	WebPrefix      *string               `kernel:"flag,web-prefix,Prefix for http endpoints,/i"`
 	// internal from here
-	dashDir     string
-	mutex       sync.Mutex
-	httpSensors map[string]map[string]map[string]*station2.Http // lookup for each http sensor for rest service
-	sensorTable *table.Table                                    // Used for debugging
-	sensorCount int                                             // Number of sensors defined
+	dashDir       string
+	mutex         sync.Mutex
+	httpSensors   map[string]map[string]map[string]*station2.Sensor // lookup for each http sensor for rest service
+	httpPublisher map[string]publisher.Publisher                    // map of publishers
+	sensorTable   *table.Table                                      // Used for debugging
+	sensorCount   int                                               // Number of sensors defined
 }
 
 const (
@@ -45,7 +47,8 @@ const (
 
 func (s *Service) PostInit() error {
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
-	s.httpSensors = make(map[string]map[string]map[string]*station2.Http)
+	s.httpSensors = make(map[string]map[string]map[string]*station2.Sensor)
+	s.httpPublisher = make(map[string]publisher.Publisher)
 	s.sensorTable = table.New("Station", "Sensor", "Type", "Path", "Method", "Options")
 
 	// Load existing dashboards
@@ -104,30 +107,38 @@ func (s *Service) Start() error {
 	return nil
 }
 
-func (s *Service) addHttp(method, stationId, sensorId string, d *station2.Http) error {
-	s.addSensor("http", stationId, sensorId, d.Method, s.webPath(stationId, sensorId), "")
+func (s *Service) GetPublisher(id string) publisher.Publisher {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.httpPublisher[id]
+}
+
+func (s *Service) addHttp(method, stationId, sensorId string, d *station2.Sensor) error {
+	s.addSensor("http", stationId, sensorId, d.Http.Method, s.webPath(stationId, sensorId), "")
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	m1, ok := s.httpSensors[method]
 	if !ok {
-		m1 = make(map[string]map[string]*station2.Http)
+		m1 = make(map[string]map[string]*station2.Sensor)
 		s.httpSensors[method] = m1
 	}
 	m2, ok := m1[stationId]
 	if !ok {
-		m2 = make(map[string]*station2.Http)
+		m2 = make(map[string]*station2.Sensor)
 		m1[stationId] = m2
 	}
 
 	if e, ok := m2[sensorId]; ok {
-		return errors.Errorf(d.Pos, "http %s already present at %s", d.Method, e.Pos)
+		return errors.Errorf(d.Pos, "http %s already present at %s", d.Http.Method, e.Pos)
 	}
 
 	m2[sensorId] = d
+
+	s.httpPublisher[stationId+"."+sensorId] = s.publisher(d)
 	return nil
 }
 
-func (s *Service) GetHttp(method, stationId, sensorId string) *station2.Http {
+func (s *Service) GetHttp(method, stationId, sensorId string) *station2.Sensor {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if m1, ok := s.httpSensors[method]; ok {
@@ -187,4 +198,9 @@ func (s *Service) RunDevice(dev device.Device, instance device.Instance, publish
 
 func (s *Service) addSensor(bus, stationId, sensorId, mode, path, options string) {
 	s.sensorTable.NewRow().Add(stationId).Add(sensorId).Add(bus).Add(path).Add(mode).Add(options)
+}
+
+func (s *Service) PublishMetric(m api.Metric) error {
+	log.Printf("DB Pub %v", m)
+	return nil
 }
