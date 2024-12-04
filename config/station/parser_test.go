@@ -334,35 +334,35 @@ station( "home"
 				},
 				{
 					name:   "axis",
-					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" max 10 )))`,
+					script: `station("home" dashboard("home" gauge( "label" max 10 "ecowitt.temp" )))`,
 				},
 				{
 					name:   "axis",
-					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" max 10.5 )))`,
+					script: `station("home" dashboard("home" gauge( "label" max 10.5 "ecowitt.temp" )))`,
 				},
 				{
 					name:   "axis",
-					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" min 5 max 10 )))`,
+					script: `station("home" dashboard("home" gauge( "label" min 5 max 10 "ecowitt.temp" )))`,
 				},
 				{
 					name:   "axisxx",
-					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" min 5 max 10 ticks 2)))`,
+					script: `station("home" dashboard("home" gauge( "label" min 5 max 10 ticks 2"ecowitt.temp" )))`,
 				},
 				{
 					name:   "axis",
-					script: `station("home" dashboard("home" gauge( "label" "ecowitt.temp" max 10 ticks 10 )))`,
+					script: `station("home" dashboard("home" gauge( "label" max 10 ticks 10 "ecowitt.temp" )))`,
 				},
 				{
 					name:   "axis neg min",
-					script: `station("home" dashboard("home" gauge( "Temperature" "ecowitt.temp" min -10 max 40 ticks 10 ) ))`,
+					script: `station("home" dashboard("home" gauge( "Temperature" min -10 max 40 ticks 10 "ecowitt.temp" ) ))`,
 				},
 				{
 					name:   "axis",
-					script: `station("home" dashboard("home" gauge( "Temperature" "ecowitt.temp" "pseudo1.maxtemp" min -10 max 40 ticks 10 ) ))`,
+					script: `station("home" dashboard("home" gauge( "Temperature" min -10 max 40 ticks 10 "ecowitt.temp" "pseudo1.maxtemp" ) ))`,
 				},
 				{
 					name:   "axis",
-					script: `station("home" dashboard("home" gauge( "Temperature" "ecowitt.temp" "pseudo1.maxtemp" "pseudo1.mintemp" min -10 max 40 ticks 10 ) ))`,
+					script: `station("home" dashboard("home" gauge( "Temperature" min -10 max 40 ticks 10 "ecowitt.temp" "pseudo1.maxtemp" "pseudo1.mintemp" ) ))`,
 				},
 			},
 		},
