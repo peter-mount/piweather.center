@@ -21,6 +21,8 @@ type Builder[T any] interface {
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
 	Function(func(Visitor[T], *Function) error) Builder[T]
 	Gauge(func(Visitor[T], *Gauge) error) Builder[T]
+	Http(func(Visitor[T], *Http) error) Builder[T]
+	HttpFormat(func(Visitor[T], *HttpFormat) error) Builder[T]
 	I2C(func(Visitor[T], *I2C) error) Builder[T]
 	Load(func(Visitor[T], *Load) error) Builder[T]
 	Location(func(Visitor[T], *location.Location) error) Builder[T]
@@ -55,83 +57,8 @@ func (b *builder[T]) Build() Visitor[T] {
 	return &visitor[T]{common: b.common}
 }
 
-func (b *builder[T]) Axis(f func(Visitor[T], *Axis) error) Builder[T] {
-	b.axis = f
-	return b
-}
-
-func (b *builder[T]) Calculation(f func(Visitor[T], *Calculation) error) Builder[T] {
-	b.calculation = f
-	return b
-}
-
-func (b *builder[T]) CalculationList(f func(Visitor[T], *CalculationList) error) Builder[T] {
-	b.calculationList = f
-	return b
-}
-
-func (b *builder[T]) Component(f func(Visitor[T], *Component) error) Builder[T] {
-	b.component = f
-	return b
-}
-
-func (b *builder[T]) ComponentList(f func(Visitor[T], *ComponentList) error) Builder[T] {
-	b.componentList = f
-	return b
-}
-
-func (b *builder[T]) ComponentListEntry(f func(Visitor[T], *ComponentListEntry) error) Builder[T] {
-	b.componentListEntry = f
-	return b
-}
-
-func (b *builder[T]) Container(f func(Visitor[T], *Container) error) Builder[T] {
-	b.container = f
-	return b
-}
-
 func (b *builder[T]) CronTab(f func(Visitor[T], *time.CronTab) error) Builder[T] {
 	b.crontab = f
-	return b
-}
-
-func (b *builder[T]) Current(f func(Visitor[T], *Current) error) Builder[T] {
-	b.current = f
-	return b
-}
-
-func (b *builder[T]) Dashboard(f func(Visitor[T], *Dashboard) error) Builder[T] {
-	b.dashboard = f
-	return b
-}
-
-func (b *builder[T]) DashboardList(f func(Visitor[T], *DashboardList) error) Builder[T] {
-	b.dashboardList = f
-	return b
-}
-
-func (b *builder[T]) Expression(f func(Visitor[T], *Expression) error) Builder[T] {
-	b.expression = f
-	return b
-}
-
-func (b *builder[T]) Function(f func(Visitor[T], *Function) error) Builder[T] {
-	b.function = f
-	return b
-}
-
-func (b *builder[T]) Gauge(f func(Visitor[T], *Gauge) error) Builder[T] {
-	b.gauge = f
-	return b
-}
-
-func (b *builder[T]) I2C(f func(Visitor[T], *I2C) error) Builder[T] {
-	b.i2c = f
-	return b
-}
-
-func (b *builder[T]) Load(f func(Visitor[T], *Load) error) Builder[T] {
-	b.load = f
 	return b
 }
 
@@ -140,82 +67,7 @@ func (b *builder[T]) Location(f func(Visitor[T], *location.Location) error) Buil
 	return b
 }
 
-func (b *builder[T]) LocationExpression(f func(Visitor[T], *LocationExpression) error) Builder[T] {
-	b.locationExpression = f
-	return b
-}
-
-func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
-	b.metric = f
-	return b
-}
-
-func (b *builder[T]) MetricExpression(f func(Visitor[T], *MetricExpression) error) Builder[T] {
-	b.metricExpression = f
-	return b
-}
-
-func (b *builder[T]) MetricList(f func(Visitor[T], *MetricList) error) Builder[T] {
-	b.metricList = f
-	return b
-}
-
-func (b *builder[T]) MetricPattern(f func(Visitor[T], *MetricPattern) error) Builder[T] {
-	b.metricPattern = f
-	return b
-}
-
-func (b *builder[T]) MultiValue(f func(Visitor[T], *MultiValue) error) Builder[T] {
-	b.multiValue = f
-	return b
-}
-
-func (b *builder[T]) Publisher(f func(Visitor[T], *Publisher) error) Builder[T] {
-	b.publisher = f
-	return b
-}
-
-func (b *builder[T]) Sensor(f func(Visitor[T], *Sensor) error) Builder[T] {
-	b.sensor = f
-	return b
-}
-
-func (b *builder[T]) SensorList(f func(Visitor[T], *SensorList) error) Builder[T] {
-	b.sensorList = f
-	return b
-}
-
-func (b *builder[T]) Serial(f func(Visitor[T], *Serial) error) Builder[T] {
-	b.serial = f
-	return b
-}
-
-func (b *builder[T]) Station(f func(Visitor[T], *Station) error) Builder[T] {
-	b.station = f
-	return b
-}
-
-func (b *builder[T]) Stations(f func(Visitor[T], *Stations) error) Builder[T] {
-	b.stations = f
-	return b
-}
-
-func (b *builder[T]) Text(f func(Visitor[T], *Text) error) Builder[T] {
-	b.text = f
-	return b
-}
-
 func (b *builder[T]) Unit(f func(Visitor[T], *units.Unit) error) Builder[T] {
 	b.unit = f
-	return b
-}
-
-func (b *builder[T]) UseFirst(f func(Visitor[T], *UseFirst) error) Builder[T] {
-	b.useFirst = f
-	return b
-}
-
-func (b *builder[T]) Value(f func(Visitor[T], *Value) error) Builder[T] {
-	b.value = f
 	return b
 }

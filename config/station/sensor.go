@@ -1,14 +1,12 @@
 package station
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/go-script/errors"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/time"
 )
-
-type SensorList struct {
-	Pos     lexer.Position
-	Sensors []*Sensor `parser:"@@*"`
-}
 
 type Sensor struct {
 	Pos       lexer.Position
@@ -19,26 +17,68 @@ type Sensor struct {
 	Publisher []*Publisher  `parser:"'publish' '(' @@+ ')' ')'"`
 }
 
-type Publisher struct {
-	Pos lexer.Position
-	Log bool `parser:"( @'log'"`
-	DB  bool `parser:"| @'db' )"`
+func (c *visitor[T]) Sensor(d *Sensor) error {
+	var err error
+	if d != nil {
+		if c.sensor != nil {
+			err = c.sensor(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = c.Metric(d.Target)
+		}
+
+		if err == nil {
+			err = c.I2C(d.I2C)
+		}
+
+		if err == nil {
+			err = c.Serial(d.Serial)
+		}
+
+		if err == nil {
+			err = c.CronTab(d.Poll)
+		}
+
+		if err == nil {
+			for _, e := range d.Publisher {
+				err = c.Publisher(e)
+				if err != nil {
+					break
+				}
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
 }
 
-type I2C struct {
-	Pos lexer.Position
-	// smbus is a subset of i2c so it's an alias here
-	Driver string `parser:"('i2c'|'smbus') '(' @String"` // device driver id
-	Bus    int    `parser:"    @Number"`                 // i2c bus id in the OS kernel
-	Device int    `parser:"':' @Number ')'"`             // i2c address on the specific bus
+func initSensor(v Visitor[*initState], d *Sensor) error {
+	s := v.Get()
+
+	// Should never occur
+	if d.Target == nil {
+		return participle.Errorf(d.Pos, "target is required")
+	}
+
+	if d.Target.Unit != nil {
+		return participle.Errorf(d.Target.Unit.Pos, "unit is invalid as a target for sensors")
+	}
+
+	// Check Target is unique within the station
+	if e, exists := s.sensors[d.Target.Name]; exists {
+		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target.Name, e.Pos)
+	}
+	s.sensors[d.Target.Name] = d
+
+	return nil
 }
 
-type Serial struct {
-	Pos      lexer.Position
-	Driver   string `parser:"'serial' '(' @String"` // device driver id
-	Port     string `parser:" @String"`             // serial port
-	BaudRate int    `parser:" @Number ')'"`         // Baud rate
-	//DataBits int    `parser:"('data' @('5'|'6'|'7'|'8'))?"`
-	//Parity   string `parser:"('parity' @('no'|'none'|'odd'|'even'))?"`
-	//StopBits string `parser:"('stop' @('1'|'1.5'|'2'))?"`
+func (b *builder[T]) Sensor(f func(Visitor[T], *Sensor) error) Builder[T] {
+	b.sensor = f
+	return b
 }

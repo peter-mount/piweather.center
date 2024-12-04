@@ -3,9 +3,8 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util/units"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/weather/value"
 )
 
 type ComponentType interface {
@@ -47,100 +46,30 @@ type Component struct {
 	dashboard *Dashboard // link to dashboard
 }
 
+func (c *visitor[T]) Component(d *Component) error {
+	var err error
+	if d != nil {
+		if c.component != nil {
+			err = c.component(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (b *builder[T]) Component(f func(Visitor[T], *Component) error) Builder[T] {
+	b.component = f
+	return b
+}
+
 func (c *Component) GetID() string {
 	return c.ID
 }
 
 func (c *Component) GetType() string {
 	return "component"
-}
-
-type Value struct {
-	Pos       lexer.Position
-	Type      string      `parser:"@('value') '('"`
-	Component *Component  `parser:"@@"`
-	Label     string      `parser:"@String"`
-	Metrics   *MetricList `parser:"@@ ')'"`
-}
-
-func (c *Value) AcceptMetric(v api.Metric) bool {
-	return c != nil && c.Metrics.AcceptMetric(v)
-}
-
-func (c *Value) GetID() string {
-	return c.Component.GetID()
-}
-
-func (c *Value) GetType() string {
-	return c.Type
-}
-
-type MultiValue struct {
-	Pos       lexer.Position
-	Component *Component     `parser:"'multivalue' '(' @@"`
-	Pattern   *MetricPattern `parser:"@@"`
-	Time      bool           `parser:"@'time'? ')'"`
-}
-
-func (c *MultiValue) AcceptMetric(v api.Metric) bool {
-	return c != nil && c.Pattern.AcceptMetric(v)
-}
-
-func (c *MultiValue) GetID() string {
-	return c.Component.GetID()
-}
-
-func (c *MultiValue) GetType() string {
-	return "multivalue"
-}
-
-type Gauge struct {
-	Pos       lexer.Position
-	Type      string      `parser:"@('gauge'|'barometer'|'compass'|'inclinometer'|'raingauge') '('"`
-	Component *Component  `parser:"@@"`
-	Label     string      `parser:"@String"`
-	Unit      *units.Unit `parser:"(@@)?"`
-	Axis      *Axis       `parser:"(@@)?"`
-	Metrics   *MetricList `parser:"@@ ')'"`
-}
-
-func (c *Gauge) AcceptMetric(v api.Metric) bool {
-	return c != nil && c.Metrics.AcceptMetric(v)
-}
-
-func (c *Gauge) GetID() string {
-	return c.Component.GetID()
-}
-
-func (c *Gauge) GetType() string {
-	return c.Type
-}
-
-func (c *Gauge) Convert(v value.Value) (value.Value, error) {
-	var err error
-
-	// Convert v to either the specified unit or that of the first metric
-	if c.Unit == nil {
-		// This is safe as the parser ensures that metrics contain at least 1 metric for gauges
-		v, err = c.Metrics.Metrics[0].Convert(v)
-	} else {
-		v, err = c.Unit.Convert(v)
-	}
-
-	return v, errors.Error(c.Pos, err)
-}
-
-func (c *Gauge) ConvertAll(vals []value.Value) ([]value.Value, error) {
-	var err error
-
-	if c.Unit != nil {
-		for i, v := range vals {
-			vals[i], err = c.Unit.Convert(v)
-			if err != nil {
-				return nil, errors.Error(c.Metrics.Metrics[i].Pos, err)
-			}
-		}
-	}
-
-	return vals, nil
 }

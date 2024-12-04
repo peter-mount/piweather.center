@@ -3,6 +3,8 @@ package station
 import (
 	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/go-script/errors"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )
@@ -13,6 +15,57 @@ type Axis struct {
 	Min   float64 `parser:"('min' @('-'? Number) )?"` // Min value for the axis, defaults to 0
 	Max   float64 `parser:"('max' @('-'? Number) )?"` // Max value for the axis, defaults to 100
 	Ticks int     `parser:"('ticks' @(Number) )?"`    // Number of ticks to add after the origin
+}
+
+func (c *visitor[T]) Axis(d *Axis) error {
+	var err error
+	if d != nil {
+		if c.axis != nil {
+			err = c.axis(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func initAxis(_ Visitor[*initState], d *Axis) error {
+	var err error
+
+	// ensure min < max
+	if value.GreaterThan(d.Min, d.Max) {
+		d.Min, d.Max = d.Max, d.Min
+	}
+
+	// default values
+	if value.IsZero(d.Min) && value.IsZero(d.Max) {
+		// Default to 0...100
+		d.Min, d.Max = 0.0, 100.0
+	}
+
+	if d.Ticks == 0 {
+		// Default to 10 ticks
+		d.Ticks = 10
+	}
+
+	// verify station
+	switch {
+	case value.Equal(d.Min, d.Max):
+		err = errors.Errorf(d.Pos, "Min and Max must not be the same")
+
+	case d.Ticks < 0:
+		err = errors.Errorf(d.Pos, "Ticks %d is invalid", d.Ticks)
+	}
+
+	return errors.Error(d.Pos, err)
+}
+
+func (b *builder[T]) Axis(f func(Visitor[T], *Axis) error) Builder[T] {
+	b.axis = f
+	return b
 }
 
 // AxisDef is the output of GenAxis generating a simple axis
