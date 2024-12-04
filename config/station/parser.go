@@ -31,6 +31,8 @@ var (
 		Sensor(initSensor).
 		SensorList(initSensorList).
 		Serial(initSerial).
+		SourceParameter(initSourceParameter).
+		SourceParameterList(initSourceParameterList).
 		Station(initStation).
 		Stations(initStations).
 		Unit(initUnit).
@@ -50,13 +52,14 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 }
 
 type initState struct {
-	stationId     string                  // copy of the stationId being processed
-	stationPrefix string                  // stationId + "."
-	sensorPrefix  string                  // sensorId + "."
-	stationIds    map[string]*Station     // map of Stations
-	calculations  map[string]*Calculation // map of calculations within a Station
-	dashboards    map[string]*Dashboard   // map of Dashboards within a Station
-	sensors       map[string]*Sensor      // map of Sensors within a station
+	stationId        string                      // copy of the stationId being processed
+	stationPrefix    string                      // stationId + "."
+	sensorPrefix     string                      // sensorId + "."
+	stationIds       map[string]*Station         // map of Stations
+	calculations     map[string]*Calculation     // map of calculations within a Station
+	dashboards       map[string]*Dashboard       // map of Dashboards within a Station
+	sensors          map[string]*Sensor          // map of Sensors within a station
+	sensorParameters map[string]*SourceParameter // Map of SourceParameter's used to ensure output is unique
 }
 
 func (s *initState) prefixMetric(m string) string {

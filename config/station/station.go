@@ -51,9 +51,12 @@ func (c *visitor[T]) Station(d *Station) error {
 
 func initStation(v Visitor[*initState], d *Station) error {
 	s := v.Get()
+	// Reset the state
 	s.calculations = nil
 	s.dashboards = nil
 	s.sensors = nil
+	s.sensorPrefix = ""
+	s.stationPrefix = ""
 
 	var err error
 

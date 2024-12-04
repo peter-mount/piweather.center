@@ -8,7 +8,7 @@ import (
 
 type Stations struct {
 	Pos      lexer.Position
-	Stations []*Station `parser:"@@+"`
+	Stations []*Station `parser:"@@*"`
 }
 
 func (c *visitor[T]) Stations(d *Stations) error {

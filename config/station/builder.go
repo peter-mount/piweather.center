@@ -36,6 +36,8 @@ type Builder[T any] interface {
 	Sensor(func(Visitor[T], *Sensor) error) Builder[T]
 	SensorList(func(Visitor[T], *SensorList) error) Builder[T]
 	Serial(func(Visitor[T], *Serial) error) Builder[T]
+	SourceParameter(func(Visitor[T], *SourceParameter) error) Builder[T]
+	SourceParameterList(func(Visitor[T], *SourceParameterList) error) Builder[T]
 	Station(func(Visitor[T], *Station) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
 	Text(func(Visitor[T], *Text) error) Builder[T]

@@ -6,12 +6,14 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/time"
+	"log"
 )
 
 type Sensor struct {
 	Pos       lexer.Position
 	Target    *Metric       `parser:"'sensor' '(' @@"`
-	I2C       *I2C          `parser:"( @@"`
+	Http      *Http         `parser:"( @@"`
+	I2C       *I2C          `parser:"| @@"`
 	Serial    *Serial       `parser:"| @@ )"`
 	Poll      *time.CronTab `parser:"('poll' '(' @@ ')')?"`
 	Publisher []*Publisher  `parser:"'publish' '(' @@+ ')' ')'"`
@@ -29,6 +31,10 @@ func (c *visitor[T]) Sensor(d *Sensor) error {
 
 		if err == nil {
 			err = c.Metric(d.Target)
+		}
+
+		if err == nil {
+			err = c.Http(d.Http)
 		}
 
 		if err == nil {
@@ -74,6 +80,9 @@ func initSensor(v Visitor[*initState], d *Sensor) error {
 		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target.Name, e.Pos)
 	}
 	s.sensors[d.Target.Name] = d
+
+	s.sensorPrefix = d.Target.Name + "."
+	log.Printf("sensor %q", d.Target.Name)
 
 	return nil
 }
