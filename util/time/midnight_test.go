@@ -334,14 +334,20 @@ func getAvailableTimeZones() []string {
 		timeZones = walkTzDir(zd, timeZones)
 
 		for idx, zone := range timeZones {
-			// Skip Lord Howe Island as it fails due to daylight savings being 30 minutes & the general population
-			// for the island is around 6, so not of much use spending time to fix this one.
-			if zone != "Australia/Lord_Howe" && zone != "Australia/LHI" {
-				timeZones[idx] = strings.ReplaceAll(zone, zd+"/", "")
-			}
+			timeZones[idx] = strings.ReplaceAll(zone, zd+"/", "")
 		}
 	}
-	return timeZones
+
+	// Skip Lord Howe Island as it fails due to daylight savings being 30 minutes & the general population
+	// for the island is around 6, so not of much use spending time to fix this one.
+	var r []string
+	for _, zone := range timeZones {
+		if zone != "Australia/Lord_Howe" && zone != "Australia/LHI" {
+			r = append(r, zone)
+		}
+	}
+
+	return r
 }
 
 func walkTzDir(path string, zones []string) []string {
