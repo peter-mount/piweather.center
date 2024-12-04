@@ -4,11 +4,39 @@ package device
 
 import (
 	"fmt"
-	"github.com/peter-mount/piweather.center/sensors/bus"
 	"github.com/peter-mount/piweather.center/sensors/bus/i2c"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/sensors/reading"
+	"strings"
 )
+
+var (
+	i2cDevices map[string]Device
+)
+
+func init() {
+	i2cDevices = make(map[string]Device)
+}
+
+func registerI2CDevice(device Device) {
+	name := strings.ToLower(device.Info().ID)
+	mutex.Lock()
+	defer mutex.Unlock()
+	if _, exists := serialDevices[name]; exists {
+		panic(fmt.Errorf("i2c %s device with name %q already exists", name))
+	}
+	i2cDevices[name] = device
+}
+
+func listI2CDevices() []DeviceInfo {
+	mutex.Lock()
+	defer mutex.Unlock()
+	var r []DeviceInfo
+	for _, i2cDevice := range i2cDevices {
+		r = append(r, i2cDevice.Info())
+	}
+	return r
+}
 
 // I2CDevice represents a Device that operates over an I2C bus
 type I2CDevice interface {
@@ -19,8 +47,11 @@ type I2CDevice interface {
 
 // LookupI2CDevice returns the named I2CDevice. This will fail with an error if no device has been registered
 func LookupI2CDevice(name string) (I2CDevice, error) {
-	dev := lookupDevice(bus.BusI2C, name)
-	if dev == nil {
+	n := strings.ToLower(name)
+	mutex.Lock()
+	defer mutex.Unlock()
+	dev, exists := i2cDevices[n]
+	if !exists {
 		return nil, deviceNotFound
 	}
 	// If this fails then RegisterDevice failed when checking the interface

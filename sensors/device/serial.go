@@ -4,12 +4,40 @@ package device
 
 import (
 	"fmt"
-	"github.com/peter-mount/piweather.center/sensors/bus"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/sensors/reading"
 	"go.bug.st/serial"
+	"strings"
 	"time"
 )
+
+var (
+	serialDevices map[string]Device
+)
+
+func init() {
+	serialDevices = make(map[string]Device)
+}
+
+func registerSerialDevice(device Device) {
+	name := strings.ToLower(device.Info().ID)
+	mutex.Lock()
+	defer mutex.Unlock()
+	if _, exists := serialDevices[name]; exists {
+		panic(fmt.Errorf("serial %s device with name %q already exists", name))
+	}
+	serialDevices[name] = device
+}
+
+func listSerialDevices() []DeviceInfo {
+	mutex.Lock()
+	defer mutex.Unlock()
+	var r []DeviceInfo
+	for _, device := range serialDevices {
+		r = append(r, device.Info())
+	}
+	return r
+}
 
 type SerialDevice interface {
 	Device
@@ -17,8 +45,11 @@ type SerialDevice interface {
 }
 
 func LookupSerialDevice(name string) (SerialDevice, error) {
-	dev := lookupDevice(bus.BusSerial, name)
-	if dev == nil {
+	n := strings.ToLower(name)
+	mutex.Lock()
+	defer mutex.Unlock()
+	dev, exists := serialDevices[n]
+	if !exists {
 		return nil, deviceNotFound
 	}
 	// If this fails then RegisterDevice failed when checking the interface
