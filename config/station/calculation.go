@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
-	time2 "time"
 )
 
 type CalculationList struct {
@@ -43,21 +42,6 @@ type LocationExpression struct {
 	Latitude  bool `parser:"( @'latitude'"`
 	Longitude bool `parser:"| @'longitude'"`
 	Altitude  bool `parser:"| @'altitude' )"`
-}
-
-type MetricExpression struct {
-	Pos    lexer.Position
-	Metric *Metric `parser:"@@"` // Metric reference
-	Offset string  `parser:"( 'offset' @String )?"`
-	offset time2.Duration
-}
-
-func (m *MetricExpression) HasOffset() bool {
-	return m.offset != 0
-}
-
-func (m *MetricExpression) GetOffset() time2.Duration {
-	return m.offset
 }
 
 // Current returns the current value of the calculation being performed

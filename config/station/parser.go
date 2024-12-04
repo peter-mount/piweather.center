@@ -348,9 +348,8 @@ func (s *state) metricPattern(_ Visitor[*state], d *MetricPattern) error {
 
 	if err == nil {
 		d.Pattern = strings.ToLower(p)
-		d.Type = t
-
-		d.Prefix = s.prefixMetric("")
+		d.patternType = t
+		d.prefix = s.prefixMetric("")
 	}
 
 	return err
