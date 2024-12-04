@@ -1,6 +1,8 @@
 package payload
 
 import (
+	"github.com/peter-mount/piweather.center/config/station"
+	"strings"
 	"testing"
 	"time"
 )
@@ -8,19 +10,19 @@ import (
 func TestPayload_Get(t *testing.T) {
 	tests := []struct {
 		json    string
-		path    string
+		path    station.SourcePath
 		want    time.Time
 		wantErr bool
 	}{
 		{
 			"{\"timestamp\":\"2023-05-17T12:07:16Z\"}",
-			"timestamp",
+			station.SourcePath{Path: []string{"timestamp"}},
 			time.Date(2023, 5, 17, 12, 7, 16, 0, time.UTC),
 			false,
 		},
 		{
 			"{\"results\":{\"timestamp\":\"2023-05-17T12:07:16Z\"}}",
-			"results.timestamp",
+			station.SourcePath{Path: []string{"results", "timestamp"}},
 			time.Date(2023, 5, 17, 12, 7, 16, 0, time.UTC),
 			false,
 		},
@@ -28,15 +30,15 @@ func TestPayload_Get(t *testing.T) {
 			// This should fail as timestamp is under results but Payload will
 			// have the current UTC time not that in the sample
 			"{\"results\":{\"timestamp\":\"2023-05-17T12:07:16Z\"}}",
-			"timestamp",
+			station.SourcePath{Path: []string{"timestamp"}},
 			time.Date(2023, 5, 17, 12, 7, 16, 0, time.UTC),
 			true,
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.path, func(t *testing.T) {
-			p, err := FromBytes("", "", tt.path, []byte(tt.json))
+		t.Run(strings.Join(tt.path.Path, "."), func(t *testing.T) {
+			p, err := FromBytes("", station.HttpFormatJson, &tt.path, []byte(tt.json))
 			if err != nil {
 				t.Errorf("FromBytes failed %v", err)
 				return
