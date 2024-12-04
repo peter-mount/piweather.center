@@ -4,10 +4,25 @@ import (
 	"fmt"
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/util/table"
+	"os"
 	"sort"
 )
 
-func (s *Service) listDevices() error {
+type ListDevices struct {
+	ListDevices *bool `kernel:"flag,list-devices,List Devices"`
+}
+
+func (s *ListDevices) PostInit() error {
+	// PostInit if we want to list devices do so now and exit so we don't
+	// start the rest of the system, especially connecting to rabbitmq
+	if *s.ListDevices {
+		s.listDevices()
+		os.Exit(0)
+	}
+	return nil
+}
+
+func (s *ListDevices) listDevices() {
 	t := table.New("ID", "Description", "Manufacturer", "Model", "Bus", "Mode")
 
 	devs := device.ListDevices()
@@ -27,6 +42,4 @@ func (s *Service) listDevices() error {
 	}
 
 	fmt.Println(t.String())
-
-	return nil
 }

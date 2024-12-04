@@ -29,6 +29,8 @@ import (
 
 func main() {
 	err := kernel.Launch(
+		// Must be first to enable us to capture this first before anything else does
+		&weathersensor.ListDevices{},
 		&weathersensor.Service{},
 		// If developing or soak testing device drivers, uncomment the following line which will then report
 		// some useful metrics when the binary exits, e.g. memory use or runtime.

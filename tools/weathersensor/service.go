@@ -16,7 +16,6 @@ import (
 )
 
 type Service struct {
-	ListDevices    *bool                 `kernel:"flag,list-devices,List Devices"`
 	Daemon         *kernel.Daemon        `kernel:"inject"`
 	Cron           *cron.CronService     `kernel:"inject"`
 	Config         config.Manager        `kernel:"inject"`
@@ -31,11 +30,6 @@ const (
 )
 
 func (s *Service) Start() error {
-	if *s.ListDevices {
-		s.Daemon.ClearDaemon()
-		return s.listDevices()
-	}
-
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 
 	// Load existing dashboards
