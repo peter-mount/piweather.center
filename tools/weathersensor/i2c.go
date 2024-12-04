@@ -12,9 +12,9 @@ import (
 func (s *Service) i2cSensor(v station.Visitor[*state], sensor *station.I2C) error {
 	st := v.Get()
 
-	dev, err := device.LookupI2CDevice(st.sensor.Device)
+	dev, err := device.LookupI2CDevice(sensor.Driver)
 	if err != nil {
-		return errors.Errorf(sensor.Pos, "device %q for %q not found", st.sensor.Device, st.sensor.Target)
+		return errors.Errorf(sensor.Pos, "device %q for %q not found", sensor.Device, st.sensor.Target)
 	}
 
 	instance := dev.NewInstance(sensor.Bus, uint8(sensor.Device))

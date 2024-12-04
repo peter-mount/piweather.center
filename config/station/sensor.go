@@ -13,7 +13,6 @@ type SensorList struct {
 type Sensor struct {
 	Pos       lexer.Position
 	Target    *Metric       `parser:"'sensor' '(' @@"`
-	Device    string        `parser:"'driver' '(' @String ')'"`
 	I2C       *I2C          `parser:"( @@"`
 	Serial    *Serial       `parser:"| @@ )"`
 	Poll      *time.CronTab `parser:"('poll' '(' @@ ')')?"`
@@ -29,14 +28,16 @@ type Publisher struct {
 type I2C struct {
 	Pos lexer.Position
 	// smbus is a subset of i2c so it's an alias here
-	Bus    int `parser:"('i2c'|'smbus') '(' @Number"`
-	Device int `parser:"':' @Number ')'"`
+	Driver string `parser:"('i2c'|'smbus') '(' @String"` // device driver id
+	Bus    int    `parser:"    @Number"`                 // i2c bus id in the OS kernel
+	Device int    `parser:"':' @Number ')'"`             // i2c address on the specific bus
 }
 
 type Serial struct {
 	Pos      lexer.Position
-	Port     string `parser:"'serial' '(' @String"`
-	BaudRate int    `parser:"@Number ')'"`
+	Driver   string `parser:"'serial' '(' @String"` // device driver id
+	Port     string `parser:" @String"`             // serial port
+	BaudRate int    `parser:" @Number ')'"`         // Baud rate
 	//DataBits int    `parser:"('data' @('5'|'6'|'7'|'8'))?"`
 	//Parity   string `parser:"('parity' @('no'|'none'|'odd'|'even'))?"`
 	//StopBits string `parser:"('stop' @('1'|'1.5'|'2'))?"`

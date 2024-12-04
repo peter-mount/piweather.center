@@ -13,9 +13,9 @@ import (
 func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial) error {
 	st := v.Get()
 
-	dev, err := device.LookupSerialDevice(st.sensor.Device)
+	dev, err := device.LookupSerialDevice(sensor.Driver)
 	if err != nil {
-		return errors.Errorf(sensor.Pos, "device %q for %q not found", st.sensor.Device, st.sensor.Target)
+		return errors.Errorf(sensor.Pos, "device %q for %q not found", sensor.Driver, st.sensor.Target)
 	}
 
 	mode := &serial.Mode{
@@ -32,7 +32,7 @@ func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial
 	switch dev.Info().PollMode {
 	case bus.PollReading:
 		if st.sensor.Poll == nil || st.sensor.Poll.Definition == "" {
-			return errors.Errorf(sensor.Pos, "serial device %q requires poll period defining", st.sensor.Device)
+			return errors.Errorf(sensor.Pos, "serial device %q requires poll period defining", sensor.Driver)
 		}
 
 		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition)

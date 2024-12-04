@@ -361,6 +361,11 @@ func (s *state) unit(_ Visitor[*state], d *units.Unit) error {
 }
 
 func (s *state) i2c(_ Visitor[*state], d *I2C) error {
+	d.Driver = strings.TrimSpace(d.Driver)
+	if d.Driver == "" {
+		return participle.Errorf(d.Pos, "no Driver defined")
+	}
+
 	if d.Bus < 1 || d.Device < 1 {
 		return participle.Errorf(d.Pos, "invalid i2c address, got (%d:%d)", d.Bus, d.Device)
 	}
@@ -382,11 +387,6 @@ func (s *state) sensor(_ Visitor[*state], d *Sensor) error {
 		return participle.Errorf(d.Target.Unit.Pos, "unit is invalid as a target for sensors")
 	}
 
-	d.Device = strings.TrimSpace(d.Device)
-	if d.Device == "" {
-		return participle.Errorf(d.Pos, "no device defined")
-	}
-
 	// Check Target is unique within the station
 	if e, exists := s.sensors[d.Target.Name]; exists {
 		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target.Name, e.Pos)
@@ -397,6 +397,11 @@ func (s *state) sensor(_ Visitor[*state], d *Sensor) error {
 }
 
 func (s *state) serial(_ Visitor[*state], d *Serial) error {
+	d.Driver = strings.TrimSpace(d.Driver)
+	if d.Driver == "" {
+		return participle.Errorf(d.Pos, "no Driver defined")
+	}
+
 	d.Port = strings.TrimSpace(d.Port)
 	if d.Port == "" {
 		return participle.Errorf(d.Pos, "no serial port defined")
