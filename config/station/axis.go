@@ -7,26 +7,31 @@ import (
 	"math"
 )
 
+// Axis represents the axis to a component, e.g. Gauge
 type Axis struct {
 	Pos   lexer.Position
-	Min   float64 `parser:"('min' @('-'? Number) )?"`
-	Max   float64 `parser:"('max' @('-'? Number) )?"`
-	Ticks int     `parser:"('ticks' @(Number) )?"`
+	Min   float64 `parser:"('min' @('-'? Number) )?"` // Min value for the axis, defaults to 0
+	Max   float64 `parser:"('max' @('-'? Number) )?"` // Max value for the axis, defaults to 100
+	Ticks int     `parser:"('ticks' @(Number) )?"`    // Number of ticks to add after the origin
 }
 
+// AxisDef is the output of GenAxis generating a simple axis
 type AxisDef struct {
-	Delta  float64
-	Num    float64
-	Format string
-	Ticks  []AxisTick
+	Delta  float64    // Difference offset between each tick
+	Num    float64    // Number of ticks after the origin
+	Format string     // format for fmt.Sprintf() to format values on the axis
+	Ticks  []AxisTick // List of ticks. There will be Num+1 entries
 }
 
+// AxisTick represents each individual tick on the axis
 type AxisTick struct {
-	Index int
-	Label string
-	Angle float64
+	Index int     // index of this tick
+	Label string  // Label
+	Angle float64 // Angle of the tick, clockwise from the origin
 }
 
+// GenAxis generates an AxisDef based on this Axis. ang is the overall angle the axis will range over.
+// e.g. ang=180 if the axis covers a semicircle.
 func (a *Axis) GenAxis(ang float64) AxisDef {
 	return GenAxis(a.Min, a.Max, float64(a.Ticks), ang)
 }
@@ -35,6 +40,10 @@ func (a *Axis) EnsureWithin(v, delta, offset float64) float64 {
 	return ((EnsureWithin(v, a.Min, a.Max) - a.Min) * delta) + offset
 }
 
+// GenAxis generates an AxisDef.
+// min,max define the range of the axis,
+// num the number of ticks after the origin,
+// ang is the overall angle the axis will range over. e.g. ang=180 if the axis covers a semicircle.
 func GenAxis(min, max, num, ang float64) AxisDef {
 	if num < 1 {
 		num = 1
@@ -77,6 +86,8 @@ func GenAxis(min, max, num, ang float64) AxisDef {
 	return r
 }
 
+// EnsureWithin returns v so that it's always within min,max.
+// e.g. if v<min then it returns min, v>max then max, otherwise v
 func EnsureWithin(v, min, max float64) float64 {
 	if min > max {
 		min, max = max, min
@@ -84,18 +95,21 @@ func EnsureWithin(v, min, max float64) float64 {
 	return math.Max(min, math.Min(v, max))
 }
 
+// AxisScale represents an axis which scales based on the value passed.
+// This is primarily used for Rain Gauges where the axis can vary dependent on the amount of rain measured.
 type AxisScale struct {
-	Min    float64
-	Max    float64
-	Ticks  int
-	Format string
-	Points []float64
-	Labels []string
-	Size   float64
-	Scale  float64
-	Range  float64
+	Min    float64   // Minimum axis value
+	Max    float64   // Maximum axis value
+	Ticks  int       // Number of ticks after the origin
+	Format string    // Format for fmt.Sprintf() to format values
+	Points []float64 // slice of points for each tick, there will be Ticks+1 entries
+	Labels []string  // Labels for each entry in Points
+	Size   float64   // The size of the axis in the destination coordinate system
+	Scale  float64   // scale to convert index in Points/Labels to the destination coordinate system
+	Range  float64   // Range between Min and Max
 }
 
+// Contains true if the passed value is wtihin AxisScale
 func (as AxisScale) Contains(v float64) bool {
 	return value.GreaterThan(v, as.Min) && value.LessThanEqual(v, as.Max)
 }
@@ -125,6 +139,9 @@ var (
 	}
 )
 
+// AutoScale returns an AxisScale based on the input.
+// min,max is the range required,
+// size of the axis in the destination coordinate system
 func AutoScale(min, max, size float64) AxisScale {
 	var r AxisScale
 
