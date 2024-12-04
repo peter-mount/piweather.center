@@ -244,6 +244,7 @@ func testAllTimeZones(t *testing.T, f func(time.Time) time.Time, test func(t *te
 
 	m := make(map[string][]string)
 	for _, zone := range getAvailableTimeZones() {
+		//if util.In(zone,"Australia")
 		var k, v string
 		s := strings.SplitN(zone, "/", 2)
 		if len(s) == 2 {
