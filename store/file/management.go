@@ -118,6 +118,26 @@ func (s *store) openOrCreateFileImpl(metric string, t time.Time, create bool) (*
 	return f, err
 }
 
+func (s *store) RemoveFile(metric string, t time.Time) error {
+	key := GenKey(metric, t)
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	// Check we have it already open
+	if f := s.getFileInternal(key, false); f != nil {
+		s.closeFile(f)
+	}
+
+	fileName := filepath.Join(*s.BaseDir, key)
+	err := os.Remove(fileName)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	log.Printf("deleted %s", key)
+	return nil
+}
+
 func (s *store) addFile(key string, f *File) {
 	if key != "" && f != nil {
 		s.openFiles[key] = f

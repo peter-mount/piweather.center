@@ -33,6 +33,7 @@ type Store interface {
 	GetFiles(metric string) ([]string, error)
 	// GetRecords returns all records for the specified date
 	GetRecords(metric string, date time.Time) ([]record.Record, error)
+	RemoveFile(metric string, t time.Time) error
 }
 
 // Store manages all open and existing File's stored on disk.
@@ -86,7 +87,9 @@ func (s *store) Start() error {
 		s.expiryId = id
 	}
 
-	return s.initLatest()
+	// For now, do not load the latest values
+	//return s.initLatest()
+	return nil
 }
 
 func (s *store) Stop() {
