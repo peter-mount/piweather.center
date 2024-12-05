@@ -46,6 +46,14 @@ func (v *visitor[T]) TableSelect(b *TableSelect) error {
 	return err
 }
 
+func initTableSelect(v Visitor[*parserState], t *TableSelect) error {
+	var err error
+	if t.Unit != nil {
+		err = v.Unit(t.Unit)
+	}
+	return err
+}
+
 func (b *builder[T]) TableSelect(f func(Visitor[T], *TableSelect) error) Builder[T] {
 	b.common.tableSelect = f
 	return b

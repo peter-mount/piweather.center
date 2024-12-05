@@ -2,6 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 )
 
@@ -41,6 +42,15 @@ func (v *visitor[T]) Expression(b *Expression) error {
 	}
 
 	return err
+}
+
+func initExpression(v Visitor[*parserState], s *Expression) error {
+	p := v.Get()
+
+	if s.Using != "" && !p.usingNames.Contains(s.Using) {
+		return errors.Errorf(s.Pos, "%q undefined", s.Using)
+	}
+	return nil
 }
 
 func (b *builder[T]) Expression(f func(Visitor[T], *Expression) error) Builder[T] {

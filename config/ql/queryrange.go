@@ -1,10 +1,12 @@
 package ql
 
 import (
+	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/store/api"
+	"time"
 )
 
 // QueryRange defines the time range to query
@@ -55,6 +57,42 @@ func (v *visitor[T]) QueryRange(b *QueryRange) error {
 		}
 	}
 	return err
+}
+
+func initQueryRange(v Visitor[*parserState], q *QueryRange) error {
+	// If no Every statement then set it to 1 minute
+	if q.Every == nil {
+		q.Every = &time2.Duration{Pos: q.Pos, Def: "1m"}
+	}
+
+	if err := v.Duration(q.Every); err != nil {
+		return err
+	}
+
+	// Negative duration for Every is invalid
+	if q.Every.Duration(0) < time.Second {
+		return fmt.Errorf("invalid step size %v", q.Every.Duration(0))
+	}
+
+	if err := v.Time(q.At); err != nil {
+		return err
+	}
+
+	if err := v.Time(q.From); err != nil {
+		return err
+	}
+	if err := v.Duration(q.For); err != nil {
+		return err
+	}
+
+	if err := v.Time(q.Start); err != nil {
+		return err
+	}
+	if err := v.Time(q.End); err != nil {
+		return err
+	}
+
+	return util.VisitorStop
 }
 
 func (b *builder[T]) QueryRange(f func(Visitor[T], *QueryRange) error) Builder[T] {

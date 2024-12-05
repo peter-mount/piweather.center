@@ -29,6 +29,10 @@ func (v *visitor[T]) Select(b *Select) error {
 	return err
 }
 
+func initSelect(_ Visitor[*parserState], s *Select) error {
+	return assertLimit(s.Pos, s.Limit)
+}
+
 func (b *builder[T]) Select(f func(Visitor[T], *Select) error) Builder[T] {
 	b.common._select = f
 	return b

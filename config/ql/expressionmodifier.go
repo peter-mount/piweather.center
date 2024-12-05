@@ -31,6 +31,14 @@ func (v *visitor[T]) ExpressionModifier(b *ExpressionModifier) error {
 	return err
 }
 
+func initExpressionModifier(v Visitor[*parserState], s *ExpressionModifier) error {
+	err := v.QueryRange(s.Range)
+	if err == nil {
+		err = v.Duration(s.Offset)
+	}
+	return err
+}
+
 func (b *builder[T]) ExpressionModifier(f func(Visitor[T], *ExpressionModifier) error) Builder[T] {
 	b.common.expressionModifier = f
 	return b

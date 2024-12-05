@@ -56,6 +56,10 @@ func (v *visitor[T]) Query(b *Query) error {
 	return err
 }
 
+func initQuery(_ Visitor[*parserState], s *Query) error {
+	return assertLimit(s.Pos, s.Limit)
+}
+
 func (b *builder[T]) Query(f func(Visitor[T], *Query) error) Builder[T] {
 	b.common.query = f
 	return b

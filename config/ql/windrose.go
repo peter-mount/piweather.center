@@ -39,6 +39,14 @@ func (v *visitor[T]) WindRose(b *WindRose) error {
 	return err
 }
 
+func initWindRose(_ Visitor[*parserState], s *WindRose) error {
+	// Ensure we have a default option of Rose if none set
+	if len(s.Options) == 0 {
+		s.Options = append(s.Options, WindRoseOption{Rose: true})
+	}
+	return nil
+}
+
 func (b *builder[T]) WindRose(f func(Visitor[T], *WindRose) error) Builder[T] {
 	b.common.windRose = f
 	return b
