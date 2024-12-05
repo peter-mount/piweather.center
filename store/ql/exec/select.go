@@ -29,6 +29,7 @@ func selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
 	ex.save()
 	defer ex.restore()
 	ex._select = s
+	ex.summary = newSummary(s)
 
 	// Select has its own LIMIT defined
 	if s.Limit > 0 {
@@ -56,17 +57,16 @@ func selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
 		}
 	}
 
-	//fmt.Println("Summarize")
-	//if err := v.Summarize(s.Summarize); err != nil {
-	//	fmt.Println("Summarize", err)
-	//	return err
-	//}
+	// Summarize if we have data
+	if ex.summary.IsValid() {
+		ex.summary.summarize(ex.table)
+	}
 
 	// Tell the visitor to stop processing this Select statement
 	return util.VisitorStop
 }
 
-func selectExpression(v lang2.Visitor[*Executor], _ *lang2.SelectExpression) error {
+func selectExpression(v lang2.Visitor[*Executor], d *lang2.SelectExpression) error {
 	ex := v.Get()
 	ex.table.PruneCurrentRow()
 
@@ -76,5 +76,14 @@ func selectExpression(v lang2.Visitor[*Executor], _ *lang2.SelectExpression) err
 	}
 
 	ex.row = ex.table.NewRow()
-	return nil
+
+	for i, e := range d.Expressions {
+		ex.selectColumn = i
+		err := v.AliasedExpression(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return util.VisitorStop
 }

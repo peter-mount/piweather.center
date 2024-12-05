@@ -83,7 +83,7 @@ func (ex *Executor) windRoseExpression(v ql2.Visitor[*Executor], s *ql2.Expressi
 
 	val, ok := ex.Pop()
 
-	// If invalid but have values attached then get the last value in the set.
+	// If invalid but have values attached then get the last value in the Set.
 	// Required with metrics without an aggregation function around them
 	if !val.IsTime && !val.Value.IsValid() && len(val.Values) > 0 {
 		val = functions.InitialLast(val)

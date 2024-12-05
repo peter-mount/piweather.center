@@ -77,6 +77,11 @@ func expressionModifier(v lang2.Visitor[*Executor], s *lang2.ExpressionModifier)
 }
 
 func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) error {
+	// Call summarize first
+	if err := v.Summarize(s.Summarize); err != nil {
+		return err
+	}
+
 	ex := v.Get()
 
 	ex.resetStack()
@@ -85,7 +90,7 @@ func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) e
 
 	val, ok := ex.Pop()
 
-	// If invalid but have values attached then get the last value in the set.
+	// If invalid but have values attached then get the last value in the Set.
 	// Required with metrics without an aggregation function around them
 	if !val.IsTime && !val.Value.IsValid() && len(val.Values) > 0 {
 		val = functions.InitialLast(val)
@@ -109,7 +114,12 @@ func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) e
 		if err != nil {
 			return err
 		}
+		// Add to table
 		ex.row.AddValue(val.Time, val1)
+		// Add to summary if it's being summarized
+		if ex.summary.IsAggregated(ex.selectColumn) {
+			ex.summary.Set(ex.selectColumn, val1)
+		}
 	}
 
 	return util.VisitorStop

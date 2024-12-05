@@ -45,7 +45,7 @@ func tableSelect(v lang2.Visitor[*Executor], s *lang2.TableSelect) error {
 
 		val, ok := ex.Pop()
 		if ok && !val.IsNull() && !val.IsTime {
-			// If a set then reduce it to the last value
+			// If a Set then reduce it to the last value
 			if !val.Value.IsValid() && len(val.Values) > 0 {
 				val = functions.InitialLast(val)
 			}

@@ -41,7 +41,7 @@ func Query(s file.Store, fileName string, query []byte, opts ...QueryOption) (*a
 		result.Message = err.Error()
 		result.Table = nil
 
-		// If we caught a panic in queryImpl then set status to 500
+		// If we caught a panic in queryImpl then Set status to 500
 		if strings.HasPrefix(result.Message, "panic:") {
 			result.Status = http.StatusInternalServerError
 		}

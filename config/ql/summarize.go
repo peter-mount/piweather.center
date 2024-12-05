@@ -6,8 +6,8 @@ import (
 )
 
 type Summarize struct {
-	Pos            lexer.Position
-	SummarisedWith string `parser:"('summarised'|'summarized') ('with' @String)"`
+	Pos  lexer.Position
+	With string `parser:"('summarised'|'summarized') ('with' @String)"`
 }
 
 func (v *visitor[T]) Summarize(b *Summarize) error {

@@ -87,7 +87,7 @@ func (qp *QueryPlan) setQueryRange(_ lang2.Visitor[*QueryPlan], m *lang2.QueryRa
 
 func (qp *QueryPlan) expression(v lang2.Visitor[*QueryPlan], m *lang2.Expression) error {
 
-	// Check for modifiers, looking them up if m.Using is set
+	// Check for modifiers, looking them up if m.Using is Set
 	mods := m.Modifier
 	if m.Using != "" && qp.query.Using != nil {
 		for _, def := range qp.query.Using.Defs {

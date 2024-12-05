@@ -23,11 +23,13 @@ type Executor struct {
 }
 
 type exState struct {
-	prevState   *exState      // link to previous station
-	time        time.Time     // Query time
-	timeRange   api.Range     // Query range
-	_select     *lang2.Select // Select being processed
-	selectLimit int           // Max number of rows to return in a query
+	prevState    *exState      // link to previous station
+	time         time.Time     // Query time
+	timeRange    api.Range     // Query range
+	_select      *lang2.Select // Select being processed
+	selectLimit  int           // Max number of rows to return in a query
+	selectColumn int           // The select expression index being evaluated
+	summary      *summary      // Summary
 }
 
 var (
