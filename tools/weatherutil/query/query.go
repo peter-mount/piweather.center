@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/peter-mount/piweather.center/store/client"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -21,6 +23,13 @@ type Query struct {
 func (q *Query) Run() error {
 	if *q.Query {
 		for _, query := range flag.Args() {
+			if query == "-" {
+				if s, err := q.fromStdin(); err != nil {
+					return err
+				} else {
+					query = s
+				}
+			}
 			if err := q.query(query); err != nil {
 				return err
 			}
@@ -49,4 +58,12 @@ func (q *Query) query(query string) error {
 	}
 
 	return nil
+}
+
+func (q *Query) fromStdin() (string, error) {
+	b, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
