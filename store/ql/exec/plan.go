@@ -40,6 +40,15 @@ func (qp *QueryPlan) restore() {
 	}
 }
 
+var (
+	queryPlanVisitor = lang2.NewBuilder[*QueryPlan]().
+		AliasedExpression(qpAliasedExpression).
+		Metric(qpMetric).
+		QueryRange(qpQueryRange).
+		Expression(qpExpression).
+		Build()
+)
+
 func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 
 	// We must have a QueryRange, and it cannot reference "row"
@@ -53,12 +62,8 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 		store:   s,
 	}
 
-	if err := lang2.NewBuilder[*QueryPlan]().
-		AliasedExpression(qp.aliasedExpression).
-		Metric(qp.addMetric).
-		QueryRange(qp.setQueryRange).
-		Expression(qp.expression).
-		Build().
+	if err := queryPlanVisitor.Clone().
+		Set(qp).
 		Query(q); err != nil {
 		return nil, err
 	}
@@ -68,7 +73,7 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 	return qp, nil
 }
 
-func (qp *QueryPlan) aliasedExpression(v lang2.Visitor[*QueryPlan], m *lang2.AliasedExpression) error {
+func qpAliasedExpression(v lang2.Visitor[*QueryPlan], m *lang2.AliasedExpression) error {
 	var err error
 	switch {
 	case m.Group != nil:
@@ -82,17 +87,18 @@ func (qp *QueryPlan) aliasedExpression(v lang2.Visitor[*QueryPlan], m *lang2.Ali
 	return util2.VisitorStop
 }
 
-func (qp *QueryPlan) addMetric(_ lang2.Visitor[*QueryPlan], m *lang2.Metric) error {
-	qp.Metrics.Add(m.Name)
+func qpMetric(v lang2.Visitor[*QueryPlan], m *lang2.Metric) error {
+	v.Get().Metrics.Add(m.Name)
 	return nil
 }
 
-func (qp *QueryPlan) setQueryRange(_ lang2.Visitor[*QueryPlan], m *lang2.QueryRange) error {
-	qp.QueryRange = m.Range()
+func qpQueryRange(v lang2.Visitor[*QueryPlan], m *lang2.QueryRange) error {
+	v.Get().QueryRange = m.Range()
 	return nil
 }
 
-func (qp *QueryPlan) expression(v lang2.Visitor[*QueryPlan], m *lang2.Expression) error {
+func qpExpression(v lang2.Visitor[*QueryPlan], m *lang2.Expression) error {
+	qp := v.Get()
 
 	// Check for modifiers, looking them up if m.Using is Set
 	mods := m.Modifier
