@@ -5,7 +5,25 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 )
 
-func (ex *Executor) selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
+func query(v lang2.Visitor[*Executor], s *lang2.Query) error {
+	v.Get().setSelectLimit(s.Limit)
+	return nil
+}
+
+func usingDefinitions(v lang2.Visitor[*Executor], s *lang2.UsingDefinitions) error {
+	ex := v.Get()
+	for _, e := range s.Defs {
+		// Ensure the definition is valid
+		if err := v.UsingDefinition(e); err != nil {
+			return err
+		}
+		ex.using[e.Name] = e
+	}
+	return util.VisitorStop
+}
+
+func selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
+	ex := v.Get()
 	ex.table = ex.result.NewTable()
 
 	ex.save()
@@ -46,4 +64,17 @@ func (ex *Executor) selectStatement(v lang2.Visitor[*Executor], s *lang2.Select)
 
 	// Tell the visitor to stop processing this Select statement
 	return util.VisitorStop
+}
+
+func selectExpression(v lang2.Visitor[*Executor], _ *lang2.SelectExpression) error {
+	ex := v.Get()
+	ex.table.PruneCurrentRow()
+
+	// If we have exceeded the selectLimit then stop here
+	if ex.selectLimit > 0 && ex.table.RowCount() >= ex.selectLimit {
+		return util.VisitorExit
+	}
+
+	ex.row = ex.table.NewRow()
+	return nil
 }

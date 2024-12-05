@@ -7,17 +7,17 @@ import (
 	"time"
 )
 
-func (ex *Executor) summarize(v lang2.Visitor[*Executor], d *lang2.Summarize) error {
-	st := v.Get()
+func summarize(v lang2.Visitor[*Executor], d *lang2.Summarize) error {
+	ex := v.Get()
 
 	// Lookup the aggregators based on the original query
-	funcs, err := utils.GetAggregators(st._select)
+	funcs, err := utils.GetAggregators(ex._select)
 	if err != nil {
 		return err
 	}
 
 	// Now aggregate the table's results
-	table := st.table
+	table := ex.table
 	rc := table.RowCount()
 	cc := table.ColumnCount()
 	summary := make([]ql.Value, cc)

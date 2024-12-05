@@ -11,7 +11,9 @@ import (
 	"strconv"
 )
 
-func (ex *Executor) windRose(v ql2.Visitor[*Executor], s *ql2.WindRose) error {
+func windRose(v ql2.Visitor[*Executor], s *ql2.WindRose) error {
+	ex := v.Get()
+
 	wr := api.NewWindRose()
 
 	it := ex.timeRange.Iterator()

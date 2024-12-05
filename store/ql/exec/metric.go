@@ -6,7 +6,9 @@ import (
 	"github.com/peter-mount/piweather.center/store/ql"
 )
 
-func (ex *Executor) metric(_ ql3.Visitor[*Executor], s *ql3.Metric) error {
+func metric(v ql3.Visitor[*Executor], s *ql3.Metric) error {
+	ex := v.Get()
+
 	r := api.RangeFrom(ex.time, ex.timeRange.Every)
 	vals := ex.findMetrics(s.Name, r)
 

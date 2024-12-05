@@ -9,7 +9,9 @@ import (
 )
 
 // function executes the provided function.
-func (ex *Executor) function(v ql.Visitor[*Executor], d *ql.Function) error {
+func function(v ql.Visitor[*Executor], d *ql.Function) error {
+	ex := v.Get()
+
 	f, exists := functions.GetFunction(d.Name)
 	if !exists {
 		// Should never occur as we check this when building the query plan

@@ -1,14 +1,10 @@
 package exec
 
 import (
-	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql"
-	"github.com/peter-mount/piweather.center/store/ql/functions"
-	time2 "github.com/peter-mount/piweather.center/util/time"
 	"net/http"
 	"strings"
 	"time"
@@ -33,6 +29,24 @@ type exState struct {
 	_select     *lang2.Select // Select being processed
 	selectLimit int           // Max number of rows to return in a query
 }
+
+var (
+	execVisitor = lang2.NewBuilder[*Executor]().
+		AliasedExpression(aliasedExpression).
+		Expression(expression).
+		ExpressionModifier(expressionModifier).
+		Function(function).
+		Histogram(histogram).
+		Metric(metric).
+		Query(query).
+		Select(selectStatement).
+		SelectExpression(selectExpression).
+		Summarize(summarize).
+		TableSelect(tableSelect).
+		UsingDefinitions(usingDefinitions).
+		WindRose(windRose).
+		Build()
+)
 
 func (ex *Executor) save() {
 	old := ex.exState
@@ -80,32 +94,11 @@ func (ex *Executor) run() error {
 
 	_ = qp.Metrics.ForEach(ex.getMetric)
 
-	return lang2.NewBuilder[*Executor]().
-		AliasedExpression(ex.aliasedExpression).
-		Expression(ex.expression).
-		ExpressionModifier(ex.expressionModifier).
-		Function(ex.function).
-		Histogram(ex.histogram).
-		Metric(ex.metric).
-		Query(ex.query).
-		Select(ex.selectStatement).
-		SelectExpression(ex.selectExpression).
-		Summarize(ex.summarize).
-		TableSelect(ex.tableSelect).
-		UsingDefinitions(ex.usingDefinitions).
-		WindRose(ex.windRose).
-		Build().
-		Set(ex).
-		Query(qp.query)
+	return execVisitor.Clone().Set(ex).Query(qp.query)
 }
 
 func (ex *Executor) getMetric(m string) error {
 	ex.metrics[m] = ex.qp.GetMetric(m)
-	return nil
-}
-
-func (ex *Executor) query(_ lang2.Visitor[*Executor], s *lang2.Query) error {
-	ex.setSelectLimit(s.Limit)
 	return nil
 }
 
@@ -114,129 +107,6 @@ func (ex *Executor) setSelectLimit(l int) {
 	if ex.selectLimit < 0 {
 		ex.selectLimit = 0
 	}
-}
-
-func (ex *Executor) usingDefinitions(v lang2.Visitor[*Executor], s *lang2.UsingDefinitions) error {
-	for _, e := range s.Defs {
-		// Ensure the definition is valid
-		if err := v.UsingDefinition(e); err != nil {
-			return err
-		}
-		ex.using[e.Name] = e
-	}
-	return util.VisitorStop
-}
-
-func (ex *Executor) selectExpression(_ lang2.Visitor[*Executor], _ *lang2.SelectExpression) error {
-	ex.table.PruneCurrentRow()
-
-	// If we have exceeded the selectLimit then stop here
-	if ex.selectLimit > 0 && ex.table.RowCount() >= ex.selectLimit {
-		return util.VisitorExit
-	}
-
-	ex.row = ex.table.NewRow()
-	return nil
-}
-
-func (ex *Executor) expression(v lang2.Visitor[*Executor], s *lang2.Expression) error {
-	var err error
-
-	// If offset defined, temporarily adjust the current time by that offset
-	if s.Using != "" || s.Modifier != nil {
-		ex.save()
-		defer ex.restore()
-
-		// Resolve the modifier if we are declaring using
-		mod := s.Modifier
-		if s.Using != "" {
-			uDef, exists := ex.using[s.Using]
-			if !exists {
-				// Should not happen as we checked before running
-				return errors.Errorf(s.Pos, "panic: %q missing", s.Using)
-			}
-			mod = uDef.Modifier
-		}
-
-		for _, e := range mod {
-			if err == nil {
-				err = v.ExpressionModifier(e)
-			}
-		}
-	}
-
-	if err == nil {
-		switch {
-		case s.Metric != nil:
-			err = v.Metric(s.Metric)
-		case s.Function != nil:
-			err = v.Function(s.Function)
-		}
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return util.VisitorStop
-}
-
-func (ex *Executor) expressionModifier(v lang2.Visitor[*Executor], s *lang2.ExpressionModifier) error {
-	var err error
-
-	if s.Offset != nil {
-		ex.time = ex.time.Add(s.Offset.Duration(ex.timeRange.Every))
-	}
-
-	if s.Range != nil {
-		if s.Range.IsRow() {
-			panic("range not implemented") // FIXME
-			//err = s.Range.SetTime(ex.time, ex.timeRange.Every, v)
-		}
-
-		r := s.Range.Range()
-		ex.time = r.From
-		ex.timeRange.Every = r.Duration()
-	}
-
-	return err
-}
-
-func (ex *Executor) aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) error {
-	ex.resetStack()
-
-	err := v.Expression(s.Expression)
-
-	val, ok := ex.Pop()
-
-	// If invalid but have values attached then get the last value in the set.
-	// Required with metrics without an aggregation function around them
-	if !val.IsTime && !val.Value.IsValid() && len(val.Values) > 0 {
-		val = functions.InitialLast(val)
-	}
-
-	switch {
-	case err != nil:
-		log.Println(err)
-		ex.row.AddNull()
-
-	case !ok,
-		val.IsNull():
-		ex.row.AddNull()
-
-	case val.IsTime:
-		ex.row.AddDynamic(val.Time, val.Time.Format(time.RFC3339))
-
-	default:
-		col := ex.table.Columns[ex.row.Size()]
-		val1, err := col.Transform(val.Value)
-		if err != nil {
-			return err
-		}
-		ex.row.AddValue(val.Time, val1)
-	}
-
-	return util.VisitorStop
 }
 
 type colResolver struct {
@@ -294,71 +164,4 @@ func (r *colResolver) function(v lang2.Visitor[*colResolver], f *lang2.Function)
 func (r *colResolver) metric(_ lang2.Visitor[*colResolver], f *lang2.Metric) error {
 	r.append(f.Name)
 	return nil
-}
-
-func (ex *Executor) tableSelect(v lang2.Visitor[*Executor], s *lang2.TableSelect) error {
-	ex.table = ex.result.NewTable()
-
-	// The unit required
-	dataUnit := s.Unit.Unit()
-
-	var t0 time.Time
-
-	// Now the row data
-	it := ex.timeRange.Iterator()
-	for it.HasNext() {
-		ex.time = it.Next()
-
-		// Calculate the time
-		t1 := ex.time
-		if s.Time != nil {
-			ex.resetStack()
-			if err := v.Expression(s.Time); err != nil {
-				return err
-			}
-
-			val, ok := ex.Pop()
-			if ok && val.IsTime {
-				t1 = ex.time
-			}
-		}
-
-		// Now the value
-		ex.resetStack()
-		if err := v.Expression(s.Metric); err != nil {
-			return err
-		}
-
-		val, ok := ex.Pop()
-		if ok && !val.IsNull() && !val.IsTime {
-			// If a set then reduce it to the last value
-			if !val.Value.IsValid() && len(val.Values) > 0 {
-				val = functions.InitialLast(val)
-			}
-
-			// Use first values Unit if not specified in the query
-			if dataUnit == nil && val.Value.IsValid() {
-				dataUnit = val.Value.Unit()
-			}
-
-			// Transform to the required unit and add to the current row
-			val1, err := val.Value.As(dataUnit)
-			if err != nil {
-				return err
-			}
-
-			// Start a new row if first or starting a new day
-			if t0.IsZero() || !time2.SameDay(t0, t1) {
-				t0 = t1
-				ex.table.PruneCurrentRow()
-				ex.row = ex.table.NewRow()
-				ex.row.AddDynamic(t0, t0.Format(time.RFC3339))
-			}
-
-			ex.row.AddValue(t1, val1)
-		}
-	}
-
-	// Tell the visitor to stop processing this Select statement
-	return util.VisitorStop
 }
