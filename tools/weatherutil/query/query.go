@@ -39,7 +39,7 @@ func (q *Query) Run() error {
 }
 
 func (q *Query) query(query string) error {
-	c := client.Client{Url: *q.DBUrl}
+	c := client.Client{Url: *q.DBUrl, Internal: true}
 	r, err := c.Query(query)
 	if err != nil {
 		return err

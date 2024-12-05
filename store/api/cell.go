@@ -82,29 +82,29 @@ func (c *Cell) read(r *reader) error {
 	return err
 }
 
-func NewNullCell() Cell {
-	return Cell{Type: CellNull}
+func NewNullCell() *Cell {
+	return &Cell{Type: CellNull}
 }
 
-func NewStringCell(t time.Time, s string) Cell {
-	return Cell{
+func NewStringCell(t time.Time, s string) *Cell {
+	return &Cell{
 		Type:   CellString,
 		Time:   t,
 		string: s,
 	}
 }
 
-func NewDynamicCell(t time.Time, s string) Cell {
-	return Cell{
+func NewDynamicCell(t time.Time, s string) *Cell {
+	return &Cell{
 		Type:   CellDynamic,
 		Time:   t,
 		string: s,
 	}
 }
 
-func NewValueCell(t time.Time, v value.Value) Cell {
+func NewValueCell(t time.Time, v value.Value) *Cell {
 	if v.IsValid() {
-		return Cell{
+		return &Cell{
 			Type:   CellNumeric,
 			Time:   t,
 			string: v.PlainString(),

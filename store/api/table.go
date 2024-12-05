@@ -145,11 +145,11 @@ func (t *Table) Finalise() {
 		if r.IsValid() {
 			// If row is shorter than columns add null columns to the table
 			for r.Size() < len(t.Columns) {
-				*r = append(*r, &Cell{Type: CellNull})
+				r.Cells = append(r.Cells, &Cell{Type: CellNull})
 			}
 
 			// now ensure column widths are wide enough
-			for i, c := range *r {
+			for i, c := range r.Cells {
 				// If we have more entries in the row and columns then add a new one to the table
 				for len(t.Columns) <= i {
 					t.Columns = append(t.Columns, &Column{Name: fmt.Sprintf("Col%d", len(t.Columns)+1)})
@@ -186,8 +186,8 @@ func (t *Table) GetColumn(n string) *Column {
 func (t *Table) GetCell(n string, r *Row) *Cell {
 	for i, c := range t.Columns {
 		if n == c.Name {
-			if i < len(*r) {
-				return (*r)[i]
+			if i < len(r.Cells) {
+				return r.Cells[i]
 			}
 			break
 		}
@@ -356,27 +356,48 @@ func (c *Column) pad(s string, l, e int) string {
 }
 
 // Row Holds details about an individual
-type Row []*Cell // Individual columns
+type Row struct {
+	RowType RowType `json:"rowType" xml:"rowType,attr" yaml:"rowType"`
+	Cells   []*Cell `json:"cells" xml:"cells" yaml:"cells"` // Individual columns
+}
+
+type RowType uint8
+
+const (
+	// RowTypeData represents a normal row containing data
+	RowTypeData = iota
+	// RowTypeSummary represents a row containing summary information
+	RowTypeSummary
+)
 
 func (r *Row) IsEmpty() bool {
-	return len(*r) == 0
+	return len(r.Cells) == 0
 }
 
 func (r *Row) CellCount() int {
-	return len(*r)
+	return len(r.Cells)
+}
+
+func (r *Row) GetCells() []*Cell {
+	return r.Cells
 }
 
 func (r *Row) Cell(i int) *Cell {
-	if i < 0 || i >= len(*r) {
+	if i < 0 || i >= len(r.Cells) {
 		return nil
 	}
-	return (*r)[i]
+	return r.Cells[i]
 }
 
 func (r *Row) write(w *writer) error {
-	err := w.uint16(uint16(len(*r)))
+	err := w.uint8(uint8(r.RowType))
+
 	if err == nil {
-		for _, c := range *r {
+		err = w.uint16(uint16(len(r.Cells)))
+	}
+
+	if err == nil {
+		for _, c := range r.Cells {
 			err = c.write(w)
 			if err != nil {
 				break
@@ -387,23 +408,35 @@ func (r *Row) write(w *writer) error {
 }
 
 func (r *Row) read(rd *reader) error {
-	l, err := rd.uint16()
-	if err == nil && l > 0 {
-		for i := 0; i < int(l); i++ {
-			c := &Cell{}
-			err = c.read(rd)
-			if err != nil {
-				break
+	rt, err := rd.uint8()
+	if err == nil {
+		r.RowType = RowType(rt)
+
+		l, err := rd.uint16()
+		if err == nil && l > 0 {
+			for i := 0; i < int(l); i++ {
+				c := &Cell{}
+				err = c.read(rd)
+				if err != nil {
+					break
+				}
+				r.Cells = append(r.Cells, c)
 			}
-			*r = append(*r, c)
 		}
 	}
 	return err
 }
 
-func (r *Row) add(c Cell) *Row {
-	*r = append(*r, &c)
+func (r *Row) add(c *Cell) *Row {
+	r.Cells = append(r.Cells, c)
 	return r
+}
+
+func (r *Row) SetCell(i int, c *Cell) {
+	for len(r.Cells) <= i {
+		r.AddNull()
+	}
+	r.Cells[i] = c
 }
 
 // AddValue adds a CellString cell to the row based on the value.Value.
@@ -429,7 +462,7 @@ func (r *Row) AddNull() *Row {
 
 // IsValid returns true of the row contains at least one cell not CellNull or CellDynamic
 func (r *Row) IsValid() bool {
-	for _, c := range *r {
+	for _, c := range r.Cells {
 		if !(c.Type == CellNull || c.Type == CellDynamic) {
 			return true
 		}
@@ -439,7 +472,7 @@ func (r *Row) IsValid() bool {
 }
 
 func (r *Row) Size() int {
-	return len(*r)
+	return len(r.Cells)
 }
 
 func (r *Result) String() string {
@@ -481,11 +514,11 @@ func (t *Table) String(b []string) []string {
 	b = append(b, head, "|"+strings.Join(s1, "|")+"|")
 
 	for i, r := range t.Rows {
-		if i == 0 {
+		if i == 0 || r.RowType == RowTypeSummary {
 			b = append(b, sep)
 		}
 		s1 = nil
-		for i, c := range *r {
+		for i, c := range r.Cells {
 			s1 = append(s1, t.Columns[i].String(c.String()))
 		}
 		b = append(b, "|"+strings.Join(s1, "|")+"|")

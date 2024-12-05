@@ -58,11 +58,11 @@ func (calc *Calculator) loadFromDB(c *station.Calculation) error {
 
 	for _, t := range res.Table {
 		for _, r := range t.Rows {
-			if len(*r) < 2 || !(*r)[1].Value.IsValid() {
+			if r.Size() < 2 || r.Cell(1).Value.IsValid() {
 				log.Printf("no data returned for %q", b.With)
 			} else {
-				e0 := (*r)[0]
-				e1 := (*r)[1]
+				e0 := r.Cell(0)
+				e1 := r.Cell(1)
 				calc.Latest.Set(c.Target, record.Record{Time: e0.Time, Value: e1.Value})
 
 				if err = calc.DatabaseBroker.PublishMetric(api.Metric{

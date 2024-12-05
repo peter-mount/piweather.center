@@ -100,13 +100,12 @@ func (r *Result) Close() error {
 func (r *Result) Init() {
 	for _, t := range r.Table {
 		for _, r := range t.Rows {
-			for i, c := range *r {
+			for i, c := range r.GetCells() {
 				if c == nil {
-					(*r)[i] = &Cell{Type: CellNull}
+					r.SetCell(i, NewNullCell())
 				} else if c.Type == CellNumeric {
 					v, _ := t.Columns[i].Value(c.Float())
-					c.Value = v
-					(*r)[i] = c
+					r.SetCell(i, NewValueCell(c.Time, v))
 				}
 			}
 		}

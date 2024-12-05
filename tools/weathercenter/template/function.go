@@ -204,7 +204,7 @@ func (s *Manager) showJs(n string, d any) (template.JS, error) {
 
 func maxRowValue(r *api.Row) value.Value {
 	var v value.Value
-	for _, c := range *r {
+	for _, c := range r.GetCells() {
 		if c.Value.IsValid() {
 			if v.IsValid() {
 				if ok, err := c.Value.GreaterThan(v); err == nil && ok {
