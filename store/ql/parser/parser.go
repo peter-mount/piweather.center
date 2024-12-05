@@ -1,16 +1,16 @@
 package parser
 
 import (
+	"github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
-	lang2 "github.com/peter-mount/piweather.center/config/util/ql"
 )
 
-func New() util.Parser[lang2.Query] {
-	return newParser[lang2.Query](scriptInit)
+func New() util.Parser[ql.Query] {
+	return newParser[ql.Query](scriptInit)
 }
 
-func NewExpressionParser() util.Parser[lang2.Expression] {
-	return newParser[lang2.Expression](expressionInit)
+func NewExpressionParser() util.Parser[ql.Expression] {
+	return newParser[ql.Expression](expressionInit)
 }
 
 func newParser[G any](init util.ParserInit[G]) util.Parser[G] {

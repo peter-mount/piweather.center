@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	ql3 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
-	ql2 "github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/store/ql"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
@@ -64,7 +64,7 @@ func (f Function) IsAggregator() bool {
 	return f.Reducer != nil || f.Calculation != nil || f.Aggregator != nil
 }
 
-type FunctionHandler func(ql.Executor, ql2.QueryVisitor, *ql2.Function, []ql.Value) error
+type FunctionHandler func(ql.Executor, ql3.QueryVisitor, *ql3.Function, []ql.Value) error
 
 type FunctionMap struct {
 	mutex     sync.Mutex
@@ -109,7 +109,7 @@ func (f *FunctionMap) GetFunction(n string) (Function, bool) {
 	return ag, exists
 }
 
-func (f Function) Run(ex ql.Executor, v ql2.QueryVisitor, fn *ql2.Function) error {
+func (f Function) Run(ex ql.Executor, v ql3.QueryVisitor, fn *ql3.Function) error {
 
 	if err := assertExpressions(fn.Pos, fn.Name, fn.Expressions, f); err != nil {
 		return err
@@ -269,7 +269,7 @@ func InitialInvalid(_ ql.Value) ql.Value {
 	return ql.Value{}
 }
 
-func assertExpressions(p lexer.Position, n string, e []*ql2.Expression, agg Function) error {
+func assertExpressions(p lexer.Position, n string, e []*ql3.Expression, agg Function) error {
 	// Here start with MinArg & MaxArg.
 	// Override with Args if it's greater than either of them.
 	// Enforce min>=0 but if max<min or negative then set max to MaxInt
@@ -296,7 +296,7 @@ func assertExpressions(p lexer.Position, n string, e []*ql2.Expression, agg Func
 }
 
 // funcTimeOf implements TIMEOF which marks the value as requiring the TIME not the Value of a metric
-func funcTimeOf(ex ql.Executor, v ql2.QueryVisitor, f *ql2.Function, args []ql.Value) error {
+func funcTimeOf(ex ql.Executor, v ql3.QueryVisitor, f *ql3.Function, args []ql.Value) error {
 	switch len(args) {
 	case 0:
 		ex.Push(ql.Value{
@@ -327,7 +327,7 @@ func funcTimeOf(ex ql.Executor, v ql2.QueryVisitor, f *ql2.Function, args []ql.V
 	return util.VisitorStop
 }
 
-func funcTrend(ex ql.Executor, _ ql2.QueryVisitor, _ *ql2.Function, args []ql.Value) error {
+func funcTrend(ex ql.Executor, _ ql3.QueryVisitor, _ *ql3.Function, args []ql.Value) error {
 	r := ql.Value{Time: ex.Time()}
 
 	if len(args) == 2 {

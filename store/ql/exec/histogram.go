@@ -1,8 +1,8 @@
 package exec
 
 import (
+	ql2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
@@ -11,7 +11,7 @@ type histogram struct {
 	max value.Value
 }
 
-func (ex *Executor) histogram(v ql.QueryVisitor, s *ql.Histogram) error {
+func (ex *Executor) histogram(v ql2.QueryVisitor, s *ql2.Histogram) error {
 	ex.table = ex.result.NewTable()
 
 	if s.Expression != nil {

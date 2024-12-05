@@ -2,12 +2,12 @@ package exec
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/peter-mount/piweather.center/config/util/ql"
+	ql2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 )
 
 // function executes the provided function.
-func (ex *Executor) function(v ql.QueryVisitor, f *ql.Function) error {
+func (ex *Executor) function(v ql2.QueryVisitor, f *ql2.Function) error {
 	if af, exists := functions.GetFunction(f.Name); exists {
 		return af.Run(ex, v, f)
 	}

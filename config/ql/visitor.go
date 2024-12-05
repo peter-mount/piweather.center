@@ -2,36 +2,54 @@ package ql
 
 import (
 	"github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
+
+type QueryVisitor interface {
+	time.TimeVisitor
+	units.UnitsVisitor
+	Query(*Query) error
+	Select(*Select) error
+	SelectExpression(*SelectExpression) error
+	AliasedExpression(*AliasedExpression) error
+	Expression(*Expression) error
+	ExpressionModifier(*ExpressionModifier) error
+	Function(*Function) error
+	Metric(*Metric) error
+	QueryRange(*QueryRange) error
+	UsingDefinitions(*UsingDefinitions) error
+	UsingDefinition(*UsingDefinition) error
+	Histogram(*Histogram) error
+	WindRose(*WindRose) error
+	TableSelect(*TableSelect) error
+}
 
 type visitor struct {
 	common
 }
 
 type common struct {
-	query              func(ql.QueryVisitor, *ql.Query) error
-	_select            func(ql.QueryVisitor, *ql.Select) error
-	selectExpression   func(ql.QueryVisitor, *ql.SelectExpression) error
-	aliasedExpression  func(ql.QueryVisitor, *ql.AliasedExpression) error
-	expression         func(ql.QueryVisitor, *ql.Expression) error
-	expressionModifier func(ql.QueryVisitor, *ql.ExpressionModifier) error
-	function           func(ql.QueryVisitor, *ql.Function) error
-	metric             func(ql.QueryVisitor, *ql.Metric) error
-	queryRange         func(ql.QueryVisitor, *ql.QueryRange) error
-	time               func(ql.QueryVisitor, *time.Time) error
-	duration           func(ql.QueryVisitor, *time.Duration) error
-	usingDefinitions   func(ql.QueryVisitor, *ql.UsingDefinitions) error
-	usingDefinition    func(ql.QueryVisitor, *ql.UsingDefinition) error
-	histogram          func(ql.QueryVisitor, *ql.Histogram) error
-	unit               func(ql.QueryVisitor, *units.Unit) error
-	windRose           func(ql.QueryVisitor, *ql.WindRose) error
-	tableSelect        func(ql.QueryVisitor, *ql.TableSelect) error
+	query              func(QueryVisitor, *Query) error
+	_select            func(QueryVisitor, *Select) error
+	selectExpression   func(QueryVisitor, *SelectExpression) error
+	aliasedExpression  func(QueryVisitor, *AliasedExpression) error
+	expression         func(QueryVisitor, *Expression) error
+	expressionModifier func(QueryVisitor, *ExpressionModifier) error
+	function           func(QueryVisitor, *Function) error
+	metric             func(QueryVisitor, *Metric) error
+	queryRange         func(QueryVisitor, *QueryRange) error
+	time               func(QueryVisitor, *time.Time) error
+	duration           func(QueryVisitor, *time.Duration) error
+	usingDefinitions   func(QueryVisitor, *UsingDefinitions) error
+	usingDefinition    func(QueryVisitor, *UsingDefinition) error
+	histogram          func(QueryVisitor, *Histogram) error
+	unit               func(QueryVisitor, *units.Unit) error
+	windRose           func(QueryVisitor, *WindRose) error
+	tableSelect        func(QueryVisitor, *TableSelect) error
 }
 
-func (v *visitor) Query(b *ql.Query) error {
+func (v *visitor) Query(b *Query) error {
 	var err error
 	if b != nil {
 		// Process QueryRange first
@@ -71,7 +89,7 @@ func (v *visitor) Query(b *ql.Query) error {
 	return err
 }
 
-func (v *visitor) Select(b *ql.Select) error {
+func (v *visitor) Select(b *Select) error {
 	var err error
 	if b != nil {
 		if v._select != nil {
@@ -88,7 +106,7 @@ func (v *visitor) Select(b *ql.Select) error {
 	return err
 }
 
-func (v *visitor) SelectExpression(b *ql.SelectExpression) error {
+func (v *visitor) SelectExpression(b *SelectExpression) error {
 	var err error
 	if b != nil {
 		if v.selectExpression != nil {
@@ -109,7 +127,7 @@ func (v *visitor) SelectExpression(b *ql.SelectExpression) error {
 	return err
 }
 
-func (v *visitor) AliasedExpression(b *ql.AliasedExpression) error {
+func (v *visitor) AliasedExpression(b *AliasedExpression) error {
 	var err error
 	if b != nil {
 		if v.aliasedExpression != nil {
@@ -128,7 +146,7 @@ func (v *visitor) AliasedExpression(b *ql.AliasedExpression) error {
 	return err
 }
 
-func (v *visitor) Expression(b *ql.Expression) error {
+func (v *visitor) Expression(b *Expression) error {
 	var err error
 	if b != nil {
 		if v.expression != nil {
@@ -157,7 +175,7 @@ func (v *visitor) Expression(b *ql.Expression) error {
 	return err
 }
 
-func (v *visitor) ExpressionModifier(b *ql.ExpressionModifier) error {
+func (v *visitor) ExpressionModifier(b *ExpressionModifier) error {
 	var err error
 	if b != nil {
 		if v.expressionModifier != nil {
@@ -176,7 +194,7 @@ func (v *visitor) ExpressionModifier(b *ql.ExpressionModifier) error {
 	return err
 }
 
-func (v *visitor) Function(b *ql.Function) error {
+func (v *visitor) Function(b *Function) error {
 	var err error
 	if b != nil {
 		if v.function != nil {
@@ -197,14 +215,14 @@ func (v *visitor) Function(b *ql.Function) error {
 	return err
 }
 
-func (v *visitor) Metric(b *ql.Metric) error {
+func (v *visitor) Metric(b *Metric) error {
 	if b != nil && v.metric != nil {
 		return v.metric(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) QueryRange(b *ql.QueryRange) error {
+func (v *visitor) QueryRange(b *QueryRange) error {
 	var err error
 	if b != nil {
 		if v.queryRange != nil {
@@ -277,7 +295,7 @@ func (v *visitor) Unit(b *units.Unit) error {
 	return nil
 }
 
-func (v *visitor) UsingDefinitions(b *ql.UsingDefinitions) error {
+func (v *visitor) UsingDefinitions(b *UsingDefinitions) error {
 	var err error
 
 	if b != nil {
@@ -297,14 +315,14 @@ func (v *visitor) UsingDefinitions(b *ql.UsingDefinitions) error {
 	return err
 }
 
-func (v *visitor) UsingDefinition(b *ql.UsingDefinition) error {
+func (v *visitor) UsingDefinition(b *UsingDefinition) error {
 	if b != nil && v.usingDefinition != nil {
 		return v.usingDefinition(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) Histogram(b *ql.Histogram) error {
+func (v *visitor) Histogram(b *Histogram) error {
 	var err error
 	if b != nil {
 		if v.histogram != nil {
@@ -320,7 +338,7 @@ func (v *visitor) Histogram(b *ql.Histogram) error {
 	return err
 }
 
-func (v *visitor) WindRose(b *ql.WindRose) error {
+func (v *visitor) WindRose(b *WindRose) error {
 	var err error
 	if b != nil {
 		if v.windRose != nil {
@@ -339,7 +357,7 @@ func (v *visitor) WindRose(b *ql.WindRose) error {
 	return err
 }
 
-func (v *visitor) TableSelect(b *ql.TableSelect) error {
+func (v *visitor) TableSelect(b *TableSelect) error {
 	var err error
 	if b != nil {
 		if v._select != nil {

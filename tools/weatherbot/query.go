@@ -2,8 +2,8 @@ package bot
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/config/ql"
 	util2 "github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"github.com/peter-mount/piweather.center/util"
 	"sort"
