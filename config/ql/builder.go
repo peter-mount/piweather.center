@@ -7,6 +7,7 @@ import (
 
 type Builder[T any] interface {
 	AliasedExpression(func(Visitor[T], *AliasedExpression) error) Builder[T]
+	AliasedGroup(func(Visitor[T], *AliasedGroup) error) Builder[T]
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
 	ExpressionModifier(func(Visitor[T], *ExpressionModifier) error) Builder[T]
 	Duration(func(Visitor[T], *time.Duration) error) Builder[T]

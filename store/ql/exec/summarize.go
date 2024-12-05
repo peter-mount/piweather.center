@@ -29,11 +29,7 @@ type summary struct {
 }
 
 func newSummary(d *lang2.Select) *summary {
-	l := len(d.Expression.Expressions)
-	return &summary{
-		functions: make([]*functions.Function, l),
-		results:   make([]ql.Value, l),
-	}
+	return &summary{}
 }
 
 func (s *summary) IsValid() bool {
@@ -51,17 +47,24 @@ func (s *summary) IsAggregated(i int) bool {
 	return false
 }
 
+func (s *summary) ensureCapacity(i int) {
+	for i >= len(s.results) {
+		s.results = append(s.results, ql.Value{})
+		s.functions = append(s.functions, nil)
+	}
+}
+
 func (s *summary) Set(i int, v value.Value) {
 	if s != nil {
-		if i < len(s.results) {
-			e := s.results[i]
-			e.Values = append(e.Values, ql.Value{Value: v})
-			s.results[i] = e
-		}
+		s.ensureCapacity(i)
+		e := s.results[i]
+		e.Values = append(e.Values, ql.Value{Value: v})
+		s.results[i] = e
 	}
 }
 
 func (s *summary) With(i int, n string) {
+	s.ensureCapacity(i)
 	if s.functions[i] == nil {
 		if f, exists := functions.GetFunction(n); exists && f.IsAggregator() {
 			s.functions[i] = &f

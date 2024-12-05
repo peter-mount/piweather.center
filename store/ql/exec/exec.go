@@ -2,34 +2,32 @@ package exec
 
 import (
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql"
 	"net/http"
-	"strings"
 	"time"
 )
 
 type Executor struct {
 	exState
-	qp          *QueryPlan                        // QueryPlan to execute
-	result      *api.Result                       // Query Results
-	table       *api.Table                        // Current table
-	row         *api.Row                          // Current row
-	metrics     map[string][]ql.Value             // Collected data for each metric
-	stack       []ql.Value                        // Stack for expressions
-	using       map[string]*lang2.UsingDefinition // Using aliases
-	colResolver *colResolver                      // Used when resolving columns
+	qp           *QueryPlan                        // QueryPlan to execute
+	result       *api.Result                       // Query Results
+	table        *api.Table                        // Current table
+	row          *api.Row                          // Current row
+	metrics      map[string][]ql.Value             // Collected data for each metric
+	stack        []ql.Value                        // Stack for expressions
+	using        map[string]*lang2.UsingDefinition // Using aliases
+	selectColumn int                               // The select expression index being evaluated
 }
 
 type exState struct {
-	prevState    *exState      // link to previous station
-	time         time.Time     // Query time
-	timeRange    api.Range     // Query range
-	_select      *lang2.Select // Select being processed
-	selectLimit  int           // Max number of rows to return in a query
-	selectColumn int           // The select expression index being evaluated
-	summary      *summary      // Summary
+	prevState   *exState      // link to previous station
+	time        time.Time     // Query time
+	timeRange   api.Range     // Query range
+	_select     *lang2.Select // Select being processed
+	selectLimit int           // Max number of rows to return in a query
+	inGroup     bool          // True if we are inside a group
+	summary     *summary      // Summary
 }
 
 var (
@@ -42,7 +40,6 @@ var (
 		Metric(metric).
 		Query(query).
 		Select(selectStatement).
-		SelectExpression(selectExpression).
 		Summarize(summarize).
 		TableSelect(tableSelect).
 		UsingDefinitions(usingDefinitions).
@@ -67,11 +64,10 @@ func (ex *Executor) Time() time.Time {
 
 func (qp *QueryPlan) Execute(result *api.Result) error {
 	ex := &Executor{
-		qp:          qp,
-		result:      result,
-		metrics:     make(map[string][]ql.Value),
-		using:       make(map[string]*lang2.UsingDefinition),
-		colResolver: newColResolver(),
+		qp:      qp,
+		result:  result,
+		metrics: make(map[string][]ql.Value),
+		using:   make(map[string]*lang2.UsingDefinition),
 		exState: exState{
 			timeRange: qp.QueryRange,
 		},
@@ -109,61 +105,4 @@ func (ex *Executor) setSelectLimit(l int) {
 	if ex.selectLimit < 0 {
 		ex.selectLimit = 0
 	}
-}
-
-type colResolver struct {
-	visitor lang2.Visitor[*colResolver]
-	path    []string
-}
-
-func newColResolver() *colResolver {
-	r := &colResolver{}
-	r.visitor = lang2.NewBuilder[*colResolver]().
-		AliasedExpression(r.aliasedExpression).
-		Function(r.function).
-		Metric(r.metric).
-		Build()
-
-	return r
-}
-
-func (r *colResolver) append(s ...string) {
-	r.path = append(r.path, s...)
-}
-
-func (r *colResolver) resolveColumn(v *lang2.AliasedExpression) *api.Column {
-	return &api.Column{Name: r.resolveName(v)}
-}
-
-func (r *colResolver) resolveName(v *lang2.AliasedExpression) string {
-	r.path = nil
-	_ = r.visitor.AliasedExpression(v)
-	return strings.Join(r.path, "")
-}
-
-func (r *colResolver) aliasedExpression(_ lang2.Visitor[*colResolver], f *lang2.AliasedExpression) error {
-	if f.As != "" {
-		r.append(f.As)
-		return util.VisitorStop
-	}
-	return nil
-}
-
-func (r *colResolver) function(v lang2.Visitor[*colResolver], f *lang2.Function) error {
-	r.append(f.Name, "(")
-	for i, e := range f.Expressions {
-		if i > 0 {
-			r.append(",")
-		}
-		if err := v.Expression(e); err != nil {
-			return err
-		}
-	}
-	r.append(")")
-	return util.VisitorStop
-}
-
-func (r *colResolver) metric(_ lang2.Visitor[*colResolver], f *lang2.Metric) error {
-	r.append(f.Name)
-	return nil
 }

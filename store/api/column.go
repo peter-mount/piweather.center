@@ -165,3 +165,20 @@ func (c *Column) pad(s string, l, e int) string {
 	}
 	return string(r[:c.Width])
 }
+
+func (t *Table) ColumnCount() int {
+	return len(t.Columns)
+}
+
+func (t *Table) GetColumnByIndex(i int) *Column {
+	return t.Columns[i]
+}
+
+func (t *Table) AddColumn(c *Column) *Table {
+	if c.Width < len(c.Name) {
+		c.Width = len(c.Name)
+	}
+
+	t.Columns = append(t.Columns, c)
+	return t
+}

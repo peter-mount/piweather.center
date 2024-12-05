@@ -69,7 +69,14 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 }
 
 func (qp *QueryPlan) aliasedExpression(v lang2.Visitor[*QueryPlan], m *lang2.AliasedExpression) error {
-	if err := v.Expression(m.Expression); err != nil {
+	var err error
+	switch {
+	case m.Group != nil:
+		err = v.AliasedGroup(m.Group)
+	default:
+		err = v.Expression(m.Expression)
+	}
+	if err != nil {
 		return err
 	}
 	return util2.VisitorStop

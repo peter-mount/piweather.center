@@ -77,12 +77,24 @@ func expressionModifier(v lang2.Visitor[*Executor], s *lang2.ExpressionModifier)
 }
 
 func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) error {
+	ex := v.Get()
+
+	// If a group is present then jump into that
+	if s.Group != nil {
+		ex.save()
+		defer ex.restore()
+		ex.inGroup = true
+
+		if err := v.AliasedGroup(s.Group); err != nil {
+			return err
+		}
+		return util.VisitorStop
+	}
+
 	// Call summarize first
 	if err := v.Summarize(s.Summarize); err != nil {
 		return err
 	}
-
-	ex := v.Get()
 
 	ex.resetStack()
 
@@ -116,11 +128,15 @@ func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) e
 		}
 		// Add to table
 		ex.row.AddValue(val.Time, val1)
+
 		// Add to summary if it's being summarized
 		if ex.summary.IsAggregated(ex.selectColumn) {
 			ex.summary.Set(ex.selectColumn, val1)
 		}
 	}
+
+	// Now we are done with this column, increment for the next one
+	ex.selectColumn++
 
 	return util.VisitorStop
 }

@@ -8,6 +8,7 @@ import (
 
 type Visitor[T any] interface {
 	AliasedExpression(*AliasedExpression) error
+	AliasedGroup(*AliasedGroup) error
 	Duration(*time.Duration) error
 	Expression(*Expression) error
 	ExpressionModifier(*ExpressionModifier) error
@@ -51,6 +52,7 @@ func (v *visitor[T]) Set(data T) Visitor[T] {
 
 type common[T any] struct {
 	aliasedExpression  func(Visitor[T], *AliasedExpression) error
+	aliasedGroup       func(Visitor[T], *AliasedGroup) error
 	expression         func(Visitor[T], *Expression) error
 	expressionModifier func(Visitor[T], *ExpressionModifier) error
 	duration           func(Visitor[T], *time.Duration) error

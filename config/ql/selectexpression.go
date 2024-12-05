@@ -20,11 +20,12 @@ func (v *visitor[T]) SelectExpression(b *SelectExpression) error {
 				return nil
 			}
 		}
+
 		if err == nil {
 			for _, e := range b.Expressions {
 				err = v.AliasedExpression(e)
 				if err != nil {
-					break
+					return err
 				}
 			}
 		}
