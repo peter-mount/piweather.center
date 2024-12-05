@@ -15,9 +15,8 @@ var (
 	shortWrite = errors.New("short write")
 )
 
-func (r *Result) Write(wr io.Writer) error {
-	w := &writer{w: wr, b: make([]byte, 16)}
-	return r.write(w)
+func newWriter(wr io.Writer) *writer {
+	return &writer{w: wr, b: make([]byte, 16)}
 }
 
 type writer struct {

@@ -16,14 +16,13 @@ type Readable interface {
 	Read(io.Reader) error
 }
 
-func (r *Result) Read(src io.Reader) error {
-	rdr := &reader{r: src, b: make([]byte, 16)}
-	return r.read(rdr)
-}
-
 type reader struct {
 	r io.Reader
 	b []byte // scratch byte slice
+}
+
+func newReader(src io.Reader) *reader {
+	return &reader{r: src, b: make([]byte, 16)}
 }
 
 func (r *reader) readB(l int) error {

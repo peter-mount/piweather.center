@@ -1,5 +1,11 @@
 package api
 
+import (
+	"fmt"
+	"io"
+	"strings"
+)
+
 type Result struct {
 	// Status of the result
 	Status int `json:"status"`
@@ -127,4 +133,43 @@ func (r *Result) Finalise() {
 	for _, wr := range r.WindRose {
 		wr.Finalise()
 	}
+}
+
+func (r *Result) NewTable() *Table {
+	t := NewTable()
+	r.Table = append(r.Table, t)
+	return t
+}
+
+func (r *Result) String() string {
+	if r == nil {
+		return ""
+	}
+
+	var b []string
+
+	b = append(b, fmt.Sprintf("Status: %d", r.Status))
+	if r.Message != "" {
+		b = append(b, r.Message)
+	}
+
+	if r.Meta != nil {
+		for k, v := range r.Meta {
+			b = append(b, fmt.Sprintf("%q = %v", k, v))
+		}
+	}
+
+	for _, t := range r.Table {
+		b = t.String(b)
+	}
+
+	return strings.Join(b, "\n") + "\n"
+}
+
+func (r *Result) Read(src io.Reader) error {
+	return r.read(newReader(src))
+}
+
+func (r *Result) Write(wr io.Writer) error {
+	return r.write(newWriter(wr))
 }
