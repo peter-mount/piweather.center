@@ -63,7 +63,7 @@ func (f Function) IsAggregator() bool {
 	return f.Reducer != nil || f.Calculation != nil || f.Aggregator != nil
 }
 
-type FunctionHandler func(ql.Executor, ql2.Visitor, *ql2.Function, []ql.Value) error
+type FunctionHandler func(ql.Executor /*,ql2.Visitor*/, *ql2.Function, []ql.Value) error
 
 type FunctionMap struct {
 	mutex     sync.Mutex
@@ -108,9 +108,10 @@ func (f *FunctionMap) GetFunction(n string) (Function, bool) {
 	return ag, exists
 }
 
+/*
 func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 
-	if err := assertExpressions(fn.Pos, fn.Name, fn.Expressions, f); err != nil {
+	if err := AssertExpressions(fn.Pos, fn.Name, fn.Expressions, f); err != nil {
 		return err
 	}
 
@@ -125,7 +126,7 @@ func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 		val, _ := ex.Pop()
 
 		if f.IsAggregator() {
-			val, err = f.runAggregator(val)
+			val, err = f.RunAggregator(val)
 			if err != nil {
 				return err
 			}
@@ -139,14 +140,14 @@ func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 
 		// Aggregate the arguments into a single value
 		if f.AggregateArguments {
-			val, err := f.runAggregator(ql.Value{Time: ex.Time(), Values: args})
+			val, err := f.RunAggregator(ql.Value{Time: ex.Time(), Values: args})
 			if err != nil {
 				return err
 			}
 			args = []ql.Value{val}
 		}
 
-		if err := f.Function(ex, v, fn, args); err != nil {
+		if err := f.Function(ex, fn, args); err != nil {
 			return err
 		}
 	}
@@ -164,7 +165,7 @@ func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 
 		// Aggregate the args to get the final result
 		default:
-			val, err := f.runAggregator(ql.Value{Time: ex.Time(), Values: args})
+			val, err := f.RunAggregator(ql.Value{Time: ex.Time(), Values: args})
 			if err != nil {
 				return err
 			}
@@ -174,8 +175,9 @@ func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 
 	return util.VisitorStop
 }
+*/
 
-func (f Function) runAggregator(val ql.Value) (ql.Value, error) {
+func (f Function) RunAggregator(val ql.Value) (ql.Value, error) {
 	var a ql.Value
 
 	if f.Initial == nil {
@@ -268,7 +270,7 @@ func InitialInvalid(_ ql.Value) ql.Value {
 	return ql.Value{}
 }
 
-func assertExpressions(p lexer.Position, n string, e []*ql2.Expression, agg Function) error {
+func AssertExpressions(p lexer.Position, n string, e []*ql2.Expression, agg Function) error {
 	// Here start with MinArg & MaxArg.
 	// Override with Args if it's greater than either of them.
 	// Enforce minArg>=0 but if maxArg<minArg or negative then set maxArg to MaxInt
@@ -295,7 +297,7 @@ func assertExpressions(p lexer.Position, n string, e []*ql2.Expression, agg Func
 }
 
 // funcTimeOf implements TIMEOF which marks the value as requiring the TIME not the Value of a metric
-func funcTimeOf(ex ql.Executor, v ql2.Visitor, f *ql2.Function, args []ql.Value) error {
+func funcTimeOf(ex ql.Executor /*v ql2.Visitor,*/, f *ql2.Function, args []ql.Value) error {
 	switch len(args) {
 	case 0:
 		ex.Push(ql.Value{
@@ -304,20 +306,25 @@ func funcTimeOf(ex ql.Executor, v ql2.Visitor, f *ql2.Function, args []ql.Value)
 		})
 
 	case 1:
-		if err := v.Expression(f.Expressions[0]); err != nil {
-			return err
-		}
+		// FIXME implement? for now failsafe to the expression time not that of the metric
+		ex.Push(ql.Value{
+			Time:   ex.Time(),
+			IsTime: true,
+		})
+		//if err := v.Expression(f.Expressions[0]); err != nil {
+		//	return err
+		//}
 
-		r, ok := ex.Pop()
-		if ok {
-			// if an invalid time then return nul
-			if r.Time.IsZero() {
-				r.Value = value.Value{}
-			} else {
-				r.IsTime = true
-			}
-		}
-		ex.Push(r)
+		//r, ok := ex.Pop()
+		//if ok {
+		//	if an invalid time then return nul
+		//if r.Time.IsZero() {
+		//	r.Value = value.Value{}
+		//} else {
+		//	r.IsTime = true
+		//}
+		//}
+		//ex.Push(r)
 
 	default:
 		return participle.Errorf(f.Pos, "Invalid station %d args expected 0..1", len(args))
@@ -326,7 +333,7 @@ func funcTimeOf(ex ql.Executor, v ql2.Visitor, f *ql2.Function, args []ql.Value)
 	return util.VisitorStop
 }
 
-func funcTrend(ex ql.Executor, _ ql2.Visitor, _ *ql2.Function, args []ql.Value) error {
+func funcTrend(ex ql.Executor /*_ ql2.Visitor,*/, _ *ql2.Function, args []ql.Value) error {
 	r := ql.Value{Time: ex.Time()}
 
 	if len(args) == 2 {

@@ -53,7 +53,7 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 		store:   s,
 	}
 
-	if err := lang2.NewBuilder().
+	if err := lang2.NewBuilder[*QueryPlan]().
 		AliasedExpression(qp.aliasedExpression).
 		Metric(qp.addMetric).
 		QueryRange(qp.setQueryRange).
@@ -68,24 +68,24 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 	return qp, nil
 }
 
-func (qp *QueryPlan) aliasedExpression(v lang2.Visitor, m *lang2.AliasedExpression) error {
+func (qp *QueryPlan) aliasedExpression(v lang2.Visitor[*QueryPlan], m *lang2.AliasedExpression) error {
 	if err := v.Expression(m.Expression); err != nil {
 		return err
 	}
 	return util2.VisitorStop
 }
 
-func (qp *QueryPlan) addMetric(_ lang2.Visitor, m *lang2.Metric) error {
+func (qp *QueryPlan) addMetric(_ lang2.Visitor[*QueryPlan], m *lang2.Metric) error {
 	qp.Metrics.Add(m.Name)
 	return nil
 }
 
-func (qp *QueryPlan) setQueryRange(_ lang2.Visitor, m *lang2.QueryRange) error {
+func (qp *QueryPlan) setQueryRange(_ lang2.Visitor[*QueryPlan], m *lang2.QueryRange) error {
 	qp.QueryRange = m.Range()
 	return nil
 }
 
-func (qp *QueryPlan) expression(v lang2.Visitor, m *lang2.Expression) error {
+func (qp *QueryPlan) expression(v lang2.Visitor[*QueryPlan], m *lang2.Expression) error {
 
 	// Check for modifiers, looking them up if m.Using is set
 	mods := m.Modifier

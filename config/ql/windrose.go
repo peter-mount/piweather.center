@@ -20,7 +20,7 @@ type WindRoseOption struct {
 	Max   bool `parser:"| @'max')"`
 }
 
-func (v *visitor) WindRose(b *WindRose) error {
+func (v *visitor[T]) WindRose(b *WindRose) error {
 	var err error
 	if b != nil {
 		if v.windRose != nil {
@@ -39,7 +39,7 @@ func (v *visitor) WindRose(b *WindRose) error {
 	return err
 }
 
-func (b *builder) WindRose(f func(Visitor, *WindRose) error) Builder {
+func (b *builder[T]) WindRose(f func(Visitor[T], *WindRose) error) Builder[T] {
 	b.common.windRose = f
 	return b
 }

@@ -14,7 +14,7 @@ type Expression struct {
 	Modifier []*ExpressionModifier `parser:"| (@@)+ )?"`
 }
 
-func (v *visitor) Expression(b *Expression) error {
+func (v *visitor[T]) Expression(b *Expression) error {
 	var err error
 	if b != nil {
 		if v.expression != nil {
@@ -43,7 +43,7 @@ func (v *visitor) Expression(b *Expression) error {
 	return err
 }
 
-func (b *builder) Expression(f func(Visitor, *Expression) error) Builder {
+func (b *builder[T]) Expression(f func(Visitor[T], *Expression) error) Builder[T] {
 	b.common.expression = f
 	return b
 }

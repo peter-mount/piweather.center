@@ -23,7 +23,7 @@ type TableSelect struct {
 	Unit   *units.Unit `parser:"( 'unit' @@ )?"`
 }
 
-func (v *visitor) TableSelect(b *TableSelect) error {
+func (v *visitor[T]) TableSelect(b *TableSelect) error {
 	var err error
 	if b != nil {
 		if v._select != nil {
@@ -46,7 +46,7 @@ func (v *visitor) TableSelect(b *TableSelect) error {
 	return err
 }
 
-func (b *builder) TableSelect(f func(Visitor, *TableSelect) error) Builder {
+func (b *builder[T]) TableSelect(f func(Visitor[T], *TableSelect) error) Builder[T] {
 	b.common.tableSelect = f
 	return b
 }

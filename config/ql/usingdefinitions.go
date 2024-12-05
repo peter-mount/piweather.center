@@ -10,12 +10,12 @@ type UsingDefinitions struct {
 	Defs []*UsingDefinition `parser:" 'declare' @@ (',' @@)* "`
 }
 
-func (b *builder) UsingDefinitions(f func(Visitor, *UsingDefinitions) error) Builder {
+func (b *builder[T]) UsingDefinitions(f func(Visitor[T], *UsingDefinitions) error) Builder[T] {
 	b.common.usingDefinitions = f
 	return b
 }
 
-func (v *visitor) UsingDefinitions(b *UsingDefinitions) error {
+func (v *visitor[T]) UsingDefinitions(b *UsingDefinitions) error {
 	var err error
 
 	if b != nil {

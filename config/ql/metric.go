@@ -10,14 +10,14 @@ type Metric struct {
 	Name   string
 }
 
-func (v *visitor) Metric(b *Metric) error {
+func (v *visitor[T]) Metric(b *Metric) error {
 	if b != nil && v.metric != nil {
 		return v.metric(v, b)
 	}
 	return nil
 }
 
-func (b *builder) Metric(f func(Visitor, *Metric) error) Builder {
+func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 	b.common.metric = f
 	return b
 }

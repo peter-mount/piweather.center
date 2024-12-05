@@ -11,7 +11,7 @@ type SelectExpression struct {
 	Expressions []*AliasedExpression `parser:"@@ ( ',' @@ )*"`
 }
 
-func (v *visitor) SelectExpression(b *SelectExpression) error {
+func (v *visitor[T]) SelectExpression(b *SelectExpression) error {
 	var err error
 	if b != nil {
 		if v.selectExpression != nil {
@@ -32,7 +32,7 @@ func (v *visitor) SelectExpression(b *SelectExpression) error {
 	return err
 }
 
-func (b *builder) SelectExpression(f func(Visitor, *SelectExpression) error) Builder {
+func (b *builder[T]) SelectExpression(f func(Visitor[T], *SelectExpression) error) Builder[T] {
 	b.common.selectExpression = f
 	return b
 }

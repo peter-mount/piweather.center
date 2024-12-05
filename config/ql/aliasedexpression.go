@@ -15,7 +15,7 @@ type AliasedExpression struct {
 	As         string      `parser:"( 'as' @String )?"`
 }
 
-func (v *visitor) AliasedExpression(b *AliasedExpression) error {
+func (v *visitor[T]) AliasedExpression(b *AliasedExpression) error {
 	var err error
 	if b != nil {
 		if v.aliasedExpression != nil {
@@ -34,7 +34,7 @@ func (v *visitor) AliasedExpression(b *AliasedExpression) error {
 	return err
 }
 
-func (b *builder) AliasedExpression(f func(Visitor, *AliasedExpression) error) Builder {
+func (b *builder[T]) AliasedExpression(f func(Visitor[T], *AliasedExpression) error) Builder[T] {
 	b.common.aliasedExpression = f
 	return b
 }

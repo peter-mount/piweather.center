@@ -13,7 +13,7 @@ type Function struct {
 	Expressions []*Expression `parser:"'(' (@@ (',' @@)*)? ')'"`
 }
 
-func (v *visitor) Function(b *Function) error {
+func (v *visitor[T]) Function(b *Function) error {
 	var err error
 	if b != nil {
 		if v.function != nil {
@@ -34,7 +34,7 @@ func (v *visitor) Function(b *Function) error {
 	return err
 }
 
-func (b *builder) Function(f func(Visitor, *Function) error) Builder {
+func (b *builder[T]) Function(f func(Visitor[T], *Function) error) Builder[T] {
 	b.common.function = f
 	return b
 }

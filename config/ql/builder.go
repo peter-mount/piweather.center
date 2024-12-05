@@ -5,51 +5,51 @@ import (
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
-type Builder interface {
-	AliasedExpression(func(Visitor, *AliasedExpression) error) Builder
-	Expression(func(Visitor, *Expression) error) Builder
-	ExpressionModifier(func(Visitor, *ExpressionModifier) error) Builder
-	Duration(func(Visitor, *time.Duration) error) Builder
-	Function(func(Visitor, *Function) error) Builder
-	Histogram(f func(Visitor, *Histogram) error) Builder
-	Metric(func(Visitor, *Metric) error) Builder
-	Query(func(Visitor, *Query) error) Builder
-	QueryRange(func(Visitor, *QueryRange) error) Builder
-	Select(func(Visitor, *Select) error) Builder
-	SelectExpression(func(Visitor, *SelectExpression) error) Builder
-	TableSelect(func(Visitor, *TableSelect) error) Builder
-	Time(func(Visitor, *time.Time) error) Builder
-	Unit(func(Visitor, *units.Unit) error) Builder
-	UsingDefinition(func(Visitor, *UsingDefinition) error) Builder
-	UsingDefinitions(func(Visitor, *UsingDefinitions) error) Builder
-	WindRose(f func(Visitor, *WindRose) error) Builder
+type Builder[T any] interface {
+	AliasedExpression(func(Visitor[T], *AliasedExpression) error) Builder[T]
+	Expression(func(Visitor[T], *Expression) error) Builder[T]
+	ExpressionModifier(func(Visitor[T], *ExpressionModifier) error) Builder[T]
+	Duration(func(Visitor[T], *time.Duration) error) Builder[T]
+	Function(func(Visitor[T], *Function) error) Builder[T]
+	Histogram(f func(Visitor[T], *Histogram) error) Builder[T]
+	Metric(func(Visitor[T], *Metric) error) Builder[T]
+	Query(func(Visitor[T], *Query) error) Builder[T]
+	QueryRange(func(Visitor[T], *QueryRange) error) Builder[T]
+	Select(func(Visitor[T], *Select) error) Builder[T]
+	SelectExpression(func(Visitor[T], *SelectExpression) error) Builder[T]
+	TableSelect(func(Visitor[T], *TableSelect) error) Builder[T]
+	Time(func(Visitor[T], *time.Time) error) Builder[T]
+	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
+	UsingDefinition(func(Visitor[T], *UsingDefinition) error) Builder[T]
+	UsingDefinitions(func(Visitor[T], *UsingDefinitions) error) Builder[T]
+	WindRose(f func(Visitor[T], *WindRose) error) Builder[T]
 
-	Build() Visitor
+	Build() Visitor[T]
 }
 
-func NewBuilder() Builder {
-	return &builder{}
+func NewBuilder[T any]() Builder[T] {
+	return &builder[T]{}
 }
 
-type builder struct {
-	common
+type builder[T any] struct {
+	common[T]
 }
 
-func (b *builder) Build() Visitor {
-	return &visitor{common: b.common}
+func (b *builder[T]) Build() Visitor[T] {
+	return &visitor[T]{common: b.common}
 }
 
-func (b *builder) Duration(f func(Visitor, *time.Duration) error) Builder {
+func (b *builder[T]) Duration(f func(Visitor[T], *time.Duration) error) Builder[T] {
 	b.common.duration = f
 	return b
 }
 
-func (b *builder) Time(f func(Visitor, *time.Time) error) Builder {
+func (b *builder[T]) Time(f func(Visitor[T], *time.Time) error) Builder[T] {
 	b.common.time = f
 	return b
 }
 
-func (b *builder) Unit(f func(Visitor, *units.Unit) error) Builder {
+func (b *builder[T]) Unit(f func(Visitor[T], *units.Unit) error) Builder[T] {
 	b.common.unit = f
 	return b
 }

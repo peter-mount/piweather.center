@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/store/api"
-	"time"
 )
 
 // QueryRange defines the time range to query
@@ -20,7 +19,7 @@ type QueryRange struct {
 	Every *time2.Duration `parser:"( 'every' @@ )?"` // Every duration time
 }
 
-func (v *visitor) QueryRange(b *QueryRange) error {
+func (v *visitor[T]) QueryRange(b *QueryRange) error {
 	var err error
 	if b != nil {
 		if v.queryRange != nil {
@@ -58,7 +57,7 @@ func (v *visitor) QueryRange(b *QueryRange) error {
 	return err
 }
 
-func (b *builder) QueryRange(f func(Visitor, *QueryRange) error) Builder {
+func (b *builder[T]) QueryRange(f func(Visitor[T], *QueryRange) error) Builder[T] {
 	b.common.queryRange = f
 	return b
 }
@@ -88,19 +87,19 @@ func (a *QueryRange) IsRow() bool {
 	return a.At.IsRow() || a.From.IsRow() || a.Start.IsRow() || a.End.IsRow()
 }
 
-func (a *QueryRange) SetTime(t time.Time, every time.Duration, v Visitor) error {
-	err := a.At.SetTime(t, every, v)
-	if err == nil {
-		err = a.From.SetTime(t, every, v)
-	}
-	if a.For.IsEvery() {
-		a.For.Set(every)
-	}
-	if err == nil {
-		err = a.Start.SetTime(t, every, v)
-	}
-	if err == nil {
-		err = a.End.SetTime(t, every, v)
-	}
-	return err
-}
+//func (a *QueryRange) SetTime(t time.Time, every time.Duration, v Visitor) error {
+//	err := a.At.SetTime(t, every, v)
+//	if err == nil {
+//		err = a.From.SetTime(t, every, v)
+//	}
+//	if a.For.IsEvery() {
+//		a.For.Set(every)
+//	}
+//	if err == nil {
+//		err = a.Start.SetTime(t, every, v)
+//	}
+//	if err == nil {
+//		err = a.End.SetTime(t, every, v)
+//	}
+//	return err
+//}

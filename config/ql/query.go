@@ -16,7 +16,7 @@ type Query struct {
 	Select      []*Select         `parser:"  ( @@ )+ )"`
 }
 
-func (v *visitor) Query(b *Query) error {
+func (v *visitor[T]) Query(b *Query) error {
 	var err error
 	if b != nil {
 		// Process QueryRange first
@@ -56,7 +56,7 @@ func (v *visitor) Query(b *Query) error {
 	return err
 }
 
-func (b *builder) Query(f func(Visitor, *Query) error) Builder {
+func (b *builder[T]) Query(f func(Visitor[T], *Query) error) Builder[T] {
 	b.common.query = f
 	return b
 }

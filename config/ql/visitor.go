@@ -6,7 +6,7 @@ import (
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
-type Visitor interface {
+type Visitor[T any] interface {
 	AliasedExpression(*AliasedExpression) error
 	Duration(*time.Duration) error
 	Expression(*Expression) error
@@ -24,40 +24,57 @@ type Visitor interface {
 	UsingDefinitions(*UsingDefinitions) error
 	UsingDefinition(*UsingDefinition) error
 	WindRose(*WindRose) error
+
+	Clone() Visitor[T]
+	Set(T)
+	Get() T
 }
 
-type visitor struct {
-	common
+type visitor[T any] struct {
+	common[T]
+	data T
 }
 
-type common struct {
-	aliasedExpression  func(Visitor, *AliasedExpression) error
-	expression         func(Visitor, *Expression) error
-	expressionModifier func(Visitor, *ExpressionModifier) error
-	duration           func(Visitor, *time.Duration) error
-	function           func(Visitor, *Function) error
-	histogram          func(Visitor, *Histogram) error
-	metric             func(Visitor, *Metric) error
-	query              func(Visitor, *Query) error
-	queryRange         func(Visitor, *QueryRange) error
-	_select            func(Visitor, *Select) error
-	selectExpression   func(Visitor, *SelectExpression) error
-	tableSelect        func(Visitor, *TableSelect) error
-	time               func(Visitor, *time.Time) error
-	unit               func(Visitor, *units.Unit) error
-	usingDefinition    func(Visitor, *UsingDefinition) error
-	usingDefinitions   func(Visitor, *UsingDefinitions) error
-	windRose           func(Visitor, *WindRose) error
+func (v *visitor[T]) Clone() Visitor[T] {
+	return &visitor[T]{common: v.common}
 }
 
-func (v *visitor) Duration(b *time.Duration) error {
+func (v *visitor[T]) Get() T {
+	return v.data
+}
+
+func (v *visitor[T]) Set(data T) {
+	v.data = data
+}
+
+type common[T any] struct {
+	aliasedExpression  func(Visitor[T], *AliasedExpression) error
+	expression         func(Visitor[T], *Expression) error
+	expressionModifier func(Visitor[T], *ExpressionModifier) error
+	duration           func(Visitor[T], *time.Duration) error
+	function           func(Visitor[T], *Function) error
+	histogram          func(Visitor[T], *Histogram) error
+	metric             func(Visitor[T], *Metric) error
+	query              func(Visitor[T], *Query) error
+	queryRange         func(Visitor[T], *QueryRange) error
+	_select            func(Visitor[T], *Select) error
+	selectExpression   func(Visitor[T], *SelectExpression) error
+	tableSelect        func(Visitor[T], *TableSelect) error
+	time               func(Visitor[T], *time.Time) error
+	unit               func(Visitor[T], *units.Unit) error
+	usingDefinition    func(Visitor[T], *UsingDefinition) error
+	usingDefinitions   func(Visitor[T], *UsingDefinitions) error
+	windRose           func(Visitor[T], *WindRose) error
+}
+
+func (v *visitor[T]) Duration(b *time.Duration) error {
 	if b != nil && v.duration != nil {
 		return v.duration(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) Time(b *time.Time) error {
+func (v *visitor[T]) Time(b *time.Time) error {
 	var err error
 	if b != nil {
 		if v.time != nil {
@@ -78,7 +95,7 @@ func (v *visitor) Time(b *time.Time) error {
 	return err
 }
 
-func (v *visitor) Unit(b *units.Unit) error {
+func (v *visitor[T]) Unit(b *units.Unit) error {
 	if b != nil && v.unit != nil {
 		return v.unit(v, b)
 	}

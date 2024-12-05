@@ -12,7 +12,7 @@ type Select struct {
 	Limit      int               `parser:"( 'limit' @Int )?"`
 }
 
-func (v *visitor) Select(b *Select) error {
+func (v *visitor[T]) Select(b *Select) error {
 	var err error
 	if b != nil {
 		if v._select != nil {
@@ -29,7 +29,7 @@ func (v *visitor) Select(b *Select) error {
 	return err
 }
 
-func (b *builder) Select(f func(Visitor, *Select) error) Builder {
+func (b *builder[T]) Select(f func(Visitor[T], *Select) error) Builder[T] {
 	b.common._select = f
 	return b
 }

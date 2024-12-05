@@ -10,12 +10,12 @@ type UsingDefinition struct {
 	Modifier []*ExpressionModifier `parser:"(@@)+"`
 }
 
-func (b *builder) UsingDefinition(f func(Visitor, *UsingDefinition) error) Builder {
+func (b *builder[T]) UsingDefinition(f func(Visitor[T], *UsingDefinition) error) Builder[T] {
 	b.common.usingDefinition = f
 	return b
 }
 
-func (v *visitor) UsingDefinition(b *UsingDefinition) error {
+func (v *visitor[T]) UsingDefinition(b *UsingDefinition) error {
 	if b != nil && v.usingDefinition != nil {
 		return v.usingDefinition(v, b)
 	}

@@ -11,7 +11,7 @@ type histogram struct {
 	max value.Value
 }
 
-func (ex *Executor) histogram(v ql2.Visitor, s *ql2.Histogram) error {
+func (ex *Executor) histogram(v ql2.Visitor[*Executor], s *ql2.Histogram) error {
 	ex.table = ex.result.NewTable()
 
 	if s.Expression != nil {

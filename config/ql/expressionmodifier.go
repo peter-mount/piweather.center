@@ -12,7 +12,7 @@ type ExpressionModifier struct {
 	Offset *time.Duration `parser:"| 'offset' @@ )"`
 }
 
-func (v *visitor) ExpressionModifier(b *ExpressionModifier) error {
+func (v *visitor[T]) ExpressionModifier(b *ExpressionModifier) error {
 	var err error
 	if b != nil {
 		if v.expressionModifier != nil {
@@ -31,7 +31,7 @@ func (v *visitor) ExpressionModifier(b *ExpressionModifier) error {
 	return err
 }
 
-func (b *builder) ExpressionModifier(f func(Visitor, *ExpressionModifier) error) Builder {
+func (b *builder[T]) ExpressionModifier(f func(Visitor[T], *ExpressionModifier) error) Builder[T] {
 	b.common.expressionModifier = f
 	return b
 }

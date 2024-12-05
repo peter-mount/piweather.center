@@ -5,23 +5,21 @@ import (
 	"github.com/peter-mount/piweather.center/config/ql"
 )
 
+var (
+	validateVisitor = ql.NewBuilder[any]().
+		Function(func(_ ql.Visitor[any], d *ql.Function) error {
+			if HasFunction(d.Name) {
+				return nil
+			}
+			return errors.Errorf(d.Pos, "unknown function %q", d.Name)
+		}).
+		Build()
+)
+
 func ValidateQuery(d *ql.Query) error {
-	return ql.NewBuilder().
-		Function(initFunction).
-		Build().
-		Query(d)
+	return validateVisitor.Clone().Query(d)
 }
 
 func ValidateExpression(d *ql.Expression) error {
-	return ql.NewBuilder().
-		Function(initFunction).
-		Build().
-		Expression(d)
-}
-
-func initFunction(_ ql.Visitor, d *ql.Function) error {
-	if HasFunction(d.Name) {
-		return nil
-	}
-	return errors.Errorf(d.Pos, "unknown function %q", d.Name)
+	return validateVisitor.Clone().Expression(d)
 }

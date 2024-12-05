@@ -11,7 +11,7 @@ type Histogram struct {
 	Expression *AliasedExpression `parser:"'histogram' @@"`
 }
 
-func (v *visitor) Histogram(b *Histogram) error {
+func (v *visitor[T]) Histogram(b *Histogram) error {
 	var err error
 	if b != nil {
 		if v.histogram != nil {
@@ -27,7 +27,7 @@ func (v *visitor) Histogram(b *Histogram) error {
 	return err
 }
 
-func (b *builder) Histogram(f func(Visitor, *Histogram) error) Builder {
+func (b *builder[T]) Histogram(f func(Visitor[T], *Histogram) error) Builder[T] {
 	b.common.histogram = f
 	return b
 }
