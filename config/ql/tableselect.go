@@ -2,6 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
@@ -20,4 +21,32 @@ type TableSelect struct {
 	Time   *Expression `parser:"'table' 'select' @@"`
 	Metric *Expression `parser:"',' @@"`
 	Unit   *units.Unit `parser:"( 'unit' @@ )?"`
+}
+
+func (v *visitor) TableSelect(b *TableSelect) error {
+	var err error
+	if b != nil {
+		if v._select != nil {
+			err = v.tableSelect(v, b)
+			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
+				return nil
+			}
+		}
+
+		if err == nil {
+			err = v.Expression(b.Time)
+		}
+		if err == nil {
+			err = v.Expression(b.Metric)
+		}
+		if err == nil {
+			err = v.Unit(b.Unit)
+		}
+	}
+	return err
+}
+
+func (b *builder) TableSelect(f func(Visitor, *TableSelect) error) Builder {
+	b.common.tableSelect = f
+	return b
 }

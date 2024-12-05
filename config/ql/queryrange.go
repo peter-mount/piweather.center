@@ -2,6 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/store/api"
 	"time"
@@ -17,6 +18,49 @@ type QueryRange struct {
 	Start *time2.Time     `parser:"| 'between' @@"`  // Between a start time
 	End   *time2.Time     `parser:"  'and' @@ )"`    // and an end time
 	Every *time2.Duration `parser:"( 'every' @@ )?"` // Every duration time
+}
+
+func (v *visitor) QueryRange(b *QueryRange) error {
+	var err error
+	if b != nil {
+		if v.queryRange != nil {
+			err = v.queryRange(v, b)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		// AT x
+		if err == nil {
+			err = v.Time(b.At)
+		}
+
+		// FROM x FOR x
+		if err == nil {
+			err = v.Time(b.From)
+		}
+		if err == nil {
+			err = v.Duration(b.For)
+		}
+
+		// BETWEEN x AND x
+		if err == nil {
+			err = v.Time(b.Start)
+		}
+		if err == nil {
+			err = v.Time(b.End)
+		}
+
+		if err == nil {
+			err = v.Duration(b.Every)
+		}
+	}
+	return err
+}
+
+func (b *builder) QueryRange(f func(Visitor, *QueryRange) error) Builder {
+	b.common.queryRange = f
+	return b
 }
 
 func (a *QueryRange) Range() api.Range {
@@ -44,7 +88,7 @@ func (a *QueryRange) IsRow() bool {
 	return a.At.IsRow() || a.From.IsRow() || a.Start.IsRow() || a.End.IsRow()
 }
 
-func (a *QueryRange) SetTime(t time.Time, every time.Duration, v QueryVisitor) error {
+func (a *QueryRange) SetTime(t time.Time, every time.Duration, v Visitor) error {
 	err := a.At.SetTime(t, every, v)
 	if err == nil {
 		err = a.From.SetTime(t, every, v)

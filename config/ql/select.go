@@ -2,8 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util/time"
-	"github.com/peter-mount/piweather.center/config/util/units"
+	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type Select struct {
@@ -13,48 +12,24 @@ type Select struct {
 	Limit      int               `parser:"( 'limit' @Int )?"`
 }
 
-type SelectExpression struct {
-	Pos lexer.Position
+func (v *visitor) Select(b *Select) error {
+	var err error
+	if b != nil {
+		if v._select != nil {
+			err = v._select(v, b)
+			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
+				return nil
+			}
+		}
 
-	Expressions []*AliasedExpression `parser:"@@ ( ',' @@ )*"`
+		if err == nil {
+			err = v.SelectExpression(b.Expression)
+		}
+	}
+	return err
 }
 
-// AliasedExpression handles expression AS name to create aliases
-type AliasedExpression struct {
-	Pos lexer.Position
-
-	Expression *Expression `parser:"@@"`
-	Unit       *units.Unit `parser:"( @@ )?"`
-	As         string      `parser:"( 'as' @String )?"`
-}
-
-// Expression handles function calls or direct metric values
-type Expression struct {
-	Pos      lexer.Position
-	Function *Function             `parser:"( @@"`
-	Metric   *Metric               `parser:"| @@ )"`
-	Using    string                `parser:"( 'using' @String"`
-	Modifier []*ExpressionModifier `parser:"| (@@)+ )?"`
-}
-
-type ExpressionModifier struct {
-	Pos    lexer.Position
-	Range  *QueryRange    `parser:"( @@"`
-	Offset *time.Duration `parser:"| 'offset' @@ )"`
-}
-
-// Function handles function calls
-type Function struct {
-	Pos lexer.Position
-
-	Name        string        `parser:"@Ident"`
-	Expressions []*Expression `parser:"'(' (@@ (',' @@)*)? ')'"`
-}
-
-// Metric handles a metric reference
-type Metric struct {
-	Pos lexer.Position
-
-	Metric []string `parser:"@Ident ( '.' @Ident )*"`
-	Name   string
+func (b *builder) Select(f func(Visitor, *Select) error) Builder {
+	b.common._select = f
+	return b
 }

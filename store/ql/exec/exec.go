@@ -79,7 +79,7 @@ func (ex *Executor) run() error {
 
 	_ = qp.Metrics.ForEach(ex.getMetric)
 
-	return lang2.NewBuilder().
+	return lang2.New().
 		Query(ex.query).
 		UsingDefinitions(ex.usingDefinitions).
 		Histogram(ex.histogram).
@@ -101,7 +101,7 @@ func (ex *Executor) getMetric(m string) error {
 	return nil
 }
 
-func (ex *Executor) query(_ lang2.QueryVisitor, s *lang2.Query) error {
+func (ex *Executor) query(_ lang2.Visitor, s *lang2.Query) error {
 	ex.setSelectLimit(s.Limit)
 	return nil
 }
@@ -113,7 +113,7 @@ func (ex *Executor) setSelectLimit(l int) {
 	}
 }
 
-func (ex *Executor) usingDefinitions(v lang2.QueryVisitor, s *lang2.UsingDefinitions) error {
+func (ex *Executor) usingDefinitions(v lang2.Visitor, s *lang2.UsingDefinitions) error {
 	for _, e := range s.Defs {
 		// Ensure the definition is valid
 		if err := v.UsingDefinition(e); err != nil {
@@ -124,7 +124,7 @@ func (ex *Executor) usingDefinitions(v lang2.QueryVisitor, s *lang2.UsingDefinit
 	return util.VisitorStop
 }
 
-func (ex *Executor) selectStatement(v lang2.QueryVisitor, s *lang2.Select) error {
+func (ex *Executor) selectStatement(v lang2.Visitor, s *lang2.Select) error {
 	ex.table = ex.result.NewTable()
 
 	// Select has its own LIMIT defined
@@ -159,7 +159,7 @@ func (ex *Executor) selectStatement(v lang2.QueryVisitor, s *lang2.Select) error
 	return util.VisitorStop
 }
 
-func (ex *Executor) selectExpression(_ lang2.QueryVisitor, _ *lang2.SelectExpression) error {
+func (ex *Executor) selectExpression(_ lang2.Visitor, _ *lang2.SelectExpression) error {
 	ex.table.PruneCurrentRow()
 
 	// If we have exceeded the selectLimit then stop here
@@ -171,7 +171,7 @@ func (ex *Executor) selectExpression(_ lang2.QueryVisitor, _ *lang2.SelectExpres
 	return nil
 }
 
-func (ex *Executor) expression(v lang2.QueryVisitor, s *lang2.Expression) error {
+func (ex *Executor) expression(v lang2.Visitor, s *lang2.Expression) error {
 	var err error
 
 	// If offset defined, temporarily adjust the current time by that offset
@@ -213,7 +213,7 @@ func (ex *Executor) expression(v lang2.QueryVisitor, s *lang2.Expression) error 
 	return util.VisitorStop
 }
 
-func (ex *Executor) expressionModifier(v lang2.QueryVisitor, s *lang2.ExpressionModifier) error {
+func (ex *Executor) expressionModifier(v lang2.Visitor, s *lang2.ExpressionModifier) error {
 	var err error
 
 	if s.Offset != nil {
@@ -233,7 +233,7 @@ func (ex *Executor) expressionModifier(v lang2.QueryVisitor, s *lang2.Expression
 	return err
 }
 
-func (ex *Executor) aliasedExpression(v lang2.QueryVisitor, s *lang2.AliasedExpression) error {
+func (ex *Executor) aliasedExpression(v lang2.Visitor, s *lang2.AliasedExpression) error {
 	ex.resetStack()
 
 	err := v.Expression(s.Expression)
@@ -271,13 +271,13 @@ func (ex *Executor) aliasedExpression(v lang2.QueryVisitor, s *lang2.AliasedExpr
 }
 
 type colResolver struct {
-	visitor lang2.QueryVisitor
+	visitor lang2.Visitor
 	path    []string
 }
 
 func newColResolver() *colResolver {
 	r := &colResolver{}
-	r.visitor = lang2.NewBuilder().
+	r.visitor = lang2.New().
 		AliasedExpression(r.aliasedExpression).
 		Function(r.function).
 		Metric(r.metric).
@@ -300,7 +300,7 @@ func (r *colResolver) resolveName(v *lang2.AliasedExpression) string {
 	return strings.Join(r.path, "")
 }
 
-func (r *colResolver) aliasedExpression(_ lang2.QueryVisitor, f *lang2.AliasedExpression) error {
+func (r *colResolver) aliasedExpression(_ lang2.Visitor, f *lang2.AliasedExpression) error {
 	if f.As != "" {
 		r.append(f.As)
 		return util.VisitorStop
@@ -308,7 +308,7 @@ func (r *colResolver) aliasedExpression(_ lang2.QueryVisitor, f *lang2.AliasedEx
 	return nil
 }
 
-func (r *colResolver) function(v lang2.QueryVisitor, f *lang2.Function) error {
+func (r *colResolver) function(v lang2.Visitor, f *lang2.Function) error {
 	r.append(f.Name, "(")
 	for i, e := range f.Expressions {
 		if i > 0 {
@@ -322,12 +322,12 @@ func (r *colResolver) function(v lang2.QueryVisitor, f *lang2.Function) error {
 	return util.VisitorStop
 }
 
-func (r *colResolver) metric(_ lang2.QueryVisitor, f *lang2.Metric) error {
+func (r *colResolver) metric(_ lang2.Visitor, f *lang2.Metric) error {
 	r.append(f.Name)
 	return nil
 }
 
-func (ex *Executor) tableSelect(v lang2.QueryVisitor, s *lang2.TableSelect) error {
+func (ex *Executor) tableSelect(v lang2.Visitor, s *lang2.TableSelect) error {
 	ex.table = ex.result.NewTable()
 
 	// The unit required

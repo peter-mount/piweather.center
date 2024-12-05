@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func (ex *Executor) windRose(v ql2.QueryVisitor, s *ql2.WindRose) error {
+func (ex *Executor) windRose(v ql2.Visitor, s *ql2.WindRose) error {
 	wr := api.NewWindRose()
 
 	it := ex.timeRange.Iterator()
@@ -75,7 +75,7 @@ func (ex *Executor) windRoseTable(wr *api.WindRose, f func(*api.WindRoseBucket) 
 	}
 }
 
-func (ex *Executor) windRoseExpression(v ql2.QueryVisitor, s *ql2.Expression, u *value.Unit) (float64, bool, error) {
+func (ex *Executor) windRoseExpression(v ql2.Visitor, s *ql2.Expression, u *value.Unit) (float64, bool, error) {
 	ex.resetStack()
 	err := v.Expression(s)
 

@@ -7,7 +7,7 @@ import (
 )
 
 // function executes the provided function.
-func (ex *Executor) function(v ql2.QueryVisitor, f *ql2.Function) error {
+func (ex *Executor) function(v ql2.Visitor, f *ql2.Function) error {
 	if af, exists := functions.GetFunction(f.Name); exists {
 		return af.Run(ex, v, f)
 	}
