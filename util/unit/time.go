@@ -78,32 +78,37 @@ var timeFormats = []string{
 //
 // If the string cannot be passed then a zero time.Time is returned
 func ParseTime(s string) time.Time {
+	return ParseTimeIn(s, time.Local)
+}
+
+func ParseTimeIn(s string, loc *time.Location) time.Time {
+
 	switch strings.ToLower(s) {
 	case "now":
-		return time.Now()
+		return NowIn(loc)
 
 	case "midnight", "today":
-		return time2.LocalMidnight(time.Now())
+		return time2.LocalMidnight(NowIn(loc))
 
 	case "midnightutc", "todayutc":
-		return time2.LocalMidnight(time.Now().UTC())
+		return time2.LocalMidnight(NowUTC())
 
 	case "yesterday":
-		return time2.LocalMidnight(time.Now().Add(-24 * time.Hour))
+		return time2.LocalMidnight(NowIn(loc).Add(-24 * time.Hour))
 
 	case "yesterdayutc":
-		return time2.LocalMidnight(time.Now().UTC().Add(-24 * time.Hour))
+		return time2.LocalMidnight(NowUTC().Add(-24 * time.Hour))
 
 	case "tomorrow":
-		return time2.LocalMidnight(time.Now().Add(24 * time.Hour))
+		return time2.LocalMidnight(NowIn(loc).Add(24 * time.Hour))
 
 	case "tomorrowutc":
-		return time2.LocalMidnight(time.Now().UTC().Add(24 * time.Hour))
+		return time2.LocalMidnight(NowUTC().Add(24 * time.Hour))
 
 	default:
 		// Parse time using one of our formats
 		for _, tf := range timeFormats {
-			if t, err := time.Parse(tf, s); err == nil {
+			if t, err := time.ParseInLocation(tf, s, loc); err == nil {
 				return t
 			}
 		}
@@ -115,4 +120,12 @@ func ParseTime(s string) time.Time {
 
 		return time.Time{}
 	}
+}
+
+func NowIn(loc *time.Location) time.Time {
+	return time.Now().In(loc)
+}
+
+func NowUTC() time.Time {
+	return time.Now().UTC()
 }

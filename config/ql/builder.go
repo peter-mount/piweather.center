@@ -21,6 +21,7 @@ type Builder[T any] interface {
 	Summarize(func(Visitor[T], *Summarize) error) Builder[T]
 	TableSelect(func(Visitor[T], *TableSelect) error) Builder[T]
 	Time(func(Visitor[T], *time.Time) error) Builder[T]
+	TimeZone(func(Visitor[T], *time.TimeZone) error) Builder[T]
 	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
 	UsingDefinition(func(Visitor[T], *UsingDefinition) error) Builder[T]
 	UsingDefinitions(func(Visitor[T], *UsingDefinitions) error) Builder[T]
@@ -48,6 +49,11 @@ func (b *builder[T]) Duration(f func(Visitor[T], *time.Duration) error) Builder[
 
 func (b *builder[T]) Time(f func(Visitor[T], *time.Time) error) Builder[T] {
 	b.common.time = f
+	return b
+}
+
+func (b *builder[T]) TimeZone(f func(Visitor[T], *time.TimeZone) error) Builder[T] {
+	b.common.timeZone = f
 	return b
 }
 

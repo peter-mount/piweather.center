@@ -3,10 +3,12 @@ package ql
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/time"
 )
 
 type Query struct {
 	Pos         lexer.Position
+	TimeZone    *time.TimeZone    `parser:"@@?"`
 	QueryRange  *QueryRange       `parser:"@@"`
 	Using       *UsingDefinitions `parser:"(@@)?"`
 	Histogram   []*Histogram      `parser:"( ( @@ )+"`
@@ -19,14 +21,19 @@ type Query struct {
 func (v *visitor[T]) Query(b *Query) error {
 	var err error
 	if b != nil {
-		// Process QueryRange first
-		err = v.QueryRange(b.QueryRange)
-
-		if err == nil && v.query != nil {
+		if v.query != nil {
 			err = v.query(v, b)
 		}
 		if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
 			return nil
+		}
+
+		if err == nil {
+			err = v.TimeZone(b.TimeZone)
+		}
+
+		if err == nil {
+			err = v.QueryRange(b.QueryRange)
 		}
 
 		if err == nil {

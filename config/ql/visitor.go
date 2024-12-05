@@ -22,6 +22,7 @@ type Visitor[T any] interface {
 	Summarize(*Summarize) error
 	TableSelect(*TableSelect) error
 	Time(*time.Time) error
+	TimeZone(*time.TimeZone) error
 	Unit(*units.Unit) error
 	UsingDefinitions(*UsingDefinitions) error
 	UsingDefinition(*UsingDefinition) error
@@ -66,6 +67,7 @@ type common[T any] struct {
 	summarize          func(Visitor[T], *Summarize) error
 	tableSelect        func(Visitor[T], *TableSelect) error
 	time               func(Visitor[T], *time.Time) error
+	timeZone           func(Visitor[T], *time.TimeZone) error
 	unit               func(Visitor[T], *units.Unit) error
 	usingDefinition    func(Visitor[T], *UsingDefinition) error
 	usingDefinitions   func(Visitor[T], *UsingDefinitions) error
@@ -77,6 +79,19 @@ func (v *visitor[T]) Duration(b *time.Duration) error {
 		return v.duration(v, b)
 	}
 	return nil
+}
+
+func (v *visitor[T]) TimeZone(b *time.TimeZone) error {
+	var err error
+	if b != nil {
+		if v.timeZone != nil {
+			err = v.timeZone(v, b)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+	}
+	return err
 }
 
 func (v *visitor[T]) Time(b *time.Time) error {

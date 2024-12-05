@@ -21,6 +21,7 @@ var (
 				ExpressionModifier(initExpressionModifier).
 				Metric(initMetric).
 				Time(timeInit).
+				TimeZone(timeZoneInit).
 				Duration(durationInit).
 				Unit(unitInit).
 				WindRose(initWindRose).
@@ -69,11 +70,21 @@ func timeInit(v Visitor[*parserState], t *time2.Time) error {
 		return nil
 	}
 
-	if err := t.SetTime(unit.ParseTime(t.Def), 0, v); err != nil {
+	tz := v.Get().timeZone
+
+	if err := t.SetTime(unit.ParseTimeIn(t.Def, tz), 0, v); err != nil {
 		return err
 	}
 
 	return util2.VisitorStop
+}
+
+func timeZoneInit(v Visitor[*parserState], d *time2.TimeZone) error {
+	if err := d.Init(); err != nil {
+		return err
+	}
+	v.Get().timeZone = d.Location()
+	return nil
 }
 
 func durationInit(_ Visitor[*parserState], d *time2.Duration) error {
@@ -90,8 +101,9 @@ func durationInit(_ Visitor[*parserState], d *time2.Duration) error {
 
 type parserState struct {
 	usingNames util.StringSet
+	timeZone   *time.Location
 }
 
 func newParserState() *parserState {
-	return &parserState{usingNames: util.NewStringSet()}
+	return &parserState{usingNames: util.NewStringSet(), timeZone: time.UTC}
 }
