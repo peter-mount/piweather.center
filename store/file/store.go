@@ -1,7 +1,6 @@
 package file
 
 import (
-	"context"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
@@ -77,10 +76,9 @@ func (s *store) Start() error {
 
 	s.openFiles = make(map[string]*File)
 
-	// Expiry daemon
-	if id, err := s.Cron.AddTask("* * * * ?", func(_ context.Context) error {
+	// Expiry daemon runs every 15 seconds
+	if id, err := s.Cron.AddFunc("0/15 * * * * ?", func() {
 		s.close(false)
-		return nil
 	}); err != nil {
 		return err
 	} else {
