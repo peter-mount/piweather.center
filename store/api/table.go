@@ -18,6 +18,14 @@ type Table struct {
 	Rows    []*Row    `json:"rows" xml:"rows" yaml:"rows"`
 }
 
+func (t *Table) ColumnCount() int {
+	return len(t.Columns)
+}
+
+func (t *Table) GetColumnByIndex(i int) *Column {
+	return t.Columns[i]
+}
+
 func (t *Table) write(w *writer) error {
 	err := w.uint16(uint16(len(t.Columns)))
 	if err == nil {
@@ -118,6 +126,10 @@ func (t *Table) CurrentRowPrunable() bool {
 
 func (t *Table) RowCount() int {
 	return len(t.Rows)
+}
+
+func (t *Table) GetRow(i int) *Row {
+	return t.Rows[i]
 }
 
 func (t *Table) IsEmpty() bool {
@@ -355,6 +367,9 @@ func (r *Row) CellCount() int {
 }
 
 func (r *Row) Cell(i int) *Cell {
+	if i < 0 || i >= len(*r) {
+		return nil
+	}
 	return (*r)[i]
 }
 

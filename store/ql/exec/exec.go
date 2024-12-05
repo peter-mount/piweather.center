@@ -27,10 +27,11 @@ type Executor struct {
 }
 
 type exState struct {
-	prevState   *exState  // link to previous station
-	time        time.Time // Query time
-	timeRange   api.Range // Query range
-	selectLimit int       // Max number of rows to return in a query
+	prevState   *exState      // link to previous station
+	time        time.Time     // Query time
+	timeRange   api.Range     // Query range
+	_select     *lang2.Select // Select being processed
+	selectLimit int           // Max number of rows to return in a query
 }
 
 func (ex *Executor) save() {
@@ -80,19 +81,21 @@ func (ex *Executor) run() error {
 	_ = qp.Metrics.ForEach(ex.getMetric)
 
 	return lang2.NewBuilder[*Executor]().
-		Query(ex.query).
-		UsingDefinitions(ex.usingDefinitions).
-		Histogram(ex.histogram).
-		Select(ex.selectStatement).
-		TableSelect(ex.tableSelect).
-		WindRose(ex.windRose).
-		SelectExpression(ex.selectExpression).
 		AliasedExpression(ex.aliasedExpression).
 		Expression(ex.expression).
 		ExpressionModifier(ex.expressionModifier).
 		Function(ex.function).
+		Histogram(ex.histogram).
 		Metric(ex.metric).
+		Query(ex.query).
+		Select(ex.selectStatement).
+		SelectExpression(ex.selectExpression).
+		Summarize(ex.summarize).
+		TableSelect(ex.tableSelect).
+		UsingDefinitions(ex.usingDefinitions).
+		WindRose(ex.windRose).
 		Build().
+		Set(ex).
 		Query(qp.query)
 }
 
@@ -121,41 +124,6 @@ func (ex *Executor) usingDefinitions(v lang2.Visitor[*Executor], s *lang2.UsingD
 		}
 		ex.using[e.Name] = e
 	}
-	return util.VisitorStop
-}
-
-func (ex *Executor) selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
-	ex.table = ex.result.NewTable()
-
-	// Select has its own LIMIT defined
-	if s.Limit > 0 {
-		ex.save()
-		defer ex.restore()
-		ex.setSelectLimit(s.Limit)
-	}
-
-	if s.Expression != nil {
-		// Create the required columns
-		for _, ae := range s.Expression.Expressions {
-			col := ex.colResolver.resolveColumn(ae)
-			if ae.Unit != nil {
-				col.SetUnit(ae.Unit.Unit())
-			}
-			ex.table.AddColumn(col)
-		}
-
-		// Now the row data
-		it := ex.timeRange.Iterator()
-		for it.HasNext() {
-			ex.time = it.Next()
-
-			if err := v.SelectExpression(s.Expression); err != nil {
-				return err
-			}
-		}
-	}
-
-	// Tell the visitor to stop processing this Select statement
 	return util.VisitorStop
 }
 

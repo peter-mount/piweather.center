@@ -18,6 +18,7 @@ type Visitor[T any] interface {
 	QueryRange(*QueryRange) error
 	Select(*Select) error
 	SelectExpression(*SelectExpression) error
+	Summarize(*Summarize) error
 	TableSelect(*TableSelect) error
 	Time(*time.Time) error
 	Unit(*units.Unit) error
@@ -26,7 +27,7 @@ type Visitor[T any] interface {
 	WindRose(*WindRose) error
 
 	Clone() Visitor[T]
-	Set(T)
+	Set(T) Visitor[T]
 	Get() T
 }
 
@@ -43,8 +44,9 @@ func (v *visitor[T]) Get() T {
 	return v.data
 }
 
-func (v *visitor[T]) Set(data T) {
+func (v *visitor[T]) Set(data T) Visitor[T] {
 	v.data = data
+	return v
 }
 
 type common[T any] struct {
@@ -59,6 +61,7 @@ type common[T any] struct {
 	queryRange         func(Visitor[T], *QueryRange) error
 	_select            func(Visitor[T], *Select) error
 	selectExpression   func(Visitor[T], *SelectExpression) error
+	summarize          func(Visitor[T], *Summarize) error
 	tableSelect        func(Visitor[T], *TableSelect) error
 	time               func(Visitor[T], *time.Time) error
 	unit               func(Visitor[T], *units.Unit) error

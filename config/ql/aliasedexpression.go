@@ -13,6 +13,7 @@ type AliasedExpression struct {
 	Expression *Expression `parser:"@@"`
 	Unit       *units.Unit `parser:"( @@ )?"`
 	As         string      `parser:"( 'as' @String )?"`
+	Summarize  *Summarize  `parser:"( @@ )?"`
 }
 
 func (v *visitor[T]) AliasedExpression(b *AliasedExpression) error {
@@ -29,6 +30,9 @@ func (v *visitor[T]) AliasedExpression(b *AliasedExpression) error {
 		}
 		if err == nil {
 			err = v.Expression(b.Expression)
+		}
+		if err == nil {
+			err = v.Summarize(b.Summarize)
 		}
 	}
 	return err
