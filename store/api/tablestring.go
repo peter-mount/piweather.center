@@ -13,7 +13,6 @@ func (t *Table) String(b []string) []string {
 		s1 = append(s1, fmt.Sprintf(fmt.Sprintf("%%%d.%ds", col.Width, col.Width), col.Name))
 	}
 	head := "+" + strings.Join(s0, "+") + "+"
-	sep := "|" + strings.Join(s0, "|") + "|"
 
 	if t.ColumnGroupCount() > 0 {
 		var g0, g1 []string
@@ -40,9 +39,9 @@ func (t *Table) String(b []string) []string {
 	// Add table header
 	b = append(b, head, "|"+strings.Join(s1, "|")+"|", head)
 
-	for i, r := range t.Rows {
-		if i == 0 || r.RowType == RowTypeSummary {
-			b = append(b, sep)
+	for _, r := range t.Rows {
+		if r.RowType == RowTypeSummary {
+			b = append(b, head)
 		}
 		s1 = nil
 		for i, c := range r.Cells {
