@@ -1,31 +1,28 @@
-package parser
+package ql
 
 import (
 	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	lang2 "github.com/peter-mount/piweather.center/config/ql"
 	util2 "github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
-	"github.com/peter-mount/piweather.center/store/ql/functions"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/unit"
 	"strings"
 	"time"
 )
 
-func scriptInit(q *lang2.Query, err error) (*lang2.Query, error) {
+func scriptInit(q *Query, err error) (*Query, error) {
 	if err == nil {
 		parserState := &parserState{usingNames: util.NewStringSet()}
-		err = lang2.New().
+		err = NewBuilder().
 			Query(queryInit).
 			QueryRange(queryRangeInit).
 			UsingDefinition(parserState.usingDefinitionInit).
 			Select(selectInit).
 			Expression(parserState.expressionInit).
 			ExpressionModifier(parserState.expressionModifierInit).
-			Function(functionInit).
 			Metric(metricInit).
 			Time(timeInit).
 			Duration(durationInit).
@@ -38,12 +35,11 @@ func scriptInit(q *lang2.Query, err error) (*lang2.Query, error) {
 	return q, err
 }
 
-func expressionInit(q *lang2.Expression, err error) (*lang2.Expression, error) {
+func expressionInit(q *Expression, err error) (*Expression, error) {
 	if err == nil {
 		parserState := &parserState{usingNames: util.NewStringSet()}
-		err = lang2.New().
+		err = NewBuilder().
 			ExpressionModifier(parserState.expressionModifierInit).
-			Function(functionInit).
 			Metric(metricInit).
 			Time(timeInit).
 			Duration(durationInit).
@@ -60,11 +56,11 @@ func assertLimit(p lexer.Position, l int) error {
 	return nil
 }
 
-func queryInit(_ lang2.Visitor, s *lang2.Query) error {
+func queryInit(_ Visitor, s *Query) error {
 	return assertLimit(s.Pos, s.Limit)
 }
 
-func queryRangeInit(v lang2.Visitor, q *lang2.QueryRange) error {
+func queryRangeInit(v Visitor, q *QueryRange) error {
 	// If no Every statement then set it to 1 minute
 	if q.Every == nil {
 		q.Every = &time2.Duration{Pos: q.Pos, Def: "1m"}
@@ -100,11 +96,11 @@ func queryRangeInit(v lang2.Visitor, q *lang2.QueryRange) error {
 	return util2.VisitorStop
 }
 
-func selectInit(_ lang2.Visitor, s *lang2.Select) error {
+func selectInit(_ Visitor, s *Select) error {
 	return assertLimit(s.Pos, s.Limit)
 }
 
-func tableSelect(v lang2.Visitor, t *lang2.TableSelect) error {
+func tableSelect(v Visitor, t *TableSelect) error {
 	var err error
 	if t.Unit != nil {
 		err = v.Unit(t.Unit)
@@ -112,23 +108,16 @@ func tableSelect(v lang2.Visitor, t *lang2.TableSelect) error {
 	return err
 }
 
-func unitInit(_ lang2.Visitor, s *units.Unit) error {
+func unitInit(_ Visitor, s *units.Unit) error {
 	return s.Init()
 }
 
-func functionInit(_ lang2.Visitor, b *lang2.Function) error {
-	if functions.HasFunction(b.Name) {
-		return nil
-	}
-	return errors.Errorf(b.Pos, "unknown function %q", b.Name)
-}
-
-func metricInit(_ lang2.Visitor, b *lang2.Metric) error {
+func metricInit(_ Visitor, b *Metric) error {
 	b.Name = strings.Join(b.Metric, ".")
 	return nil
 }
 
-func timeInit(v lang2.Visitor, t *time2.Time) error {
+func timeInit(v Visitor, t *time2.Time) error {
 	if t == nil {
 		return nil
 	}
@@ -140,7 +129,7 @@ func timeInit(v lang2.Visitor, t *time2.Time) error {
 	return util2.VisitorStop
 }
 
-func durationInit(_ lang2.Visitor, d *time2.Duration) error {
+func durationInit(_ Visitor, d *time2.Duration) error {
 	if d.Def != "" && !d.IsEvery() {
 		v, err := time.ParseDuration(d.Def)
 		if err != nil {
@@ -156,7 +145,7 @@ type parserState struct {
 	usingNames util.StringSet
 }
 
-func (p *parserState) usingDefinitionInit(v lang2.Visitor, u *lang2.UsingDefinition) error {
+func (p *parserState) usingDefinitionInit(v Visitor, u *UsingDefinition) error {
 	if !p.usingNames.Add(u.Name) {
 		return errors.Errorf(u.Pos, "alias %q already defined", u.Name)
 	}
@@ -168,14 +157,14 @@ func (p *parserState) usingDefinitionInit(v lang2.Visitor, u *lang2.UsingDefinit
 	return nil
 }
 
-func (p *parserState) expressionInit(_ lang2.Visitor, s *lang2.Expression) error {
+func (p *parserState) expressionInit(_ Visitor, s *Expression) error {
 	if s.Using != "" && !p.usingNames.Contains(s.Using) {
 		return errors.Errorf(s.Pos, "%q undefined", s.Using)
 	}
 	return nil
 }
 
-func (p *parserState) expressionModifierInit(v lang2.Visitor, s *lang2.ExpressionModifier) error {
+func (p *parserState) expressionModifierInit(v Visitor, s *ExpressionModifier) error {
 	err := v.QueryRange(s.Range)
 	if err == nil {
 		err = v.Duration(s.Offset)
@@ -183,10 +172,10 @@ func (p *parserState) expressionModifierInit(v lang2.Visitor, s *lang2.Expressio
 	return err
 }
 
-func windRoseInit(_ lang2.Visitor, s *lang2.WindRose) error {
+func windRoseInit(_ Visitor, s *WindRose) error {
 	// Ensure we have a default option of Rose if none set
 	if len(s.Options) == 0 {
-		s.Options = append(s.Options, lang2.WindRoseOption{Rose: true})
+		s.Options = append(s.Options, WindRoseOption{Rose: true})
 	}
 	return nil
 }

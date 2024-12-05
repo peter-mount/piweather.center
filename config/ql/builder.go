@@ -27,7 +27,7 @@ type Builder interface {
 	Build() Visitor
 }
 
-func New() Builder {
+func NewBuilder() Builder {
 	return &builder{}
 }
 

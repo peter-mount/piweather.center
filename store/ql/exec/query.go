@@ -2,9 +2,9 @@ package exec
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
-	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"net/http"
 	"strings"
 )
@@ -57,7 +57,7 @@ func queryImpl(s file.Store, fileName string, query []byte, result *api.Result, 
 		}
 	}()
 
-	q, err := parser.New().ParseBytes(fileName, query)
+	q, err := ql.NewParser().ParseBytes(fileName, query)
 	if err != nil {
 		return err
 	}

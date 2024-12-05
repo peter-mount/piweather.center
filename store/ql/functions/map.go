@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	ql3 "github.com/peter-mount/piweather.center/config/ql"
+	ql2 "github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/ql"
 	"github.com/peter-mount/piweather.center/weather/value"
@@ -13,7 +13,6 @@ import (
 	"sync"
 )
 
-// Function definition
 type Function struct {
 	// Args is the number of arguments a Function requires.
 	// This overrides MinArg and MaxArg if MinArg < Args > MaxArg
@@ -64,7 +63,7 @@ func (f Function) IsAggregator() bool {
 	return f.Reducer != nil || f.Calculation != nil || f.Aggregator != nil
 }
 
-type FunctionHandler func(ql.Executor, ql3.Visitor, *ql3.Function, []ql.Value) error
+type FunctionHandler func(ql.Executor, ql2.Visitor, *ql2.Function, []ql.Value) error
 
 type FunctionMap struct {
 	mutex     sync.Mutex
@@ -109,7 +108,7 @@ func (f *FunctionMap) GetFunction(n string) (Function, bool) {
 	return ag, exists
 }
 
-func (f Function) Run(ex ql.Executor, v ql3.Visitor, fn *ql3.Function) error {
+func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 
 	if err := assertExpressions(fn.Pos, fn.Name, fn.Expressions, f); err != nil {
 		return err
@@ -269,34 +268,34 @@ func InitialInvalid(_ ql.Value) ql.Value {
 	return ql.Value{}
 }
 
-func assertExpressions(p lexer.Position, n string, e []*ql3.Expression, agg Function) error {
+func assertExpressions(p lexer.Position, n string, e []*ql2.Expression, agg Function) error {
 	// Here start with MinArg & MaxArg.
 	// Override with Args if it's greater than either of them.
-	// Enforce min>=0 but if max<min or negative then set max to MaxInt
-	min, max := agg.MinArg, agg.MaxArg
-	if agg.Args > min && agg.Args > max {
-		min, max = agg.Args, agg.Args
+	// Enforce minArg>=0 but if maxArg<minArg or negative then set maxArg to MaxInt
+	minArg, maxArg := agg.MinArg, agg.MaxArg
+	if agg.Args > minArg && agg.Args > maxArg {
+		minArg, maxArg = agg.Args, agg.Args
 	}
-	if min < 0 {
-		min = 0
+	if minArg < 0 {
+		minArg = 0
 	}
-	if max < min || max < 0 {
-		max = math.MaxInt
+	if maxArg < minArg || maxArg < 0 {
+		maxArg = math.MaxInt
 	}
 
 	l := len(e)
-	if l < min || l > max {
-		if min == max {
-			return participle.Errorf(p, "%s require %d expressions", n, min)
+	if l < minArg || l > maxArg {
+		if minArg == maxArg {
+			return participle.Errorf(p, "%s require %d expressions", n, minArg)
 		}
-		return participle.Errorf(p, "%s require %d..%d expressions", n, min, max)
+		return participle.Errorf(p, "%s require %d..%d expressions", n, minArg, maxArg)
 	}
 
 	return nil
 }
 
 // funcTimeOf implements TIMEOF which marks the value as requiring the TIME not the Value of a metric
-func funcTimeOf(ex ql.Executor, v ql3.Visitor, f *ql3.Function, args []ql.Value) error {
+func funcTimeOf(ex ql.Executor, v ql2.Visitor, f *ql2.Function, args []ql.Value) error {
 	switch len(args) {
 	case 0:
 		ex.Push(ql.Value{
@@ -327,7 +326,7 @@ func funcTimeOf(ex ql.Executor, v ql3.Visitor, f *ql3.Function, args []ql.Value)
 	return util.VisitorStop
 }
 
-func funcTrend(ex ql.Executor, _ ql3.Visitor, _ *ql3.Function, args []ql.Value) error {
+func funcTrend(ex ql.Executor, _ ql2.Visitor, _ *ql2.Function, args []ql.Value) error {
 	r := ql.Value{Time: ex.Time()}
 
 	if len(args) == 2 {
@@ -350,8 +349,8 @@ func funcTrend(ex ql.Executor, _ ql3.Visitor, _ *ql3.Function, args []ql.Value) 
 			}
 
 			d, err := r2.Value.Subtract(r1.Value)
-			df := d.Float()
 			if err == nil {
+				df := d.Float()
 				switch {
 				case value.IsZero(df):
 					r.Value = value.Integer.Value(0)

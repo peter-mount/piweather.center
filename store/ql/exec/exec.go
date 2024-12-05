@@ -79,7 +79,7 @@ func (ex *Executor) run() error {
 
 	_ = qp.Metrics.ForEach(ex.getMetric)
 
-	return lang2.New().
+	return lang2.NewBuilder().
 		Query(ex.query).
 		UsingDefinitions(ex.usingDefinitions).
 		Histogram(ex.histogram).
@@ -277,7 +277,7 @@ type colResolver struct {
 
 func newColResolver() *colResolver {
 	r := &colResolver{}
-	r.visitor = lang2.New().
+	r.visitor = lang2.NewBuilder().
 		AliasedExpression(r.aliasedExpression).
 		Function(r.function).
 		Metric(r.metric).

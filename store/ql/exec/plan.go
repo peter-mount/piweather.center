@@ -53,7 +53,7 @@ func NewQueryPlan(s file.Store, q *lang2.Query) (*QueryPlan, error) {
 		store:   s,
 	}
 
-	if err := lang2.New().
+	if err := lang2.NewBuilder().
 		AliasedExpression(qp.aliasedExpression).
 		Metric(qp.addMetric).
 		QueryRange(qp.setQueryRange).
