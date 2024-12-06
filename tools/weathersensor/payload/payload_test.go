@@ -2,6 +2,7 @@ package payload
 
 import (
 	"github.com/peter-mount/piweather.center/config/station"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"strings"
 	"testing"
 	"time"
@@ -17,13 +18,13 @@ func TestPayload_Get(t *testing.T) {
 		{
 			"{\"timestamp\":\"2023-05-17T12:07:16Z\"}",
 			station.SourcePath{Path: []string{"timestamp"}},
-			time.Date(2023, 5, 17, 12, 7, 16, 0, time.UTC),
+			time2.ParseTime("2023-05-17T12:07:16Z"),
 			false,
 		},
 		{
 			"{\"results\":{\"timestamp\":\"2023-05-17T12:07:16Z\"}}",
 			station.SourcePath{Path: []string{"results", "timestamp"}},
-			time.Date(2023, 5, 17, 12, 7, 16, 0, time.UTC),
+			time2.ParseTime("2023-05-17T12:07:16Z"),
 			false,
 		},
 		{
@@ -31,7 +32,7 @@ func TestPayload_Get(t *testing.T) {
 			// have the current UTC time not that in the sample
 			"{\"results\":{\"timestamp\":\"2023-05-17T12:07:16Z\"}}",
 			station.SourcePath{Path: []string{"timestamp"}},
-			time.Date(2023, 5, 17, 12, 7, 16, 0, time.UTC),
+			time2.ParseTime("2023-05-17T12:07:16Z"),
 			true,
 		},
 	}
