@@ -161,7 +161,7 @@ func Iterate(t, e time.Time, s time.Duration) *TimeIterator {
 
 // HasNext returns true if the iterator has not completed.
 func (it *TimeIterator) HasNext() bool {
-	return it.t.Add(it.s).Before(it.e)
+	return !it.t.Add(it.s).After(it.e)
 }
 
 // Next returns the next time.Time in the iteration.
