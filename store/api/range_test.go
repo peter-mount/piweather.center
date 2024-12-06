@@ -1,13 +1,14 @@
 package api
 
 import (
+	"github.com/peter-mount/go-kernel/v2/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"testing"
 	"time"
 )
 
 // testTimeIteratorCount counts the number of entries within an iterator and fails if it isn't the expected number
-func testTimeIteratorCount(t *testing.T, name string, it *TimeIterator, expected int) {
+func testTimeIteratorCount(t *testing.T, name string, it util.Iterator[time.Time], expected int) {
 	count := 0
 	for it.HasNext() {
 		_ = it.Next()

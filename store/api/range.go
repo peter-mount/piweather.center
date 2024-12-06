@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-kernel/v2/util"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"time"
 )
 
@@ -127,46 +129,27 @@ func (r *Range) Expand(min, max time.Duration) Range {
 	return *r
 }
 
-func (r *Range) Iterator() *TimeIterator {
+func (r *Range) Iterator() util.Iterator[time.Time] {
 	return Iterate(r.From, r.To, r.Every)
 }
 
-type TimeIterator struct {
-	t time.Time
-	e time.Time
-	s time.Duration
-}
-
-// Iterate returns a TimeIterator which will iterate between two time.Time's with the
+// Iterate returns an Iterator which will iterate between two time.Time's with the
 // specified time.Duration between each step.
 //
-// This implementation will only include whole step's in its run.
-// If the last step is shorter than the step size it will not be included.
-func Iterate(t, e time.Time, s time.Duration) *TimeIterator {
-	if t.After(e) {
-		t, e = e, t
+// This is the same as time.IterateBetween except this will default the step to time.Minute if 0,
+// or time.Second if step is less than 1 second.
+func Iterate(start, end time.Time, step time.Duration) util.Iterator[time.Time] {
+	if start.After(end) {
+		start, end = end, start
 	}
 
-	if s < 0 {
-		s = -s
+	step = step.Abs()
+	if step == 0 {
+		step = time.Minute
 	}
-	if s == 0 {
-		s = time.Minute
+	if step < time.Second {
+		step = time.Second
 	}
-	if s < time.Second {
-		s = time.Second
-	}
-	return &TimeIterator{t: t, e: e, s: s}
-}
 
-// HasNext returns true if the iterator has not completed.
-func (it *TimeIterator) HasNext() bool {
-	return !it.t.Add(it.s).After(it.e)
-}
-
-// Next returns the next time.Time in the iteration.
-func (it *TimeIterator) Next() time.Time {
-	t := it.t
-	it.t = it.t.Add(it.s)
-	return t
+	return time2.IterateBetween(start, end, step)
 }
