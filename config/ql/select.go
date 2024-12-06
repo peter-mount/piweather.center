@@ -9,7 +9,7 @@ type Select struct {
 	Pos lexer.Position
 
 	Expression *SelectExpression `parser:"'select' @@"`
-	Limit      int               `parser:"( 'limit' @Int )?"`
+	Limit      int               `parser:"( 'limit' @Number )?"`
 }
 
 func (v *visitor[T]) Select(b *Select) error {
