@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	time2 "github.com/peter-mount/piweather.center/util/time"
-	"github.com/peter-mount/piweather.center/util/unit"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -29,14 +28,14 @@ func (r *Store) Start() error {
 	r.today = time2.LocalMidnight(time.Now().UTC())
 
 	if *r.StartDate != "" {
-		t := unit.ParseTime(*r.StartDate)
+		t := time2.ParseTime(*r.StartDate)
 		if !t.IsZero() {
 			r.start = time2.LocalMidnight(t)
 		}
 	}
 
 	if *r.EndDate != "" {
-		t := unit.ParseTime(*r.EndDate)
+		t := time2.ParseTime(*r.EndDate)
 		if !t.IsZero() {
 			r.end = time2.LocalMidnight(t)
 		}

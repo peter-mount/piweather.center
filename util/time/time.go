@@ -1,7 +1,6 @@
-package unit
+package time
 
 import (
-	time2 "github.com/peter-mount/piweather.center/util/time"
 	"strconv"
 	"strings"
 	"time"
@@ -88,22 +87,22 @@ func ParseTimeIn(s string, loc *time.Location) time.Time {
 		return NowIn(loc)
 
 	case "midnight", "today":
-		return time2.LocalMidnight(NowIn(loc))
+		return LocalMidnight(NowIn(loc))
 
 	case "midnightutc", "todayutc":
-		return time2.LocalMidnight(NowUTC())
+		return LocalMidnight(NowUTC())
 
 	case "yesterday":
-		return time2.LocalMidnight(NowIn(loc).Add(-24 * time.Hour))
+		return LocalMidnight(NowIn(loc).Add(-24 * time.Hour))
 
 	case "yesterdayutc":
-		return time2.LocalMidnight(NowUTC().Add(-24 * time.Hour))
+		return LocalMidnight(NowUTC().Add(-24 * time.Hour))
 
 	case "tomorrow":
-		return time2.LocalMidnight(NowIn(loc).Add(24 * time.Hour))
+		return LocalMidnight(NowIn(loc).Add(24 * time.Hour))
 
 	case "tomorrowutc":
-		return time2.LocalMidnight(NowUTC().Add(24 * time.Hour))
+		return LocalMidnight(NowUTC().Add(24 * time.Hour))
 
 	default:
 		// Parse time using one of our formats

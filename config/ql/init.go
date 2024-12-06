@@ -7,7 +7,7 @@ import (
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/util/unit"
+	time3 "github.com/peter-mount/piweather.center/util/time"
 	"time"
 )
 
@@ -72,7 +72,7 @@ func timeInit(v Visitor[*parserState], t *time2.Time) error {
 
 	tz := v.Get().timeZone
 
-	if err := t.SetTime(unit.ParseTimeIn(t.Def, tz), 0, v); err != nil {
+	if err := t.SetTime(time3.ParseTimeIn(t.Def, tz), 0, v); err != nil {
 		return err
 	}
 

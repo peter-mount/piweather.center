@@ -1,6 +1,7 @@
 package unit
 
 import (
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"strconv"
 	"time"
 )
@@ -88,7 +89,7 @@ func ParseValue(s string) Value {
 		return Value{tp: Float, f: f}
 	}
 
-	if t := ParseTime(s); !t.IsZero() {
+	if t := time2.ParseTime(s); !t.IsZero() {
 		return Value{tp: Time, t: t}
 	}
 

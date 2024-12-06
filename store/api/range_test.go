@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/peter-mount/piweather.center/util/unit"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"testing"
 	"time"
 )
@@ -42,7 +42,7 @@ func TestRangeBetween(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			r := RangeBetween(unit.ParseTimeIn(tt.start, time.UTC), unit.ParseTimeIn(tt.end, time.UTC))
+			r := RangeBetween(time2.ParseTimeIn(tt.start, time.UTC), time2.ParseTimeIn(tt.end, time.UTC))
 			r.Every = every
 			testTimeIteratorCount(t, "RangeBetween().Iterator()", r.Iterator(), tt.expected)
 		})
@@ -72,7 +72,7 @@ func TestRangeFrom(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			r := RangeFrom(unit.ParseTimeIn(tt.from, time.UTC), dur)
+			r := RangeFrom(time2.ParseTimeIn(tt.from, time.UTC), dur)
 			r.Every = every
 			testTimeIteratorCount(t, "RangeFrom().Iterator()", r.Iterator(), tt.expected)
 		})
@@ -89,22 +89,22 @@ func TestIterate(t *testing.T) {
 	}{
 		{
 			name:     "1h",
-			start:    unit.ParseTimeIn("2024-11-01T05:00:00Z", time.UTC),
-			end:      unit.ParseTimeIn("2024-11-01T06:00:00Z", time.UTC),
+			start:    time2.ParseTimeIn("2024-11-01T05:00:00Z", time.UTC),
+			end:      time2.ParseTimeIn("2024-11-01T06:00:00Z", time.UTC),
 			step:     time.Minute,
 			expected: 60,
 		},
 		{
 			name:     "24h by hr",
-			start:    unit.ParseTimeIn("2024-11-01", time.UTC),
-			end:      unit.ParseTimeIn("2024-11-02", time.UTC),
+			start:    time2.ParseTimeIn("2024-11-01", time.UTC),
+			end:      time2.ParseTimeIn("2024-11-02", time.UTC),
 			step:     time.Hour,
 			expected: 24, // 1 day with data every hour
 		},
 		{
 			name:     "24h by mn",
-			start:    unit.ParseTimeIn("2024-11-01", time.UTC),
-			end:      unit.ParseTimeIn("2024-11-02", time.UTC),
+			start:    time2.ParseTimeIn("2024-11-01", time.UTC),
+			end:      time2.ParseTimeIn("2024-11-02", time.UTC),
 			step:     time.Minute,
 			expected: 24 * 60, // 1 day with data every minute
 		},

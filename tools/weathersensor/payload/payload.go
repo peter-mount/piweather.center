@@ -6,7 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/util/unit"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"gopkg.in/yaml.v3"
 	"strconv"
 	"strings"
@@ -132,7 +132,7 @@ func FromBytes(id string, format station.HttpFormatType, timestamp *station.Sour
 	if timestamp != nil {
 		if ts, ok := p.Get(timestamp); ok {
 			if st, ok := ts.(string); ok {
-				if t := unit.ParseTime(st); !t.IsZero() {
+				if t := time2.ParseTime(st); !t.IsZero() {
 					p.time = t
 				}
 			}
