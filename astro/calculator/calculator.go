@@ -2,6 +2,7 @@ package calculator
 
 import (
 	"github.com/peter-mount/go-kernel/v2"
+	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/planetposition"
 	"github.com/soniakeys/unit"
@@ -21,6 +22,10 @@ type Calculator interface {
 	// Planet returns the planetposition.V87Planet element set for each of
 	// the 8 major Planets, loading from disk as necessary
 	Planet(i int) (*planetposition.V87Planet, error)
+
+	// CalculateSun returns an EphemerisResult for a specified time.
+	// Note: the RA/Dec epoch be for the date, not J2000
+	CalculateSun(t value.Time) (api.EphemerisResult, error)
 
 	// SolarAltitudeCalculator is a calculator that calculates
 	// the sun's altitude at a station at a specific time

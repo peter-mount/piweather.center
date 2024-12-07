@@ -1,6 +1,7 @@
 package station
 
 import (
+	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
@@ -17,11 +18,12 @@ var (
 	initVisitor = NewBuilder[*initState]().
 		Axis(initAxis).
 		Calculation(initCalculation).
-		//CalculationList(initCalculationList).
 		Container(initContainer).
 		CronTab(initCronTab).
 		Dashboard(initDashboard).
-		//DashboardList(initDashboardList).
+		Ephemeris(initEphemeris).
+		EphemerisTarget(initEphemerisTarget).
+		EphemerisTargetOption(initEphemerisTargetOption).
 		Gauge(initGauge).
 		Http(initHttp).
 		I2C(initI2c).
@@ -31,7 +33,6 @@ var (
 		MetricPattern(initMetricPattern).
 		TimeZone(initTimeZone).
 		Sensor(initSensor).
-		//SensorList(initSensorList).
 		Serial(initSerial).
 		SourceParameter(initSourceParameter).
 		SourceWithin(initSourceWithin).
@@ -60,11 +61,13 @@ type initState struct {
 	stationPrefix    string                      // stationId + "."
 	sensorPrefix     string                      // sensorId + "."
 	stationIds       map[string]*Station         // map of Stations, for id uniqueness
-	calculations     map[string]*Calculation     // map of calculations within a Station, for target uniqueness
-	dashboards       map[string]*Dashboard       // map of Dashboards within a Station, for id uniqueness
-	sensors          map[string]*Sensor          // map of Sensors within a station, for sensorPrefix uniqueness
+	calculations     map[string]lexer.Position   // map of calculations within a Station, for target uniqueness
+	dashboards       map[string]lexer.Position   // map of Dashboards within a Station, for id uniqueness
+	sensors          map[string]lexer.Position   // map of Sensors within a station, for sensorPrefix uniqueness
 	sensorParameters map[string]*SourceParameter // Map of SourceParameter's used to ensure target metrics are unique
 	sourcePath       []string                    // Prefix for source path, used with SourceWithin
+	ephemeris        *Ephemeris                  // Ephemeris being scanned
+	ephemerisTarget  *EphemerisTarget            // EphemerisTarget being scanned
 }
 
 func (s *initState) prefixMetric(m string) string {

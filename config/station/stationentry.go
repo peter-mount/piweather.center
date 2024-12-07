@@ -9,8 +9,10 @@ import (
 type StationEntry struct {
 	Pos         lexer.Position
 	Calculation *Calculation `parser:"( @@"`
-	Sensor      *Sensor      `parser:"| @@"`
-	Dashboard   *Dashboard   `parser:"| @@ )"`
+	Dashboard   *Dashboard   `parser:"| @@"`
+	Ephemeris   *Ephemeris   `parser:"| @@"`
+	Job         *Job         `parser:"| @@"`
+	Sensor      *Sensor      `parser:"| @@ )"`
 }
 
 func (c *visitor[T]) StationEntry(d *StationEntry) error {
@@ -30,6 +32,12 @@ func (c *visitor[T]) StationEntry(d *StationEntry) error {
 
 			case d.Dashboard != nil:
 				err = c.Dashboard(d.Dashboard)
+
+			case d.Ephemeris != nil:
+				err = c.Ephemeris(d.Ephemeris)
+
+			case d.Job != nil:
+				err = c.Job(d.Job)
 
 			case d.Sensor != nil:
 				err = c.Sensor(d.Sensor)

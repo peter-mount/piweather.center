@@ -84,9 +84,9 @@ func initSensor(v Visitor[*initState], d *Sensor) error {
 
 	// Check Target is unique within the station
 	if e, exists := s.sensors[d.Target.Name]; exists {
-		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target.Name, e.Pos)
+		return participle.Errorf(d.Pos, "sensor %q already defined at %s", d.Target.Name, e.String())
 	}
-	s.sensors[d.Target.Name] = d
+	s.sensors[d.Target.Name] = d.Pos
 
 	s.sensorPrefix = d.Target.Name + "."
 

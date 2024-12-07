@@ -49,9 +49,9 @@ func (c *visitor[T]) Station(d *Station) error {
 func initStation(v Visitor[*initState], d *Station) error {
 	s := v.Get()
 	// Reset the state
-	s.calculations = make(map[string]*Calculation)
-	s.dashboards = make(map[string]*Dashboard)
-	s.sensors = make(map[string]*Sensor)
+	s.calculations = make(map[string]lexer.Position)
+	s.dashboards = make(map[string]lexer.Position)
+	s.sensors = make(map[string]lexer.Position)
 	s.sensorPrefix = ""
 	s.stationPrefix = ""
 

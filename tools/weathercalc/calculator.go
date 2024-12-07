@@ -3,6 +3,7 @@ package weathercalc
 import (
 	"github.com/peter-mount/go-kernel/v2/cron"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/astro/calculator"
 	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/api"
@@ -27,6 +28,7 @@ type Calculator struct {
 	Latest         memory.Latest         `kernel:"inject"`
 	DBServer       *string               `kernel:"flag,metric-db,DB url"`
 	Stations       *station.Stations     `kernel:"inject"`
+	Astro          calculator.Calculator `kernel:"inject"`
 	mutex          sync.Mutex
 	dashDir        string
 
@@ -58,6 +60,7 @@ func (calc *Calculator) Start() error {
 	if err := station2.NewBuilder[*calcState]().
 		Station(visitStation).
 		Calculation(addCalculation).
+		Ephemeris(addEphemeris).
 		Metric(addMetric).
 		Build().
 		Set(&calcState{calc: calc}).

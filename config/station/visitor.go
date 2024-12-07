@@ -18,12 +18,18 @@ type Visitor[T any] interface {
 	CronTab(*time.CronTab) error
 	Current(*Current) error
 	Dashboard(*Dashboard) error
+	Ephemeris(*Ephemeris) error
+	EphemerisSchedule(*EphemerisSchedule) error
+	EphemerisTarget(*EphemerisTarget) error
+	EphemerisTargetOption(*EphemerisTargetOption) error
 	Expression(*Expression) error
 	Function(*Function) error
-	I2C(d *I2C) error
 	Gauge(*Gauge) error
 	Http(*Http) error
 	HttpFormat(*HttpFormat) error
+	I2C(*I2C) error
+	Job(*Job) error
+	JobTask(*JobTask) error
 	Load(*Load) error
 	Location(*location.Location) error
 	LocationExpression(*LocationExpression) error
@@ -74,12 +80,18 @@ type common[T any] struct {
 	crontab                  func(Visitor[T], *time.CronTab) error
 	current                  func(Visitor[T], *Current) error
 	dashboard                func(Visitor[T], *Dashboard) error
+	ephemeris                func(Visitor[T], *Ephemeris) error
+	ephemerisSchedule        func(Visitor[T], *EphemerisSchedule) error
+	ephemerisTarget          func(Visitor[T], *EphemerisTarget) error
+	ephemerisTargetOption    func(Visitor[T], *EphemerisTargetOption) error
 	expression               func(Visitor[T], *Expression) error
 	function                 func(Visitor[T], *Function) error
 	gauge                    func(Visitor[T], *Gauge) error
 	http                     func(Visitor[T], *Http) error
 	httpFormat               func(Visitor[T], *HttpFormat) error
 	i2c                      func(Visitor[T], *I2C) error
+	job                      func(Visitor[T], *Job) error
+	jobTask                  func(Visitor[T], *JobTask) error
 	load                     func(Visitor[T], *Load) error
 	location                 func(Visitor[T], *location.Location) error
 	locationExpression       func(Visitor[T], *LocationExpression) error

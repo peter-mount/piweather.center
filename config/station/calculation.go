@@ -61,11 +61,11 @@ func initCalculation(v Visitor[*initState], d *Calculation) error {
 	target := strings.ToLower(d.Target)
 
 	if e, exists := s.calculations[target]; exists {
-		return participle.Errorf(d.Pos, "calculation for %q already defined at %s", d.Target, e.Pos.String())
+		return participle.Errorf(d.Pos, "calculation for %q already defined at %s", d.Target, e.String())
 	}
 
 	d.Target = s.prefixMetric(target)
-	s.calculations[target] = d
+	s.calculations[target] = d.Pos
 	return nil
 }
 

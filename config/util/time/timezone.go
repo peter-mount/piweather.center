@@ -7,7 +7,7 @@ import (
 
 type TimeZone struct {
 	Pos      lexer.Position
-	TimeZone string `parser:"'timezone' @String"`
+	TimeZone string `parser:"'timezone' ( '(' @String ')' | @String )"`
 	location *time.Location
 }
 

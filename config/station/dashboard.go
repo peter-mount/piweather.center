@@ -64,7 +64,7 @@ func initDashboard(v Visitor[*initState], d *Dashboard) error {
 	// Check name is unique
 	if err == nil {
 		if e, exists := s.dashboards[d.Name]; exists {
-			err = errors.Errorf(d.Pos, "dashboard %q already exists at %s", d.Name, e.Pos.String())
+			err = errors.Errorf(d.Pos, "dashboard %q already exists at %s", d.Name, e.String())
 		}
 	}
 
@@ -74,7 +74,7 @@ func initDashboard(v Visitor[*initState], d *Dashboard) error {
 			d.Components = &ComponentListEntry{}
 		}
 
-		s.dashboards[d.Name] = d
+		s.dashboards[d.Name] = d.Pos
 
 		// Ensure Component exists, require by templates
 		if d.Component == nil {
