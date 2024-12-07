@@ -287,6 +287,7 @@ func (d *dstTest) genTimeConversionTest(a []string, name string, dates ...time.T
 				a = d.genTest(a,
 					dt.Format(time.DateOnly),
 					"test"+name,
+					date,
 					dt,
 					func(a []string, t time.Time, d *dstTest) []string {
 						return append(a,
@@ -309,7 +310,7 @@ func (d *dstTest) group(a []string, n string, f func([]string) []string) []strin
 	return append(a, "}},")
 }
 
-func (d *dstTest) genTest(a []string, n, testCaseHandler string, t time.Time, f func(a []string, t time.Time, d *dstTest) []string) []string {
+func (d *dstTest) genTest(a []string, n, testCaseHandler string, dst, t time.Time, f func(a []string, t time.Time, d *dstTest) []string) []string {
 	if t.IsZero() {
 		return a
 	}
@@ -317,7 +318,7 @@ func (d *dstTest) genTest(a []string, n, testCaseHandler string, t time.Time, f 
 	a = append(a,
 		"{",
 		fmt.Sprintf("name:%q, testHandler:%s,", n, testCaseHandler),
-		fmt.Sprintf("zone:%q, dstHandover:%q,", d.zone, t.Format(time.RFC3339)),
+		fmt.Sprintf("zone:%q, dstHandover:%q,", d.zone, dst.Format(time.RFC3339)),
 	)
 	a = f(a, t, d)
 	return append(a, "},")
