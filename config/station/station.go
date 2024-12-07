@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"strings"
+	time2 "time"
 )
 
 type Station struct {
@@ -85,6 +86,12 @@ func initStation(v Visitor[*initState], d *Station) error {
 		if d.Location == nil {
 			// This will place the station at Null Island
 			d.Location = &location.Location{Pos: d.Pos}
+		}
+
+		// Ensure we have a TimeZone
+		if d.TimeZone == nil {
+			// This will default the location to the local system timezone
+			d.TimeZone = &time.TimeZone{Pos: d.Pos, TimeZone: time2.Local.String()}
 		}
 
 		// Ensure stationId is unique
