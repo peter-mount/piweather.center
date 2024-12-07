@@ -189,7 +189,12 @@ func NewUnit(id, name, unit string, precision int, toString func(float64) string
 
 // NewBoundedUnit creates a new Unit which has both min and max values.
 func NewBoundedUnit(id, name, unit string, precision int, min, max float64) *Unit {
-	u := NewUnit(id, name, unit, precision, nil)
+	return NewBoundedUnitF(id, name, unit, precision, min, max, nil)
+}
+
+// NewBoundedUnitF creates a new Unit which has both min and max values.
+func NewBoundedUnitF(id, name, unit string, precision int, min, max float64, f func(float64) string) *Unit {
+	u := NewUnit(id, name, unit, precision, f)
 	if min > max {
 		min, max = max, min
 	}
