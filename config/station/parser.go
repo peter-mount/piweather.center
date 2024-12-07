@@ -4,7 +4,7 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
-	time2 "github.com/peter-mount/piweather.center/config/util/time"
+	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"strings"
 )
@@ -29,6 +29,7 @@ var (
 		Metric(initMetric).
 		MetricExpression(initMetricExpression).
 		MetricPattern(initMetricPattern).
+		TimeZone(initTimeZone).
 		Sensor(initSensor).
 		SensorList(initSensorList).
 		Serial(initSerial).
@@ -100,7 +101,11 @@ func initLocation(v Visitor[*initState], d *location.Location) error {
 	return errors.Error(d.Pos, err)
 }
 
-func initCronTab(_ Visitor[*initState], d *time2.CronTab) error {
+func initCronTab(_ Visitor[*initState], d *time.CronTab) error {
+	return errors.Error(d.Pos, d.Init())
+}
+
+func initTimeZone(_ Visitor[*initState], d *time.TimeZone) error {
 	return errors.Error(d.Pos, d.Init())
 }
 

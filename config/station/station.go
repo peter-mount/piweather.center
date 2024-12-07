@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
+	"github.com/peter-mount/piweather.center/config/util/time"
 	"strings"
 )
 
@@ -13,6 +14,7 @@ type Station struct {
 	Pos          lexer.Position
 	Name         string             `parser:"'station' '(' @String"`
 	Location     *location.Location `parser:"@@?"`
+	TimeZone     *time.TimeZone     `parser:"@@?"`
 	Calculations *CalculationList   `parser:"@@"`
 	Sensors      *SensorList        `parser:"@@"`
 	Dashboards   *DashboardList     `parser:"@@ ')'"`
@@ -30,6 +32,10 @@ func (c *visitor[T]) Station(d *Station) error {
 
 		if err == nil {
 			err = c.Location(d.Location)
+		}
+
+		if err == nil {
+			err = c.TimeZone(d.TimeZone)
 		}
 
 		if err == nil {

@@ -46,6 +46,7 @@ type Visitor[T any] interface {
 	Station(*Station) error
 	Stations(*Stations) error
 	Text(*Text) error
+	TimeZone(*time.TimeZone) error
 	Unit(*units.Unit) error
 	UseFirst(*UseFirst) error
 	Value(*Value) error
@@ -102,6 +103,7 @@ type common[T any] struct {
 	station                  func(Visitor[T], *Station) error
 	stations                 func(Visitor[T], *Stations) error
 	text                     func(Visitor[T], *Text) error
+	timeZone                 func(Visitor[T], *time.TimeZone) error
 	unit                     func(Visitor[T], *units.Unit) error
 	useFirst                 func(Visitor[T], *UseFirst) error
 	value                    func(Visitor[T], *Value) error
@@ -139,6 +141,19 @@ func (c *visitor[T]) Location(d *location.Location) error {
 	var err error
 	if d != nil && c.location != nil {
 		err = c.location(c, d)
+		if util.IsVisitorStop(err) {
+			return nil
+		}
+
+		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func (c *visitor[T]) TimeZone(d *time.TimeZone) error {
+	var err error
+	if d != nil && c.timeZone != nil {
+		err = c.timeZone(c, d)
 		if util.IsVisitorStop(err) {
 			return nil
 		}

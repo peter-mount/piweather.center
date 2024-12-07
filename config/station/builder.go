@@ -44,6 +44,7 @@ type Builder[T any] interface {
 	Station(func(Visitor[T], *Station) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
 	Text(func(Visitor[T], *Text) error) Builder[T]
+	TimeZone(func(Visitor[T], *time.TimeZone) error) Builder[T]
 	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
 	UseFirst(func(Visitor[T], *UseFirst) error) Builder[T]
 	Value(func(Visitor[T], *Value) error) Builder[T]
@@ -69,6 +70,11 @@ func (b *builder[T]) CronTab(f func(Visitor[T], *time.CronTab) error) Builder[T]
 
 func (b *builder[T]) Location(f func(Visitor[T], *location.Location) error) Builder[T] {
 	b.location = f
+	return b
+}
+
+func (b *builder[T]) TimeZone(f func(Visitor[T], *time.TimeZone) error) Builder[T] {
+	b.timeZone = f
 	return b
 }
 
