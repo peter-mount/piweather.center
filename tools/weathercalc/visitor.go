@@ -70,9 +70,5 @@ func addMetric(v station2.Visitor[*calcState], c *station2.Metric) error {
 
 func visitStation(v station2.Visitor[*calcState], c *station2.Station) error {
 	v.Get().station = c
-
-	// Calculator doesn't need the following so prune to save memory
-	c.Dashboards = nil
-
 	return nil
 }

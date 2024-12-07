@@ -11,7 +11,6 @@ import (
 type Visitor[T any] interface {
 	Axis(*Axis) error
 	Calculation(*Calculation) error
-	CalculationList(*CalculationList) error
 	Component(*Component) error
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
@@ -19,7 +18,6 @@ type Visitor[T any] interface {
 	CronTab(*time.CronTab) error
 	Current(*Current) error
 	Dashboard(*Dashboard) error
-	DashboardList(*DashboardList) error
 	Expression(*Expression) error
 	Function(*Function) error
 	I2C(d *I2C) error
@@ -36,7 +34,6 @@ type Visitor[T any] interface {
 	MultiValue(*MultiValue) error
 	Publisher(*Publisher) error
 	Sensor(*Sensor) error
-	SensorList(*SensorList) error
 	Serial(*Serial) error
 	SourceParameter(*SourceParameter) error
 	SourceParameterList(*SourceParameterList) error
@@ -44,6 +41,8 @@ type Visitor[T any] interface {
 	SourcePath(*SourcePath) error
 	SourceWithin(d *SourceWithin) error
 	Station(*Station) error
+	StationEntry(*StationEntry) error
+	StationEntryList(*StationEntryList) error
 	Stations(*Stations) error
 	Text(*Text) error
 	TimeZone(*time.TimeZone) error
@@ -68,7 +67,6 @@ type visitor[T any] struct {
 type common[T any] struct {
 	axis                     func(Visitor[T], *Axis) error
 	calculation              func(Visitor[T], *Calculation) error
-	calculationList          func(Visitor[T], *CalculationList) error
 	component                func(Visitor[T], *Component) error
 	componentList            func(Visitor[T], *ComponentList) error
 	componentListEntry       func(Visitor[T], *ComponentListEntry) error
@@ -76,7 +74,6 @@ type common[T any] struct {
 	crontab                  func(Visitor[T], *time.CronTab) error
 	current                  func(Visitor[T], *Current) error
 	dashboard                func(Visitor[T], *Dashboard) error
-	dashboardList            func(Visitor[T], *DashboardList) error
 	expression               func(Visitor[T], *Expression) error
 	function                 func(Visitor[T], *Function) error
 	gauge                    func(Visitor[T], *Gauge) error
@@ -93,7 +90,6 @@ type common[T any] struct {
 	multiValue               func(Visitor[T], *MultiValue) error
 	publisher                func(Visitor[T], *Publisher) error
 	sensor                   func(Visitor[T], *Sensor) error
-	sensorList               func(Visitor[T], *SensorList) error
 	serial                   func(Visitor[T], *Serial) error
 	sourceParameter          func(Visitor[T], *SourceParameter) error
 	sourceParameterList      func(Visitor[T], *SourceParameterList) error
@@ -101,6 +97,8 @@ type common[T any] struct {
 	sourcePath               func(Visitor[T], *SourcePath) error
 	sourceWithin             func(Visitor[T], *SourceWithin) error
 	station                  func(Visitor[T], *Station) error
+	stationEntry             func(Visitor[T], *StationEntry) error
+	stationEntryList         func(Visitor[T], *StationEntryList) error
 	stations                 func(Visitor[T], *Stations) error
 	text                     func(Visitor[T], *Text) error
 	timeZone                 func(Visitor[T], *time.TimeZone) error

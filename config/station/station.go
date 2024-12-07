@@ -12,13 +12,11 @@ import (
 
 type Station struct {
 	util.CheckSum
-	Pos          lexer.Position
-	Name         string             `parser:"'station' '(' @String"`
-	Location     *location.Location `parser:"@@?"`
-	TimeZone     *time.TimeZone     `parser:"@@?"`
-	Calculations *CalculationList   `parser:"@@"`
-	Sensors      *SensorList        `parser:"@@"`
-	Dashboards   *DashboardList     `parser:"@@ ')'"`
+	Pos      lexer.Position
+	Name     string             `parser:"'station' '(' @String"`
+	Location *location.Location `parser:"@@?"`
+	TimeZone *time.TimeZone     `parser:"@@?"`
+	Entries  *StationEntryList  `parser:"@@ ')'"`
 }
 
 func (c *visitor[T]) Station(d *Station) error {
@@ -40,15 +38,7 @@ func (c *visitor[T]) Station(d *Station) error {
 		}
 
 		if err == nil {
-			err = c.CalculationList(d.Calculations)
-		}
-
-		if err == nil {
-			err = c.DashboardList(d.Dashboards)
-		}
-
-		if err == nil {
-			err = c.SensorList(d.Sensors)
+			err = c.StationEntryList(d.Entries)
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -59,9 +49,9 @@ func (c *visitor[T]) Station(d *Station) error {
 func initStation(v Visitor[*initState], d *Station) error {
 	s := v.Get()
 	// Reset the state
-	s.calculations = nil
-	s.dashboards = nil
-	s.sensors = nil
+	s.calculations = make(map[string]*Calculation)
+	s.dashboards = make(map[string]*Dashboard)
+	s.sensors = make(map[string]*Sensor)
 	s.sensorPrefix = ""
 	s.stationPrefix = ""
 
@@ -115,10 +105,8 @@ func assertStationUnique(m *map[string]*Station, s *Station) error {
 	return nil
 }
 
-// HomeDashboard returns the home dashboard which is by definition the first dashboard in the definition
+// HomeDashboard returns the home dashboard which is by definition the first dashboard in the definition.
+// If there are no dashboards this returns nil.
 func (s *Station) HomeDashboard() *Dashboard {
-	if s.Dashboards == nil || len(s.Dashboards.Dashboards) == 0 {
-		return nil
-	}
-	return s.Dashboards.Dashboards[0]
+	return s.Entries.HomeDashboard()
 }

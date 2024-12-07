@@ -32,6 +32,7 @@ func (s *Stations) PostInit() error {
 		Metric(addMetric).
 		MultiValue(addMultiValue).
 		Station(addStation).
+		StationEntryList(addStationEntryList).
 		Stations(visitStations).
 		Value(addValue).
 		Build()
@@ -68,6 +69,13 @@ func (l LoadOption) Is(b LoadOption) bool {
 
 func (l LoadOption) Not(b LoadOption) bool {
 	return !l.Is(b)
+}
+
+// Accept returns true if the load option accepts the supplied one and v is not nil.
+//
+// e.g. a.Accept(b,v) is the same as a.Is(b) && v !=nil
+func (l LoadOption) Accept(b LoadOption, v any) bool {
+	return l.Is(b) && v != nil
 }
 
 const (

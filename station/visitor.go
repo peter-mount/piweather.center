@@ -58,17 +58,24 @@ func addStation(v station.Visitor[*visitorState], d *station.Station) error {
 
 	st.stations.addStation(se)
 
-	// Remove children we do not require
-	if st.loadOption.Not(DashboardOption) {
-		d.Dashboards = nil
-	}
-	if st.loadOption.Not(CalculationOption) {
-		d.Calculations = nil
-	}
-	if st.loadOption.Not(SensorOption) {
-		d.Sensors = nil
+	return nil
+}
+
+func addStationEntryList(v station.Visitor[*visitorState], d *station.StationEntryList) error {
+	st := v.Get()
+
+	var l []*station.StationEntry
+
+	for _, e := range d.Entries {
+		// Keep children we require
+		if st.loadOption.Accept(CalculationOption, e.Calculation) ||
+			st.loadOption.Accept(DashboardOption, e.Dashboard) ||
+			st.loadOption.Accept(SensorOption, e.Sensor) {
+			l = append(l, e)
+		}
 	}
 
+	d.Entries = l
 	return nil
 }
 

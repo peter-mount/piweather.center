@@ -17,11 +17,11 @@ var (
 	initVisitor = NewBuilder[*initState]().
 		Axis(initAxis).
 		Calculation(initCalculation).
-		CalculationList(initCalculationList).
+		//CalculationList(initCalculationList).
 		Container(initContainer).
 		CronTab(initCronTab).
 		Dashboard(initDashboard).
-		DashboardList(initDashboardList).
+		//DashboardList(initDashboardList).
 		Gauge(initGauge).
 		Http(initHttp).
 		I2C(initI2c).
@@ -31,12 +31,13 @@ var (
 		MetricPattern(initMetricPattern).
 		TimeZone(initTimeZone).
 		Sensor(initSensor).
-		SensorList(initSensorList).
+		//SensorList(initSensorList).
 		Serial(initSerial).
 		SourceParameter(initSourceParameter).
 		SourceWithin(initSourceWithin).
 		SourcePath(initSourcePath).
 		Station(initStation).
+		StationEntryList(initStationEntryList).
 		Stations(initStations).
 		Unit(initUnit).
 		Value(initValue).
@@ -58,11 +59,11 @@ type initState struct {
 	stationId        string                      // copy of the stationId being processed
 	stationPrefix    string                      // stationId + "."
 	sensorPrefix     string                      // sensorId + "."
-	stationIds       map[string]*Station         // map of Stations
-	calculations     map[string]*Calculation     // map of calculations within a Station
-	dashboards       map[string]*Dashboard       // map of Dashboards within a Station
-	sensors          map[string]*Sensor          // map of Sensors within a station
-	sensorParameters map[string]*SourceParameter // Map of SourceParameter's used to ensure output is unique
+	stationIds       map[string]*Station         // map of Stations, for id uniqueness
+	calculations     map[string]*Calculation     // map of calculations within a Station, for target uniqueness
+	dashboards       map[string]*Dashboard       // map of Dashboards within a Station, for id uniqueness
+	sensors          map[string]*Sensor          // map of Sensors within a station, for sensorPrefix uniqueness
+	sensorParameters map[string]*SourceParameter // Map of SourceParameter's used to ensure target metrics are unique
 	sourcePath       []string                    // Prefix for source path, used with SourceWithin
 }
 
