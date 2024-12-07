@@ -1,6 +1,7 @@
 package measurement
 
 import (
+	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )
@@ -14,6 +15,14 @@ func init() {
 	HourAngle = value.NewUnit("HourAngle", "Hour Angle", " ha", 3, nil)
 	Turn = value.NewUnit("Turn", "Turn", " turn", 6, nil)
 
+	RA = value.NewUnit("RA", "Right Ascension", "", 4, func(f float64) string {
+		return util.DegDMSString(f, false)
+	})
+
+	Declination = value.NewBoundedUnitF("Dec", "Declination", "", 4, -90.0, 90.0, func(f float64) string {
+		return util.DegDMSString(f, true)
+	})
+
 	// Turn is the default unit
 	value.NewBasicBiTransform(Turn, Degree, 360)
 	value.NewBasicBiTransform(Turn, Radian, 2.0*math.Pi)
@@ -21,6 +30,7 @@ func init() {
 	value.NewBasicBiTransform(Turn, ArcSecond, 360*3600)
 	value.NewBasicBiTransform(Turn, Gradian, 400)
 	value.NewBasicBiTransform(Turn, HourAngle, 24)
+	value.NewBasicBiTransform(Turn, RA, 24)
 
 	// Common transforms to save on going via Turn
 	value.NewBasicBiTransform(Degree, Radian, math.Pi/180.0)
@@ -28,9 +38,10 @@ func init() {
 	value.NewBasicBiTransform(ArcMinute, ArcSecond, 60.0)
 	value.NewBasicBiTransform(Degree, ArcSecond, 3600.0)
 	value.NewBasicBiTransform(HourAngle, Degree, 15.0)
+	value.NewBasicBiTransform(RA, Degree, 15.0)
 
 	// Ensure all others exist
-	Angle = value.NewGroup("Angle", Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle)
+	Angle = value.NewGroup("Angle", Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle, RA)
 }
 
 var (
@@ -75,9 +86,11 @@ var (
 	//
 	// A nautical mile was historically defined as an arcminute along
 	// a great circle of the Earth. (n = 21,600).
-	ArcMinute *value.Unit
-	ArcSecond *value.Unit
-	Gradian   *value.Unit
-	HourAngle *value.Unit
-	Turn      *value.Unit
+	ArcMinute   *value.Unit
+	ArcSecond   *value.Unit
+	Gradian     *value.Unit
+	HourAngle   *value.Unit
+	Turn        *value.Unit
+	RA          *value.Unit
+	Declination *value.Unit
 )
