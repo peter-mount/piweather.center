@@ -26,7 +26,7 @@ type EphemerisResult interface {
 
 	GetEcliptic() *coord.Ecliptic
 	SetEcliptic(lat, lon unit.Angle) EphemerisResult
-	SetEcliptic2(lat, lon unit.Angle, obliquity *coord.Obliquity) EphemerisResult
+	SetEcliptic2(lat, lon, ε unit.Angle) EphemerisResult
 
 	GetEquatorial() *coord.Equatorial
 	SetEquatorial(ra unit.RA, dec unit.Angle) EphemerisResult
@@ -45,8 +45,8 @@ type EphemerisResult interface {
 	ToMetrics(prefix string, opts EphemerisOption) []api.Metric
 }
 
-var (
-	obliquity = coord.NewObliquity(unit.AngleFromDeg(23.4392911))
+const (
+	defaultObliquity = 23.4392911
 )
 
 type ephemerisResult struct {
@@ -74,7 +74,7 @@ func NewEphemerisResult(name string, t value.Time) EphemerisResult {
 		siderial:   st,
 		loc:        t.Location(),
 		ecliptic:   &coord.Ecliptic{},
-		obliquity:  obliquity,
+		obliquity:  coord.NewObliquity(defaultObliquity),
 		equatorial: &coord.Equatorial{},
 		galactic:   &coord.Galactic{},
 		horizontal: &coord.Horizontal{},
@@ -114,15 +114,15 @@ func (r *ephemerisResult) GetEcliptic() *coord.Ecliptic {
 }
 
 func (r *ephemerisResult) SetEcliptic(lat, lon unit.Angle) EphemerisResult {
-	return r.SetEcliptic2(lat, lon, obliquity)
+	return r.SetEcliptic2(lat, lon, defaultObliquity)
 }
 
-func (r *ephemerisResult) SetEcliptic2(lat, lon unit.Angle, obliquity *coord.Obliquity) EphemerisResult {
-	r.obliquity = obliquity
+func (r *ephemerisResult) SetEcliptic2(lat, lon, ε unit.Angle) EphemerisResult {
+	r.obliquity = coord.NewObliquity(ε)
 	r.ecliptic = &coord.Ecliptic{Lat: lat, Lon: lon}
-	r.equatorial = r.equatorial.EclToEq(r.ecliptic, obliquity)
-	r.horizontal = r.horizontal.EqToHz(r.equatorial, r.loc, r.siderial)
-	r.galactic = r.galactic.EqToGal(r.equatorial)
+	r.equatorial = r.eclToEq(r.ecliptic)
+	r.horizontal = r.eqToHz(r.equatorial)
+	r.galactic = r.eqToGal(r.equatorial)
 	return r
 }
 
@@ -132,9 +132,9 @@ func (r *ephemerisResult) GetEquatorial() *coord.Equatorial {
 
 func (r *ephemerisResult) SetEquatorial(ra unit.RA, dec unit.Angle) EphemerisResult {
 	r.equatorial = &coord.Equatorial{RA: ra, Dec: dec}
-	r.ecliptic = r.ecliptic.EqToEcl(r.equatorial, obliquity)
-	r.horizontal = r.horizontal.EqToHz(r.equatorial, r.loc, r.siderial)
-	r.galactic = r.galactic.EqToGal(r.equatorial)
+	r.ecliptic = r.eqToEcl(r.equatorial)
+	r.horizontal = r.eqToHz(r.equatorial)
+	r.galactic = r.eqToGal(r.equatorial)
 	return r
 }
 
@@ -144,9 +144,9 @@ func (r *ephemerisResult) GetGalactic() *coord.Galactic {
 
 func (r *ephemerisResult) SetGalactic(lat, lon unit.Angle) EphemerisResult {
 	r.galactic = &coord.Galactic{Lat: lat, Lon: lon}
-	r.equatorial = r.equatorial.GalToEq(r.galactic)
-	r.ecliptic = r.ecliptic.EqToEcl(r.equatorial, obliquity)
-	r.horizontal = r.horizontal.EqToHz(r.equatorial, r.loc, r.siderial)
+	r.equatorial = r.galToEq(r.galactic)
+	r.ecliptic = r.eqToEcl(r.equatorial)
+	r.horizontal = r.eqToHz(r.equatorial)
 	return r
 }
 
@@ -156,9 +156,9 @@ func (r *ephemerisResult) GetHorizontal() *coord.Horizontal {
 
 func (r *ephemerisResult) SetHorizontal(az, alt unit.Angle) EphemerisResult {
 	r.horizontal = &coord.Horizontal{Az: az, Alt: alt}
-	r.equatorial = r.equatorial.HzToEq(r.horizontal, *r.loc, r.siderial)
-	r.ecliptic = r.ecliptic.EqToEcl(r.equatorial, obliquity)
-	r.galactic = r.galactic.EqToGal(r.equatorial)
+	r.equatorial = r.hzToEq(r.horizontal)
+	r.ecliptic = r.eqToEcl(r.equatorial)
+	r.galactic = r.eqToGal(r.equatorial)
 	return r
 }
 
@@ -231,7 +231,16 @@ func (r *ephemerisResult) eclToEq(ecl *coord.Ecliptic) *coord.Equatorial {
 	}
 
 	eq := coord.Equatorial{}
-	return eq.EclToEq(ecl, obliquity)
+	return eq.EclToEq(ecl, r.obliquity)
+}
+
+func (r *ephemerisResult) eqToEcl(eq *coord.Equatorial) *coord.Ecliptic {
+	if eq == nil {
+		return nil
+	}
+
+	ecl := coord.Ecliptic{}
+	return ecl.EqToEcl(eq, r.obliquity)
 }
 
 func (r *ephemerisResult) galToEq(gal *coord.Galactic) *coord.Equatorial {
@@ -241,6 +250,15 @@ func (r *ephemerisResult) galToEq(gal *coord.Galactic) *coord.Equatorial {
 
 	eq := coord.Equatorial{}
 	return eq.GalToEq(gal)
+}
+
+func (r *ephemerisResult) eqToGal(eq *coord.Equatorial) *coord.Galactic {
+	if eq == nil {
+		return nil
+	}
+
+	gal := coord.Galactic{}
+	return gal.EqToGal(eq)
 }
 
 func (r *ephemerisResult) ToMetrics(prefix string, opts EphemerisOption) []api.Metric {

@@ -5,9 +5,9 @@ import (
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/moonposition"
 	"github.com/soniakeys/meeus/v3/nutation"
+	"github.com/soniakeys/unit"
 )
 
 var (
@@ -17,15 +17,26 @@ var (
 func (c *calculator) CalculateMoon(t value.Time) (api.EphemerisResult, error) {
 	jd := julian.FromTime(t.Time())
 
+	λ, β, R := moonposition.Position(jd.Float())
+
 	// Δψ nutation in longitude
 	// Δε nutation in obliquity
-	_, Δε := nutation.Nutation(jd.Float())
-	obliquity := coord.NewObliquity(nutation.MeanObliquityLaskar(jd.Float()) + Δε)
-
-	lon, lat, R := moonposition.Position(jd.Float())
+	Δψ, Δε := nutation.Nutation(jd.Float())
+	a := aberration(R)
+	λ = λ + Δψ + a
+	ε := nutation.MeanObliquity(jd.Float()) + Δε
 
 	return api.NewEphemerisResult("moon", t).
-			SetEcliptic2(lat, lon, obliquity).
+			SetEcliptic2(β, λ, ε).
 			SetDistance(measurement.Kilometers.Value(R)),
 		nil
+}
+
+// Low precision formula.  The high precision formula is not implemented
+// because the low precision formula already gives position results to the
+// accuracy given on p. 165.  The high precision formula the represents lots
+// of typing with associated chance of typos, and no way to test the result.
+func aberration(R float64) unit.Angle {
+	// (25.10) p. 167
+	return unit.AngleFromSec(-20.4898).Div(R)
 }
