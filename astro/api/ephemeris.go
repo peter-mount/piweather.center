@@ -162,6 +162,17 @@ func (r *ephemerisResult) Value(t EphemerisOption) value.Value {
 	case HorizonAzimuth:
 		return measurement.Degree.Value(r.horizontal.Az.Deg())
 
+	case HorizonBearing:
+		// Add 180° to azimuth to convert to geographic azimuth from due north
+		f := r.horizontal.Az.Deg() + 180.0
+		for f < 0.0 {
+			f = f + 360
+		}
+		for f >= 360 {
+			f = f - 360
+		}
+		return measurement.Degree.Value(f)
+
 	case EquatorialRA:
 		return measurement.RA.Value(r.equatorial.RA.Hour())
 
