@@ -26,6 +26,7 @@ type EphemerisResult interface {
 
 	GetEcliptic() *coord.Ecliptic
 	SetEcliptic(lat, lon unit.Angle) EphemerisResult
+	SetEcliptic2(lat, lon unit.Angle, obliquity *coord.Obliquity) EphemerisResult
 
 	GetEquatorial() *coord.Equatorial
 	SetEquatorial(ra unit.RA, dec unit.Angle) EphemerisResult
@@ -56,6 +57,7 @@ type ephemerisResult struct {
 	loc        *globe.Coord      // Location of observer
 	distance   value.Value       // distance
 	ecliptic   *coord.Ecliptic   // ecliptic coordinates
+	obliquity  *coord.Obliquity  // Obliquity of ecliptic
 	equatorial *coord.Equatorial // equatorial coordinates
 	galactic   *coord.Galactic   // galactic coordinates
 	horizontal *coord.Horizontal // horizontal coordinates at observers location
@@ -72,6 +74,7 @@ func NewEphemerisResult(name string, t value.Time) EphemerisResult {
 		siderial:   st,
 		loc:        t.Location(),
 		ecliptic:   &coord.Ecliptic{},
+		obliquity:  obliquity,
 		equatorial: &coord.Equatorial{},
 		galactic:   &coord.Galactic{},
 		horizontal: &coord.Horizontal{},
@@ -111,6 +114,11 @@ func (r *ephemerisResult) GetEcliptic() *coord.Ecliptic {
 }
 
 func (r *ephemerisResult) SetEcliptic(lat, lon unit.Angle) EphemerisResult {
+	return r.SetEcliptic2(lat, lon, obliquity)
+}
+
+func (r *ephemerisResult) SetEcliptic2(lat, lon unit.Angle, obliquity *coord.Obliquity) EphemerisResult {
+	r.obliquity = obliquity
 	r.ecliptic = &coord.Ecliptic{Lat: lat, Lon: lon}
 	r.equatorial = r.equatorial.EclToEq(r.ecliptic, obliquity)
 	r.horizontal = r.horizontal.EqToHz(r.equatorial, r.loc, r.siderial)
