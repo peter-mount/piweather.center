@@ -5,15 +5,13 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/config/util"
-	"strings"
 )
 
 // EphemerisTargetOption declares the values to create metrics
 type EphemerisTargetOption struct {
-	Pos        lexer.Position
-	Target     string `parser:"@('altitude' | 'azimuth' | 'ra' | 'dec' | 'distance')"`
-	As         string `parser:"( 'as' @String )?"`
-	targetType api.EphemerisOption
+	Pos             lexer.Position
+	Target          string `parser:"@Ident"`
+	ephemerisOption api.EphemerisOption
 }
 
 func (c *visitor[T]) EphemerisTargetOption(d *EphemerisTargetOption) error {
@@ -31,15 +29,11 @@ func (c *visitor[T]) EphemerisTargetOption(d *EphemerisTargetOption) error {
 	return err
 }
 
-func initEphemerisTargetOption(v Visitor[*initState], d *EphemerisTargetOption) error {
-	d.targetType = api.ParseEphemerisOption(d.Target)
-
-	d.As = strings.ToLower(strings.TrimSpace(d.As))
-	if d.As == "" {
-		d.As = d.targetType.String()
+func initEphemerisTargetOption(_ Visitor[*initState], d *EphemerisTargetOption) error {
+	d.ephemerisOption = api.ParseEphemerisOption(d.Target)
+	if d.ephemerisOption == 0 {
+		return errors.Errorf(d.Pos, "Invalid target %q", d.Target)
 	}
-
-	d.As = v.Get().ephemerisTarget.Target + "." + d.As
 
 	return nil
 }
@@ -49,6 +43,6 @@ func (b *builder[T]) EphemerisTargetOption(f func(Visitor[T], *EphemerisTargetOp
 	return b
 }
 
-func (d EphemerisTargetOption) TargetType() api.EphemerisOption {
-	return d.targetType
+func (d EphemerisTargetOption) EphemerisOption() api.EphemerisOption {
+	return d.ephemerisOption
 }

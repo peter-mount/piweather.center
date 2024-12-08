@@ -1,10 +1,11 @@
 package weathercalc
 
 import (
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
-	api2 "github.com/peter-mount/piweather.center/store/api"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"time"
 )
@@ -59,33 +60,22 @@ func calculateEphemerisTarget(v station.Visitor[*ephemerisCalculator], d *statio
 	case targetType.IsSun():
 		result, err = st.calc.Astro.CalculateSun(st.time)
 
+	case targetType == station.EphemerisTargetMoon:
+		result, err = st.calc.Astro.CalculateMoon(st.time)
+
 	case targetType.IsPlanet():
-		// TODO implement
+	// TODO implement
 
 	default:
 		// Other, so just ignore for now
 	}
 
 	if err == nil && result != nil {
-		for _, opt := range d.Options {
-			val := result.Value(opt.TargetType())
-			if val.IsValid() {
-				t := st.time.Time()
-				metric := api2.Metric{
-					Metric:    opt.As,
-					Time:      t,
-					Unit:      val.Unit().ID(),
-					Value:     val.Float(),
-					Formatted: val.String(),
-					Unix:      t.Unix(),
-				}
-				if metric.IsValid() {
-					err = st.calc.DatabaseBroker.PublishMetric(metric)
-					if err != nil {
-						break
-					}
-				}
-
+		for _, metric := range result.ToMetrics(st.ephemeris.Target+"."+d.As, d.GetEphemerisOption()) {
+			log.Printf("Ephem %q %s %s\n", metric.Metric, metric.Formatted, metric.Time.Format(time2.RFC3339))
+			err = st.calc.DatabaseBroker.PublishMetric(metric)
+			if err != nil {
+				break
 			}
 		}
 	}

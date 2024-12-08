@@ -3,11 +3,9 @@ package calculator
 import (
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/astro/julian"
-	"github.com/peter-mount/piweather.center/astro/sidereal"
 	"github.com/peter-mount/piweather.center/astro/sun"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
-	coord2 "github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/planetposition"
 	"github.com/soniakeys/meeus/v3/solar"
 	"github.com/soniakeys/unit"
@@ -52,18 +50,11 @@ func (c *calculator) CalculateSun(t value.Time) (api.EphemerisResult, error) {
 	}
 
 	jd := julian.FromTime(t.Time())
-	st := sidereal.FromJD(jd)
 
 	ra, dec, R := solar.ApparentEquatorialVSOP87(earth, jd.Float())
 
-	loc := t.Location()
-	az, alt := coord2.EqToHz(ra, dec, loc.Lat, loc.Lon, st)
-
-	return api.NewEphemerisResult().
-			SetName("sun").
-			SetJD(jd).
+	return api.NewEphemerisResult("sun", t).
 			SetEquatorial(ra, dec).
-			SetAltAz(alt, az).
-			SetDistanceAU(R),
+			SetDistance(measurement.AU.Value(R)),
 		nil
 }

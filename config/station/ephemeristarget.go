@@ -3,18 +3,19 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
+	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/config/util"
-	"sort"
 	"strings"
 )
 
 // EphemerisTarget defines the target to calculate
 type EphemerisTarget struct {
-	Pos        lexer.Position
-	Target     string                   `parser:"@( 'sun' )"`           // Object to calculate
-	Options    []*EphemerisTargetOption `parser:"'(' @@ (',' @@)* ')'"` // Parameters to include
-	As         string                   `parser:"( 'as' @String )?"`    // Override the Target for the metric name
-	targetType EphemerisTargetType      // Computed target type
+	Pos             lexer.Position
+	Target          string                   `parser:"@Ident"`                  // Object to calculate
+	Options         []*EphemerisTargetOption `parser:"'(' (@@ (',' @@)*)? ')'"` // Parameters to include
+	As              string                   `parser:"( 'as' @String )?"`       // Override the Target for the metric name
+	targetType      EphemerisTargetType      // Computed target type
+	ephemerisOption api.EphemerisOption      // Computed options
 }
 
 func (c *visitor[T]) EphemerisTarget(d *EphemerisTarget) error {
@@ -44,16 +45,7 @@ func (c *visitor[T]) EphemerisTarget(d *EphemerisTarget) error {
 func initEphemerisTarget(v Visitor[*initState], d *EphemerisTarget) error {
 	st := v.Get()
 
-	d.targetType = EphemerisTargetOther
-	if d.Target == "sun" {
-		d.targetType = EphemerisTargetSun
-	} else {
-		for i, e := range ephemerisTargetNames {
-			if strings.ToLower(e) == d.Target {
-				d.targetType = EphemerisTargetType(i)
-			}
-		}
-	}
+	d.targetType = ParseEphemerisTargetType(d.Target)
 
 	d.As = strings.ToLower(strings.TrimSpace(d.As))
 	if d.As == "" {
@@ -61,25 +53,16 @@ func initEphemerisTarget(v Visitor[*initState], d *EphemerisTarget) error {
 	}
 	st.ephemerisTarget = d
 
-	// Ensure the options are unique
-	opts := make(map[string]*EphemerisTargetOption)
+	// Work out the required targets
+	var ephemerisOption api.EphemerisOption
 	for _, opt := range d.Options {
 		_ = initEphemerisTargetOption(v, opt)
-
-		n := opt.As
-		if e, exists := opts[n]; exists {
-			return errors.Errorf(opt.Pos, "option %q already declared at %s", e.As, e.Pos.String())
-		}
-		opts[n] = opt
-
-		// Turn As into a full metric id
-		opt.As = st.sensorPrefix + opt.As
+		ephemerisOption = ephemerisOption | opt.EphemerisOption()
 	}
-
-	// Sort them, not really needed
-	sort.SliceStable(d.Options, func(i, j int) bool {
-		return d.Options[i].As < d.Options[j].As
-	})
+	if ephemerisOption == 0 {
+		ephemerisOption = api.AllOptions
+	}
+	d.ephemerisOption = ephemerisOption
 
 	return util.VisitorStop
 }
@@ -93,6 +76,10 @@ func (d *EphemerisTarget) GetTarget() EphemerisTargetType {
 	return d.targetType
 }
 
+func (d *EphemerisTarget) GetEphemerisOption() api.EphemerisOption {
+	return d.ephemerisOption
+}
+
 type EphemerisTargetType uint8
 
 const (
@@ -104,23 +91,38 @@ const (
 	EphemerisTargetSaturn
 	EphemerisTargetUranus
 	EphemerisTargetNeptune
-	EphemerisTargetSun   // The sun
+	EphemerisTargetSun // The sun
+	EphemerisTargetMoon
 	EphemerisTargetOther // Unused, but reserved for custom targets in the future
 )
 
 var (
 	ephemerisTargetNames = []string{
 		"Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune",
-		"Sun",
+		"Sun", "Moon",
 		"Other",
 	}
 )
+
+func ParseEphemerisTargetType(s string) EphemerisTargetType {
+	for i, _ := range ephemerisTargetNames {
+		t := EphemerisTargetType(i)
+		if t.Is(s) {
+			return t
+		}
+	}
+	return EphemerisTargetOther
+}
 
 func (t EphemerisTargetType) String() string {
 	if t > EphemerisTargetOther {
 		return ephemerisTargetNames[EphemerisTargetOther]
 	}
 	return ephemerisTargetNames[t]
+}
+
+func (t EphemerisTargetType) Is(s string) bool {
+	return strings.ToLower(ephemerisTargetNames[t]) == strings.ToLower(s)
 }
 
 func (t EphemerisTargetType) IsSun() bool {

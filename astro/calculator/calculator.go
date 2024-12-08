@@ -23,6 +23,8 @@ type Calculator interface {
 	// the 8 major Planets, loading from disk as necessary
 	Planet(i int) (*planetposition.V87Planet, error)
 
+	CalculateMoon(t value.Time) (api.EphemerisResult, error)
+
 	// CalculateSun returns an EphemerisResult for a specified time.
 	// Note: the RA/Dec epoch be for the date, not J2000
 	CalculateSun(t value.Time) (api.EphemerisResult, error)
