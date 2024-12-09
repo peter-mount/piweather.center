@@ -31,13 +31,19 @@ type Calculator interface {
 
 	// SolarAltitudeCalculator is a calculator that calculates
 	// the sun's altitude at a station at a specific time
+	// use CalculateSun instead
+	// Deprecated
 	SolarAltitudeCalculator() value.Calculator
 
 	// SolarAzimuthCalculator is a calculator that calculates
 	// the sun's azimuth at a station at a specific time
+	//	use CalculateSun instead
+	// Deprecated
 	SolarAzimuthCalculator() value.Calculator
 
 	// SolarHZ calculate the Azimuth and Altitude of the sun
+	//	use CalculateSun instead
+	// Deprecated
 	SolarHZ(t value.Time) (unit.Angle, unit.Angle, error)
 
 	// SolarEphemeris calculate an ephemeris of the sun for a specific date

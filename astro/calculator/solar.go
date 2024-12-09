@@ -11,6 +11,7 @@ import (
 	"github.com/soniakeys/unit"
 )
 
+// Deprecated
 func (c *calculator) SolarAltitudeCalculator() value.Calculator {
 	return func(t value.Time, _ ...value.Value) (value.Value, error) {
 		_, h, err := c.SolarHZ(t)
@@ -21,6 +22,7 @@ func (c *calculator) SolarAltitudeCalculator() value.Calculator {
 	}
 }
 
+// Deprecated
 func (c *calculator) SolarAzimuthCalculator() value.Calculator {
 	return func(t value.Time, _ ...value.Value) (value.Value, error) {
 		A, _, err := c.SolarHZ(t)
@@ -31,6 +33,7 @@ func (c *calculator) SolarAzimuthCalculator() value.Calculator {
 	}
 }
 
+// Deprecated
 func (c *calculator) SolarHZ(t value.Time) (unit.Angle, unit.Angle, error) {
 	earth, err := c.Planet(planetposition.Earth)
 	if err != nil {
