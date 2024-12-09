@@ -24,9 +24,11 @@ type EphemerisResult interface {
 	GetDistance() value.Value
 	SetDistance(value.Value) EphemerisResult
 
+	GetObliquity() *coord.Obliquity
+	SetObliquity(unit.Angle) EphemerisResult
+
 	GetEcliptic() *coord.Ecliptic
 	SetEcliptic(lat, lon unit.Angle) EphemerisResult
-	SetEcliptic2(lat, lon, ε unit.Angle) EphemerisResult
 
 	GetEquatorial() *coord.Equatorial
 	SetEquatorial(ra unit.RA, dec unit.Angle) EphemerisResult
@@ -97,6 +99,15 @@ func (r *ephemerisResult) SiderialTime() unit.Time {
 	return r.siderial
 }
 
+func (r *ephemerisResult) GetObliquity() *coord.Obliquity {
+	return r.obliquity
+}
+
+func (r *ephemerisResult) SetObliquity(ε unit.Angle) EphemerisResult {
+	r.obliquity = coord.NewObliquity(ε)
+	return r
+}
+
 func (r *ephemerisResult) GetDistance() value.Value {
 	return r.distance
 }
@@ -114,11 +125,6 @@ func (r *ephemerisResult) GetEcliptic() *coord.Ecliptic {
 }
 
 func (r *ephemerisResult) SetEcliptic(lat, lon unit.Angle) EphemerisResult {
-	return r.SetEcliptic2(lat, lon, defaultObliquity)
-}
-
-func (r *ephemerisResult) SetEcliptic2(lat, lon, ε unit.Angle) EphemerisResult {
-	r.obliquity = coord.NewObliquity(ε)
 	r.ecliptic = &coord.Ecliptic{Lat: lat, Lon: lon}
 	r.equatorial = r.eclToEq(r.ecliptic)
 	r.horizontal = r.eqToHz(r.equatorial)

@@ -27,7 +27,8 @@ func (c *calculator) CalculateMoon(t value.Time) (api.EphemerisResult, error) {
 	ε := nutation.MeanObliquity(jd.Float()) + Δε
 
 	return api.NewEphemerisResult("moon", t).
-			SetEcliptic2(β, λ, ε).
+			SetObliquity(ε).
+			SetEcliptic(β, λ).
 			SetDistance(measurement.Kilometers.Value(R)),
 		nil
 }
