@@ -4,8 +4,11 @@ import (
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/astro/julian"
 	"github.com/peter-mount/piweather.center/astro/sun"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"github.com/soniakeys/meeus/v3/base"
+	"github.com/soniakeys/meeus/v3/nutation"
 	"github.com/soniakeys/meeus/v3/planetposition"
 	"github.com/soniakeys/meeus/v3/solar"
 	"github.com/soniakeys/unit"
@@ -55,12 +58,26 @@ func (c *calculator) CalculateSun(t value.Time) (api.EphemerisResult, error) {
 		return nil, err
 	}
 
-	jd := julian.FromTime(t.Time())
+	jde := julian.FromTime(t.Time()).Float()
 
-	ra, dec, R := solar.ApparentEquatorialVSOP87(earth, jd.Float())
+	// Based on solar.ApparentEquatorialVSOP87 but, like CalculatePlanet we need additional information,
+	// but we also cut out an eclToEq conversion
+	//ra, dec, R := solar.ApparentEquatorialVSOP87(earth, jd.Float())
+	s, β, R := solar.TrueVSOP87(earth, jde)
+
+	// Obliquity
+	Δψ, Δε := nutation.Nutation(jde)
+	a := aberration(R)
+	λ := s + Δψ + a
+	ε := nutation.MeanObliquity(jde) + Δε
+
+	// Extra parameters here
 
 	return api.NewEphemerisResult("sun", t).
-			SetEquatorial(ra, dec).
-			SetDistance(measurement.AU.Value(R)),
+			SetObliquity(ε).
+			SetEcliptic(λ, β).
+			SetDistance(measurement.AU.Value(R)).
+			SetSemiDiameter(measurement.AngleRoundDown(measurement.Degree.Value(SemiDiameter(station.EphemerisTargetSun, R).Deg()))).
+			SetLightTime(measurement.DurationRoundDown(measurement.DurationDay.Value(base.LightTime(R)))),
 		nil
 }

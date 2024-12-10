@@ -73,6 +73,11 @@ const (
 	// LightTime to the object from Earth
 	LightTime
 
+	DistanceSun
+
+	// SemiDiameter of object
+	SemiDiameter
+
 	HorizonAltitude
 	// HorizonAzimuth is the astronomical azimuth in degrees, positive west, from due South.
 	HorizonAzimuth
@@ -89,7 +94,7 @@ const (
 	AllOptions = AllDataOptions | AllCoordinateOptions
 
 	// AllDataOptions possible data options
-	AllDataOptions = Distance | LightTime
+	AllDataOptions = Distance | DistanceSun | LightTime | SemiDiameter
 
 	// AllCoordinateOptions possible coordinate options
 	AllCoordinateOptions = Ecliptic | Equatorial | Galactic | Horizon
@@ -111,6 +116,8 @@ var (
 	ephemerisOptionNames = map[string]EphemerisOption{
 		"distance":          Distance,
 		"lightTime":         LightTime,
+		"distanceSun":       DistanceSun,
+		"semiDiameter":      SemiDiameter,
 		"altitude":          HorizonAltitude,
 		"azimuth":           HorizonAzimuth,
 		"bearing":           HorizonBearing,
@@ -126,8 +133,10 @@ var (
 	}
 
 	ephemerisMetrics = map[EphemerisOption]string{
-		Distance:          "distance",
-		LightTime:         "lightTime",
+		Distance:          "dist.earth",
+		LightTime:         "dist.lightTime",
+		DistanceSun:       "dist.sun",
+		SemiDiameter:      "semiDiameter",
 		HorizonAltitude:   "hz.altitude",
 		HorizonAzimuth:    "hz.azimuth",
 		HorizonBearing:    "hz.bearing",

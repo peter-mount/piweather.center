@@ -3,8 +3,10 @@ package calculator
 import (
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/astro/julian"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"github.com/soniakeys/meeus/v3/base"
 	"github.com/soniakeys/meeus/v3/moonposition"
 	"github.com/soniakeys/meeus/v3/nutation"
 	"github.com/soniakeys/unit"
@@ -26,10 +28,17 @@ func (c *calculator) CalculateMoon(t value.Time) (api.EphemerisResult, error) {
 	λ = λ + Δψ + a
 	ε := nutation.MeanObliquity(jd.Float()) + Δε
 
+	// Light Time from earth in days, but we need to convert R (km) to AU first
+	rAU := measurement.Kilometers.Value(R).AsOrInvalid(measurement.AU).Float()
+	τEarth := base.LightTime(rAU)
+
 	return api.NewEphemerisResult("moon", t).
 			SetObliquity(ε).
 			SetEcliptic(β, λ).
-			SetDistance(measurement.Kilometers.Value(R)),
+			SetDistance(measurement.Kilometers.Value(R)).
+			SetSemiDiameter(measurement.AngleRoundDown(measurement.Degree.Value(SemiDiameter(station.EphemerisTargetMoon, rAU).Deg()))).
+			// Light Time is in Days but DurationRoundDown makes it more useful
+			SetLightTime(measurement.DurationRoundDown(measurement.DurationDay.Value(τEarth))),
 		nil
 }
 

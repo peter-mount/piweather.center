@@ -12,6 +12,7 @@ import (
 	"github.com/soniakeys/meeus/v3/base"
 	"github.com/soniakeys/meeus/v3/nutation"
 	"github.com/soniakeys/meeus/v3/planetposition"
+	"github.com/soniakeys/meeus/v3/semidiameter"
 	"github.com/soniakeys/unit"
 	"math"
 )
@@ -104,7 +105,45 @@ func (c *calculator) CalculatePlanet(planetId station.EphemerisTargetType, t val
 			SetObliquity(ε).
 			SetEcliptic(λ, β).
 			SetDistance(measurement.AU.Value(Δearth)).
-			// Light Time is in Days but for the solar system Hours is more useful
-			SetLightTime(measurement.DurationDay.Value(τEarth).AsOrInvalid(measurement.DurationHour)),
+			// Apparent semidiameter from earth
+			SetSemiDiameter(measurement.AngleRoundDown(measurement.Degree.Value(SemiDiameter(planetId, Δearth).Deg()))).
+			// Light Time is in Days but DurationRoundDown makes it more useful
+			SetLightTime(measurement.DurationRoundDown(measurement.DurationDay.Value(τEarth))).
+			// R is the planets heliocentric distance
+			SetDistanceSun(measurement.AU.Value(R)),
 		nil
+}
+
+// SemiDiameter returns semidiameter at specified distance.
+//
+// Δ must be observer-body distance in AU.
+func SemiDiameter(planetId station.EphemerisTargetType, Δ float64) unit.Angle {
+	s0 := getSemiDiameter(planetId)
+	return semidiameter.Semidiameter(s0, Δ)
+}
+
+func getSemiDiameter(planetId station.EphemerisTargetType) unit.Angle {
+	switch planetId {
+	case station.EphemerisTargetMercury:
+		return semidiameter.Mercury
+	case station.EphemerisTargetVenus:
+		return semidiameter.VenusCloud
+	case station.EphemerisTargetMars:
+		return semidiameter.Mars
+	case station.EphemerisTargetJupiter:
+		return semidiameter.JupiterEquatorial
+	case station.EphemerisTargetSaturn:
+		return semidiameter.SaturnEquatorial
+	case station.EphemerisTargetUranus:
+		return semidiameter.Uranus
+	case station.EphemerisTargetNeptune:
+		return semidiameter.Neptune
+	case station.EphemerisTargetMoon:
+		return semidiameter.Moon
+	case station.EphemerisTargetSun:
+		return semidiameter.Sun
+	default:
+		// Return something but make it tiny so it's a point object
+		return 0.000001
+	}
 }

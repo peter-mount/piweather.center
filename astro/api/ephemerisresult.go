@@ -20,6 +20,12 @@ type EphemerisResult interface {
 	GetLightTime() value.Value
 	SetLightTime(value.Value) EphemerisResult
 
+	GetDistanceSun() value.Value
+	SetDistanceSun(value.Value) EphemerisResult
+
+	GetSemiDiameter() value.Value
+	SetSemiDiameter(value.Value) EphemerisResult
+
 	SetObliquity(unit.Angle) EphemerisResult
 
 	GetEcliptic() *coord.Ecliptic
@@ -44,12 +50,14 @@ type EphemerisResult interface {
 
 type ephemerisResult struct {
 	ephemerisCommon
-	distance   value.Value       // distance
-	lightTime  value.Value       // light time for distance
-	ecliptic   *coord.Ecliptic   // ecliptic coordinates
-	equatorial *coord.Equatorial // equatorial coordinates
-	galactic   *coord.Galactic   // galactic coordinates
-	horizontal *coord.Horizontal // horizontal coordinates at observers location
+	distance     value.Value       // distance from Earth
+	lightTime    value.Value       // light time for distance
+	distanceSun  value.Value       // distance from Sun
+	semiDiameter value.Value       // SemiDiameter of object
+	ecliptic     *coord.Ecliptic   // ecliptic coordinates
+	equatorial   *coord.Equatorial // equatorial coordinates
+	galactic     *coord.Galactic   // galactic coordinates
+	horizontal   *coord.Horizontal // horizontal coordinates at observers location
 }
 
 func NewEphemerisResult(name string, t value.Time) EphemerisResult {
@@ -94,7 +102,28 @@ func (r *ephemerisResult) GetLightTime() value.Value {
 }
 
 func (r *ephemerisResult) SetLightTime(v value.Value) EphemerisResult {
-	r.lightTime = measurement.DurationRoundDown(v)
+	r.lightTime = v
+	return r
+}
+
+func (r *ephemerisResult) GetDistanceSun() value.Value {
+	return r.distanceSun
+}
+
+func (r *ephemerisResult) SetDistanceSun(v value.Value) EphemerisResult {
+	if err := measurement.Length.AssertValue(v); err != nil {
+		panic(err)
+	}
+	r.distanceSun = v
+	return r
+}
+
+func (r *ephemerisResult) GetSemiDiameter() value.Value {
+	return r.semiDiameter
+}
+
+func (r *ephemerisResult) SetSemiDiameter(v value.Value) EphemerisResult {
+	r.semiDiameter = v
 	return r
 }
 
@@ -186,8 +215,14 @@ func (r *ephemerisResult) Value(t EphemerisOption) value.Value {
 	case Distance:
 		return r.distance
 
+	case DistanceSun:
+		return r.distanceSun
+
 	case LightTime:
 		return r.lightTime
+
+	case SemiDiameter:
+		return r.semiDiameter
 
 	default:
 	}

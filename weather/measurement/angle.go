@@ -94,3 +94,22 @@ var (
 	RA          *value.Unit
 	Declination *value.Unit
 )
+
+func AngleRoundDown(v value.Value) value.Value {
+	if v.IsValid() {
+		if err := Angle.AssertValue(v); err != nil {
+			return value.Value{}
+		}
+
+		if value.LessThan(v.Float(), 1.0) {
+			switch v.Unit() {
+			case Degree:
+				return AngleRoundDown(v.AsOrInvalid(ArcMinute))
+			case ArcMinute:
+				return AngleRoundDown(v.AsOrInvalid(ArcSecond))
+			}
+		}
+	}
+
+	return v
+}
