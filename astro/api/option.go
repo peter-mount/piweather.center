@@ -30,7 +30,7 @@ func (e EphemerisOption) Split() []EphemerisOption {
 
 func ParseEphemerisOption(s string) EphemerisOption {
 	s = strings.ToLower(strings.TrimSpace(s))
-	return ephemerisOptionNames[strings.ToLower(strings.TrimSpace(s))]
+	return ephemerisOptionNames[s]
 }
 
 func (e EphemerisOption) Is(o EphemerisOption) bool {
@@ -114,22 +114,27 @@ const (
 
 var (
 	ephemerisOptionNames = map[string]EphemerisOption{
-		"distance":          Distance,
-		"lightTime":         LightTime,
-		"distanceSun":       DistanceSun,
-		"semiDiameter":      SemiDiameter,
-		"altitude":          HorizonAltitude,
-		"azimuth":           HorizonAzimuth,
-		"bearing":           HorizonBearing,
-		"equatorial":        Equatorial,
-		"ra":                EquatorialRA,
-		"dec":               EquatorialDec,
-		"ecliptic":          Ecliptic,
-		"eclipticLatitude":  EclipticLatitude,
-		"eclipticLongitude": EclipticLongitude,
-		"galactic":          Galactic,
-		"galacticLatitude":  GalacticLatitude,
-		"galacticLongitude": GalacticLongitude,
+		// Note: Key here MUST be in lower case
+		"alloptions":           AllOptions,
+		"alldataoptions":       AllDataOptions,
+		"allcoordinateoptions": AllCoordinateOptions,
+		"altitude":             HorizonAltitude,
+		"azimuth":              HorizonAzimuth,
+		"bearing":              HorizonBearing,
+		"equatorial":           Equatorial,
+		"dec":                  EquatorialDec,
+		"distance":             Distance,
+		"distanceSun":          DistanceSun,
+		"ecliptic":             Ecliptic,
+		"eclipticlatitude":     EclipticLatitude,
+		"eclipticlongitude":    EclipticLongitude,
+		"galactic":             Galactic,
+		"galacticlatitude":     GalacticLatitude,
+		"galacticlongitude":    GalacticLongitude,
+		"horizon":              Horizon,
+		"lighttime":            LightTime,
+		"semidiameter":         SemiDiameter,
+		"ra":                   EquatorialRA,
 	}
 
 	ephemerisMetrics = map[EphemerisOption]string{
