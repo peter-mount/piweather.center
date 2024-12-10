@@ -108,7 +108,7 @@ func (t *Table) IsEmpty() bool {
 }
 
 // Finalise ensures all columns are defined and filters out rows with no data in them
-func (t *Table) Finalise() {
+func (t *Table) Finalise() *Table {
 	var tr []*Row
 
 	// Ensure each column width is set to contain all values
@@ -143,6 +143,8 @@ func (t *Table) Finalise() {
 	}
 
 	t.Rows = tr
+
+	return t
 }
 
 func (t *Table) GetColumn(n string) *Column {

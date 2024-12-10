@@ -44,7 +44,7 @@ func (t *Table) LastColumnGroup() *ColumnGroup {
 }
 
 // AddColumnGroup adds a column group with the specified width
-func (t *Table) AddColumnGroup(name string, width int) {
+func (t *Table) AddColumnGroup(name string, width int) *Table {
 	// If we have columns already but no groups then add them to an untitled group
 	if t.ColumnGroupCount() == 0 && t.ColumnCount() > 0 {
 		t.ColumnGroups = append(t.ColumnGroups, &ColumnGroup{Name: "", Width: t.ColumnCount()})
@@ -77,4 +77,5 @@ func (t *Table) AddColumnGroup(name string, width int) {
 	// Add the new group
 	t.ColumnGroups = append(t.ColumnGroups, &ColumnGroup{Name: name, Width: width})
 	//fmt.Printf("add cg 1 %v\n", t.ColumnGroups)
+	return t
 }

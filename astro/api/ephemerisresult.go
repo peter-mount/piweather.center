@@ -1,30 +1,22 @@
 package api
 
 import (
-	"github.com/peter-mount/piweather.center/astro/julian"
-	"github.com/peter-mount/piweather.center/astro/sidereal"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/coord"
-	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/unit"
-	"time"
 )
 
 // EphemerisResult of a specific object at a specific time.
 //
 // Note: this replaces the old ephemeris package
 type EphemerisResult interface {
-	Name() string
-	Time() time.Time
-	JD() julian.Day
-	SiderialTime() unit.Time
+	EphemerisCommon
 
 	GetDistance() value.Value
 	SetDistance(value.Value) EphemerisResult
 
-	GetObliquity() *coord.Obliquity
 	SetObliquity(unit.Angle) EphemerisResult
 
 	GetEcliptic() *coord.Ecliptic
@@ -47,64 +39,37 @@ type EphemerisResult interface {
 	ToMetrics(prefix string, opts EphemerisOption) []api.Metric
 }
 
-const (
-	defaultObliquity = 23.4392911
-)
-
 type ephemerisResult struct {
-	name       string            // name of object
-	time       time.Time         // time of result
-	jd         julian.Day        // date of result
-	siderial   unit.Time         // siderial time
-	loc        *globe.Coord      // Location of observer
+	ephemerisCommon
 	distance   value.Value       // distance
 	ecliptic   *coord.Ecliptic   // ecliptic coordinates
-	obliquity  *coord.Obliquity  // Obliquity of ecliptic
 	equatorial *coord.Equatorial // equatorial coordinates
 	galactic   *coord.Galactic   // galactic coordinates
 	horizontal *coord.Horizontal // horizontal coordinates at observers location
 }
 
 func NewEphemerisResult(name string, t value.Time) EphemerisResult {
-	tm := t.Time()
-	jd := julian.FromTime(tm)
-	st := sidereal.FromJD(jd)
-	return &ephemerisResult{
-		name:       name,
-		time:       tm,
-		jd:         jd,
-		siderial:   st,
-		loc:        t.Location(),
+	r := newEphemerisResult(name, nil)
+	r.ephemerisCommon.init(name, t.Time(), t.Location(), coord.NewObliquity(defaultObliquity))
+	return r
+}
+
+func newEphemerisResult(name string, common *ephemerisCommon) *ephemerisResult {
+	r := &ephemerisResult{
 		ecliptic:   &coord.Ecliptic{},
-		obliquity:  coord.NewObliquity(defaultObliquity),
 		equatorial: &coord.Equatorial{},
 		galactic:   &coord.Galactic{},
 		horizontal: &coord.Horizontal{},
 	}
-}
-
-func (r *ephemerisResult) Name() string {
-	return r.name
-}
-
-func (r *ephemerisResult) Time() time.Time {
-	return r.time
-}
-
-func (r *ephemerisResult) JD() julian.Day {
-	return r.jd
-}
-
-func (r *ephemerisResult) SiderialTime() unit.Time {
-	return r.siderial
-}
-
-func (r *ephemerisResult) GetObliquity() *coord.Obliquity {
-	return r.obliquity
+	if common != nil {
+		r.ephemerisCommon = *common
+	}
+	r.ephemerisCommon.name = name
+	return r
 }
 
 func (r *ephemerisResult) SetObliquity(ε unit.Angle) EphemerisResult {
-	r.obliquity = coord.NewObliquity(ε)
+	r.ephemerisCommon.setObliquity(ε)
 	return r
 }
 
@@ -237,7 +202,7 @@ func (r *ephemerisResult) eclToEq(ecl *coord.Ecliptic) *coord.Equatorial {
 	}
 
 	eq := coord.Equatorial{}
-	return eq.EclToEq(ecl, r.obliquity)
+	return eq.EclToEq(ecl, r.GetObliquity())
 }
 
 func (r *ephemerisResult) eqToEcl(eq *coord.Equatorial) *coord.Ecliptic {
@@ -246,7 +211,7 @@ func (r *ephemerisResult) eqToEcl(eq *coord.Equatorial) *coord.Ecliptic {
 	}
 
 	ecl := coord.Ecliptic{}
-	return ecl.EqToEcl(eq, r.obliquity)
+	return ecl.EqToEcl(eq, r.GetObliquity())
 }
 
 func (r *ephemerisResult) galToEq(gal *coord.Galactic) *coord.Equatorial {
