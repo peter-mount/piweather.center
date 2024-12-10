@@ -64,7 +64,7 @@ func calculateEphemerisTarget(v station.Visitor[*ephemerisCalculator], d *statio
 		result, err = st.calc.Astro.CalculateMoon(st.time)
 
 	case targetType.IsPlanet():
-	// TODO implement
+		result, err = st.calc.Astro.CalculatePlanet(targetType, st.time)
 
 	default:
 		// Other, so just ignore for now

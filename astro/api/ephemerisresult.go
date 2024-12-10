@@ -17,6 +17,9 @@ type EphemerisResult interface {
 	GetDistance() value.Value
 	SetDistance(value.Value) EphemerisResult
 
+	GetLightTime() value.Value
+	SetLightTime(value.Value) EphemerisResult
+
 	SetObliquity(unit.Angle) EphemerisResult
 
 	GetEcliptic() *coord.Ecliptic
@@ -42,6 +45,7 @@ type EphemerisResult interface {
 type ephemerisResult struct {
 	ephemerisCommon
 	distance   value.Value       // distance
+	lightTime  value.Value       // light time for distance
 	ecliptic   *coord.Ecliptic   // ecliptic coordinates
 	equatorial *coord.Equatorial // equatorial coordinates
 	galactic   *coord.Galactic   // galactic coordinates
@@ -82,6 +86,15 @@ func (r *ephemerisResult) SetDistance(v value.Value) EphemerisResult {
 		panic(err)
 	}
 	r.distance = v
+	return r
+}
+
+func (r *ephemerisResult) GetLightTime() value.Value {
+	return r.lightTime
+}
+
+func (r *ephemerisResult) SetLightTime(v value.Value) EphemerisResult {
+	r.lightTime = measurement.DurationRoundDown(v)
 	return r
 }
 
@@ -172,6 +185,10 @@ func (r *ephemerisResult) Value(t EphemerisOption) value.Value {
 
 	case Distance:
 		return r.distance
+
+	case LightTime:
+		return r.lightTime
+
 	default:
 	}
 

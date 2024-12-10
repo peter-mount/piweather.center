@@ -1,8 +1,19 @@
 package calculator
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-build/application"
+	"github.com/peter-mount/piweather.center/astro/api"
+	"github.com/peter-mount/piweather.center/astro/julian"
+	"github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/weather/measurement"
+	"github.com/peter-mount/piweather.center/weather/value"
+	"github.com/soniakeys/meeus/v3/apparent"
+	"github.com/soniakeys/meeus/v3/base"
+	"github.com/soniakeys/meeus/v3/nutation"
 	"github.com/soniakeys/meeus/v3/planetposition"
+	"github.com/soniakeys/unit"
+	"math"
 )
 
 // Planet returns the V87Planet by ID.
@@ -29,4 +40,71 @@ func (c *calculator) setPlanet(i int, planet *planetposition.V87Planet) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.planetPositions[i] = planet
+}
+
+func (c *calculator) CalculatePlanet(planetId station.EphemerisTargetType, t value.Time) (api.EphemerisResult, error) {
+	if !planetId.IsPlanet() {
+		return nil, fmt.Errorf("planet id %d is not a planet", int(planetId))
+	}
+	p, err := c.Planet(int(planetId))
+	if err != nil {
+		return nil, err
+	}
+
+	earth, err := c.Planet(planetposition.Earth)
+	if err != nil {
+		return nil, err
+	}
+
+	jde := julian.FromTime(t.Time()).Float()
+
+	// From this point we are the same as elliptic.Position, but we need more info than just ra,dec so
+	// we expand it here
+	L0, B0, R0 := earth.Position(jde)
+	L, B, R := p.Position(jde)
+	sB0, cB0 := B0.Sincos()
+	sL0, cL0 := L0.Sincos()
+	sB, cB := B.Sincos()
+	sL, cL := L.Sincos()
+	x := R*cB*cL - R0*cB0*cL0
+	y := R*cB*sL - R0*cB0*sL0
+	z := R*sB - R0*sB0
+	{
+		Δ := math.Sqrt(x*x + y*y + z*z) // (33.4) p. 224
+		τ := base.LightTime(Δ)
+		// repeating with jde-τ
+		L, B, R = p.Position(jde - τ)
+		sB, cB = B.Sincos()
+		sL, cL = L.Sincos()
+		x = R*cB*cL - R0*cB0*cL0
+		y = R*cB*sL - R0*cB0*sL0
+		z = R*sB - R0*sB0
+	}
+	λ := unit.Angle(math.Atan2(y, x))                // (33.1) p. 223
+	β := unit.Angle(math.Atan2(z, math.Hypot(x, y))) // (33.2) p. 223
+	Δλ, Δβ := apparent.EclipticAberration(λ, β, jde)
+	λ, β = planetposition.ToFK5(λ+Δλ, β+Δβ, jde)
+	Δψ, Δε := nutation.Nutation(jde)
+	λ += Δψ
+
+	// Note original code did EclToEq but we can do that in the result
+	// so do the obliquity slightly differently
+	ε := nutation.MeanObliquity(jde) + Δε
+
+	// Our additions are here:
+
+	// Distance from earth (32.4 P210 in my first edition, 33.4 p224 in second edition)
+	Δearth := math.Sqrt((x * x) + (y * y) + (z * z))
+
+	// Light Time from earth in days
+	τEarth := base.LightTime(Δearth)
+
+	// Finally return the results
+	return api.NewEphemerisResult(planetId.String(), t).
+			SetObliquity(ε).
+			SetEcliptic(λ, β).
+			SetDistance(measurement.AU.Value(Δearth)).
+			// Light Time is in Days but for the solar system Hours is more useful
+			SetLightTime(measurement.DurationDay.Value(τEarth).AsOrInvalid(measurement.DurationHour)),
+		nil
 }
