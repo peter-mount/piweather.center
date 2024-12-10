@@ -69,6 +69,9 @@ func (u *Unit) String(f float64) string {
 }
 
 func (u *Unit) PlainString(f float64) string {
+	if u.toString != nil {
+		return u.toString(f)
+	}
 	return fmt.Sprintf(u.format, f, "")
 }
 
