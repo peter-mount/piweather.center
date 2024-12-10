@@ -26,9 +26,16 @@ var (
 )
 
 func (calc *Calculator) addEphemeris(stn *station.Station, ephemeris *station.Ephemeris, schedule *station.EphemerisSchedule) error {
-	_, err := calc.Cron.AddFunc(schedule.Every.Definition, func() {
+	task := func() {
 		calc.calculateEphemeris(stn, ephemeris, schedule)
-	})
+	}
+	_, err := calc.Cron.AddFunc(schedule.Every.Definition, task)
+
+	// On start calculation
+	if err == nil && schedule.OnStartup {
+		go task()
+	}
+
 	return err
 }
 
