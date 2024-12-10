@@ -1,6 +1,8 @@
 module github.com/peter-mount/piweather.center
 
-go 1.20
+go 1.21
+
+toolchain go1.22.0
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.1
@@ -12,7 +14,7 @@ require (
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
 	github.com/peter-mount/go-anim v0.0.0-20240805112912-11025e87965e
 	github.com/peter-mount/go-build v0.0.0-20240804094359-01252fe8316a
-	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20240514072728-897c39470117
+	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20241209122742-caa13094d526
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
 	github.com/peter-mount/go-script v0.0.0-20240805102742-d0b149a5e9d2
 	github.com/peter-mount/nre-feeds v0.0.0-20240201140817-fd78167946e5
