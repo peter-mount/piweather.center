@@ -123,6 +123,7 @@ var (
 		"bearing":              HorizonBearing,
 		"equatorial":           Equatorial,
 		"dec":                  EquatorialDec,
+		"diameter":             SemiDiameter,
 		"distance":             Distance,
 		"distanceSun":          DistanceSun,
 		"ecliptic":             Ecliptic,
@@ -133,15 +134,14 @@ var (
 		"galacticlongitude":    GalacticLongitude,
 		"horizon":              Horizon,
 		"lighttime":            LightTime,
-		"semidiameter":         SemiDiameter,
 		"ra":                   EquatorialRA,
 	}
 
 	ephemerisMetrics = map[EphemerisOption]string{
+		SemiDiameter:      "diameter",
 		Distance:          "dist.earth",
 		LightTime:         "dist.lightTime",
 		DistanceSun:       "dist.sun",
-		SemiDiameter:      "semiDiameter",
 		HorizonAltitude:   "hz.altitude",
 		HorizonAzimuth:    "hz.azimuth",
 		HorizonBearing:    "hz.bearing",
