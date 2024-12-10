@@ -93,6 +93,16 @@ func (v Value) AsGuard(to *Unit) Value {
 	return n
 }
 
+// AsOrInvalid is the same as the As function except that if an error would be returned then
+// an invalid Value is returned.
+func (v Value) AsOrInvalid(to *Unit) Value {
+	n, err := v.As(to)
+	if err != nil {
+		return Value{}
+	}
+	return n
+}
+
 // Value returns a new Value with the same unit as this one.
 // This is the same as v.Unit().Value(f).
 //
