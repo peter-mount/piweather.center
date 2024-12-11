@@ -121,15 +121,20 @@ func (v Value) Value(f float64) Value {
 // Returns an error if either value is invalid or if it's not possible to transform
 // b to the same unit as v.
 //
-// Equality here is if the two values are Within 1e-9 of each other to account for
+// Equality here is if the two values are Within EqualityError of each other to account for
 // rounding errors Within float64.
 func (v Value) Equals(b Value) (bool, error) { return v.Compare(b, Equal) }
 
 // Equal returns true if both values are Equal.
 //
-// Equality here is if the two values are Within 1e-9 of each other to account for
+// Equality here is if the two values are Within EqualityError of each other to account for
 // rounding errors Within float64.
-func Equal(a, b float64) bool { return math.Abs(a-b) <= 1e-9 }
+func Equal(a, b float64) bool { return math.Abs(a-b) <= EqualityError }
+
+const (
+	// EqualityError is the amount of error we allow for equality
+	EqualityError = 1e-9
+)
 
 // NotEqual returns true if both values are Equal. It's the same as !Equal() and
 // follows the same rules.
@@ -140,39 +145,39 @@ func (v Value) NotEqual(b Value) (bool, error) { return v.Compare(b, NotEqual) }
 func NotEqual(a, b float64) bool { return !Equal(a, b) }
 
 // LessThan returns true if v < b, accounting for different units.
-// It will return false if |v-b|<=1e-9 to account for rounding errors in float64.
+// It will return false if |v-b|<=EqualityError to account for rounding errors in float64.
 func (v Value) LessThan(b Value) (bool, error) { return v.Compare(b, LessThan) }
 
 // LessThan returns true if a < b, accounting for different units.
-// It will return false if |a-b|<=1e-9 to account for rounding errors in float64.
+// It will return false if |a-b|<=EqualityError to account for rounding errors in float64.
 func LessThan(a, b float64) bool { return a < b && NotEqual(a, b) }
 
 // LessThanEqual returns true if v <= b, accounting for different units.
-// It will return true if |v-b|<=1e-9 to account for rounding errors in float64.
+// It will return true if |v-b|<=EqualityError to account for rounding errors in float64.
 func (v Value) LessThanEqual(b Value) (bool, error) { return v.Compare(b, LessThanEqual) }
 
 // LessThanEqual returns true if a <= b, accounting for different units.
-// It will return true if |a-b|<=1e-9 to account for rounding errors in float64.
+// It will return true if |a-b|<=EqualityError to account for rounding errors in float64.
 func LessThanEqual(a, b float64) bool { return a < b || Equal(a, b) }
 
 // GreaterThan returns true if v > b, accounting for different units.
-// It will return false if |v-b|<=1e-9 to account for rounding errors in float64.
+// It will return false if |v-b|<=EqualityError to account for rounding errors in float64.
 func (v Value) GreaterThan(b Value) (bool, error) { return v.Compare(b, GreaterThan) }
 
 // GreaterThan returns true if a > b, accounting for different units.
-// It will return false if |a-b|<=1e-9 to account for rounding errors in float64.
+// It will return false if |a-b|<=EqualityError to account for rounding errors in float64.
 func GreaterThan(a, b float64) bool { return a > b && NotEqual(a, b) }
 
 // GreaterThanEqual returns true if v >= b, accounting for different units.
-// It will return true if |v-b|<=1e-9 to account for rounding errors in float64.
+// It will return true if |v-b|<=EqualityError to account for rounding errors in float64.
 func (v Value) GreaterThanEqual(b Value) (bool, error) { return v.Compare(b, GreaterThanEqual) }
 
 // GreaterThanEqual returns true if a >= b, accounting for different units.
-// It will return true if |a-b|<=1e-9 to account for rounding errors in float64.
+// It will return true if |a-b|<=EqualityError to account for rounding errors in float64.
 func GreaterThanEqual(a, b float64) bool { return a > b || Equal(a, b) }
 
 // IsZero returns true if the value is zero.
-// Specifically if |v|<1e-9 to account for rounding errors in float64.
+// Specifically if |v|<EqualityError to account for rounding errors in float64.
 func (v Value) IsZero() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
@@ -181,13 +186,13 @@ func (v Value) IsZero() (bool, error) {
 }
 
 // IsZero returns true if the value is zero.
-// Specifically if |v|<1e-9 to account for rounding errors in float64.
+// Specifically if |v|<EqualityError to account for rounding errors in float64.
 func IsZero(f float64) bool {
 	return Equal(f, 0)
 }
 
 // IsOne returns true if the value is 1.
-// Specifically if |v-1|<1e-9 to account for rounding errors in float64.
+// Specifically if |v-1|<EqualityError to account for rounding errors in float64.
 func (v Value) IsOne() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
@@ -196,14 +201,14 @@ func (v Value) IsOne() (bool, error) {
 }
 
 // IsOne returns true if the value is 1.
-// Specifically if |v-1|<1e-9 to account for rounding errors in float64.
+// Specifically if |v-1|<EqualityError to account for rounding errors in float64.
 func IsOne(f float64) bool {
 	return Equal(f, 1)
 }
 
 // IsPositive returns true if the value is positive.
 // 0 is neither positive nor negative/
-// Specifically if v > 1e-9 to account for rounding errors in float64.
+// Specifically if v > EqualityError to account for rounding errors in float64.
 func (v Value) IsPositive() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
@@ -213,14 +218,14 @@ func (v Value) IsPositive() (bool, error) {
 
 // IsPositive returns true if the value is positive.
 // 0 is neither positive nor negative/
-// Specifically if v > 1e-9 to account for rounding errors in float64.
+// Specifically if v > EqualityError to account for rounding errors in float64.
 func IsPositive(f float64) bool {
 	return GreaterThan(f, 0)
 }
 
 // IsNegative returns true if the value is negative.
 // 0 is neither positive nor negative/
-// Specifically if v < -1e-9 to account for rounding errors in float64.
+// Specifically if v < -EqualityError to account for rounding errors in float64.
 func (v Value) IsNegative() (bool, error) {
 	if !v.IsValid() {
 		return false, v.BoundsError()
@@ -230,7 +235,7 @@ func (v Value) IsNegative() (bool, error) {
 
 // IsNegative returns true if the value is negative.
 // 0 is neither positive nor negative/
-// Specifically if v < -1e-9 to account for rounding errors in float64.
+// Specifically if v < -EqualityError to account for rounding errors in float64.
 func IsNegative(f float64) bool {
 	return LessThan(f, 0)
 }
