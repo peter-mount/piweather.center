@@ -34,7 +34,7 @@ func (c *calculator) CalculateMoon(t value.Time) (api.EphemerisResult, error) {
 
 	return api.NewEphemerisResult("moon", t).
 			SetObliquity(ε).
-			SetEcliptic(β, λ).
+			SetEcliptic(λ, β).
 			SetDistance(measurement.Kilometers.Value(R)).
 			SetSemiDiameter(measurement.AngleRoundDown(measurement.Degree.Value(SemiDiameter(station.EphemerisTargetMoon, rAU).Deg()))).
 			// Light Time is in Days but DurationRoundDown makes it more useful

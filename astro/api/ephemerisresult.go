@@ -29,7 +29,7 @@ type EphemerisResult interface {
 	SetObliquity(unit.Angle) EphemerisResult
 
 	GetEcliptic() *coord.Ecliptic
-	SetEcliptic(lat, lon unit.Angle) EphemerisResult
+	SetEcliptic(lon, lat unit.Angle) EphemerisResult
 
 	GetEquatorial() *coord.Equatorial
 	SetEquatorial(ra unit.RA, dec unit.Angle) EphemerisResult
@@ -131,7 +131,7 @@ func (r *ephemerisResult) GetEcliptic() *coord.Ecliptic {
 	return r.ecliptic
 }
 
-func (r *ephemerisResult) SetEcliptic(lat, lon unit.Angle) EphemerisResult {
+func (r *ephemerisResult) SetEcliptic(lon, lat unit.Angle) EphemerisResult {
 	r.ecliptic = &coord.Ecliptic{Lat: lat, Lon: lon}
 	r.equatorial = r.eclToEq(r.ecliptic)
 	r.horizontal = r.eqToHz(r.equatorial)
