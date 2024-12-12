@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"strings"
 	"time"
@@ -68,5 +68,5 @@ func (r Request) Response() api.Response {
 
 // Match returns true if the metric passed matches the Filter pattern
 func (r Request) Match(s string) bool {
-	return util.Match(s, r.Filter)
+	return strings2.Match(s, r.Filter)
 }

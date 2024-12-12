@@ -1,7 +1,7 @@
 package coord
 
 import (
-	util2 "github.com/peter-mount/piweather.center/astro/util"
+	util2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/meeus/v3/rise"
@@ -24,7 +24,7 @@ func (e Equatorial) Equals(b *Equatorial) bool {
 func New(alpha unit.RA, delta unit.Angle) Equatorial {
 	e := Equatorial{Alpha: alpha, Delta: delta}
 	e.RA = util2.HourDMSString(e.Alpha.Time())
-	e.Dec = util2.DegDMSStringExt(e.Delta.Deg(), true, "N", "S")
+	e.Dec = util2.DegDMSStringExt(e.Delta.Deg(), true, "N", "S", 3, 0)
 	return e
 }
 

@@ -2,7 +2,7 @@ package coord
 
 import (
 	"errors"
-	"github.com/peter-mount/piweather.center/astro/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"strconv"
 	"strings"
 )
@@ -16,14 +16,14 @@ func Parse(s string) (LatLong, error) {
 
 	ll := LatLong{}
 
-	ang, err := util.ParseAngle(a[0])
+	ang, err := strings2.ParseAngle(a[0])
 	if err != nil {
 		return ll, err
 	}
 	ll.Longitude = ang
 	ll.coord.Lon = -ang
 
-	ang, err = util.ParseAngle(a[1])
+	ang, err = strings2.ParseAngle(a[1])
 	if err != nil {
 		return ll, err
 	}

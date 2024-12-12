@@ -198,7 +198,7 @@ func (r *ephemerisResult) Value(t EphemerisOption) value.Value {
 		return measurement.RA.Value(r.equatorial.RA.Hour())
 
 	case EquatorialDec:
-		return measurement.Degree.Value(r.equatorial.Dec.Deg())
+		return measurement.Declination.Value(r.equatorial.Dec.Deg())
 
 	case EclipticLatitude:
 		return measurement.Degree.Value(r.ecliptic.Lat.Deg())

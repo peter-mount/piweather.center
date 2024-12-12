@@ -1,7 +1,7 @@
 package measurement
 
 import (
-	"github.com/peter-mount/piweather.center/astro/util"
+	"github.com/peter-mount/piweather.center/util/strings"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )
@@ -15,12 +15,13 @@ func init() {
 	HourAngle = value.NewUnit("HourAngle", "Hour Angle", " ha", 3, nil)
 	Turn = value.NewUnit("Turn", "Turn", " turn", 6, nil)
 
-	RA = value.NewUnit("RA", "Right Ascension", "", 4, func(f float64) string {
-		return util.DegDMSString(f, false)
+	// RA is 0...24 but 24 is not a valid value hence we set the limit to 24- the equality error
+	RA = value.NewBoundedUnitF("RA", "Right Ascension", "", 4, 0.0, 24.0-value.EqualityError, func(f float64) string {
+		return strings.DegDMSStringExt(f, false, "", "", 2, 1)
 	})
 
 	Declination = value.NewBoundedUnitF("Dec", "Declination", "", 4, -90.0, 90.0, func(f float64) string {
-		return util.DegDMSString(f, true)
+		return strings.DegDMSStringExt(f, false, "+", "-", 2, 1)
 	})
 
 	// Turn is the default unit
@@ -31,6 +32,7 @@ func init() {
 	value.NewBasicBiTransform(Turn, Gradian, 400)
 	value.NewBasicBiTransform(Turn, HourAngle, 24)
 	value.NewBasicBiTransform(Turn, RA, 24)
+	value.NewBasicBiTransform(Turn, Declination, 360)
 
 	// Common transforms to save on going via Turn
 	value.NewBasicBiTransform(Degree, Radian, math.Pi/180.0)
@@ -41,7 +43,7 @@ func init() {
 	value.NewBasicBiTransform(RA, Degree, 15.0)
 
 	// Ensure all others exist
-	Angle = value.NewGroup("Angle", Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle, RA)
+	Angle = value.NewGroup("Angle", Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle, RA, Declination)
 }
 
 var (
@@ -86,12 +88,14 @@ var (
 	//
 	// A nautical mile was historically defined as an arcminute along
 	// a great circle of the Earth. (n = 21,600).
-	ArcMinute   *value.Unit
-	ArcSecond   *value.Unit
-	Gradian     *value.Unit
-	HourAngle   *value.Unit
-	Turn        *value.Unit
-	RA          *value.Unit
+	ArcMinute *value.Unit
+	ArcSecond *value.Unit
+	Gradian   *value.Unit
+	HourAngle *value.Unit
+	Turn      *value.Unit
+	// RA Right Ascension of an object. This is a value between 0...24 and is formatted in hours:minutes:seconds
+	RA *value.Unit
+	// Declination of an object. This is a value between -90...90 and is formatted in +degrees:minutes:seconds
 	Declination *value.Unit
 )
 

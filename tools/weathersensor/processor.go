@@ -5,7 +5,7 @@ import (
 	util2 "github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/sensors/reading"
 	"github.com/peter-mount/piweather.center/tools/weathersensor/payload"
-	"github.com/peter-mount/piweather.center/util"
+	"github.com/peter-mount/piweather.center/util/strings"
 )
 
 func (s *Service) process(id string, d *station.Sensor, body []byte) error {
@@ -76,7 +76,7 @@ func processSourceParameter(v station.Visitor[*processor], d *station.SourcePara
 
 	src, exists := s.payload.Get(d.Source)
 	if exists {
-		if f, ok := util.ToFloat64(src); ok {
+		if f, ok := strings.ToFloat64(src); ok {
 			val := d.Unit.Value(f)
 			val, err = d.Metric.Convert(val)
 			if err == nil && val.IsValid() {

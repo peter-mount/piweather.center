@@ -1,7 +1,10 @@
 package measurement
 
 import (
+	"fmt"
+	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -70,4 +73,85 @@ func Test_angle(t *testing.T) {
 		{Turn.Value(1), HourAngle.Value(24), false},
 		{Turn.Value(1), Radian.Value(math.Pi * 2), false},
 	})
+}
+
+func Test_angle_bounds(t *testing.T) {
+	tests := []struct {
+		from    value.Value
+		to      value.Value
+		wantErr string
+	}{
+		// ============================
+		// RA min 0 max 23:59:59.999...
+		// ============================
+		// Valid
+		{from: Turn.Value(0), to: RA.Value(0)},
+		{from: Turn.Value(0.5), to: RA.Value(12)},
+		// Invalid
+		{from: Turn.Value(-1), to: RA.Value(-1), wantErr: "out of bounds"},
+		{from: Turn.Value(1), to: RA.Value(24), wantErr: "out of bounds"},
+		// ------------------------------------------------------------
+		// These caused issues with seconds rounding up to 60
+		// returned 23:59:59.9 which is correct
+		{from: Degree.Value(15.0 * (24 - (0.1 / 3600.0))), to: RA.Value(0)},
+		// returned 23:59:60.0 incorrect
+		{from: Degree.Value(15.0 * (24 - (0.01 / 3600.0))), to: RA.Value(0)},
+		// returned 23:59:60.0 incorrect
+		{from: Degree.Value(15.0 * (24 - (0.001 / 3600.0))), to: RA.Value(0)},
+		// ===========================
+		// Declination min -90 max +90
+		// ===========================
+		// Valid
+		{from: Degree.Value(10), to: Declination.Value(10)},
+		{from: Degree.Value(89.9999), to: Declination.Value(89.9999)},
+		{from: Degree.Value(-10), to: Declination.Value(-10)},
+		{from: Degree.Value(-89.9999), to: Declination.Value(-89.9999)},
+		{from: Degree.Value(90), to: Declination.Value(90)},
+		{from: Degree.Value(-90), to: Declination.Value(-90)},
+		// Invalid
+		{from: Degree.Value(-90.0000001), to: Declination.Value(-90.0000001), wantErr: "out of bounds"},
+		{from: Degree.Value(90.0000001), to: Declination.Value(90.0000001), wantErr: "out of bounds"},
+	}
+
+	for _, test := range tests {
+		testName := fmt.Sprintf("%s %s %s", test.from.Unit().Name(), test.to.Unit().Name(), test.from)
+		t.Run(testName, func(t *testing.T) {
+			got, err := test.from.As(test.to.Unit())
+			if err != nil {
+				if test.wantErr == "" {
+					t.Fatalf("unexpected error: %s", err)
+				}
+				if strings.Contains(err.Error(), test.wantErr) {
+					// Stop test here
+					return
+				}
+				t.Fatalf("got error %q want error=%q", err.Error(), test.wantErr)
+			} else if test.wantErr != "" {
+				t.Fatalf("wanted error %q but got none", test.wantErr)
+			}
+
+			if !got.IsValid() {
+				t.Fatalf("got invalid value %v", got)
+				return
+			}
+
+			equals, err := got.Equals(test.to)
+			if err != nil {
+				if test.wantErr == "" {
+					t.Fatalf("unexpected error: %s", err)
+				}
+				if strings.Contains(err.Error(), test.wantErr) {
+					// Stop test here
+					return
+				}
+				t.Fatalf("got error %q want error=%q", err.Error(), test.wantErr)
+			} else if test.wantErr != "" {
+				t.Fatalf("wanted error %q but got none", test.wantErr)
+			}
+
+			if !equals {
+				t.Errorf("got: %v want: %v", got, test.to)
+			}
+		})
+	}
 }

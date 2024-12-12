@@ -3,7 +3,7 @@ package file
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	"github.com/peter-mount/piweather.center/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"os"
 	"path/filepath"
 	"sort"
@@ -20,7 +20,7 @@ func GenKey(metric string, t time.Time) string {
 
 	// Path for home.test.temp for 2023 Oct 20 12:13:14 UTC becomes home/test/temp/2023/10/20.mdb
 	name := GetMetricBasePath(metric)
-	return filepath.Join(name, util.Itoa(t.Year(), 4), util.Itoa(int(t.Month()), 2), util.Itoa(t.Day(), 2)+".mdb")
+	return filepath.Join(name, strings2.Itoa(t.Year(), 4), strings2.Itoa(int(t.Month()), 2), strings2.Itoa(t.Day(), 2)+".mdb")
 }
 
 // GetMetricBasePath returns the metrics base bath within the database.

@@ -9,8 +9,8 @@ import (
 	"github.com/peter-mount/go-build/util/meta"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
-	"github.com/peter-mount/piweather.center/astro/util"
 	"github.com/peter-mount/piweather.center/util/io"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/soniakeys/unit"
 	"os"
 	"path/filepath"
@@ -111,13 +111,13 @@ func (s *YbscEncoder) encode() error {
 }
 
 func (s *YbscEncoder) parseEntry(l string) (catalogue.Entry, error) {
-	ang, err := util.ParseAngle(l[75:77] + ":" + l[77:79] + ":" + l[79:83])
+	ang, err := strings2.ParseAngle(l[75:77] + ":" + l[77:79] + ":" + l[79:83])
 	if err != nil {
 		return catalogue.Entry{}, err
 	}
 	ra := unit.RAFromDeg(ang.Deg() * 15.0)
 
-	ang, err = util.ParseAngle(l[83:84] + l[84:86] + ":" + l[86:88] + ":" + l[88:90])
+	ang, err = strings2.ParseAngle(l[83:84] + l[84:86] + ":" + l[86:88] + ":" + l[88:90])
 	if err != nil {
 		return catalogue.Entry{}, err
 	}

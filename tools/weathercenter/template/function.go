@@ -6,7 +6,7 @@ import (
 	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file/record"
-	"github.com/peter-mount/piweather.center/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
 	"math"
@@ -66,8 +66,8 @@ func (m *Manager) AddFunction(name string, handler interface{}) *Manager {
 
 func genCalc(f func(float64, float64) float64) func(a, b interface{}) float64 {
 	return func(a, b interface{}) float64 {
-		af, _ := util.ToFloat64(a)
-		bf, _ := util.ToFloat64(b)
+		af, _ := strings2.ToFloat64(a)
+		bf, _ := strings2.ToFloat64(b)
 		return f(af, bf)
 	}
 }

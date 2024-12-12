@@ -2,7 +2,7 @@ package template
 
 import (
 	"fmt"
-	"github.com/peter-mount/piweather.center/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"strconv"
 	"strings"
 )
@@ -52,13 +52,13 @@ type DecimalAlign struct {
 // This returns "" always as templates require a result, and we do not want to write
 // any erroneous text to the output.
 func (d *DecimalAlign) Add(v, precision interface{}) string {
-	vf, _ := util.ToFloat64(v)
+	vf, _ := strings2.ToFloat64(v)
 	lp := len(fmt.Sprintf("%.0f", vf))
 	if d.lp < lp {
 		d.lp = lp
 	}
 
-	pf, _ := util.ToFloat64(precision)
+	pf, _ := strings2.ToFloat64(precision)
 	if d.rp < int(pf) {
 		d.rp = int(pf)
 	}
@@ -88,7 +88,7 @@ func (d *DecimalAlign) Pad(v interface{}) string {
 			lp = len(s)
 		}
 	} else {
-		vf, _ := util.ToFloat64(v)
+		vf, _ := strings2.ToFloat64(v)
 		lp = len(fmt.Sprintf("%.0f", vf))
 	}
 	return strconv.Itoa(d.lp - lp)
@@ -104,14 +104,14 @@ func NewDecimalAlign(a ...interface{}) *DecimalAlign {
 	lp, rp := 1, 0
 
 	if len(a) > 0 {
-		f, _ := util.ToFloat64(a[0])
+		f, _ := strings2.ToFloat64(a[0])
 		if lp < int(f) {
 			lp = int(f)
 		}
 	}
 
 	if len(a) > 1 {
-		f, _ := util.ToFloat64(a[1])
+		f, _ := strings2.ToFloat64(a[1])
 		if rp < int(f) {
 			rp = int(f)
 		}

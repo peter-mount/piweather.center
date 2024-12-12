@@ -4,7 +4,7 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/astro/coord"
-	"github.com/peter-mount/piweather.center/astro/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 	"time"
@@ -46,10 +46,10 @@ func (s *Location) Init() error {
 		Notes:    s.Notes,
 	}
 
-	s.latLong.Latitude, err = util.ParseAngle(s.Latitude)
+	s.latLong.Latitude, err = strings2.ParseAngle(s.Latitude)
 
 	if err == nil {
-		s.latLong.Longitude, err = util.ParseAngle(s.Longitude)
+		s.latLong.Longitude, err = strings2.ParseAngle(s.Longitude)
 	}
 
 	return errors.Error(s.Pos, err)
