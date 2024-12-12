@@ -2,8 +2,8 @@ package renderer
 
 import (
 	"fmt"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/peter-mount/piweather.center/weather/value"
-	"strings"
 )
 
 const (
@@ -27,10 +27,9 @@ const (
 	LightBlue = "lightblue"
 )
 
+// Common as we want max 4 decimal places in svg
 func fix(f float64) string {
-	s := fmt.Sprintf("%.4f", f)
-	s = strings.TrimRight(s, "0")
-	return strings.TrimSuffix(s, ".")
+	return strings2.FormatFloatN(f, 4)
 }
 
 func Translate(x, y float64) string {

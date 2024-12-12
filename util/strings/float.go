@@ -3,6 +3,7 @@ package strings
 import (
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func ToFloat64(v interface{}) (float64, bool) {
@@ -33,4 +34,13 @@ func FloatDefault(a *float64, b float64) float64 {
 		return *a
 	}
 	return b
+}
+
+// FormatFloatN returns a float with n decimal places but this will remove any trailing zeros, or even the
+// decimal point if f is an integer. This is used in places like SVG where we want to reduce the size of the output
+// by not having too many unnecessary characters.
+func FormatFloatN(f float64, n int) string {
+	s := strconv.FormatFloat(f, 'f', n, 64)
+	s = strings.TrimRight(s, "0")
+	return strings.TrimSuffix(s, ".")
 }
