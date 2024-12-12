@@ -2,6 +2,7 @@ package measurement
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/util/source"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 	"sort"
@@ -11,20 +12,21 @@ import (
 
 func Test_voltage_transforms(t *testing.T) {
 	testConversions(t, []conversionTest{
-		{Volt.Value(1), MilliVolt.Value(1000.0), false},
-		{Volt.Value(1), MicroVolt.Value(1000000.0), false},
+		newConversionTest(Volt.Value(1), MilliVolt.Value(1000.0), false),
+		newConversionTest(Volt.Value(1), MicroVolt.Value(1000000.0), false),
 		// dBV reference
-		{Volt.Value(1), DecibelVolt.Value(0), false},
+		newConversionTest(Volt.Value(1), DecibelVolt.Value(0), false),
 		// V -> dBV
-		{MilliVolt.Value(100), DecibelVolt.Value(-20), false},
-		{MilliVolt.Value(1), DecibelVolt.Value(-60), false},
-		{Volt.Value(10), DecibelVolt.Value(20), false},
-		{Volt.Value(100), DecibelVolt.Value(40), false},
+		newConversionTest(MilliVolt.Value(100), DecibelVolt.Value(-20), false),
+		newConversionTest(MilliVolt.Value(1), DecibelVolt.Value(-60), false),
+		newConversionTest(Volt.Value(10), DecibelVolt.Value(20), false),
+		newConversionTest(Volt.Value(100), DecibelVolt.Value(40), false),
 	})
 }
 
 // Used by multiple tests, test we can convert between two values in both directions
 type conversionTest struct {
+	file    source.File
 	from    value.Value
 	to      value.Value
 	wantErr bool
@@ -42,40 +44,96 @@ func (a conversionTest) compare(b conversionTest) int {
 	return r
 }
 
+func newConversionTest(from value.Value, to value.Value, wantErr bool) conversionTest {
+	return conversionTest{
+		file:    source.SourceFileN(1),
+		from:    from,
+		to:      to,
+		wantErr: wantErr,
+	}
+}
+
 func testConversions(t *testing.T, tests []conversionTest) {
 	// Form the actual tests for from->to and to->from, order by the keys
 	type testUnit struct {
 		conversionTest
-		name string
+		fromName  string
+		toName    string
+		fromValue value.Value
+		toValue   value.Value
 	}
 
 	var ary []testUnit
 	for _, test := range tests {
 		ary = append(ary,
-			testUnit{name: fmt.Sprintf("%s %s %s", test.from.Unit().Name(), test.to.Unit().Name(), test.from), conversionTest: test},
-			testUnit{name: fmt.Sprintf("%s %s %s", test.to.Unit().Name(), test.from.Unit().Name(), test.to), conversionTest: test},
+			// from -> to
+			testUnit{
+				fromName: test.from.Unit().Name(), fromValue: test.from,
+				toName: test.to.Unit().Name(), toValue: test.to,
+				conversionTest: test,
+			},
+
+			// to -> from
+			testUnit{
+				fromName: test.to.Unit().Name(), fromValue: test.to,
+				toName: test.from.Unit().Name(), toValue: test.from,
+				conversionTest: test,
+			},
 		)
 	}
 
 	sort.SliceStable(ary, func(i, j int) bool {
-		return ary[i].name < ary[j].name
+		from, to := ary[i], ary[j]
+		c := strings.Compare(from.fromName, to.fromName)
+		if c == 0 {
+			c = strings.Compare(from.toName, to.toName)
+			if c == 0 {
+				c = strings.Compare(from.fromValue.String(), to.fromValue.String())
+			}
+		}
+		return c < 0
 	})
 
-	for _, test := range ary {
-		t.Run(test.name, func(t *testing.T) {
+	var lastFrom string
+	for _, testFrom := range ary {
+		if lastFrom != testFrom.fromName {
+			lastFrom = testFrom.fromName
+			t.Run(testFrom.fromName,
+				func(t *testing.T) {
+					var lastTo string
+					for _, testTo := range ary {
+						if testTo.fromName == lastFrom && testTo.toName != lastTo {
+							lastTo = testTo.toName
 
-			got, err := test.from.As(test.to.Unit())
-			if err != nil {
-				if !test.wantErr {
-					t.Errorf("error = %v, wantErr %v", err, test.wantErr)
-				}
-				return
-			}
+							t.Run(testTo.toName,
+								func(t *testing.T) {
+									for _, test := range ary {
+										if test.fromName == lastFrom && test.toName == lastTo {
 
-			// Limit precision due to rounding errors
-			if math.Abs(got.Float()-test.to.Float()) > 1e-4 {
-				t.Errorf("from %s got = %.4f, want %.4f", test.from.String(), got.Float(), test.to.Float())
-			}
-		})
+											t.Run(fmt.Sprintf("[%s] %s->%s", test.file, test.fromValue.PlainString(), test.toValue.PlainString()),
+												func(t *testing.T) {
+													got, err := test.fromValue.As(test.toValue.Unit())
+													if err != nil {
+														if !test.wantErr {
+															t.Errorf("error = %v, wantErr %v", err, test.wantErr)
+														}
+														return
+													}
+
+													// Limit precision due to rounding errors
+													if math.Abs(got.Float()-test.toValue.Float()) > 1e-4 {
+														t.Errorf("from %s got = %.4f, want %.4f", test.fromValue.String(), got.Float(), test.toValue.Float())
+													}
+												})
+
+										}
+									}
+								})
+
+						}
+					}
+				})
+
+		}
 	}
 }

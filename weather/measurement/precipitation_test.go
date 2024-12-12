@@ -7,10 +7,10 @@ func Test_precipitation(t *testing.T) {
 		// =========================
 		// MillimetersPerHour
 		// =========================
-		{MillimetersPerHour.Value(1), InchesPerHour.Value(25.4), false},
+		newConversionTest(MillimetersPerHour.Value(1), InchesPerHour.Value(25.4), false),
 		// =========================
 		// InchesPerHour
 		// =========================
-		{InchesPerHour.Value(1), MillimetersPerHour.Value(0.0393700), false},
+		newConversionTest(InchesPerHour.Value(1), MillimetersPerHour.Value(0.0393700), false),
 	})
 }
