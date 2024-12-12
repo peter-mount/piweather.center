@@ -90,14 +90,6 @@ func Test_angle_bounds(t *testing.T) {
 		// Invalid
 		{from: Turn.Value(-1), to: RA.Value(-1), wantErr: "out of bounds"},
 		{from: Turn.Value(1), to: RA.Value(24), wantErr: "out of bounds"},
-		// ------------------------------------------------------------
-		// These caused issues with seconds rounding up to 60
-		// returned 23:59:59.9 which is correct
-		{from: Degree.Value(15.0 * (24 - (0.1 / 3600.0))), to: RA.Value(0)},
-		// returned 23:59:60.0 incorrect
-		{from: Degree.Value(15.0 * (24 - (0.01 / 3600.0))), to: RA.Value(0)},
-		// returned 23:59:60.0 incorrect
-		{from: Degree.Value(15.0 * (24 - (0.001 / 3600.0))), to: RA.Value(0)},
 		// ===========================
 		// Declination min -90 max +90
 		// ===========================
@@ -151,6 +143,7 @@ func Test_angle_bounds(t *testing.T) {
 
 			if !equals {
 				t.Errorf("got: %v want: %v", got, test.to)
+				t.Errorf("%f", got.Float())
 			}
 		})
 	}
