@@ -24,6 +24,16 @@ func init() {
 		return strings.DegDMSStringExt(f, false, "+", "-", 2, 1)
 	})
 
+	// Longitude is -180...180 but -180 is not a valid value hence we set the limit to -180+ the equality error.
+	// Also, this is East positive, West negative
+	Longitude = value.NewBoundedUnitF("Longitude", "Longitude", "", 4, -180.0-value.EqualityError, 180.0, func(f float64) string {
+		return strings.DegDMSStringExt(f, false, "E", "W", 2, 1)
+	})
+
+	Latitude = value.NewBoundedUnitF("Latitude", "Latitude", "", 4, -90.0, 90.0, func(f float64) string {
+		return strings.DegDMSStringExt(f, false, "N", "S", 2, 1)
+	})
+
 	// Turn is the default unit
 	value.NewBasicBiTransform(Turn, Degree, 360)
 	value.NewBasicBiTransform(Turn, Radian, 2.0*math.Pi)
@@ -34,6 +44,14 @@ func init() {
 	value.NewBasicBiTransform(Turn, RA, 24)
 	value.NewBasicBiTransform(Turn, Declination, 360)
 
+	value.NewBasicBiTransform(Turn, Latitude, 360)
+
+	// Turn<->Longitude is same as Turn->Degree->Longitude and Longitude->Degree->Turn
+	// We have to do it this way as Longitude is -180 < lon <= 180
+	value.NewBiTransform(Turn, Longitude,
+		value.BasicTransform(360).Then(degreeToLongitude),
+		value.Of(longitudeToDegree).Then(value.BasicInverseTransform(360)))
+
 	// Common transforms to save on going via Turn
 	value.NewBasicBiTransform(Degree, Radian, math.Pi/180.0)
 	value.NewBasicBiTransform(Degree, ArcMinute, 60.0)
@@ -41,6 +59,8 @@ func init() {
 	value.NewBasicBiTransform(Degree, ArcSecond, 3600.0)
 	value.NewBasicBiTransform(HourAngle, Degree, 15.0)
 	value.NewBasicBiTransform(RA, Degree, 15.0)
+	value.NewBiTransform(Degree, Latitude, value.NopTransformer, value.NopTransformer)
+	value.NewBiTransform(Degree, Longitude, degreeToLongitude, longitudeToDegree)
 
 	// Ensure all others exist
 	Angle = value.NewGroup("Angle", Turn, Radian, Degree, ArcMinute, ArcSecond, Gradian, HourAngle, RA, Declination)
@@ -97,6 +117,8 @@ var (
 	RA *value.Unit
 	// Declination of an object. This is a value between -90...90 and is formatted in +degrees:minutes:seconds
 	Declination *value.Unit
+	Latitude    *value.Unit
+	Longitude   *value.Unit
 )
 
 func AngleRoundDown(v value.Value) value.Value {
@@ -116,4 +138,18 @@ func AngleRoundDown(v value.Value) value.Value {
 	}
 
 	return v
+}
+
+func degreeToLongitude(f float64) (float64, error) {
+	if value.GreaterThan(f, 180) {
+		return f - 360, nil
+	}
+	return f, nil
+}
+
+func longitudeToDegree(f float64) (float64, error) {
+	if value.IsNegative(f) {
+		return f + 360, nil
+	}
+	return f, nil
 }

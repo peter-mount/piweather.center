@@ -72,6 +72,15 @@ func Test_angle(t *testing.T) {
 		{Turn.Value(1), Gradian.Value(400), false},
 		{Turn.Value(1), HourAngle.Value(24), false},
 		{Turn.Value(1), Radian.Value(math.Pi * 2), false},
+		// =========================
+		// Longitude which is -180.0 < lon <= 180.0
+		// =========================
+		{Degree.Value(45), Longitude.Value(45), false},
+		{Degree.Value(270), Longitude.Value(-90), false},
+		{Turn.Value(0.25), Longitude.Value(90), false},
+		{Turn.Value(0.5), Longitude.Value(180), false},
+		{Turn.Value(0.75), Longitude.Value(-90), false},
+		{Turn.Value(1), Longitude.Value(0), false},
 	})
 }
 
