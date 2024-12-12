@@ -47,7 +47,8 @@ func DegDMSString(d float64, sign bool) string {
 	return DegDMSStringExt(d, sign, "+", "-", degDigits, 0)
 }
 
-// DegDMSStringExt converts a float64 into a string consisting of degrees, minutes and seconds
+// DegDMSStringExt converts a float64 into a string consisting of degrees, minutes and seconds.
+// This is the same as DegDMSStringExt2 with ":" separating the values and no suffix for seconds.
 //
 // d value to convert
 //
@@ -55,12 +56,41 @@ func DegDMSString(d float64, sign bool) string {
 //
 // p & m the signs to use for positive and negative values, ignored if sign is false
 //
-// degDisits the number of digits for the degree value, usually 2 or 3
+// degDigits the number of digits for the degree value, usually 2 or 3
 //
 // precision the number of decimal places for seconds
 func DegDMSStringExt(d float64, sign bool, p, m string, degDigits, precision int) string {
-	var s string
+	return DegDMSStringExt2(d, sign, p, m, ":", ":", "", degDigits, precision)
+}
+
+// DegDMSStringExt2 converts a float64 into a string consisting of degrees, minutes and seconds
+//
+// d value to convert
+//
+// sign true if a sign should be included, false if not
+//
+// p & m the signs to use for positive and negative values, ignored if sign is false
+//
+// dSuffix the suffix for degrees but also the separator between degrees and minutes
+//
+// mSuffix the suffix for minutes but also the separator between minutes and seconds
+//
+// sSuffix the suffix for Seconds
+//
+// degDigits the number of digits for the degree value, usually 2 or 3
+//
+// precision the number of decimal places for seconds
+func DegDMSStringExt2(d float64, sign bool, p, m, dSuffix, mSuffix, sSuffix string, degDigits, precision int) string {
 	deg, minute, sec := DegDMS(math.Abs(d))
+
+	var s []string
+	if sign {
+		if d < 0.0 {
+			s = append(s, m)
+		} else {
+			s = append(s, p)
+		}
+	}
 
 	// When formatting the output we cannot use strconv.FormatFloat or "%f" in Sprintf as those functions will
 	// round the result up. When the value is very close to the upper bound of 360.0 (which is out of bounds) then
@@ -69,21 +99,15 @@ func DegDMSStringExt(d float64, sign bool, p, m string, degDigits, precision int
 	// So we have to split seconds and then format using integers to ensure we don't get that result.
 	//
 	// This means that seconds effectively round down for all seconds but this is acceptable.
-	secI, secF := math.Modf(sec)
-	s = Itoa(deg, degDigits) + ":" + Itoa(minute, 2) + ":" + Itoa(int(secI), 2)
+	s = append(s,
+		Itoa(deg, degDigits),
+		dSuffix,
+		Itoa(minute, 2),
+		mSuffix,
+		FormatFloatDown(sec, 2, precision),
+		sSuffix)
 
-	if precision > 0 {
-		s = s + "." + Itoa(int(math.Floor(secF*math.Pow(10, float64(precision)))), precision)
-	}
-
-	if sign {
-		if d < 0.0 {
-			s = m + s
-		} else {
-			s = p + s
-		}
-	}
-	return strings.TrimSpace(s)
+	return strings.TrimSpace(strings.Join(s, ""))
 }
 
 func HourDMSString(t unit.Time) string {
