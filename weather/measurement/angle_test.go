@@ -70,17 +70,29 @@ func Test_angle(t *testing.T) {
 		{Turn.Value(1), ArcSecond.Value(1296000), false},
 		{Turn.Value(1), Degree.Value(360), false},
 		{Turn.Value(1), Gradian.Value(400), false},
-		{Turn.Value(1), HourAngle.Value(24), false},
+		{Turn.Value(1), HourAngle.Value(0), false},
 		{Turn.Value(1), Radian.Value(math.Pi * 2), false},
+		{Turn.Value(1), HourAngle.Value(0), false},
 		// =========================
 		// Longitude which is -180.0 < lon <= 180.0
 		// =========================
 		{Degree.Value(45), Longitude.Value(45), false},
 		{Degree.Value(270), Longitude.Value(-90), false},
+		{Turn.Value(0), Longitude.Value(0), false},
 		{Turn.Value(0.25), Longitude.Value(90), false},
 		{Turn.Value(0.5), Longitude.Value(180), false},
 		{Turn.Value(0.75), Longitude.Value(-90), false},
 		{Turn.Value(1), Longitude.Value(0), false},
+		// =========================
+		// Azimuth which is -180.0 < lon <= 180.0
+		// =========================
+		{Degree.Value(45), Azimuth.Value(-135), false},
+		{Degree.Value(270), Azimuth.Value(90), false},
+		{Turn.Value(0), Azimuth.Value(180), false},
+		{Turn.Value(0.25), Azimuth.Value(-90), false},
+		{Turn.Value(0.5), Azimuth.Value(0), false},
+		{Turn.Value(0.75), Azimuth.Value(90), false},
+		{Turn.Value(1), Azimuth.Value(180), false},
 	})
 }
 
