@@ -2,7 +2,7 @@ package time
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/util"
+	"github.com/peter-mount/piweather.center/util/strings"
 	"time"
 )
 
@@ -13,7 +13,7 @@ type Duration struct {
 }
 
 func (a *Duration) IsEvery() bool {
-	return a != nil && util.In(a.Def, "every", "step")
+	return a != nil && strings.In(a.Def, "every", "step")
 }
 
 func (a *Duration) Duration(every time.Duration) time.Duration {

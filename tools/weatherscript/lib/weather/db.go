@@ -15,7 +15,7 @@ func init() {
 type DB struct{}
 
 func (_ DB) Connect(url string) *client.Client {
-	return &client.Client{Url: url}
+	return &client.Client{Url: url, Internal: true}
 }
 
 // Query short for Connect(url).Query(query)

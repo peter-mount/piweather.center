@@ -31,18 +31,32 @@ func (p Point) String() string {
 	return fmt.Sprintf("%d,%d", p.X, p.Y)
 }
 
+func printfOptimized(format string, a []interface{}) string {
+	s := format
+	if len(a) > 0 {
+		s = fmt.Sprintf(s, a...)
+	}
+	return s
+}
+
 // Class adds a css class name to the Element.
 // This takes a format string like fmt.Sprintf()
 func (e *Element) Class(c string, a ...interface{}) *Element {
-	e.class = append(e.class, fmt.Sprintf(c, a...))
+	s := printfOptimized(c, a)
+	if s != "" {
+		e.class = append(e.class, s)
+	}
 	return e
 }
 
 func (e *Element) Attr(name, format string, args ...interface{}) *Element {
-	e.attrs = append(e.attrs, Attr{
-		Name:  name,
-		Value: fmt.Sprintf(format, args...),
-	})
+	s := printfOptimized(format, args)
+	if s != "" {
+		e.attrs = append(e.attrs, Attr{
+			Name:  name,
+			Value: s,
+		})
+	}
 	return e
 }
 
@@ -113,6 +127,13 @@ func (e *Element) Exec(f func(*Element) *Element) *Element {
 	return f(e)
 }
 
+// ExecEnd executes a function passing the current Element to it.
+// On it's return, the current Element will be ended.
+func (e *Element) ExecEnd(f func(*Element)) *Element {
+	f(e)
+	return e.End()
+}
+
 // If calls a function if a condition is true.
 // The returned instance will be the returned instance from that function or the current Element if the condition was false.
 func (e *Element) If(p bool, f func(*Element) *Element) *Element {
@@ -132,8 +153,8 @@ func (e *Element) RootElement() *Element {
 }
 
 // Textf appends a Text Element based on a fmt.Sprintf() formatted string.
-func (e *Element) Textf(f string, s ...interface{}) *Element {
-	return e.Text(fmt.Sprintf(f, s...))
+func (e *Element) Textf(f string, a ...interface{}) *Element {
+	return e.Text(printfOptimized(f, a))
 }
 
 // Text appends each provided string as a text Element.
@@ -144,6 +165,16 @@ func (e *Element) Text(s ...string) *Element {
 		ne.text = a
 	}
 	return ne
+}
+
+// TextNbsp appends each provided string as a text Element.
+func (e *Element) TextNbsp(s ...string) *Element {
+	for i, a := range s {
+		if a == "" {
+			s[i] = "&nbsp;"
+		}
+	}
+	return e.Text(s...)
 }
 
 type SequenceHandler func(int, *Element) *Element
@@ -200,6 +231,11 @@ func (e *Element) A() *Element {
 // Div Element. This is open so End() must be called to terminate it.
 func (e *Element) Div() *Element {
 	return e.Element("div")
+}
+
+// Script Element. This is open so End() must be called to terminate it.
+func (e *Element) Script() *Element {
+	return e.Element("script")
 }
 
 // Span Element. This is open so End() must be called to terminate it.

@@ -2,242 +2,99 @@ package ql
 
 import (
 	"github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
-type visitor struct {
-	common
+type Visitor[T any] interface {
+	AliasedExpression(*AliasedExpression) error
+	AliasedGroup(*AliasedGroup) error
+	Duration(*time.Duration) error
+	Expression(*Expression) error
+	ExpressionModifier(*ExpressionModifier) error
+	Function(*Function) error
+	Histogram(*Histogram) error
+	Metric(*Metric) error
+	Query(*Query) error
+	QueryRange(*QueryRange) error
+	Select(*Select) error
+	SelectExpression(*SelectExpression) error
+	Summarize(*Summarize) error
+	TableSelect(*TableSelect) error
+	Time(*time.Time) error
+	TimeZone(*time.TimeZone) error
+	Unit(*units.Unit) error
+	UsingDefinitions(*UsingDefinitions) error
+	UsingDefinition(*UsingDefinition) error
+	WindRose(*WindRose) error
+
+	Clone() Visitor[T]
+	Set(T) Visitor[T]
+	Get() T
 }
 
-type common struct {
-	query              func(ql.QueryVisitor, *ql.Query) error
-	_select            func(ql.QueryVisitor, *ql.Select) error
-	selectExpression   func(ql.QueryVisitor, *ql.SelectExpression) error
-	aliasedExpression  func(ql.QueryVisitor, *ql.AliasedExpression) error
-	expression         func(ql.QueryVisitor, *ql.Expression) error
-	expressionModifier func(ql.QueryVisitor, *ql.ExpressionModifier) error
-	function           func(ql.QueryVisitor, *ql.Function) error
-	metric             func(ql.QueryVisitor, *ql.Metric) error
-	queryRange         func(ql.QueryVisitor, *ql.QueryRange) error
-	time               func(ql.QueryVisitor, *time.Time) error
-	duration           func(ql.QueryVisitor, *time.Duration) error
-	usingDefinitions   func(ql.QueryVisitor, *ql.UsingDefinitions) error
-	usingDefinition    func(ql.QueryVisitor, *ql.UsingDefinition) error
-	histogram          func(ql.QueryVisitor, *ql.Histogram) error
-	unit               func(ql.QueryVisitor, *units.Unit) error
-	windRose           func(ql.QueryVisitor, *ql.WindRose) error
+type visitor[T any] struct {
+	common[T]
+	data T
 }
 
-func (v *visitor) Query(b *ql.Query) error {
-	var err error
-	if b != nil {
-		// Process QueryRange first
-		err = v.QueryRange(b.QueryRange)
-
-		if err == nil && v.query != nil {
-			err = v.query(v, b)
-		}
-		if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
-			return nil
-		}
-
-		if err == nil {
-			err = v.UsingDefinitions(b.Using)
-		}
-
-		if err == nil {
-			for _, sel := range b.Select {
-				if err == nil {
-					err = v.Select(sel)
-				}
-			}
-		}
-
-		if err == nil {
-			for _, sel := range b.WindRose {
-				if err == nil {
-					err = v.WindRose(sel)
-				}
-			}
-		}
-	}
-	return err
+func (v *visitor[T]) Clone() Visitor[T] {
+	return &visitor[T]{common: v.common}
 }
 
-func (v *visitor) Select(b *ql.Select) error {
-	var err error
-	if b != nil {
-		if v._select != nil {
-			err = v._select(v, b)
-			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
-				return nil
-			}
-		}
-
-		if err == nil {
-			err = v.SelectExpression(b.Expression)
-		}
-	}
-	return err
+func (v *visitor[T]) Get() T {
+	return v.data
 }
 
-func (v *visitor) SelectExpression(b *ql.SelectExpression) error {
-	var err error
-	if b != nil {
-		if v.selectExpression != nil {
-			err = v.selectExpression(v, b)
-			if util.IsVisitorStop(err) {
-				return nil
-			}
-		}
-		if err == nil {
-			for _, e := range b.Expressions {
-				err = v.AliasedExpression(e)
-				if err != nil {
-					break
-				}
-			}
-		}
-	}
-	return err
+func (v *visitor[T]) Set(data T) Visitor[T] {
+	v.data = data
+	return v
 }
 
-func (v *visitor) AliasedExpression(b *ql.AliasedExpression) error {
-	var err error
-	if b != nil {
-		if v.aliasedExpression != nil {
-			err = v.aliasedExpression(v, b)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
-		}
-		if err == nil {
-			err = v.Unit(b.Unit)
-		}
-		if err == nil {
-			err = v.Expression(b.Expression)
-		}
-	}
-	return err
+type common[T any] struct {
+	aliasedExpression  func(Visitor[T], *AliasedExpression) error
+	aliasedGroup       func(Visitor[T], *AliasedGroup) error
+	expression         func(Visitor[T], *Expression) error
+	expressionModifier func(Visitor[T], *ExpressionModifier) error
+	duration           func(Visitor[T], *time.Duration) error
+	function           func(Visitor[T], *Function) error
+	histogram          func(Visitor[T], *Histogram) error
+	metric             func(Visitor[T], *Metric) error
+	query              func(Visitor[T], *Query) error
+	queryRange         func(Visitor[T], *QueryRange) error
+	_select            func(Visitor[T], *Select) error
+	selectExpression   func(Visitor[T], *SelectExpression) error
+	summarize          func(Visitor[T], *Summarize) error
+	tableSelect        func(Visitor[T], *TableSelect) error
+	time               func(Visitor[T], *time.Time) error
+	timeZone           func(Visitor[T], *time.TimeZone) error
+	unit               func(Visitor[T], *units.Unit) error
+	usingDefinition    func(Visitor[T], *UsingDefinition) error
+	usingDefinitions   func(Visitor[T], *UsingDefinitions) error
+	windRose           func(Visitor[T], *WindRose) error
 }
 
-func (v *visitor) Expression(b *ql.Expression) error {
-	var err error
-	if b != nil {
-		if v.expression != nil {
-			err = v.expression(v, b)
-		}
-
-		if util.IsVisitorStop(err) {
-			return nil
-		}
-
-		for _, e := range b.Modifier {
-			if err == nil {
-				err = v.ExpressionModifier(e)
-			}
-		}
-
-		if err == nil {
-			err = v.Function(b.Function)
-		}
-
-		if err == nil {
-			err = v.Metric(b.Metric)
-		}
-	}
-
-	return err
-}
-
-func (v *visitor) ExpressionModifier(b *ql.ExpressionModifier) error {
-	var err error
-	if b != nil {
-		if v.expressionModifier != nil {
-			err = v.expressionModifier(v, b)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
-		}
-		if err == nil {
-			err = v.Duration(b.Offset)
-		}
-		if err == nil {
-			err = v.QueryRange(b.Range)
-		}
-	}
-	return err
-}
-
-func (v *visitor) Function(b *ql.Function) error {
-	var err error
-	if b != nil {
-		if v.function != nil {
-			err = v.function(v, b)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
-		}
-		if err == nil {
-			for _, ex := range b.Expressions {
-				err = v.Expression(ex)
-				if err != nil {
-					break
-				}
-			}
-		}
-	}
-	return err
-}
-
-func (v *visitor) Metric(b *ql.Metric) error {
-	if b != nil && v.metric != nil {
-		return v.metric(v, b)
+func (v *visitor[T]) Duration(b *time.Duration) error {
+	if b != nil && v.duration != nil {
+		return v.duration(v, b)
 	}
 	return nil
 }
 
-func (v *visitor) QueryRange(b *ql.QueryRange) error {
+func (v *visitor[T]) TimeZone(b *time.TimeZone) error {
 	var err error
 	if b != nil {
-		if v.queryRange != nil {
-			err = v.queryRange(v, b)
+		if v.timeZone != nil {
+			err = v.timeZone(v, b)
 			if util.IsVisitorStop(err) {
 				return nil
 			}
-		}
-
-		// AT x
-		if err == nil {
-			err = v.Time(b.At)
-		}
-
-		// FROM x FOR x
-		if err == nil {
-			err = v.Time(b.From)
-		}
-		if err == nil {
-			err = v.Duration(b.For)
-		}
-
-		// BETWEEN x AND x
-		if err == nil {
-			err = v.Time(b.Start)
-		}
-		if err == nil {
-			err = v.Time(b.End)
-		}
-
-		if err == nil {
-			err = v.Duration(b.Every)
 		}
 	}
 	return err
 }
 
-func (v *visitor) Time(b *time.Time) error {
+func (v *visitor[T]) Time(b *time.Time) error {
 	var err error
 	if b != nil {
 		if v.time != nil {
@@ -258,78 +115,9 @@ func (v *visitor) Time(b *time.Time) error {
 	return err
 }
 
-func (v *visitor) Duration(b *time.Duration) error {
-	if b != nil && v.duration != nil {
-		return v.duration(v, b)
-	}
-	return nil
-}
-
-func (v *visitor) Unit(b *units.Unit) error {
+func (v *visitor[T]) Unit(b *units.Unit) error {
 	if b != nil && v.unit != nil {
 		return v.unit(v, b)
 	}
 	return nil
-}
-
-func (v *visitor) UsingDefinitions(b *ql.UsingDefinitions) error {
-	var err error
-
-	if b != nil {
-		if v.usingDefinitions != nil {
-			err = v.usingDefinitions(v, b)
-		}
-		if util.IsVisitorStop(err) {
-			return nil
-		}
-		if err == nil {
-			for _, e := range b.Defs {
-				err = v.UsingDefinition(e)
-			}
-		}
-	}
-
-	return err
-}
-
-func (v *visitor) UsingDefinition(b *ql.UsingDefinition) error {
-	if b != nil && v.usingDefinition != nil {
-		return v.usingDefinition(v, b)
-	}
-	return nil
-}
-
-func (v *visitor) Histogram(b *ql.Histogram) error {
-	var err error
-	if b != nil {
-		if v.histogram != nil {
-			err = v.histogram(v, b)
-			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
-				return nil
-			}
-		}
-		if err == nil {
-			err = v.AliasedExpression(b.Expression)
-		}
-	}
-	return err
-}
-
-func (v *visitor) WindRose(b *ql.WindRose) error {
-	var err error
-	if b != nil {
-		if v.windRose != nil {
-			err = v.windRose(v, b)
-			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
-				return nil
-			}
-		}
-		if err == nil {
-			err = v.Expression(b.Degrees)
-		}
-		if err == nil {
-			err = v.Expression(b.Speed)
-		}
-	}
-	return err
 }

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -18,7 +19,9 @@ var (
 		{"Ident", `\b([a-zA-Z_][a-zA-Z0-9_]*)\b`},
 		//{"Ident", `\b(([a-zA-Z_][a-zA-Z0-9_]*)(\.([a-zA-Z_][a-zA-Z0-9_]*))*)\b`},
 		{"Punct", `[-,()*/+%{};&!=:<>\|]|\[|\]|\^`},
-		{"Number", `[-+]?(\d+\.\d+)`},
+		{"Number", `[-+]?(\d*\.)?\d+`},
+		//{"Number", `(-?\d+(\.\d+)?)`},
+		//{"Number", `[-+]?(\d+\.\d+|\.\d+|\d+)`},
 		//{"Number", `[-+]?((\d*)?\.\d+|\d+\.(\d*)?)`},
 		{"Int", `[-+]?\d+`},
 		{"String", `"(\\"|[^"])*"`},
@@ -84,20 +87,53 @@ func (p *defaultParser[G]) Parse(fileName string, r io.Reader, opts ...participl
 	return p.init(p.parser.Parse(fileName, r, opts...))
 }
 
+// CheckSummable is implemented by parsable entities to store a checksum of the parsed content
+type CheckSummable interface {
+	GetChecksum() [20]byte
+	SetChecksum([20]byte)
+}
+
+// CheckSum implements CheckSummable and stores a checksum of a parsed entity
+type CheckSum struct {
+	checksum [20]byte
+}
+
+func (c *CheckSum) GetChecksum() [20]byte {
+	return c.checksum
+}
+
+func (c *CheckSum) SetChecksum(checksum [20]byte) {
+	c.checksum = checksum
+}
+
 func (p *defaultParser[G]) ParseBytes(fileName string, b []byte, opts ...participle.ParseOption) (*G, error) {
-	return p.init(p.parser.ParseBytes(fileName, b, opts...))
+	return p.init(p.parseBytes(fileName, b, opts...))
+}
+
+func (p *defaultParser[G]) parseBytes(fileName string, b []byte, opts ...participle.ParseOption) (*G, error) {
+	v, err := p.parser.ParseBytes(fileName, b, opts...)
+	if err == nil {
+		if c, ok := any(v).(CheckSummable); ok {
+			c.SetChecksum(sha1.Sum(b))
+		}
+	}
+	return v, err
 }
 
 func (p *defaultParser[G]) ParseString(fileName, src string, opts ...participle.ParseOption) (*G, error) {
-	return p.init(p.parser.ParseString(fileName, src, opts...))
+	return p.ParseBytes(fileName, []byte(src), opts...)
 }
 
 func (p *defaultParser[G]) ParseFile(fileName string, opts ...participle.ParseOption) (*G, error) {
+	return p.init(p.parseFile(fileName, opts...))
+}
+
+func (p *defaultParser[G]) parseFile(fileName string, opts ...participle.ParseOption) (*G, error) {
 	b, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
 	}
-	return p.init(p.ParseBytes(fileName, b, opts...))
+	return p.parseBytes(fileName, b, opts...)
 }
 
 type Merge[G any] interface {
@@ -107,7 +143,8 @@ type Merge[G any] interface {
 func (p *defaultParser[G]) ParseFiles(fileNames ...string) (*G, error) {
 	var r *G
 	for _, n := range fileNames {
-		script, err := p.ParseFile(n)
+		// parse but do not init here
+		script, err := p.parseFile(n)
 		if err == nil {
 			if r == nil {
 				// First entry then use it
@@ -125,5 +162,7 @@ func (p *defaultParser[G]) ParseFiles(fileNames ...string) (*G, error) {
 			return nil, err
 		}
 	}
-	return r, nil
+
+	// Run init against the final merged entity
+	return p.init(r, nil)
 }

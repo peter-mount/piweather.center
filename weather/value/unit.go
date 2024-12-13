@@ -24,6 +24,7 @@ type Unit struct {
 	min       float64 // min valid value
 	max       float64 // max valid value
 	err       error   // Error from assertion
+	toString  func(float64) string
 }
 
 func (u *Unit) ID() string { return u.id }
@@ -61,10 +62,16 @@ func (u *Unit) Precision() int { return u.precision }
 // String returns a float64 in it's supported format for this unit.
 // This will be the value with the string from Unit() appended to it.
 func (u *Unit) String(f float64) string {
+	if u.toString != nil {
+		return u.toString(f)
+	}
 	return fmt.Sprintf(u.format, f, u.unit)
 }
 
 func (u *Unit) PlainString(f float64) string {
+	if u.toString != nil {
+		return u.toString(f)
+	}
 	return fmt.Sprintf(u.format, f, "")
 }
 
@@ -145,7 +152,7 @@ func (u *Unit) IsErr(err error) bool {
 }
 
 // NewUnit creates a new Unit, registering it with the system.
-func NewUnit(id, name, unit string, precision int) *Unit {
+func NewUnit(id, name, unit string, precision int, toString func(float64) string) *Unit {
 	mutex.Lock()
 	defer mutex.Unlock()
 	n := strings.ToLower(id)
@@ -172,6 +179,7 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 		max:       math.MaxFloat64,
 		err:       fmt.Errorf("not a %s %q", id, name),
 		group:     uncategorized,
+		toString:  toString,
 	}
 	units[n] = u
 	hashes[hid] = u
@@ -184,7 +192,12 @@ func NewUnit(id, name, unit string, precision int) *Unit {
 
 // NewBoundedUnit creates a new Unit which has both min and max values.
 func NewBoundedUnit(id, name, unit string, precision int, min, max float64) *Unit {
-	u := NewUnit(id, name, unit, precision)
+	return NewBoundedUnitF(id, name, unit, precision, min, max, nil)
+}
+
+// NewBoundedUnitF creates a new Unit which has both min and max values.
+func NewBoundedUnitF(id, name, unit string, precision int, min, max float64, f func(float64) string) *Unit {
+	u := NewUnit(id, name, unit, precision, f)
 	if min > max {
 		min, max = max, min
 	}
@@ -246,8 +259,8 @@ var (
 )
 
 func init() {
-	Integer = NewUnit("Integer", "Integer", "", 0)
-	Float = NewUnit("Float", "Float", "", 3)
+	Integer = NewUnit("Integer", "Integer", "", 0, nil)
+	Float = NewUnit("Float", "Float", "", 3, nil)
 	Percent = NewBoundedUnit("Percent", "Percent", "%", 0, 0, 100)
 
 	// General transforms for Basic values

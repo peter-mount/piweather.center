@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-// getCurrentState retrieves the current station state from weathercenter
+// getCurrentState retrieves the current station station from weathercenter
 func (t *Bot) getCurrentState() error {
-	// Get current state for the station for this post
+	// Get current station for the station for this post
 	stn, err := state.New(*t.Host).GetState(t.post.StationId)
 	if err != nil {
 		return err

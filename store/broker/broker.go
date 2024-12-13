@@ -34,6 +34,7 @@ const (
 
 type broker struct {
 	Amqp      amqp2.Pool `kernel:"inject"`
+	Disabled  *bool      `kernel:"flag,metric-standalone,true to not connect to RabbitMQ"`
 	mutex     sync.Mutex
 	mq        *amqp2.MQ
 	queues    []*amqp2.Queue
@@ -41,11 +42,18 @@ type broker struct {
 	appName   string
 }
 
+func (s *broker) disabled() bool {
+	return *s.Disabled
+}
+
 func (s *broker) Start() error {
 	s.appName = filepath.Base(os.Args[0])
 
 	s.mq = s.Amqp.GetMQ(brokerName)
 	if s.mq == nil {
+		if s.disabled() {
+			return nil
+		}
 		return fmt.Errorf("broker %q undefined", brokerName)
 	}
 
@@ -83,6 +91,10 @@ func (s *broker) tag(tag string) string {
 }
 
 func (s *broker) Consume(queue *amqp2.Queue, tag string, task amqp2.Task) error {
+	if s.disabled() {
+		return nil
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -97,6 +109,10 @@ func (s *broker) Consume(queue *amqp2.Queue, tag string, task amqp2.Task) error 
 }
 
 func (s *broker) ConsumeKeys(queue *amqp2.Queue, tag string, task amqp2.Task, keys ...string) error {
+	if s.disabled() {
+		return nil
+	}
+
 	for _, key := range keys {
 		queue.AddBinding(amqp2.Binding{
 			Topic: s.Exchange(),
@@ -108,6 +124,10 @@ func (s *broker) ConsumeKeys(queue *amqp2.Queue, tag string, task amqp2.Task, ke
 }
 
 func (s *broker) Publish(key string, msg []byte) error {
+	if s.disabled() {
+		return nil
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if err := s.connectPublisher(); err != nil {
@@ -117,6 +137,10 @@ func (s *broker) Publish(key string, msg []byte) error {
 }
 
 func (s *broker) PublishJSON(key string, payload interface{}) error {
+	if s.disabled() {
+		return nil
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if err := s.connectPublisher(); err != nil {
@@ -126,6 +150,10 @@ func (s *broker) PublishJSON(key string, payload interface{}) error {
 }
 
 func (s *broker) PublishApi(key string, msg interface{}) error {
+	if s.disabled() {
+		return nil
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if err := s.connectPublisher(); err != nil {
@@ -135,6 +163,10 @@ func (s *broker) PublishApi(key string, msg interface{}) error {
 }
 
 func (s *broker) Post(key string, body []byte, headers amqp091.Table, timestamp time.Time) error {
+	if s.disabled() {
+		return nil
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if err := s.connectPublisher(); err != nil {
@@ -144,6 +176,10 @@ func (s *broker) Post(key string, body []byte, headers amqp091.Table, timestamp 
 }
 
 func (s *broker) PublishMetric(metric api.Metric) error {
+	if s.disabled() {
+		return nil
+	}
+
 	return s.PublishJSON("metric."+amqp2.EncodeKey(metric.Metric), metric)
 }
 

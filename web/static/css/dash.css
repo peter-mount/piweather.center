@@ -73,8 +73,10 @@
 .dash-compass,
 .dash-gauge,
 .dash-inclinometer,
-.dash-rain-gauge,
+.dash-multivalue,
+.dash-raingauge,
 .dash-text,
+.dash-forecast,
 .dash-value,
 .dash-wind-rose,
 .dash-wind-rose-line,
@@ -87,38 +89,92 @@
     padding: 1px;
 }
 
+.dash-forecast,
+.dash-multivalue,
 .dash-value {
-    width: 10em;
     border: 1px solid black;
     min-height: 1em;
     vertical-align: top;
 }
+.dash-forecast,
+.dash-value {
+    width: 10em;
+}
 
+.value-2 .label, .value-2x2 .label {
+    visibility: hidden;
+    display: none;
+}
+.value-2 .metric, .value-2x2 .metric {
+    width: 10em !important;
+    text-align: center !important;
+}
+.value-2x2 .metric {
+    height: 2em;
+}
+.dash-multivalue .label, .dash-multivalue .metric, .dash-multivalue .metric-time,
 .dash-value .label, .dash-value .metric {
     display: inline-block;
     padding: 0;
+}
+
+.dash-value .label, .dash-value .metric {
     width: 5em;
 }
 
+.dash-multivalue .label {
+    width: 15em;
+}
+
+.dash-forecast,
+.dash-multivalue .metric,
+.dash-multivalue .metric-time {
+    width: 10em;
+}
+
+.dash-multivalue table {
+    border-collapse: collapse;
+}
+
+.dash-multivalue thead tr:last-child th {
+    border-bottom: 1px solid black;
+}
+.dash-multivalue tbody tr:not(:last-child) td {
+    border-bottom: 1px solid lightgrey;
+}
+
 .dash-value .label {
-    text-align: right;
     font-weight: bold;
     vertical-align: top;
 }
 
+.dash-value .label {
+    text-align: right;
+}
+
+.dash-forecast {
+    text-align: center;
+    font-weight: bold;
+}
+
+.dash-multivalue td:not(:first-child),
 .dash-value .metric {
     text-align: right;
     font-weight: normal;
     vertical-align: top;
 }
 
+.dash-forecast span,
+.dash-multivalue .label span,
+.dash-multivalue .metric span,
+.dash-multivalue .metric-time span,
 .dash-value .label span,
 .dash-value .metric span {
     display: block;
     font-size: 80%;
 }
 
-.dash-rain-gauge {
+.dash-raingauge {
     width: 5em;
     padding-left: 0;
     margin-left: 0;
@@ -141,11 +197,13 @@
     width: 10.2em;
     max-width: 10.2em;
 }
+.col-bordered .dash-forecast,
 .col-bordered .dash-value {
     border: 0;
     margin-right: 0;
     margin-left: 0;
 }
+.col-bordered .dash-forecast:not(:last-child),
 .col-bordered .dash-value:not(:last-child) {
     border-bottom: 1px solid black;
 }

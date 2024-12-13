@@ -2,7 +2,7 @@ package catalogue
 
 import (
 	"fmt"
-	"github.com/peter-mount/piweather.center/astro/util"
+	"github.com/peter-mount/piweather.center/util/strings"
 	"github.com/soniakeys/unit"
 )
 
@@ -40,8 +40,8 @@ func (e Entry) Mag() float64 {
 // String the Entry in a fixed format
 func (e Entry) String() string {
 	return fmt.Sprintf("[%q,%q,%.2f]",
-		util.HourDMSStringExt(e.RA().Hour()),
-		util.DegDMSString(e.Dec().Deg(), true),
+		strings.HourDMSStringExt(e.RA().Hour()),
+		strings.DegDMSString(e.Dec().Deg(), true),
 		e.Mag(),
 	)
 }

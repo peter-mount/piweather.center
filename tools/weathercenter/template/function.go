@@ -2,10 +2,11 @@ package template
 
 import (
 	"errors"
+	station2 "github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file/record"
-	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/model"
-	"github.com/peter-mount/piweather.center/util"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"html/template"
 	"math"
@@ -51,7 +52,7 @@ func (m *Manager) PostInit() error {
 		"ReplaceAll":           strings.ReplaceAll,
 		"getReading":           m.getReading,
 		"getLatestReadingTime": m.getLatestReadingTime,
-		"instanceUid":          model.UID,
+		"instanceUid":          station.UID,
 		"maxRowValue":          maxRowValue,
 		"windRoseBreakdown":    windRoseBreakdown,
 	}
@@ -65,8 +66,8 @@ func (m *Manager) AddFunction(name string, handler interface{}) *Manager {
 
 func genCalc(f func(float64, float64) float64) func(a, b interface{}) float64 {
 	return func(a, b interface{}) float64 {
-		af, _ := util.ToFloat64(a)
-		bf, _ := util.ToFloat64(b)
+		af, _ := strings2.ToFloat64(a)
+		bf, _ := strings2.ToFloat64(b)
 		return f(af, bf)
 	}
 }
@@ -192,7 +193,7 @@ func js(s string) template.JS {
 	return template.JS(s)
 }
 
-func (s *Manager) showComponent(c model.Instance) (template.HTML, error) {
+func (s *Manager) showComponent(c station2.ComponentType) (template.HTML, error) {
 	return s.Template("dash/"+strings.ToLower(c.GetType())+".html", c)
 }
 
@@ -203,7 +204,7 @@ func (s *Manager) showJs(n string, d any) (template.JS, error) {
 
 func maxRowValue(r *api.Row) value.Value {
 	var v value.Value
-	for _, c := range *r {
+	for _, c := range r.GetCells() {
 		if c.Value.IsValid() {
 			if v.IsValid() {
 				if ok, err := c.Value.GreaterThan(v); err == nil && ok {

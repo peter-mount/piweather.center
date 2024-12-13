@@ -4,14 +4,13 @@ import (
 	"bufio"
 	"flag"
 	"github.com/llgcode/draw2d/draw2dimg"
+	"github.com/peter-mount/go-build/application"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	io2 "github.com/peter-mount/piweather.center/util/io"
 	"image"
 	"image/color"
 	"image/png"
 	"io"
-	"os"
-	"path/filepath"
 )
 
 type Skymap struct {
@@ -24,7 +23,7 @@ func (s *Skymap) Start() error {
 	s.catalog = &catalogue.Catalog{}
 	if err := io2.NewReader(s.catalog.Read).
 		Decompress().
-		Open(filepath.Join(filepath.Dir(os.Args[0]), "../lib/ybsc/bsc5.bin")); err != nil {
+		Open(application.FileName(application.STATIC, "bsc5.bin")); err != nil {
 		return err
 	}
 

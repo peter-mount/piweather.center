@@ -1,6 +1,8 @@
 package api
 
-import "sync"
+import (
+	"sync"
+)
 
 // Listener provides a thread safe pool of Handlers which can listen for metrics,
 // usually provided by a single data source like RabbitMQ.

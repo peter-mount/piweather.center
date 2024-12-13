@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"github.com/peter-mount/nre-feeds/util"
 	util2 "github.com/peter-mount/piweather.center/astro/util"
+	util3 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/soniakeys/unit"
 	"time"
 )
@@ -45,11 +46,11 @@ func (r *RiseSet) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error
 			dur += 86400.0
 		}
 
-		b.AddAttribute(xml.Name{Local: "rise"}, util2.HourDMSString(r.Rise)).
-			AddAttribute(xml.Name{Local: "transit"}, util2.HourDMSString(r.Transit)).
-			AddAttribute(xml.Name{Local: "set"}, util2.HourDMSString(r.Set)).
+		b.AddAttribute(xml.Name{Local: "rise"}, util3.HourDMSString(r.Rise)).
+			AddAttribute(xml.Name{Local: "transit"}, util3.HourDMSString(r.Transit)).
+			AddAttribute(xml.Name{Local: "set"}, util3.HourDMSString(r.Set)).
 			AddFloatAttribute(xml.Name{Local: "duration"}, dur.Hour()).
-			AddAttribute(xml.Name{Local: "dayLength"}, util2.HourDMSString(dur))
+			AddAttribute(xml.Name{Local: "dayLength"}, util3.HourDMSString(dur))
 	}
 	return b.Build()
 }

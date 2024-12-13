@@ -3,7 +3,7 @@ package weathercalc
 import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
-	"github.com/peter-mount/piweather.center/config/calc"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
@@ -11,7 +11,7 @@ import (
 )
 
 // load a metric's value on startup if they specify getting the value from the db
-func (calc *Calculator) loadFromDB(c *calc.Calculation) error {
+func (calc *Calculator) loadFromDB(c *station.Calculation) error {
 	b := c.Load
 
 	if *calc.DBServer == "" {
@@ -58,11 +58,11 @@ func (calc *Calculator) loadFromDB(c *calc.Calculation) error {
 
 	for _, t := range res.Table {
 		for _, r := range t.Rows {
-			if len(*r) < 2 || !(*r)[1].Value.IsValid() {
+			if r.Size() < 2 || r.Cell(1).Value.IsValid() {
 				log.Printf("no data returned for %q", b.With)
 			} else {
-				e0 := (*r)[0]
-				e1 := (*r)[1]
+				e0 := r.Cell(0)
+				e1 := r.Cell(1)
 				calc.Latest.Set(c.Target, record.Record{Time: e0.Time, Value: e1.Value})
 
 				if err = calc.DatabaseBroker.PublishMetric(api.Metric{

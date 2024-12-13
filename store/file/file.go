@@ -158,7 +158,7 @@ func (f *File) append(rec record.Record, sync bool) error {
 			}
 
 		case latestRecord.Time.Equal(rec.Time):
-			// Do nothing, duplicate entry - always keep first one
+			// do nothing, duplicate entry - always keep first one
 			return nil
 
 		// new record is before last one so rebuild the file, inserting the record in the correct place
@@ -242,7 +242,7 @@ func (f *File) getRecord(i int) (record.Record, error) {
 
 	if err == nil {
 		// Touch the file as we are reading from it.
-		// Do this here so if we are not open we don't touch and it should then expire
+		// do this here so if we are not open we don't touch and it should then expire
 		f.touch()
 
 		var size int

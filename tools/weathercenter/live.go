@@ -1,27 +1,25 @@
 package weathercenter
 
 import (
-	"encoding/json"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
 
 // loadLatestMetrics retrieves the current metrics from the DB server
 func (s *Server) loadLatestMetrics() error {
-	if *s.DBServer != "" {
-		c := &client.Client{Url: *s.DBServer}
-		r, err := c.LatestMetrics()
-		if err != nil {
-			return err
-		}
-		if r != nil {
-			for _, m := range r.Metrics {
-				s.storeLatest(m)
-			}
-		}
-	}
+	//if *s.DBServer != "" {
+	//	c := &client.Client{Url: *s.DBServer}
+	//	r, err := c.LatestMetrics()
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if r != nil {
+	//		for _, m := range r.Metrics {
+	//			s.storeLatest(m)
+	//		}
+	//	}
+	//}
 	return nil
 }
 
@@ -37,14 +35,18 @@ func (s *Server) storeLatest(metric api.Metric) {
 			metric.Formatted = u.String(metric.Value)
 			metric.Unix = metric.Time.Unix()
 
-			// Update websocket clients only if we have updated
-			b, err := json.Marshal(&metric)
-			if err == nil {
-				s.liveServer.Send(b)
-			}
+			// Notify the station for this metric
+			responses := s.ViewService.Stations.Notify(metric)
 
-			// Also notify any listeners of this new metric
-			s.listener.Notify(metric)
+			// Send any responses (one per dashboard the metric was used on) to the appropriate clients
+			if len(responses) > 0 {
+				for _, response := range responses {
+					live := s.ViewService.GetLive(response.Station, response.Dashboard)
+					if live != nil {
+						live.Notify(response)
+					}
+				}
+			}
 		}
 	}
 }

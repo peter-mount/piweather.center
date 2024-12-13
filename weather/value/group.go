@@ -33,7 +33,7 @@ func NewGroup(name string, base *Unit, siblings ...*Unit) *Group {
 	// Validate the group Unit's can transform between each other
 	switch len(siblings) {
 	case 0:
-		// Do nothing as this is a group of just 1 unit
+		// do nothing as this is a group of just 1 unit
 
 	case 1:
 		// If 1 sibling then test that a transform exists between the two.

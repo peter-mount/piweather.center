@@ -28,11 +28,11 @@ const (
 )
 
 func init() {
-	ModifiedJD = value.NewUnit("ModifiedJD", "Modified Julian Date", "", 5)
-	JulianDate = value.NewUnit("JulianDate", "Julian Date", "", 5)
-	MarsSolDate = value.NewUnit("MarsSolDate", "Martian Sol Date", "M.S.D.", 5)
-	RataDie = value.NewUnit("RataDie", "Rata Die", "R.D.", 5)
-	UnixTime = value.NewUnit("UnixTime", "Unix Time", "", 0)
+	ModifiedJD = value.NewUnit("ModifiedJD", "Modified Julian Date", "", 5, nil)
+	JulianDate = value.NewUnit("JulianDate", "Julian Date", "", 5, nil)
+	MarsSolDate = value.NewUnit("MarsSolDate", "Martian Sol Date", "M.S.D.", 5, nil)
+	RataDie = value.NewUnit("RataDie", "Rata Die", "R.D.", 5, nil)
+	UnixTime = value.NewUnit("UnixTime", "Unix Time", "", 0, nil)
 
 	// Unix is special where we can transform with an Integer
 	value.NewBasicBiTransform(value.Integer, UnixTime, 1)

@@ -2,9 +2,8 @@ package bot
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/config/ql"
 	util2 "github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/config/util/ql"
-	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"github.com/peter-mount/piweather.center/util"
 	"sort"
 	"strings"
@@ -39,7 +38,7 @@ func ParsePost(post *Post) (*Query, error) {
 		post:       post,
 		columns:    make(map[string]column),
 		colKeys:    util.NewStringMap(),
-		parser:     parser.NewExpressionParser(),
+		parser:     ql.NewExpressionParser(),
 		queryRange: post.Range,
 	}
 	err := q.parsePost()
@@ -117,7 +116,7 @@ func (q *Query) parseValue(v *Value) error {
 		// Just set the shared column name
 		v.Col = q.colKeys.Get(v.Query)
 	} else {
-		// New entry
+		// NewBuilder entry
 		colName := fmt.Sprintf(`col%03d`, len(q.colKeys))
 
 		q.columns[colName] = column{

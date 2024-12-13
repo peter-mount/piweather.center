@@ -2,6 +2,8 @@ package calculator
 
 import (
 	"github.com/peter-mount/go-kernel/v2"
+	"github.com/peter-mount/piweather.center/astro/api"
+	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/planetposition"
 	"github.com/soniakeys/unit"
@@ -22,15 +24,29 @@ type Calculator interface {
 	// the 8 major Planets, loading from disk as necessary
 	Planet(i int) (*planetposition.V87Planet, error)
 
+	CalculateMoon(t value.Time) (api.EphemerisResult, error)
+
+	CalculatePlanet(planetId station.EphemerisTargetType, t value.Time) (api.EphemerisResult, error)
+
+	// CalculateSun returns an EphemerisResult for a specified time.
+	// Note: the RA/Dec epoch be for the date, not J2000
+	CalculateSun(t value.Time) (api.EphemerisResult, error)
+
 	// SolarAltitudeCalculator is a calculator that calculates
 	// the sun's altitude at a station at a specific time
+	// use CalculateSun instead
+	// Deprecated
 	SolarAltitudeCalculator() value.Calculator
 
 	// SolarAzimuthCalculator is a calculator that calculates
 	// the sun's azimuth at a station at a specific time
+	//	use CalculateSun instead
+	// Deprecated
 	SolarAzimuthCalculator() value.Calculator
 
 	// SolarHZ calculate the Azimuth and Altitude of the sun
+	//	use CalculateSun instead
+	// Deprecated
 	SolarHZ(t value.Time) (unit.Angle, unit.Angle, error)
 
 	// SolarEphemeris calculate an ephemeris of the sun for a specific date

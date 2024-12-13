@@ -20,6 +20,20 @@ func (s *Unit) Unit() *value.Unit {
 	return s.unit
 }
 
+func (s *Unit) Convert(v value.Value) (value.Value, error) {
+	if s == nil || s.unit == nil || !v.IsValid() {
+		return v, nil
+	}
+	return v.As(s.unit)
+}
+
+func (s *Unit) Value(f float64) value.Value {
+	if s != nil && s.unit != nil {
+		return s.unit.Value(f)
+	}
+	return value.Value{}
+}
+
 func (s *Unit) Init() error {
 	if s == nil || s.Using == "" {
 		return nil

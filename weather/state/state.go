@@ -12,7 +12,7 @@ func (rf RoundedFloat) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatFloat(float64(rf), 'f', 3, 64)), nil
 }
 
-// Station represents the state of a weather station, including general
+// Station represents the station of a weather station, including general
 // statistics, trends etc.
 //
 // It's exposed by the server and available for external tools to use.
@@ -97,7 +97,7 @@ type Point struct {
 	Time  time.Time    `json:"time"`
 }
 
-// Value represents the state for a given unit of time
+// Value represents the station for a given unit of time
 type Value struct {
 	// Minimum for this period
 	Min RoundedFloat `json:"min"`

@@ -3,6 +3,7 @@ package memory
 import (
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/store/file/record"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -111,6 +112,10 @@ func (l *latest) Metrics() []string {
 	for metric, _ := range l.metrics {
 		metrics = append(metrics, metric)
 	}
+
+	sort.SliceStable(metrics, func(i, j int) bool {
+		return metrics[i] < metrics[j]
+	})
 
 	return metrics
 }

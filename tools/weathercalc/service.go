@@ -24,6 +24,7 @@ type Service struct {
 }
 
 func (s *Service) Start() error {
+
 	s.mqQueue = &amqp.Queue{
 		Name:       *s.QueueName,
 		Durable:    true,

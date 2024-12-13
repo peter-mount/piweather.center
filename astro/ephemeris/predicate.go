@@ -25,7 +25,7 @@ func And(a, b Predicate) Predicate {
 	case b == nil:
 		return a
 	default:
-		// No need to use Do(e) here as both a and b are not nil.
+		// No need to use do(e) here as both a and b are not nil.
 		return func(e *Entry) bool {
 			return a(e) && b(e)
 		}
@@ -41,7 +41,7 @@ func Or(a, b Predicate) Predicate {
 	case b == nil:
 		return a
 	default:
-		// No need to use Do(e) here as both a and b are not nil.
+		// No need to use do(e) here as both a and b are not nil.
 		return func(e *Entry) bool {
 			return a(e) || b(e)
 		}

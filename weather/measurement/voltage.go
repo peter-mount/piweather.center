@@ -7,11 +7,11 @@ import (
 
 func init() {
 	// Generic Voltage
-	Volt = value.NewUnit("Volt", "Volt", "V", 3)
-	MilliVolt = value.NewUnit("MilliVolt", "MilliVolt", " mV", 0)
-	MicroVolt = value.NewUnit("MicroVolt", "MicroVolt", " µV", 0)
-	DecibelVolt = value.NewUnit("DecibelVolt", "Voltage dBV", " dBV", 1)
-	DecibelVoltU = value.NewUnit("DecibelVoltU", "Voltage dBu", " dBu", 1)
+	Volt = value.NewUnit("Volt", "Volt", "V", 3, nil)
+	MilliVolt = value.NewUnit("MilliVolt", "MilliVolt", " mV", 0, nil)
+	MicroVolt = value.NewUnit("MicroVolt", "MicroVolt", " µV", 0, nil)
+	DecibelVolt = value.NewUnit("DecibelVolt", "Voltage dBV", " dBV", 1, nil)
+	DecibelVoltU = value.NewUnit("DecibelVoltU", "Voltage dBu", " dBu", 1, nil)
 
 	value.NewBasicBiTransform(MilliVolt, Volt, Milli)
 	value.NewBasicBiTransform(MicroVolt, Volt, Micro)

@@ -73,7 +73,7 @@ func (s *basicMap) SetLocation(l *Location) (Map, bool) {
 }
 
 func (s *basicMap) Merge(b Map) error {
-	// Merge the state, dealing with id clashes
+	// Merge the station, dealing with id clashes
 	if b != nil {
 		for _, l := range b.GetLocations() {
 			if _, added := s.SetLocation(l); !added {

@@ -1,7 +1,6 @@
 package file
 
 import (
-	"context"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/go-kernel/v2/cron"
@@ -29,6 +28,11 @@ type Store interface {
 	NumRecords(metric string, date time.Time) (int, error)
 	// Query returns a builder to build a query against a metric
 	Query(metric string) QueryBuilder
+	// GetFiles returns a list of filenames for this metric
+	GetFiles(metric string) ([]string, error)
+	// GetRecords returns all records for the specified date
+	GetRecords(metric string, date time.Time) ([]record.Record, error)
+	RemoveFile(metric string, t time.Time) error
 }
 
 // Store manages all open and existing File's stored on disk.
@@ -72,17 +76,18 @@ func (s *store) Start() error {
 
 	s.openFiles = make(map[string]*File)
 
-	// Expiry daemon
-	if id, err := s.Cron.AddTask("* * * * ?", func(_ context.Context) error {
+	// Expiry daemon runs every 15 seconds
+	if id, err := s.Cron.AddFunc("0/15 * * * * ?", func() {
 		s.close(false)
-		return nil
 	}); err != nil {
 		return err
 	} else {
 		s.expiryId = id
 	}
 
-	return s.initLatest()
+	// For now, do not load the latest values
+	//return s.initLatest()
+	return nil
 }
 
 func (s *store) Stop() {
@@ -143,6 +148,21 @@ func (s *store) GetLatestRecord(metric string, date time.Time) (record.Record, e
 	file, err := s.openFile(metric, date)
 	if err == nil && file != nil {
 		rec, err = file.GetLatestRecord()
+	}
+	return rec, err
+}
+
+func (s *store) GetRecords(metric string, date time.Time) ([]record.Record, error) {
+	var rec []record.Record
+	file, err := s.openFile(metric, date)
+	if err == nil && file != nil {
+		if size, err := file.EntryCount(); err == nil && size > 0 {
+			for i := 0; i < size; i++ {
+				if r, err := file.GetRecord(i); err == nil {
+					rec = append(rec, r)
+				}
+			}
+		}
 	}
 	return rec, err
 }

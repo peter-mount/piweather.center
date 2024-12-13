@@ -2,7 +2,7 @@ package astro
 
 import (
 	"github.com/peter-mount/piweather.center/astro/julian"
-	"github.com/peter-mount/piweather.center/astro/util"
+	"github.com/peter-mount/piweather.center/util/strings"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/soniakeys/unit"
 	"time"
@@ -27,23 +27,23 @@ func (_ Time) FromDate(y, m, d, h, min, s int) julian.Day {
 }
 
 func (_ Time) HourDMSString(t unit.Time) string {
-	return util.HourDMSString(t)
+	return strings.HourDMSString(t)
 }
 
 func (_ Time) HourDMSStringExt(d float64) string {
-	return util.HourDMSStringExt(d)
+	return strings.HourDMSStringExt(d)
 }
 
 func (_ Time) DegDMS(d float64) (int, int, float64) {
-	return util.DegDMS(d)
+	return strings.DegDMS(d)
 }
 
 func (_ Time) DegDMSString(d float64, sign bool) string {
-	return util.DegDMSString(d, sign)
+	return strings.DegDMSString(d, sign)
 }
 
 func (_ Time) DegDMSStringExt(d float64, sign bool, p, m string) string {
-	return util.DegDMSStringExt(d, sign, p, m)
+	return strings.DegDMSStringExt(d, sign, p, m, 3, 0)
 }
 
 func (_ Time) LocalMidnight(t time.Time) time.Time {

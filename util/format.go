@@ -164,7 +164,7 @@ func Sprintf(f string, args ...interface{}) string {
 					if i, err := calculator.GetInt(arg); err != nil {
 						r = append(r, err.Error())
 					} else {
-						r = append(r, WindCompassDirection(float64(i)))
+						r = append(r, WindCompassDirection(float64(i)).String())
 					}
 				}
 				f = f[2:]

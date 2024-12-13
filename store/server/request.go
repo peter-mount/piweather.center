@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/piweather.center/store/api"
-	"github.com/peter-mount/piweather.center/util"
-	"github.com/peter-mount/piweather.center/util/unit"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
+	time2 "github.com/peter-mount/piweather.center/util/time"
 	"strings"
 	"time"
 )
@@ -27,9 +27,9 @@ func GetRequest(r *rest.Rest) Request {
 
 	req := Request{
 		Metric: strings.ReplaceAll(r.Var(METRIC), "/", "."),
-		At:     unit.ParseTime(query.Get(AT)).Truncate(time.Second),
-		From:   unit.ParseTime(query.Get(FROM)).Truncate(time.Second),
-		To:     unit.ParseTime(to).Truncate(time.Second),
+		At:     time2.ParseTime(query.Get(AT)).Truncate(time.Second),
+		From:   time2.ParseTime(query.Get(FROM)).Truncate(time.Second),
+		To:     time2.ParseTime(to).Truncate(time.Second),
 		Filter: query.Get(FILTER),
 	}
 
@@ -68,5 +68,5 @@ func (r Request) Response() api.Response {
 
 // Match returns true if the metric passed matches the Filter pattern
 func (r Request) Match(s string) bool {
-	return util.Match(s, r.Filter)
+	return strings2.Match(s, r.Filter)
 }

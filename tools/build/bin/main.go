@@ -12,6 +12,7 @@ func main() {
 	if err := kernel.Launch(
 		&build.ConfigInstaller{},
 		&font.FontDownloader{},
+		&build.Installer{},
 		&build.Vsop87Encoder{},
 		&build.YbscEncoder{},
 		&build.WebEncoder{},

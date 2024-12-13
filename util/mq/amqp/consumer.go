@@ -54,7 +54,7 @@ func (s *MQ) AddPriorityTask(priority int, f task.Task) Task {
 
 func Guard(b task.Task) task.Task {
 	return func(ctx context.Context) error {
-		if err := b.Do(ctx); err != nil {
+		if err := b.do(ctx); err != nil {
 			msg := Delivery(ctx)
 			log.Printf("Error on %q\n\n%s\n\n%v", msg.RoutingKey, msg.Body, err)
 			//return err

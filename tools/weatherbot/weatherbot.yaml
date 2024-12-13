@@ -7,7 +7,7 @@ hourly:
   # Name of this post - this is unused
   name: Hourly
   # The stationId this post will be for.
-  # It's used to retrieve the current state that the bot will use for this post.
+  # It's used to retrieve the current station that the bot will use for this post.
   stationId: home
   # Thread of actual posts to be sent to Mastodon.
   # Currently only 1 is supported but in the future any additional ones will

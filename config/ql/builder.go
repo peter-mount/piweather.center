@@ -1,124 +1,63 @@
 package ql
 
 import (
-	"github.com/peter-mount/piweather.center/config/util/ql"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
-type Builder interface {
-	Query(func(ql.QueryVisitor, *ql.Query) error) Builder
+type Builder[T any] interface {
+	AliasedExpression(func(Visitor[T], *AliasedExpression) error) Builder[T]
+	AliasedGroup(func(Visitor[T], *AliasedGroup) error) Builder[T]
+	Expression(func(Visitor[T], *Expression) error) Builder[T]
+	ExpressionModifier(func(Visitor[T], *ExpressionModifier) error) Builder[T]
+	Duration(func(Visitor[T], *time.Duration) error) Builder[T]
+	Function(func(Visitor[T], *Function) error) Builder[T]
+	Histogram(func(Visitor[T], *Histogram) error) Builder[T]
+	Metric(func(Visitor[T], *Metric) error) Builder[T]
+	Query(func(Visitor[T], *Query) error) Builder[T]
+	QueryRange(func(Visitor[T], *QueryRange) error) Builder[T]
+	Select(func(Visitor[T], *Select) error) Builder[T]
+	SelectExpression(func(Visitor[T], *SelectExpression) error) Builder[T]
+	Summarize(func(Visitor[T], *Summarize) error) Builder[T]
+	TableSelect(func(Visitor[T], *TableSelect) error) Builder[T]
+	Time(func(Visitor[T], *time.Time) error) Builder[T]
+	TimeZone(func(Visitor[T], *time.TimeZone) error) Builder[T]
+	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
+	UsingDefinition(func(Visitor[T], *UsingDefinition) error) Builder[T]
+	UsingDefinitions(func(Visitor[T], *UsingDefinitions) error) Builder[T]
+	WindRose(f func(Visitor[T], *WindRose) error) Builder[T]
 
-	Select(func(ql.QueryVisitor, *ql.Select) error) Builder
-	SelectExpression(func(ql.QueryVisitor, *ql.SelectExpression) error) Builder
-	AliasedExpression(func(ql.QueryVisitor, *ql.AliasedExpression) error) Builder
-	Expression(func(ql.QueryVisitor, *ql.Expression) error) Builder
-	ExpressionModifier(func(ql.QueryVisitor, *ql.ExpressionModifier) error) Builder
-	Function(func(ql.QueryVisitor, *ql.Function) error) Builder
-	Metric(func(ql.QueryVisitor, *ql.Metric) error) Builder
-	QueryRange(func(ql.QueryVisitor, *ql.QueryRange) error) Builder
-	Time(func(ql.QueryVisitor, *time.Time) error) Builder
-	Duration(func(ql.QueryVisitor, *time.Duration) error) Builder
-	Unit(func(ql.QueryVisitor, *units.Unit) error) Builder
-	UsingDefinitions(func(ql.QueryVisitor, *ql.UsingDefinitions) error) Builder
-	UsingDefinition(func(ql.QueryVisitor, *ql.UsingDefinition) error) Builder
-
-	Histogram(f func(ql.QueryVisitor, *ql.Histogram) error) Builder
-	WindRose(f func(ql.QueryVisitor, *ql.WindRose) error) Builder
-
-	Build() ql.QueryVisitor
+	Build() Visitor[T]
 }
 
-func NewBuilder() Builder {
-	return &builder{}
+func NewBuilder[T any]() Builder[T] {
+	return &builder[T]{}
 }
 
-type builder struct {
-	common
+type builder[T any] struct {
+	common[T]
 }
 
-func (b *builder) Build() ql.QueryVisitor {
-	v := &visitor{}
-	v.common = b.common
-	return v
+func (b *builder[T]) Build() Visitor[T] {
+	return &visitor[T]{common: b.common}
 }
 
-func (b *builder) Query(f func(ql.QueryVisitor, *ql.Query) error) Builder {
-	b.common.query = f
-	return b
-}
-
-func (b *builder) Select(f func(ql.QueryVisitor, *ql.Select) error) Builder {
-	b.common._select = f
-	return b
-}
-
-func (b *builder) SelectExpression(f func(ql.QueryVisitor, *ql.SelectExpression) error) Builder {
-	b.common.selectExpression = f
-	return b
-}
-
-func (b *builder) AliasedExpression(f func(ql.QueryVisitor, *ql.AliasedExpression) error) Builder {
-	b.common.aliasedExpression = f
-	return b
-}
-
-func (b *builder) Expression(f func(ql.QueryVisitor, *ql.Expression) error) Builder {
-	b.common.expression = f
-	return b
-}
-
-func (b *builder) ExpressionModifier(f func(ql.QueryVisitor, *ql.ExpressionModifier) error) Builder {
-	b.common.expressionModifier = f
-	return b
-}
-
-func (b *builder) Function(f func(ql.QueryVisitor, *ql.Function) error) Builder {
-	b.common.function = f
-	return b
-}
-
-func (b *builder) Metric(f func(ql.QueryVisitor, *ql.Metric) error) Builder {
-	b.common.metric = f
-	return b
-}
-
-func (b *builder) QueryRange(f func(ql.QueryVisitor, *ql.QueryRange) error) Builder {
-	b.common.queryRange = f
-	return b
-}
-
-func (b *builder) Time(f func(ql.QueryVisitor, *time.Time) error) Builder {
-	b.common.time = f
-	return b
-}
-
-func (b *builder) Duration(f func(ql.QueryVisitor, *time.Duration) error) Builder {
+func (b *builder[T]) Duration(f func(Visitor[T], *time.Duration) error) Builder[T] {
 	b.common.duration = f
 	return b
 }
 
-func (b *builder) Unit(f func(ql.QueryVisitor, *units.Unit) error) Builder {
+func (b *builder[T]) Time(f func(Visitor[T], *time.Time) error) Builder[T] {
+	b.common.time = f
+	return b
+}
+
+func (b *builder[T]) TimeZone(f func(Visitor[T], *time.TimeZone) error) Builder[T] {
+	b.common.timeZone = f
+	return b
+}
+
+func (b *builder[T]) Unit(f func(Visitor[T], *units.Unit) error) Builder[T] {
 	b.common.unit = f
-	return b
-}
-
-func (b *builder) UsingDefinitions(f func(ql.QueryVisitor, *ql.UsingDefinitions) error) Builder {
-	b.common.usingDefinitions = f
-	return b
-}
-
-func (b *builder) UsingDefinition(f func(ql.QueryVisitor, *ql.UsingDefinition) error) Builder {
-	b.common.usingDefinition = f
-	return b
-}
-
-func (b *builder) Histogram(f func(ql.QueryVisitor, *ql.Histogram) error) Builder {
-	b.common.histogram = f
-	return b
-}
-
-func (b *builder) WindRose(f func(ql.QueryVisitor, *ql.WindRose) error) Builder {
-	b.common.windRose = f
 	return b
 }

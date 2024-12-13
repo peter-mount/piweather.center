@@ -1,6 +1,7 @@
 package build
 
 import (
+	"github.com/peter-mount/go-build/application"
 	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util/arch"
 	"github.com/peter-mount/go-build/util/makefile/target"
@@ -20,7 +21,8 @@ func (s *WebEncoder) Start() error {
 }
 
 func (s *WebEncoder) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) {
-	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "web")
+	//destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), "web")
+	destDir := filepath.Join(arch.BaseDir(*s.Encoder.Dest), application.FileName(application.STATIC, "web"))
 	target.
 		Target(destDir).
 		MkDir(destDir).

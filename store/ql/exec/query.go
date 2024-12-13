@@ -2,9 +2,9 @@ package exec
 
 import (
 	"fmt"
+	"github.com/peter-mount/piweather.center/config/ql"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
-	"github.com/peter-mount/piweather.center/store/ql/parser"
 	"net/http"
 	"strings"
 )
@@ -41,7 +41,7 @@ func Query(s file.Store, fileName string, query []byte, opts ...QueryOption) (*a
 		result.Message = err.Error()
 		result.Table = nil
 
-		// If we caught a panic in queryImpl then set status to 500
+		// If we caught a panic in queryImpl then Set status to 500
 		if strings.HasPrefix(result.Message, "panic:") {
 			result.Status = http.StatusInternalServerError
 		}
@@ -57,7 +57,7 @@ func queryImpl(s file.Store, fileName string, query []byte, result *api.Result, 
 		}
 	}()
 
-	q, err := parser.New().ParseBytes(fileName, query)
+	q, err := ql.NewParser().ParseBytes(fileName, query)
 	if err != nil {
 		return err
 	}
