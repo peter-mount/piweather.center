@@ -14,7 +14,7 @@ var (
 		{"hashComment", `#.*`},
 		{"sheBang", `#\!.*`},
 		{"comment", `//.*|/\*.*?\*/`},
-		{"whitespace", `\s+`},
+		{"Whitespace", `\s+`},
 		//{"Ident", `([a-zA-Z_][a-zA-Z0-9_]*)`},
 		{"Ident", `\b([a-zA-Z_][a-zA-Z0-9_]*)\b`},
 		//{"Ident", `\b(([a-zA-Z_][a-zA-Z0-9_]*)(\.([a-zA-Z_][a-zA-Z0-9_]*))*)\b`},
@@ -64,6 +64,7 @@ func NewParser[G any](rules []lexer.SimpleRule, opts []participle.Option, init P
 		participle.Lexer(l),
 		participle.UseLookahead(2),
 		participle.Unquote("String"),
+		participle.Elide("Whitespace"),
 	}
 	o = append(o, opts...)
 	p := participle.MustBuild[G](o...)
