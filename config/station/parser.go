@@ -1,9 +1,11 @@
 package station
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
@@ -11,7 +13,10 @@ import (
 )
 
 func NewParser() util.Parser[Stations] {
-	return util.NewParser[Stations](nil, nil, stationInit)
+	return util.NewParser[Stations](nil, []participle.Option{
+		participle.ParseTypeWith[command.Command](command.Parser),
+	},
+		stationInit)
 }
 
 var (
