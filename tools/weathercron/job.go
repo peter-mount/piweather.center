@@ -22,7 +22,7 @@ func (j *Tasks) addJob(job *Task) error {
 
 func (j *Tasks) Start() error {
 	for _, job := range j.tasks {
-		entryId, err := j.cron.AddFunc(job.job.CronTab.Definition, job.run)
+		entryId, err := j.cron.AddFunc(job.job.CronTab.Definition(), job.run)
 		if err != nil {
 			j.Stop()
 			return err

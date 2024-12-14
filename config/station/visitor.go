@@ -15,7 +15,7 @@ type Visitor[T any] interface {
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
 	Container(*Container) error
-	CronTab(*time.CronTab) error
+	CronTab(time.CronTab) error
 	Current(*Current) error
 	Dashboard(*Dashboard) error
 	Ephemeris(*Ephemeris) error
@@ -77,7 +77,7 @@ type common[T any] struct {
 	componentList            func(Visitor[T], *ComponentList) error
 	componentListEntry       func(Visitor[T], *ComponentListEntry) error
 	container                func(Visitor[T], *Container) error
-	crontab                  func(Visitor[T], *time.CronTab) error
+	crontab                  func(Visitor[T], time.CronTab) error
 	current                  func(Visitor[T], *Current) error
 	dashboard                func(Visitor[T], *Dashboard) error
 	ephemeris                func(Visitor[T], *Ephemeris) error
@@ -132,7 +132,7 @@ func (c *visitor[T]) Clone() Visitor[T] {
 	return &visitor[T]{common: c.common}
 }
 
-func (c *visitor[T]) CronTab(d *time.CronTab) error {
+func (c *visitor[T]) CronTab(d time.CronTab) error {
 	var err error
 	if d != nil {
 		if c.crontab != nil {
@@ -142,7 +142,7 @@ func (c *visitor[T]) CronTab(d *time.CronTab) error {
 			}
 		}
 
-		err = errors.Error(d.Pos, err)
+		err = errors.Error(d.Position(), err)
 	}
 	return err
 }

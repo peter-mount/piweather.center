@@ -13,8 +13,11 @@ import (
 )
 
 func NewParser() util.Parser[Stations] {
-	return util.NewParser[Stations](nil, []participle.Option{
-		participle.ParseTypeWith[command.Command](command.Parser),
+	return util.NewParserExt[Stations](nil, func(l lexer.Definition) []participle.Option {
+		return []participle.Option{
+			participle.ParseTypeWith[command.Command](command.Parser),
+			participle.ParseTypeWith[time.CronTab](time.CronTabParser(l)),
+		}
 	},
 		stationInit)
 }
@@ -24,7 +27,6 @@ var (
 		Axis(initAxis).
 		Calculation(initCalculation).
 		Container(initContainer).
-		CronTab(initCronTab).
 		Dashboard(initDashboard).
 		Ephemeris(initEphemeris).
 		EphemerisTarget(initEphemerisTarget).
@@ -108,10 +110,6 @@ func initLocation(v Visitor[*initState], d *location.Location) error {
 	}
 
 	return errors.Error(d.Pos, err)
-}
-
-func initCronTab(_ Visitor[*initState], d *time.CronTab) error {
-	return errors.Error(d.Pos, d.Init())
 }
 
 func initTimeZone(_ Visitor[*initState], d *time.TimeZone) error {

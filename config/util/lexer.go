@@ -51,6 +51,12 @@ type defaultParser[G any] struct {
 }
 
 func NewParser[G any](rules []lexer.SimpleRule, opts []participle.Option, init ParserInit[G]) Parser[G] {
+	return NewParserExt[G](rules, func(_ lexer.Definition) []participle.Option {
+		return opts
+	}, init)
+}
+
+func NewParserExt[G any](rules []lexer.SimpleRule, optFactory func(l lexer.Definition) []participle.Option, init ParserInit[G]) Parser[G] {
 	var r []lexer.SimpleRule
 	if len(rules) == 0 {
 		r = commonLexerRules
@@ -66,7 +72,9 @@ func NewParser[G any](rules []lexer.SimpleRule, opts []participle.Option, init P
 		participle.Unquote("String"),
 		participle.Elide("Whitespace"),
 	}
-	o = append(o, opts...)
+	if optFactory != nil {
+		o = append(o, optFactory(l)...)
+	}
 	p := participle.MustBuild[G](o...)
 
 	if init == nil {

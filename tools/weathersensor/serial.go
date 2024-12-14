@@ -32,17 +32,13 @@ func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial
 
 	switch dev.Info().PollMode {
 	case bus.PollReading:
-		if st.sensor.Poll == nil || st.sensor.Poll.Definition == "" {
-			return errors.Errorf(sensor.Pos, "serial device %q requires poll period defining", sensor.Driver)
-		}
-
-		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition)
+		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition())
 
 		s.addSensor(
 			"serial",
 			st.station.Name,
 			st.sensor.Target.OriginalName,
-			"poll "+st.sensor.Poll.Definition,
+			"poll "+st.sensor.Poll.Definition(),
 			sensor.Port,
 			fmt.Sprintf("%d", sensor.BaudRate))
 

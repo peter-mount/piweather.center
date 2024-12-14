@@ -3,6 +3,7 @@ package weathercalc
 import (
 	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
+	"gopkg.in/robfig/cron.v2"
 )
 
 type calcState struct {
@@ -25,27 +26,23 @@ func addCalculation(v station2.Visitor[*calcState], c *station2.Calculation) err
 
 		// RESET EVERY cron definition
 		if c.ResetEvery != nil {
-			if _, err := calc.Cron.AddFunc(c.ResetEvery.Definition, func() {
+			_ = calc.Cron.Schedule(c.ResetEvery.Schedule(), cron.FuncJob(func() {
 				calc.Latest.Remove(c.Target)
 				if c.Load != nil {
 					//_ = calc.loadFromDB(c)
 				}
 				calc.calculateTarget(c.Target)
-			}); err != nil {
-				return err
-			}
+			}))
 		}
 
 		// Every definition
 		if c.Every != nil {
-			if _, err := calc.Cron.AddFunc(c.Every.Definition, func() {
+			_ = calc.Cron.Schedule(c.Every.Schedule(), cron.FuncJob(func() {
 				if c.Load != nil {
 					//_ = calc.loadFromDB(c)
 				}
 				calc.calculateTarget(c.Target)
-			}); err != nil {
-				return err
-			}
+			}))
 		}
 
 		// If the target still has no Calculation registered then create it.

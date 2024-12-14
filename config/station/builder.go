@@ -13,7 +13,7 @@ type Builder[T any] interface {
 	ComponentList(func(Visitor[T], *ComponentList) error) Builder[T]
 	ComponentListEntry(func(Visitor[T], *ComponentListEntry) error) Builder[T]
 	Container(func(Visitor[T], *Container) error) Builder[T]
-	CronTab(func(Visitor[T], *time.CronTab) error) Builder[T]
+	CronTab(func(Visitor[T], time.CronTab) error) Builder[T]
 	Current(func(Visitor[T], *Current) error) Builder[T]
 	Dashboard(func(Visitor[T], *Dashboard) error) Builder[T]
 	Ephemeris(func(Visitor[T], *Ephemeris) error) Builder[T]
@@ -68,7 +68,7 @@ func (b *builder[T]) Build() Visitor[T] {
 	return &visitor[T]{common: b.common}
 }
 
-func (b *builder[T]) CronTab(f func(Visitor[T], *time.CronTab) error) Builder[T] {
+func (b *builder[T]) CronTab(f func(Visitor[T], time.CronTab) error) Builder[T] {
 	b.crontab = f
 	return b
 }

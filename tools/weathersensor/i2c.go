@@ -29,17 +29,14 @@ func (s *Service) i2cSensor(v station.Visitor[*state], sensor *station.I2C) erro
 
 	switch dev.Info().PollMode {
 	case bus.PollReading:
-		if st.sensor.Poll == nil || st.sensor.Poll.Definition == "" {
-			return errors.Errorf(sensor.Pos, "i2c device %q requires poll period defining", sensor.Device)
-		}
 
-		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition)
+		err = s.PollDevice(dev, instance, publisher, st.sensor.Poll.Definition())
 
 		s.addSensor(
 			"i2c",
 			st.station.Name,
 			st.sensor.Target.OriginalName,
-			"poll "+st.sensor.Poll.Definition,
+			"poll "+st.sensor.Poll.Definition(),
 			fmt.Sprintf("%d:0x%02x", sensor.Bus, sensor.Device),
 			"")
 

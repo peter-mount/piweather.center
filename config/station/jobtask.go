@@ -10,7 +10,7 @@ import (
 
 type Task struct {
 	Pos     lexer.Position
-	CronTab *time.CronTab   `parser:"@@"`
+	CronTab time.CronTab    `parser:"@@"`
 	Execute command.Command `parser:"@@"`
 }
 
