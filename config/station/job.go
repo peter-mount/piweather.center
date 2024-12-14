@@ -4,29 +4,31 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
-	"github.com/peter-mount/piweather.center/config/util/time"
 )
 
-// Job represents a scheduled task
-type Job struct {
-	Pos     lexer.Position
-	Name    string        `parser:"'job' '(' @String"`
-	CronTab *time.CronTab `parser:"@@"`
-	Task    *JobTask      `parser:"@@ ')'"`
+// Tasks represents a scheduled task
+type Tasks struct {
+	Pos   lexer.Position
+	Tasks []*Task `parser:"'tasks' '(' @@* ')'"`
 }
 
-func (c *visitor[T]) Job(d *Job) error {
+func (c *visitor[T]) Tasks(d *Tasks) error {
 	var err error
 	if d != nil {
-		if c.job != nil {
-			err = c.job(c, d)
+		if c.tasks != nil {
+			err = c.tasks(c, d)
 			if util.IsVisitorStop(err) {
 				return nil
 			}
 		}
 
 		if err == nil {
-			err = c.CronTab(d.CronTab)
+			for _, task := range d.Tasks {
+				err = c.Task(task)
+				if err != nil {
+					break
+				}
+			}
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -34,7 +36,7 @@ func (c *visitor[T]) Job(d *Job) error {
 	return err
 }
 
-func (b *builder[T]) Job(f func(Visitor[T], *Job) error) Builder[T] {
-	b.job = f
+func (b *builder[T]) Tasks(f func(Visitor[T], *Tasks) error) Builder[T] {
+	b.tasks = f
 	return b
 }

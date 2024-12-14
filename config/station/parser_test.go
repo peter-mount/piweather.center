@@ -395,13 +395,13 @@ station( "home"
 		},
 		// metric
 		{
-			name: "job",
+			name: "tasks",
 			tests: []test{
 				{
 					name: "execute",
 					script: `
 station("home"
-	job(
+	tasks(
 		"daily" ls -l /tmp
 	)
 )`,

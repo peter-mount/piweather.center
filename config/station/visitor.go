@@ -28,8 +28,6 @@ type Visitor[T any] interface {
 	Http(*Http) error
 	HttpFormat(*HttpFormat) error
 	I2C(*I2C) error
-	Job(*Job) error
-	JobTask(*JobTask) error
 	Load(*Load) error
 	Location(*location.Location) error
 	LocationExpression(*LocationExpression) error
@@ -50,6 +48,8 @@ type Visitor[T any] interface {
 	StationEntry(*StationEntry) error
 	StationEntryList(*StationEntryList) error
 	Stations(*Stations) error
+	Task(*Task) error
+	Tasks(*Tasks) error
 	Text(*Text) error
 	TimeZone(*time.TimeZone) error
 	Unit(*units.Unit) error
@@ -90,8 +90,6 @@ type common[T any] struct {
 	http                     func(Visitor[T], *Http) error
 	httpFormat               func(Visitor[T], *HttpFormat) error
 	i2c                      func(Visitor[T], *I2C) error
-	job                      func(Visitor[T], *Job) error
-	jobTask                  func(Visitor[T], *JobTask) error
 	load                     func(Visitor[T], *Load) error
 	location                 func(Visitor[T], *location.Location) error
 	locationExpression       func(Visitor[T], *LocationExpression) error
@@ -112,6 +110,8 @@ type common[T any] struct {
 	stationEntry             func(Visitor[T], *StationEntry) error
 	stationEntryList         func(Visitor[T], *StationEntryList) error
 	stations                 func(Visitor[T], *Stations) error
+	task                     func(Visitor[T], *Task) error
+	tasks                    func(Visitor[T], *Tasks) error
 	text                     func(Visitor[T], *Text) error
 	timeZone                 func(Visitor[T], *time.TimeZone) error
 	unit                     func(Visitor[T], *units.Unit) error

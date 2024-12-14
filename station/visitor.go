@@ -70,7 +70,8 @@ func addStationEntryList(v station.Visitor[*visitorState], d *station.StationEnt
 		// Keep children we require
 		if st.loadOption.Accept(CalculationOption, e.Calculation) ||
 			st.loadOption.Accept(DashboardOption, e.Dashboard) ||
-			st.loadOption.Accept(SensorOption, e.Sensor) {
+			st.loadOption.Accept(SensorOption, e.Sensor) ||
+			st.loadOption.Accept(JobOption, e.Tasks) {
 			l = append(l, e)
 		}
 	}
