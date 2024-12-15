@@ -27,26 +27,42 @@ func (c command) Args() []string {
 	return c.args
 }
 
+type commandParser struct {
+	whiteSpaceToken lexer.TokenType
+}
+
 // Parser handles the parsing of the Command.
 //
 // To register this Parser with participle, use the following to create a parser option:
 //
-// participle.ParseTypeWith[command.Command](command.Parser)
-func Parser(pl *lexer.PeekingLexer) (Command, error) {
+// participle.ParseTypeWith[command.Command](command.Parser(l))
+//
+// where l is the lexer.Definition
+func Parser(l lexer.Definition) func(pl *lexer.PeekingLexer) (Command, error) {
+	symbols := l.Symbols()
+
+	parser := &commandParser{
+		whiteSpaceToken: symbols["Whitespace"],
+	}
+
+	return parser.parseCommand
+}
+
+func (c *commandParser) parseCommand(pl *lexer.PeekingLexer) (Command, error) {
 	var ret command
 
-	s, stop := commandParser2(pl)
+	s, stop := c.parseAttribute(pl)
 	ret.command = s
 
 	for !stop {
-		s, stop = commandParser2(pl)
+		s, stop = c.parseAttribute(pl)
 		ret.args = append(ret.args, s)
 	}
 
 	return ret, nil
 }
 
-func commandParser2(pl *lexer.PeekingLexer) (string, bool) {
+func (c *commandParser) parseAttribute(pl *lexer.PeekingLexer) (string, bool) {
 	var s []string
 	var stop bool
 
@@ -65,16 +81,12 @@ func commandParser2(pl *lexer.PeekingLexer) (string, bool) {
 			break
 		}
 
-		switch token.Value[0] {
-		// new line, carriage return or form feed terminates the command
-		case '\n', '\r', '\f':
-			return strings.Join(s, ""), true
-
-		// space, tab, U+0085 (NEL), U+00A0 (NBSP) ends the argument
-		case '\t', '\v', ' ', 0x85, 0xA0:
-			return strings.Join(s, ""), false
-
-		default:
+		if token.Type == c.whiteSpaceToken {
+			// Stop parsing the attribute on a whitespace,
+			// but terminate the command on newline, carriage return or form feed.
+			stop = strings.ContainsAny(token.Value, "\n\r\f")
+			break
+		} else {
 			s = append(s, token.String())
 			_ = pl.Next()
 		}

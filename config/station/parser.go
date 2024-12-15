@@ -16,7 +16,7 @@ import (
 func NewParser() util.Parser[Stations] {
 	return util.NewParserExt[Stations](nil, func(l lexer.Definition) []participle.Option {
 		return []participle.Option{
-			participle.ParseTypeWith[command.Command](command.Parser),
+			participle.ParseTypeWith[command.Command](command.Parser(l)),
 			participle.ParseTypeWith[time.CronTab](time.CronTabParser(l)),
 		}
 	},
