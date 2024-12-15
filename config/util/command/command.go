@@ -8,13 +8,15 @@ import (
 // Command represents a parsed command line, consisting of the executable path and any arguments.
 // The command line is terminated by a new line, carriage return, form feed or eof
 type Command interface {
+	Position() lexer.Position
 	Command() string
 	Args() []string
 }
 
 type command struct {
-	command string
-	args    []string
+	position lexer.Position
+	command  string
+	args     []string
 }
 
 // Command returns the command name
@@ -25,6 +27,10 @@ func (c command) Command() string {
 // Args returns the arguments for the command
 func (c command) Args() []string {
 	return c.args
+}
+
+func (c command) Position() lexer.Position {
+	return c.position
 }
 
 type commandParser struct {
@@ -49,27 +55,25 @@ func Parser(l lexer.Definition) func(pl *lexer.PeekingLexer) (Command, error) {
 }
 
 func (c *commandParser) parseCommand(pl *lexer.PeekingLexer) (Command, error) {
-	var ret command
-
-	s, stop := c.parseAttribute(pl)
-	ret.command = s
+	s, pos, stop := c.parseAttribute(pl)
+	ret := command{position: pos, command: s}
 
 	for !stop {
-		s, stop = c.parseAttribute(pl)
+		s, _, stop = c.parseAttribute(pl)
 		ret.args = append(ret.args, s)
 	}
 
 	return ret, nil
 }
 
-func (c *commandParser) parseAttribute(pl *lexer.PeekingLexer) (string, bool) {
+func (c *commandParser) parseAttribute(pl *lexer.PeekingLexer) (string, lexer.Position, bool) {
 	var s []string
 	var stop bool
 
+	var token *lexer.Token
 	for {
 		// Peek at the token. For the first one use Peek as we are expecting a token
 		// but after that use RawPeek as we want to check for elided tokens, specifically whitespace
-		var token *lexer.Token
 		if len(s) == 0 {
 			token = pl.Peek()
 		} else {
@@ -92,5 +96,5 @@ func (c *commandParser) parseAttribute(pl *lexer.PeekingLexer) (string, bool) {
 		}
 	}
 
-	return strings.Join(s, ""), stop
+	return strings.Join(s, ""), token.Pos, stop
 }
