@@ -1,7 +1,6 @@
 package weathercron
 
 import (
-	"fmt"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
@@ -9,10 +8,10 @@ import (
 
 type state struct {
 	service  *Service
-	station  *station.Station
-	job      *station.Tasks
-	jobEntry *Task // Task being created
-	jobs     *Tasks
+	station  *station.Station // Station containing the tasks
+	job      *station.Tasks   // Task definitions
+	jobEntry *Task            // Task being created
+	jobs     *Tasks           // Tasks being created
 }
 
 func (s *Service) loadJobs(stations *station.Stations) error {
@@ -48,7 +47,7 @@ func (s *Service) loadJobs(stations *station.Stations) error {
 func addTask(v station.Visitor[*state], d *station.Task) error {
 	st := v.Get()
 
-	st.jobEntry = newTask(d)
+	st.jobEntry = newTask(*st.service.DBServer, st.station, d)
 
 	err := st.jobs.addJob(st.jobEntry)
 
@@ -60,7 +59,6 @@ func addTask(v station.Visitor[*state], d *station.Task) error {
 }
 
 func addMetric(v station.Visitor[*state], d *station.Metric) error {
-	fmt.Printf("metric %q\n", d.Name)
 	st := v.Get()
 	st.jobEntry.addMetric(d.Name)
 	return util.VisitorStop

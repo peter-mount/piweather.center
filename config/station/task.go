@@ -47,6 +47,11 @@ func (c *visitor[T]) Task(d *Task) error {
 			case d.Execute != nil:
 				err = c.Command(d.Execute)
 			}
+
+			// Consume Break returned from TaskCondition as it's been claimed
+			if errors.IsBreak(err) {
+				err = nil
+			}
 		}
 
 		err = errors.Error(d.Pos, err)

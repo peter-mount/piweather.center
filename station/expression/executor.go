@@ -20,6 +20,7 @@ import (
 
 type Executor interface {
 	CalculateResult(*station2.Calculation) (value.Value, time.Time, error)
+	Evaluate(*station2.Expression) (value.Value, time.Time, error)
 }
 
 type executor struct {
@@ -112,7 +113,28 @@ func (e *executor) CalculateResult(c *station2.Calculation) (value.Value, time.T
 		return value.Value{}, time.Time{}, err
 	}
 
-	log.Printf("Result %q %s %s", e.currentMetricId, r.Value, r.Time.Format(time.RFC3339))
+	if log.IsVerbose() {
+		log.Printf("Result %q %s %s", e.currentMetricId, r.Value, r.Time.Format(time.RFC3339))
+	}
+
+	return r.Value, r.Time, nil
+}
+
+func (e *executor) Evaluate(c *station2.Expression) (value.Value, time.Time, error) {
+
+	err := e.visitor.Expression(c)
+
+	r, exists := e.pop()
+	if err != nil {
+		log.Printf("eval %q %v", e.currentMetricId, err)
+	}
+	if err != nil || !exists || !r.IsValid() {
+		return value.Value{}, time.Time{}, err
+	}
+
+	if log.IsVerbose() {
+		log.Printf("eval result %q %s %s", e.currentMetricId, r.Value, r.Time.Format(time.RFC3339))
+	}
 
 	return r.Value, r.Time, nil
 }

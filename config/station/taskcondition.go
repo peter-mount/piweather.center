@@ -21,6 +21,9 @@ func (c *visitor[T]) TaskCondition(d *TaskCondition) error {
 			if util.IsVisitorStop(err) {
 				return nil
 			}
+			if errors.IsBreak(err) {
+				return err
+			}
 		}
 
 		if err == nil {

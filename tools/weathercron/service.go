@@ -16,6 +16,7 @@ type Service struct {
 	Cron     *cron.CronService `kernel:"inject"`
 	Config   config.Manager    `kernel:"inject"`
 	Stations *station.Stations `kernel:"inject"`
+	DBServer *string           `kernel:"flag,metric-db,DB url"`
 	// internal from here
 	dashDir string
 	mutex   sync.Mutex
