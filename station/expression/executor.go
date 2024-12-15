@@ -1,4 +1,4 @@
-package weathercalc
+package expression
 
 import (
 	"fmt"
@@ -18,13 +18,20 @@ import (
 	"time"
 )
 
+type Executor interface {
+	CalculateResult(*station2.Calculation) (value.Value, time.Time, error)
+}
+
 type executor struct {
-	service *Calculator
-	calc    *Calculation
-	latest  memory.Latest
-	stack   []StackEntry
-	time    value.Time
-	stacks  [][]StackEntry
+	//service *Calculator
+	dbServer        string        // Database server url, "" for none
+	latest          memory.Latest // Latest metric service
+	visitor         station2.Visitor[*executor]
+	currentMetricId string         // metric to return with the current operator
+	calc            *Calculation   // Calculation being processed
+	stack           []StackEntry   // expression stack
+	stacks          [][]StackEntry // saved expression stacks
+	time            value.Time     // Time for expression queries
 }
 
 type StackEntry struct {
@@ -93,16 +100,33 @@ func (e *executor) setMetric(m string, v StackEntry) {
 	}
 }
 
-func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time, error) {
-	e := executor{
-		service: calc,
-		calc:    c,
-		latest:  calc.Latest,
-		// Time at the location
-		time: c.station.Location.Time(),
+func (e *executor) CalculateResult(c *station2.Calculation) (value.Value, time.Time, error) {
+
+	err := e.visitor.Calculation(c)
+
+	r, exists := e.pop()
+	if err != nil {
+		log.Printf("calc %q %v", e.currentMetricId, err)
+	}
+	if err != nil || !exists || !r.IsValid() {
+		return value.Value{}, time.Time{}, err
 	}
 
-	err := station2.NewBuilder[*Calculator]().
+	log.Printf("Result %q %s %s", e.currentMetricId, r.Value, r.Time.Format(time.RFC3339))
+
+	return r.Value, r.Time, nil
+}
+
+func NewExecutor(currentMetricId string, t value.Time, dbServer string, latest memory.Latest) Executor {
+	e := &executor{
+		dbServer:        dbServer,
+		currentMetricId: currentMetricId,
+		latest:          latest,
+		// Time at the location
+		time: t,
+	}
+
+	e.visitor = station2.NewBuilder[*executor]().
 		Calculation(e.calculation).
 		Current(e.current).
 		Expression(e.expression).
@@ -113,23 +137,12 @@ func (calc *Calculator) calculateResult(c *Calculation) (value.Value, time.Time,
 		Unit(e.unit).
 		UseFirst(e.useFirst).
 		Build().
-		Set(calc).
-		Calculation(c.Src())
+		Set(e)
 
-	r, exists := e.pop()
-	if err != nil {
-		log.Printf("calc %q %v", c.ID(), err)
-	}
-	if err != nil || !exists || !r.IsValid() {
-		return value.Value{}, time.Time{}, err
-	}
-
-	log.Printf("Result %q %s %s", c.ID(), r.Value, r.Time.Format(time.RFC3339))
-
-	return r.Value, r.Time, nil
+	return e
 }
 
-func (e *executor) calculation(v station2.Visitor[*Calculator], b *station2.Calculation) error {
+func (e *executor) calculation(v station2.Visitor[*executor], b *station2.Calculation) error {
 	e.resetStack()
 
 	// If usefirst set check to see we have a latest value, if not then set the default value
@@ -161,7 +174,7 @@ func (e *executor) calculation(v station2.Visitor[*Calculator], b *station2.Calc
 	return util.VisitorStop
 }
 
-func (e *executor) expression(v station2.Visitor[*Calculator], b *station2.Expression) error {
+func (e *executor) expression(v station2.Visitor[*executor], b *station2.Expression) error {
 	var err error
 	switch {
 	case b.Current != nil:
@@ -189,11 +202,11 @@ func (e *executor) expression(v station2.Visitor[*Calculator], b *station2.Expre
 	return util.VisitorStop
 }
 
-func (e *executor) current(_ station2.Visitor[*Calculator], _ *station2.Current) error {
+func (e *executor) current(_ station2.Visitor[*executor], _ *station2.Current) error {
 	return e.metricImpl(e.calc.ID())
 }
 
-func (e *executor) metric(_ station2.Visitor[*Calculator], b *station2.Metric) error {
+func (e *executor) metric(_ station2.Visitor[*executor], b *station2.Metric) error {
 	return e.metricImpl(b.Name)
 }
 
@@ -207,7 +220,7 @@ func (e *executor) metricImpl(n string) error {
 	return nil
 }
 
-func (e *executor) metricExpression(v station2.Visitor[*Calculator], b *station2.MetricExpression) error {
+func (e *executor) metricExpression(v station2.Visitor[*executor], b *station2.MetricExpression) error {
 	var err error
 	var res *api.Result
 
@@ -219,7 +232,7 @@ func (e *executor) metricExpression(v station2.Visitor[*Calculator], b *station2
 
 		q := fmt.Sprintf(`between "now" add %q and "now" limit 1 select timeof(),first(%s)`, b.Offset, b.Metric.Name)
 
-		cl := client.Client{Url: *e.service.DBServer}
+		cl := client.Client{Url: e.dbServer}
 		res, err = cl.Query(q)
 		if err == nil {
 			if len(res.Table) > 0 {
@@ -244,7 +257,7 @@ func (e *executor) metricExpression(v station2.Visitor[*Calculator], b *station2
 	return errors.Error(b.Pos, err)
 }
 
-func (e *executor) useFirst(_ station2.Visitor[*Calculator], b *station2.UseFirst) error {
+func (e *executor) useFirst(_ station2.Visitor[*executor], b *station2.UseFirst) error {
 	rec, exists := e.latest.Latest(e.calc.ID())
 	if !exists {
 		rec, exists = e.latest.Latest(b.Metric.Name)
@@ -258,7 +271,7 @@ func (e *executor) useFirst(_ station2.Visitor[*Calculator], b *station2.UseFirs
 	return nil
 }
 
-func (e *executor) unit(_ station2.Visitor[*Calculator], b *units.Unit) error {
+func (e *executor) unit(_ station2.Visitor[*executor], b *units.Unit) error {
 	v, present := e.pop()
 	if present {
 		nv, err := v.Value.As(b.Unit())
@@ -272,7 +285,7 @@ func (e *executor) unit(_ station2.Visitor[*Calculator], b *units.Unit) error {
 	return nil
 }
 
-func (e *executor) function(v station2.Visitor[*Calculator], b *station2.Function) error {
+func (e *executor) function(v station2.Visitor[*executor], b *station2.Function) error {
 	e.save()
 
 	calc, err := value.GetCalculator(b.Name)
@@ -319,7 +332,7 @@ func (e *executor) function(v station2.Visitor[*Calculator], b *station2.Functio
 	return err
 }
 
-func (e *executor) locationExpression(v station2.Visitor[*Calculator], b *station2.LocationExpression) error {
+func (e *executor) locationExpression(v station2.Visitor[*executor], b *station2.LocationExpression) error {
 	var err error
 	if b != nil {
 		var val value.Value

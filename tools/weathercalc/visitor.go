@@ -3,6 +3,7 @@ package weathercalc
 import (
 	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/station/expression"
 	"gopkg.in/robfig/cron.v2"
 )
 
@@ -49,7 +50,7 @@ func addCalculation(v station2.Visitor[*calcState], c *station2.Calculation) err
 		// This will happen when a calculation is defined that doesn't
 		// reference any metrics. e.g. SolarAltitude which uses just location and time
 		if calc.getCalculationByTarget(c.Target) == nil {
-			calc.addCalculationByTarget(NewCalculation(c, st.station))
+			calc.addCalculationByTarget(expression.NewCalculation(c, st.station))
 		}
 
 		if c.Load != nil {
