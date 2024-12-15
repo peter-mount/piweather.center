@@ -1,6 +1,7 @@
 package station
 
 import (
+	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
@@ -9,6 +10,7 @@ import (
 type Builder[T any] interface {
 	Axis(func(Visitor[T], *Axis) error) Builder[T]
 	Calculation(func(Visitor[T], *Calculation) error) Builder[T]
+	Command(f func(Visitor[T], command.Command) error) Builder[T]
 	Component(func(Visitor[T], *Component) error) Builder[T]
 	ComponentList(func(Visitor[T], *ComponentList) error) Builder[T]
 	ComponentListEntry(func(Visitor[T], *ComponentListEntry) error) Builder[T]
@@ -47,6 +49,7 @@ type Builder[T any] interface {
 	StationEntryList(func(Visitor[T], *StationEntryList) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
 	Task(func(Visitor[T], *Task) error) Builder[T]
+	TaskCondition(func(Visitor[T], *TaskCondition) error) Builder[T]
 	Tasks(func(Visitor[T], *Tasks) error) Builder[T]
 	Text(func(Visitor[T], *Text) error) Builder[T]
 	TimeZone(func(Visitor[T], *time.TimeZone) error) Builder[T]
@@ -66,6 +69,11 @@ func NewBuilder[T any]() Builder[T] {
 
 func (b *builder[T]) Build() Visitor[T] {
 	return &visitor[T]{common: b.common}
+}
+
+func (b *builder[T]) Command(f func(Visitor[T], command.Command) error) Builder[T] {
+	b.command = f
+	return b
 }
 
 func (b *builder[T]) CronTab(f func(Visitor[T], time.CronTab) error) Builder[T] {

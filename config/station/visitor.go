@@ -3,6 +3,7 @@ package station
 import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
@@ -11,6 +12,7 @@ import (
 type Visitor[T any] interface {
 	Axis(*Axis) error
 	Calculation(*Calculation) error
+	Command(command.Command) error
 	Component(*Component) error
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
@@ -49,6 +51,7 @@ type Visitor[T any] interface {
 	StationEntryList(*StationEntryList) error
 	Stations(*Stations) error
 	Task(*Task) error
+	TaskCondition(*TaskCondition) error
 	Tasks(*Tasks) error
 	Text(*Text) error
 	TimeZone(*time.TimeZone) error
@@ -73,6 +76,7 @@ type visitor[T any] struct {
 type common[T any] struct {
 	axis                     func(Visitor[T], *Axis) error
 	calculation              func(Visitor[T], *Calculation) error
+	command                  func(Visitor[T], command.Command) error
 	component                func(Visitor[T], *Component) error
 	componentList            func(Visitor[T], *ComponentList) error
 	componentListEntry       func(Visitor[T], *ComponentListEntry) error
@@ -111,6 +115,7 @@ type common[T any] struct {
 	stationEntryList         func(Visitor[T], *StationEntryList) error
 	stations                 func(Visitor[T], *Stations) error
 	task                     func(Visitor[T], *Task) error
+	taskCondition            func(Visitor[T], *TaskCondition) error
 	tasks                    func(Visitor[T], *Tasks) error
 	text                     func(Visitor[T], *Text) error
 	timeZone                 func(Visitor[T], *time.TimeZone) error
@@ -130,6 +135,21 @@ func (c *visitor[T]) Set(data T) Visitor[T] {
 
 func (c *visitor[T]) Clone() Visitor[T] {
 	return &visitor[T]{common: c.common}
+}
+
+func (c *visitor[T]) Command(d command.Command) error {
+	var err error
+	if d != nil {
+		if c.command != nil {
+			err = c.command(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(d.Position(), err)
+	}
+	return err
 }
 
 func (c *visitor[T]) CronTab(d time.CronTab) error {

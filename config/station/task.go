@@ -9,9 +9,11 @@ import (
 )
 
 type Task struct {
-	Pos     lexer.Position
-	CronTab time.CronTab    `parser:"@@"`
-	Execute command.Command `parser:"@@"`
+	Pos        lexer.Position
+	CronTab    time.CronTab     `parser:"'schedule' @@"`           // primary cron schedule
+	Conditions []*TaskCondition `parser:"( @@+"`                   // Condition list
+	Default    command.Command  `parser:"  ( 'default' ':' @@ )?"` // Optional command if no condition is met
+	Execute    command.Command  `parser:"| @@ )"`                  // Command when no conditions present
 }
 
 func (c *visitor[T]) Task(d *Task) error {
@@ -26,6 +28,15 @@ func (c *visitor[T]) Task(d *Task) error {
 
 		if err == nil {
 			err = c.CronTab(d.CronTab)
+		}
+
+		if err == nil {
+			switch {
+
+			case len(d.Conditions) > 0:
+
+			case d.Execute != nil:
+			}
 		}
 
 		err = errors.Error(d.Pos, err)
