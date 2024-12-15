@@ -3,6 +3,8 @@ package weathercalc
 import (
 	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/station/expression"
+	"gopkg.in/robfig/cron.v2"
 )
 
 type calcState struct {
@@ -25,34 +27,30 @@ func addCalculation(v station2.Visitor[*calcState], c *station2.Calculation) err
 
 		// RESET EVERY cron definition
 		if c.ResetEvery != nil {
-			if _, err := calc.Cron.AddFunc(c.ResetEvery.Definition, func() {
+			_ = calc.Cron.Schedule(c.ResetEvery.Schedule(), cron.FuncJob(func() {
 				calc.Latest.Remove(c.Target)
 				if c.Load != nil {
 					//_ = calc.loadFromDB(c)
 				}
 				calc.calculateTarget(c.Target)
-			}); err != nil {
-				return err
-			}
+			}))
 		}
 
 		// Every definition
 		if c.Every != nil {
-			if _, err := calc.Cron.AddFunc(c.Every.Definition, func() {
+			_ = calc.Cron.Schedule(c.Every.Schedule(), cron.FuncJob(func() {
 				if c.Load != nil {
 					//_ = calc.loadFromDB(c)
 				}
 				calc.calculateTarget(c.Target)
-			}); err != nil {
-				return err
-			}
+			}))
 		}
 
 		// If the target still has no Calculation registered then create it.
 		// This will happen when a calculation is defined that doesn't
 		// reference any metrics. e.g. SolarAltitude which uses just location and time
 		if calc.getCalculationByTarget(c.Target) == nil {
-			calc.addCalculationByTarget(NewCalculation(c, st.station))
+			calc.addCalculationByTarget(expression.NewCalculation(c, st.station))
 		}
 
 		if c.Load != nil {

@@ -10,7 +10,7 @@ import (
 // EphemerisSchedule defines when the listed targets are calculated
 type EphemerisSchedule struct {
 	Pos       lexer.Position
-	Every     *time.CronTab      `parser:"'every' @@"`        // When to calculate the following entries
+	Every     time.CronTab       `parser:"'every' @@"`        // When to calculate the following entries
 	OnStartup bool               `parser:"@('on' 'start' )?"` // if true then we calculate on startup
 	Targets   []*EphemerisTarget `parser:"@@+"`               // Targets to calculate
 }

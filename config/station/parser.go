@@ -1,17 +1,26 @@
 package station
 
 import (
+	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"strings"
+	time2 "time"
 )
 
 func NewParser() util.Parser[Stations] {
-	return util.NewParser[Stations](nil, nil, stationInit)
+	return util.NewParserExt[Stations](nil, func(l lexer.Definition) []participle.Option {
+		return []participle.Option{
+			participle.ParseTypeWith[command.Command](command.Parser(l)),
+			participle.ParseTypeWith[time.CronTab](time.CronTabParser(l)),
+		}
+	},
+		stationInit)
 }
 
 var (
@@ -49,7 +58,9 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 
 	if err == nil {
 		err = initVisitor.Clone().
-			Set(&initState{}).
+			Set(&initState{
+				location: time2.Local,
+			}).
 			Stations(q)
 	}
 
@@ -68,6 +79,7 @@ type initState struct {
 	sourcePath       []string                    // Prefix for source path, used with SourceWithin
 	ephemeris        *Ephemeris                  // Ephemeris being scanned
 	ephemerisTarget  *EphemerisTarget            // EphemerisTarget being scanned
+	location         *time2.Location             // Time zone
 }
 
 func (s *initState) prefixMetric(m string) string {
@@ -105,12 +117,16 @@ func initLocation(v Visitor[*initState], d *location.Location) error {
 	return errors.Error(d.Pos, err)
 }
 
-func initCronTab(_ Visitor[*initState], d *time.CronTab) error {
-	return errors.Error(d.Pos, d.Init())
+func initCronTab(v Visitor[*initState], d time.CronTab) error {
+	return errors.Error(d.Position(), d.SetLocation(v.Get().location))
 }
 
-func initTimeZone(_ Visitor[*initState], d *time.TimeZone) error {
-	return errors.Error(d.Pos, d.Init())
+func initTimeZone(v Visitor[*initState], d *time.TimeZone) error {
+	err := errors.Error(d.Pos, d.Init())
+	if err == nil {
+		v.Get().location = d.Location()
+	}
+	return err
 }
 
 func initUnit(_ Visitor[*initState], d *units.Unit) error {

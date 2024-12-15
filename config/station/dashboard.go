@@ -12,7 +12,7 @@ type Dashboard struct {
 	Pos        lexer.Position
 	Name       string              `parser:"'dashboard' '(' @String"`
 	Live       bool                `parser:"@'live'?"`
-	Update     *time.CronTab       `parser:"('update' @@)?"`
+	Update     time.CronTab        `parser:"('update' @@)?"`
 	Component  *Component          `parser:"@@"`
 	Components *ComponentListEntry `parser:"@@? ')'"`
 }

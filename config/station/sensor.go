@@ -10,12 +10,12 @@ import (
 
 type Sensor struct {
 	Pos       lexer.Position
-	Target    *Metric       `parser:"'sensor' '(' @@"`
-	Http      *Http         `parser:"( @@"`
-	I2C       *I2C          `parser:"| @@"`
-	Serial    *Serial       `parser:"| @@ )"`
-	Poll      *time.CronTab `parser:"('poll' '(' @@ ')')?"`
-	Publisher []*Publisher  `parser:"'publish' '(' @@+ ')' ')'"`
+	Target    *Metric      `parser:"'sensor' '(' @@"`
+	Http      *Http        `parser:"( @@"`
+	I2C       *I2C         `parser:"| @@"`
+	Serial    *Serial      `parser:"| @@ )"`
+	Poll      time.CronTab `parser:"('poll' '(' @@ ')')?"`
+	Publisher []*Publisher `parser:"'publish' '(' @@+ ')' ')'"`
 }
 
 func (c *visitor[T]) Sensor(d *Sensor) error {

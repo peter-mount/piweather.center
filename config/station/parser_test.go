@@ -254,7 +254,7 @@ station( "home"
 					expectError: "pattern must not include",
 					script:      `station("home" dashboard("home" multivalue( "*metric*invalid" )))`,
 				},
-				// Suffix mattches
+				// Suffix matches
 				{
 					name:   "suffix",
 					script: `station("home" dashboard("home" multivalue( "text*" )))`,
@@ -390,6 +390,21 @@ station( "home"
 					name:        "invalid unit",
 					expectError: "unsupported unit",
 					script:      `station("home" dashboard("dash" value( "label" "sensor.test" unit "invalid") ))`,
+				},
+			},
+		},
+		// metric
+		{
+			name: "tasks",
+			tests: []test{
+				{
+					name: "execute",
+					script: `
+station("home"
+	tasks(
+		"daily" ls -l /tmp
+	)
+)`,
 				},
 			},
 		},

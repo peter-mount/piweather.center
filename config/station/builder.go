@@ -1,6 +1,7 @@
 package station
 
 import (
+	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
@@ -9,11 +10,12 @@ import (
 type Builder[T any] interface {
 	Axis(func(Visitor[T], *Axis) error) Builder[T]
 	Calculation(func(Visitor[T], *Calculation) error) Builder[T]
+	Command(f func(Visitor[T], command.Command) error) Builder[T]
 	Component(func(Visitor[T], *Component) error) Builder[T]
 	ComponentList(func(Visitor[T], *ComponentList) error) Builder[T]
 	ComponentListEntry(func(Visitor[T], *ComponentListEntry) error) Builder[T]
 	Container(func(Visitor[T], *Container) error) Builder[T]
-	CronTab(func(Visitor[T], *time.CronTab) error) Builder[T]
+	CronTab(func(Visitor[T], time.CronTab) error) Builder[T]
 	Current(func(Visitor[T], *Current) error) Builder[T]
 	Dashboard(func(Visitor[T], *Dashboard) error) Builder[T]
 	Ephemeris(func(Visitor[T], *Ephemeris) error) Builder[T]
@@ -21,13 +23,17 @@ type Builder[T any] interface {
 	EphemerisTarget(func(Visitor[T], *EphemerisTarget) error) Builder[T]
 	EphemerisTargetOption(func(Visitor[T], *EphemerisTargetOption) error) Builder[T]
 	Expression(func(Visitor[T], *Expression) error) Builder[T]
+	ExpressionAtom(f func(Visitor[T], *ExpressionAtom) error) Builder[T]
+	ExpressionLevel1(f func(Visitor[T], *ExpressionLevel1) error) Builder[T]
+	ExpressionLevel2(f func(Visitor[T], *ExpressionLevel2) error) Builder[T]
+	ExpressionLevel3(f func(Visitor[T], *ExpressionLevel3) error) Builder[T]
+	ExpressionLevel4(f func(Visitor[T], *ExpressionLevel4) error) Builder[T]
+	ExpressionLevel5(f func(Visitor[T], *ExpressionLevel5) error) Builder[T]
 	Function(func(Visitor[T], *Function) error) Builder[T]
 	Gauge(func(Visitor[T], *Gauge) error) Builder[T]
 	Http(func(Visitor[T], *Http) error) Builder[T]
 	HttpFormat(func(Visitor[T], *HttpFormat) error) Builder[T]
 	I2C(func(Visitor[T], *I2C) error) Builder[T]
-	Job(func(Visitor[T], *Job) error) Builder[T]
-	JobTask(func(Visitor[T], *JobTask) error) Builder[T]
 	Load(func(Visitor[T], *Load) error) Builder[T]
 	Location(func(Visitor[T], *location.Location) error) Builder[T]
 	LocationExpression(func(Visitor[T], *LocationExpression) error) Builder[T]
@@ -48,6 +54,9 @@ type Builder[T any] interface {
 	StationEntry(func(Visitor[T], *StationEntry) error) Builder[T]
 	StationEntryList(func(Visitor[T], *StationEntryList) error) Builder[T]
 	Stations(func(Visitor[T], *Stations) error) Builder[T]
+	Task(func(Visitor[T], *Task) error) Builder[T]
+	TaskCondition(func(Visitor[T], *TaskCondition) error) Builder[T]
+	Tasks(func(Visitor[T], *Tasks) error) Builder[T]
 	Text(func(Visitor[T], *Text) error) Builder[T]
 	TimeZone(func(Visitor[T], *time.TimeZone) error) Builder[T]
 	Unit(func(Visitor[T], *units.Unit) error) Builder[T]
@@ -68,7 +77,12 @@ func (b *builder[T]) Build() Visitor[T] {
 	return &visitor[T]{common: b.common}
 }
 
-func (b *builder[T]) CronTab(f func(Visitor[T], *time.CronTab) error) Builder[T] {
+func (b *builder[T]) Command(f func(Visitor[T], command.Command) error) Builder[T] {
+	b.command = f
+	return b
+}
+
+func (b *builder[T]) CronTab(f func(Visitor[T], time.CronTab) error) Builder[T] {
 	b.crontab = f
 	return b
 }

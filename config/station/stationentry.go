@@ -11,7 +11,7 @@ type StationEntry struct {
 	Calculation *Calculation `parser:"( @@"`
 	Dashboard   *Dashboard   `parser:"| @@"`
 	Ephemeris   *Ephemeris   `parser:"| @@"`
-	Job         *Job         `parser:"| @@"`
+	Tasks       *Tasks       `parser:"| @@"`
 	Sensor      *Sensor      `parser:"| @@ )"`
 }
 
@@ -36,8 +36,8 @@ func (c *visitor[T]) StationEntry(d *StationEntry) error {
 			case d.Ephemeris != nil:
 				err = c.Ephemeris(d.Ephemeris)
 
-			case d.Job != nil:
-				err = c.Job(d.Job)
+			case d.Tasks != nil:
+				err = c.Tasks(d.Tasks)
 
 			case d.Sensor != nil:
 				err = c.Sensor(d.Sensor)

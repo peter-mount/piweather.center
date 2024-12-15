@@ -70,7 +70,8 @@ func addStationEntryList(v station.Visitor[*visitorState], d *station.StationEnt
 		// Keep children we require
 		if st.loadOption.Accept(CalculationOption, e.Calculation) ||
 			st.loadOption.Accept(DashboardOption, e.Dashboard) ||
-			st.loadOption.Accept(SensorOption, e.Sensor) {
+			st.loadOption.Accept(SensorOption, e.Sensor) ||
+			st.loadOption.Accept(JobOption, e.Tasks) {
 			l = append(l, e)
 		}
 	}
@@ -96,7 +97,7 @@ func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error 
 
 	var useCron bool
 	if d.Update != nil {
-		id, err := st.stations.Cron.AddFunc(d.Update.Definition, func() {
+		id, err := st.stations.Cron.AddFunc(d.Update.Definition(), func() {
 			// TODO check we need to update the UID here?
 			// Make a new Uid so client refreshes
 			st.dashboard.cronSeq++

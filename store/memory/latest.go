@@ -23,6 +23,15 @@ type Latest interface {
 	Set(metric string, rec record.Record)
 }
 
+// NewLatest returns a new instance outside the kernel.
+// This is used where you need a set of matrics outside the service, e.g.
+// Task uses a local copy for just the metrics it uses
+func NewLatest() Latest {
+	ret := &latest{}
+	_ = ret.Start()
+	return ret
+}
+
 type latest struct {
 	mutex      sync.Mutex
 	metrics    map[string]record.Record

@@ -7,6 +7,7 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
+	"gopkg.in/robfig/cron.v2"
 	"time"
 )
 
@@ -29,14 +30,15 @@ func (calc *Calculator) addEphemeris(stn *station.Station, ephemeris *station.Ep
 	task := func() {
 		calc.calculateEphemeris(stn, ephemeris, schedule)
 	}
-	_, err := calc.Cron.AddFunc(schedule.Every.Definition, task)
+
+	_ = calc.Cron.Schedule(schedule.Every.Schedule(), cron.FuncJob(task))
 
 	// On start calculation
-	if err == nil && schedule.OnStartup {
+	if schedule.OnStartup {
 		go task()
 	}
 
-	return err
+	return nil
 }
 
 func (calc *Calculator) calculateEphemeris(stn *station.Station, ephemeris *station.Ephemeris, schedule *station.EphemerisSchedule) {

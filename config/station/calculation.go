@@ -12,12 +12,12 @@ import (
 // Calculation defines a metric to calculate
 type Calculation struct {
 	Pos        lexer.Position
-	Target     string        `parser:"'calculate' '(' @String"` // Name of metric to calculate
-	Every      *time.CronTab `parser:"('every' @@)?"`           // Calculate at specified intervals
-	ResetEvery *time.CronTab `parser:"('reset' 'every' @@)?"`   // Crontab to reset the value
-	Load       *Load         `parser:"(@@)?"`                   // Load from the DB on startup
-	UseFirst   *UseFirst     `parser:"(@@)?"`                   // If set and no value use this expression
-	Expression *Expression   `parser:"('as' @@) ')'"`           // Expression to perform calculation
+	Target     string       `parser:"'calculate' '(' @String"` // Name of metric to calculate
+	Every      time.CronTab `parser:"('every' @@)?"`           // Calculate at specified intervals
+	ResetEvery time.CronTab `parser:"('reset' 'every' @@)?"`   // Crontab to reset the value
+	Load       *Load        `parser:"(@@)?"`                   // Load from the DB on startup
+	UseFirst   *UseFirst    `parser:"(@@)?"`                   // If set and no value use this expression
+	Expression *Expression  `parser:"('as' @@) ')'"`           // Expression to perform calculation
 }
 
 func (c *visitor[T]) Calculation(d *Calculation) error {

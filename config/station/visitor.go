@@ -3,6 +3,7 @@ package station
 import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
@@ -11,11 +12,12 @@ import (
 type Visitor[T any] interface {
 	Axis(*Axis) error
 	Calculation(*Calculation) error
+	Command(command.Command) error
 	Component(*Component) error
 	ComponentList(*ComponentList) error
 	ComponentListEntry(*ComponentListEntry) error
 	Container(*Container) error
-	CronTab(*time.CronTab) error
+	CronTab(time.CronTab) error
 	Current(*Current) error
 	Dashboard(*Dashboard) error
 	Ephemeris(*Ephemeris) error
@@ -23,13 +25,17 @@ type Visitor[T any] interface {
 	EphemerisTarget(*EphemerisTarget) error
 	EphemerisTargetOption(*EphemerisTargetOption) error
 	Expression(*Expression) error
+	ExpressionAtom(*ExpressionAtom) error
+	ExpressionLevel1(b *ExpressionLevel1) error
+	ExpressionLevel2(b *ExpressionLevel2) error
+	ExpressionLevel3(b *ExpressionLevel3) error
+	ExpressionLevel4(b *ExpressionLevel4) error
+	ExpressionLevel5(b *ExpressionLevel5) error
 	Function(*Function) error
 	Gauge(*Gauge) error
 	Http(*Http) error
 	HttpFormat(*HttpFormat) error
 	I2C(*I2C) error
-	Job(*Job) error
-	JobTask(*JobTask) error
 	Load(*Load) error
 	Location(*location.Location) error
 	LocationExpression(*LocationExpression) error
@@ -50,6 +56,9 @@ type Visitor[T any] interface {
 	StationEntry(*StationEntry) error
 	StationEntryList(*StationEntryList) error
 	Stations(*Stations) error
+	Task(*Task) error
+	TaskCondition(*TaskCondition) error
+	Tasks(*Tasks) error
 	Text(*Text) error
 	TimeZone(*time.TimeZone) error
 	Unit(*units.Unit) error
@@ -73,11 +82,12 @@ type visitor[T any] struct {
 type common[T any] struct {
 	axis                     func(Visitor[T], *Axis) error
 	calculation              func(Visitor[T], *Calculation) error
+	command                  func(Visitor[T], command.Command) error
 	component                func(Visitor[T], *Component) error
 	componentList            func(Visitor[T], *ComponentList) error
 	componentListEntry       func(Visitor[T], *ComponentListEntry) error
 	container                func(Visitor[T], *Container) error
-	crontab                  func(Visitor[T], *time.CronTab) error
+	crontab                  func(Visitor[T], time.CronTab) error
 	current                  func(Visitor[T], *Current) error
 	dashboard                func(Visitor[T], *Dashboard) error
 	ephemeris                func(Visitor[T], *Ephemeris) error
@@ -85,13 +95,17 @@ type common[T any] struct {
 	ephemerisTarget          func(Visitor[T], *EphemerisTarget) error
 	ephemerisTargetOption    func(Visitor[T], *EphemerisTargetOption) error
 	expression               func(Visitor[T], *Expression) error
+	expressionAtom           func(Visitor[T], *ExpressionAtom) error
+	expressionLevel1         func(Visitor[T], *ExpressionLevel1) error
+	expressionLevel2         func(Visitor[T], *ExpressionLevel2) error
+	expressionLevel3         func(Visitor[T], *ExpressionLevel3) error
+	expressionLevel4         func(Visitor[T], *ExpressionLevel4) error
+	expressionLevel5         func(Visitor[T], *ExpressionLevel5) error
 	function                 func(Visitor[T], *Function) error
 	gauge                    func(Visitor[T], *Gauge) error
 	http                     func(Visitor[T], *Http) error
 	httpFormat               func(Visitor[T], *HttpFormat) error
 	i2c                      func(Visitor[T], *I2C) error
-	job                      func(Visitor[T], *Job) error
-	jobTask                  func(Visitor[T], *JobTask) error
 	load                     func(Visitor[T], *Load) error
 	location                 func(Visitor[T], *location.Location) error
 	locationExpression       func(Visitor[T], *LocationExpression) error
@@ -112,6 +126,9 @@ type common[T any] struct {
 	stationEntry             func(Visitor[T], *StationEntry) error
 	stationEntryList         func(Visitor[T], *StationEntryList) error
 	stations                 func(Visitor[T], *Stations) error
+	task                     func(Visitor[T], *Task) error
+	taskCondition            func(Visitor[T], *TaskCondition) error
+	tasks                    func(Visitor[T], *Tasks) error
 	text                     func(Visitor[T], *Text) error
 	timeZone                 func(Visitor[T], *time.TimeZone) error
 	unit                     func(Visitor[T], *units.Unit) error
@@ -132,7 +149,22 @@ func (c *visitor[T]) Clone() Visitor[T] {
 	return &visitor[T]{common: c.common}
 }
 
-func (c *visitor[T]) CronTab(d *time.CronTab) error {
+func (c *visitor[T]) Command(d command.Command) error {
+	var err error
+	if d != nil {
+		if c.command != nil {
+			err = c.command(c, d)
+			if util.IsVisitorStop(err) {
+				return nil
+			}
+		}
+
+		err = errors.Error(d.Position(), err)
+	}
+	return err
+}
+
+func (c *visitor[T]) CronTab(d time.CronTab) error {
 	var err error
 	if d != nil {
 		if c.crontab != nil {
@@ -142,7 +174,7 @@ func (c *visitor[T]) CronTab(d *time.CronTab) error {
 			}
 		}
 
-		err = errors.Error(d.Pos, err)
+		err = errors.Error(d.Position(), err)
 	}
 	return err
 }
