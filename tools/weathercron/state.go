@@ -4,6 +4,8 @@ import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/piweather.center/config/util/command"
+	"github.com/peter-mount/piweather.center/util/strings"
 )
 
 type state struct {
@@ -23,6 +25,7 @@ func (s *Service) loadJobs(stations *station.Stations) error {
 	}
 
 	if err := station.NewBuilder[*state]().
+		Command(addCommand).
 		Metric(addMetric).
 		Task(addTask).
 		Station(addStation).
@@ -68,5 +71,19 @@ func addTask(v station.Visitor[*state], d *station.Task) error {
 func addMetric(v station.Visitor[*state], d *station.Metric) error {
 	st := v.Get()
 	st.jobEntry.addMetric(d.Name)
+	return util.VisitorStop
+}
+
+func addCommand(v station.Visitor[*state], d command.Command) error {
+	st := v.Get()
+	// Scan each argument for any "${metric}" patterns and add the key so we expect them
+	for _, arg := range d.Args() {
+		if keys := strings.Expansions(arg); len(keys) > 0 {
+			for _, key := range keys {
+				_, key = splitExpansionKey(key)
+				st.jobEntry.addMetric(st.station.Name + "." + key)
+			}
+		}
+	}
 	return util.VisitorStop
 }

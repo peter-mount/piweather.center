@@ -1,6 +1,7 @@
 package weathercron
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
@@ -10,6 +11,7 @@ import (
 	"github.com/peter-mount/piweather.center/store/client"
 	"github.com/peter-mount/piweather.center/store/file/record"
 	"github.com/peter-mount/piweather.center/store/memory"
+	strings2 "github.com/peter-mount/piweather.center/util/strings"
 	"github.com/peter-mount/piweather.center/weather/value"
 	cron2 "gopkg.in/robfig/cron.v2"
 	"os"
@@ -40,9 +42,40 @@ func newTask(dbServer string, s *station.Station, d *station.Task) *Task {
 	}
 }
 
-func (j *Task) addMetric(name string) {
-	name = strings.ToLower(strings.TrimSpace(name))
+// strip any leading text before | - e.g. from expander
+func splitExpansionKey(s string) (string, string) {
+	var opt, name string
+	a := strings.SplitN(strings.ToLower(s), "|", 2)
+	if len(a) == 2 {
+		opt, name = a[0], a[1]
+	} else {
+		opt, name = "", a[0]
+	}
+	return strings.TrimSpace(opt), strings.TrimSpace(name)
+}
+
+func (j *Task) addMetric(metric string) {
+	_, name := splitExpansionKey(metric)
 	j.latest.Set(name, record.Record{})
+}
+
+func (j *Task) getMetric(metric string) string {
+	opt, name := splitExpansionKey(metric)
+	name = j.station.Name + "." + name
+
+	m, exists := j.latest.Latest(name)
+	if !exists {
+		return name
+	}
+
+	switch opt {
+	case "string":
+		return m.Value.String()
+	case "plain", "":
+		return m.Value.PlainString()
+	default:
+		return fmt.Sprintf(opt, m.Value.Float())
+	}
 }
 
 func (j *Task) getExecutor() expression.Executor {
@@ -80,11 +113,15 @@ func (j *Task) loadMetrics() error {
 		if err != nil {
 			return errors.Error(j.job.Pos, err)
 		}
-		if unit, ok := value.GetUnit(resp.Result.Unit); ok {
-			j.latest.Set(metric, record.Record{
-				Time:  resp.Result.Time,
-				Value: unit.Value(resp.Result.Value),
-			})
+		if resp == nil || resp.Result == nil {
+			fmt.Printf("%s metric %q not found\n", j.job.Pos, metric)
+		} else {
+			if unit, ok := value.GetUnit(resp.Result.Unit); ok {
+				j.latest.Set(metric, record.Record{
+					Time:  resp.Result.Time,
+					Value: unit.Value(resp.Result.Value),
+				})
+			}
 		}
 	}
 	return nil
@@ -155,8 +192,15 @@ func runTaskCondition(v station.Visitor[*Task], d *station.TaskCondition) error 
 	return err
 }
 
-func runCommand(_ station.Visitor[*Task], d command.Command) error {
-	cmd := exec.Command(d.Command(), d.Args()...)
+func runCommand(v station.Visitor[*Task], d command.Command) error {
+	task := v.Get()
+
+	var args []string
+	for _, arg := range d.Args() {
+		args = append(args, strings2.Expand(arg, task.getMetric))
+	}
+
+	cmd := exec.Command(d.Command(), args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
