@@ -34,8 +34,18 @@ func (c *visitor[T]) Task(d *Task) error {
 			switch {
 
 			case len(d.Conditions) > 0:
+				for _, cond := range d.Conditions {
+					err = c.TaskCondition(cond)
+					if err != nil {
+						break
+					}
+				}
+				if err == nil {
+					err = c.Command(d.Default)
+				}
 
 			case d.Execute != nil:
+				err = c.Command(d.Execute)
 			}
 		}
 

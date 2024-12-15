@@ -1,6 +1,7 @@
 package weathercron
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
@@ -23,6 +24,7 @@ func (s *Service) loadJobs(stations *station.Stations) error {
 	}
 
 	if err := station.NewBuilder[*state]().
+		Metric(addMetric).
 		Task(addTask).
 		Build().
 		Set(st).
@@ -46,20 +48,20 @@ func (s *Service) loadJobs(stations *station.Stations) error {
 func addTask(v station.Visitor[*state], d *station.Task) error {
 	st := v.Get()
 
-	st.jobEntry = &Task{
-		job: d,
-	}
+	st.jobEntry = newTask(d)
 
-	err := v.CronTab(d.CronTab)
-
-	// Finally add to the Tasks
-	if err == nil {
-		err = st.jobs.addJob(st.jobEntry)
-	}
+	err := st.jobs.addJob(st.jobEntry)
 
 	if err != nil {
-		return errors.Error(d.Pos, err)
+		err = errors.Error(d.Pos, err)
 	}
 
+	return err
+}
+
+func addMetric(v station.Visitor[*state], d *station.Metric) error {
+	fmt.Printf("metric %q\n", d.Name)
+	st := v.Get()
+	st.jobEntry.addMetric(d.Name)
 	return util.VisitorStop
 }
