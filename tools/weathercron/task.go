@@ -36,6 +36,7 @@ func newTask(dbServer string, s *station.Station, d *station.Task) *Task {
 		job:      d,
 		dbServer: dbServer,
 		latest:   memory.NewLatest(),
+		time:     s.Location.Time(),
 	}
 }
 
@@ -61,7 +62,7 @@ var (
 )
 
 func (j *Task) run() {
-	log.Printf("Task %s triggered", j.job.Pos)
+	//log.Printf("Task %s triggered", j.job.Pos)
 
 	err := jobRunner.Clone().
 		Set(j).

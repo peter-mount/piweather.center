@@ -25,6 +25,12 @@ type Visitor[T any] interface {
 	EphemerisTarget(*EphemerisTarget) error
 	EphemerisTargetOption(*EphemerisTargetOption) error
 	Expression(*Expression) error
+	ExpressionAtom(*ExpressionAtom) error
+	ExpressionLevel1(b *ExpressionLevel1) error
+	ExpressionLevel2(b *ExpressionLevel2) error
+	ExpressionLevel3(b *ExpressionLevel3) error
+	ExpressionLevel4(b *ExpressionLevel4) error
+	ExpressionLevel5(b *ExpressionLevel5) error
 	Function(*Function) error
 	Gauge(*Gauge) error
 	Http(*Http) error
@@ -89,6 +95,12 @@ type common[T any] struct {
 	ephemerisTarget          func(Visitor[T], *EphemerisTarget) error
 	ephemerisTargetOption    func(Visitor[T], *EphemerisTargetOption) error
 	expression               func(Visitor[T], *Expression) error
+	expressionAtom           func(Visitor[T], *ExpressionAtom) error
+	expressionLevel1         func(Visitor[T], *ExpressionLevel1) error
+	expressionLevel2         func(Visitor[T], *ExpressionLevel2) error
+	expressionLevel3         func(Visitor[T], *ExpressionLevel3) error
+	expressionLevel4         func(Visitor[T], *ExpressionLevel4) error
+	expressionLevel5         func(Visitor[T], *ExpressionLevel5) error
 	function                 func(Visitor[T], *Function) error
 	gauge                    func(Visitor[T], *Gauge) error
 	http                     func(Visitor[T], *Http) error

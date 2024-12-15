@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/calculator"
 	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/config/util"
@@ -24,15 +25,15 @@ type Executor interface {
 }
 
 type executor struct {
-	//service *Calculator
-	dbServer        string        // Database server url, "" for none
-	latest          memory.Latest // Latest metric service
-	visitor         station2.Visitor[*executor]
-	currentMetricId string         // metric to return with the current operator
-	calc            *Calculation   // Calculation being processed
-	stack           []StackEntry   // expression stack
-	stacks          [][]StackEntry // saved expression stacks
-	time            value.Time     // Time for expression queries
+	dbServer        string                      // Database server url, "" for none
+	latest          memory.Latest               // Latest metric service
+	visitor         station2.Visitor[*executor] // Visitor for this executor
+	currentMetricId string                      // metric to return with the current operator
+	calc            *Calculation                // Calculation being processed
+	stack           []StackEntry                // expression stack
+	stacks          [][]StackEntry              // saved expression stacks
+	time            value.Time                  // Time for expression queries
+	calculator      calculator.Calculator       // Calculator used for certain expressions
 }
 
 type StackEntry struct {
@@ -102,6 +103,7 @@ func (e *executor) setMetric(m string, v StackEntry) {
 }
 
 func (e *executor) CalculateResult(c *station2.Calculation) (value.Value, time.Time, error) {
+	e.calculator.Reset()
 
 	err := e.visitor.Calculation(c)
 
@@ -121,22 +123,22 @@ func (e *executor) CalculateResult(c *station2.Calculation) (value.Value, time.T
 }
 
 func (e *executor) Evaluate(c *station2.Expression) (value.Value, time.Time, error) {
+	e.calculator.Reset()
 
 	err := e.visitor.Expression(c)
 
-	r, exists := e.pop()
+	if err == nil {
+		r, exists := e.pop()
+		if exists {
+			return r.Value, r.Time, nil
+		}
+	}
+
 	if err != nil {
 		log.Printf("eval %q %v", e.currentMetricId, err)
 	}
-	if err != nil || !exists || !r.IsValid() {
-		return value.Value{}, time.Time{}, err
-	}
 
-	if log.IsVerbose() {
-		log.Printf("eval result %q %s %s", e.currentMetricId, r.Value, r.Time.Format(time.RFC3339))
-	}
-
-	return r.Value, r.Time, nil
+	return value.Value{}, time.Time{}, err
 }
 
 func NewExecutor(currentMetricId string, t value.Time, dbServer string, latest memory.Latest) Executor {
@@ -145,13 +147,19 @@ func NewExecutor(currentMetricId string, t value.Time, dbServer string, latest m
 		currentMetricId: currentMetricId,
 		latest:          latest,
 		// Time at the location
-		time: t,
+		time:       t,
+		calculator: calculator.New(),
 	}
 
 	e.visitor = station2.NewBuilder[*executor]().
 		Calculation(e.calculation).
 		Current(e.current).
-		Expression(e.expression).
+		ExpressionAtom(e.expressionAtom).
+		ExpressionLevel1(e.expressionLevel1).
+		ExpressionLevel2(e.expressionLevel2).
+		ExpressionLevel3(e.expressionLevel3).
+		ExpressionLevel4(e.expressionLevel4).
+		ExpressionLevel5(e.expressionLevel5).
 		Function(e.function).
 		LocationExpression(e.locationExpression).
 		Metric(e.metric).
@@ -167,7 +175,7 @@ func NewExecutor(currentMetricId string, t value.Time, dbServer string, latest m
 func (e *executor) calculation(v station2.Visitor[*executor], b *station2.Calculation) error {
 	e.resetStack()
 
-	// If usefirst set check to see we have a latest value, if not then set the default value
+	// If UseFirst set check to see we have a latest value, if not then set the default value
 	if b.UseFirst != nil {
 		err := v.UseFirst(b.UseFirst)
 		if err != nil {
@@ -196,7 +204,215 @@ func (e *executor) calculation(v station2.Visitor[*executor], b *station2.Calcul
 	return util.VisitorStop
 }
 
-func (e *executor) expression(v station2.Visitor[*executor], b *station2.Expression) error {
+func (e *executor) Calculate(instructions ...calculator.Instruction) (float64, error) {
+	var retVal float64
+	var result interface{}
+
+	e.calculator.Reset()
+	err := e.calculator.Process(instructions...)
+
+	if err == nil {
+		result, err = e.calculator.Pop()
+	}
+
+	if err == nil {
+		retVal, err = calculator.GetFloat(result)
+	}
+
+	return retVal, err
+}
+
+func (e *executor) op1(op string) error {
+	var err error
+
+	left, leftOk := e.pop()
+	if !leftOk {
+		return nil
+	}
+
+	// convert left & right to same units, but also
+	// ensuring we handle value.Float as being any type
+	leftUnit, leftVal := left.Value.Unit(), left.Value.Float()
+
+	var f float64
+	f, err = e.Calculate(
+		calculator.Push(leftVal),
+		calculator.Op1(op),
+	)
+
+	if err == nil {
+		// Push back result using the left's unit
+		e.push(e.time.Time(), leftUnit.Value(f))
+	}
+
+	return err
+}
+
+func (e *executor) op2(op string) error {
+	var err error
+
+	right, rightOk := e.pop()
+	left, leftOk := e.pop()
+	if !rightOk || !leftOk {
+		return nil
+	}
+
+	// convert left & right to same units, but also
+	// ensuring we handle value.Float as being any type
+	leftUnit, leftVal := left.Value.Unit(), left.Value.Float()
+	rightUnit, rightVal := right.Value.Unit(), right.Value.Float()
+
+	switch {
+	case leftUnit == value.Float && rightUnit == value.Float,
+		leftUnit == rightUnit:
+		// Do nothing as both are the same unit
+
+	case leftUnit == value.Float:
+		// left is float so convert it to the rights unit
+		left.Value = rightUnit.Value(leftVal)
+		leftUnit = rightUnit
+		leftVal = left.Value.Float()
+
+	case rightUnit == value.Float:
+		// right is float so convert it to the lefts unit
+		right.Value = leftUnit.Value(rightVal)
+		rightUnit = leftUnit
+		rightVal = right.Value.Float()
+
+	default:
+		// Different units so convert the right value to the left's unit
+		right.Value, err = right.Value.As(leftUnit)
+		if err == nil {
+			rightUnit = leftUnit
+			rightVal = right.Value.Float()
+		}
+	}
+
+	if err == nil {
+		var f float64
+		f, err = e.Calculate(
+			calculator.Push(leftVal),
+			calculator.Push(rightVal),
+			calculator.Op2(op),
+		)
+
+		if err == nil {
+			// Push back result using the left's unit
+			e.push(e.time.Time(), leftUnit.Value(f))
+		}
+	}
+
+	return err
+}
+
+func (e *executor) expressionLevel1(v station2.Visitor[*executor], b *station2.ExpressionLevel1) error {
+	var err error
+
+	err = v.ExpressionLevel2(b.Left)
+	if err == nil && b.Op != "" {
+		err = v.ExpressionLevel1(b.Right)
+		if err == nil {
+			err = e.op2(b.Op)
+		}
+	}
+
+	if err == nil {
+		err = util.VisitorStop
+	} else {
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
+func (e *executor) expressionLevel2(v station2.Visitor[*executor], b *station2.ExpressionLevel2) error {
+	var err error
+
+	err = v.ExpressionLevel3(b.Left)
+	if err == nil && b.Op != "" {
+		err = v.ExpressionLevel2(b.Right)
+		if err == nil {
+			err = e.op2(b.Op)
+		}
+	}
+
+	if err == nil {
+		err = util.VisitorStop
+	} else {
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
+func (e *executor) expressionLevel3(v station2.Visitor[*executor], b *station2.ExpressionLevel3) error {
+	var err error
+
+	err = v.ExpressionLevel4(b.Left)
+	if err == nil && b.Op != "" {
+		err = v.ExpressionLevel3(b.Right)
+		if err == nil {
+			err = e.op2(b.Op)
+		}
+	}
+
+	if err == nil {
+		err = util.VisitorStop
+	} else {
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
+func (e *executor) expressionLevel4(v station2.Visitor[*executor], b *station2.ExpressionLevel4) error {
+	var err error
+
+	// Note: ExpressionLevel4 only sets left when Op is set
+	if b.Op == "" {
+		err = v.ExpressionLevel5(b.Right)
+	} else {
+		err = v.ExpressionLevel5(b.Left)
+		if err == nil {
+			err = e.op1(b.Op)
+		}
+	}
+
+	if err == nil {
+		err = util.VisitorStop
+	} else {
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
+func (e *executor) expressionLevel5(v station2.Visitor[*executor], b *station2.ExpressionLevel5) error {
+	var err error
+
+	switch {
+	case b.Atom != nil:
+		err = v.ExpressionAtom(b.Atom)
+
+	case b.SubExpression != nil:
+		err = v.Expression(b.SubExpression)
+
+	case b.Float != nil:
+		e.push(e.time.Time(), value.Float.Value(*b.Float))
+
+	case b.True:
+		e.push(e.time.Time(), value.Float.Value(1))
+
+	case b.False:
+		e.push(e.time.Time(), value.Float.Value(0))
+
+	}
+
+	if err == nil {
+		err = util.VisitorStop
+	} else {
+		err = errors.Error(b.Pos, err)
+	}
+	return err
+}
+
+func (e *executor) expressionAtom(v station2.Visitor[*executor], b *station2.ExpressionAtom) error {
 	var err error
 	switch {
 	case b.Current != nil:
@@ -217,11 +433,12 @@ func (e *executor) expression(v station2.Visitor[*executor], b *station2.Express
 		}
 	}
 
-	if err != nil {
-		return err
+	if err == nil {
+		err = util.VisitorStop
+	} else {
+		err = errors.Error(b.Pos, err)
 	}
-
-	return util.VisitorStop
+	return err
 }
 
 func (e *executor) current(_ station2.Visitor[*executor], _ *station2.Current) error {

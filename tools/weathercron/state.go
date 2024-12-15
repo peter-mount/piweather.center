@@ -25,6 +25,7 @@ func (s *Service) loadJobs(stations *station.Stations) error {
 	if err := station.NewBuilder[*state]().
 		Metric(addMetric).
 		Task(addTask).
+		Station(addStation).
 		Build().
 		Set(st).
 		Stations(stations); err != nil {
@@ -42,6 +43,12 @@ func (s *Service) loadJobs(stations *station.Stations) error {
 
 	s.jobs = st.jobs
 	return s.jobs.Start()
+}
+
+func addStation(v station.Visitor[*state], d *station.Station) error {
+	st := v.Get()
+	st.station = d
+	return nil
 }
 
 func addTask(v station.Visitor[*state], d *station.Task) error {
