@@ -35,6 +35,7 @@ func (c command) Position() lexer.Position {
 
 type commandParser struct {
 	whiteSpaceToken lexer.TokenType
+	punctToken      lexer.TokenType
 }
 
 // Parser handles the parsing of the Command.
@@ -49,6 +50,7 @@ func Parser(l lexer.Definition) func(pl *lexer.PeekingLexer) (Command, error) {
 
 	parser := &commandParser{
 		whiteSpaceToken: symbols["Whitespace"],
+		punctToken:      symbols["Punct"],
 	}
 
 	return parser.parseCommand
@@ -88,8 +90,17 @@ func (c *commandParser) parseAttribute(pl *lexer.PeekingLexer) (string, lexer.Po
 		if token.Type == c.whiteSpaceToken {
 			// Stop parsing the attribute on a whitespace,
 			// but terminate the command on newline, carriage return or form feed.
-			stop = strings.ContainsAny(token.Value, "\n\r\f")
+			stop = isLineTerminator(token.Value)
 			break
+		} else if token.Type == c.punctToken && token.Value == `\` {
+			// Is the \ at the end of the line? If not then include \ but either way carry on parsing
+			// NB: Next then RawPeek as we need to look for whitespace which is Elided
+			_ = pl.Next()
+			next := pl.RawPeek()
+
+			if !isLineTerminator(next.Value) {
+				s = append(s, token.String())
+			}
 		} else {
 			s = append(s, token.String())
 			_ = pl.Next()
@@ -97,4 +108,8 @@ func (c *commandParser) parseAttribute(pl *lexer.PeekingLexer) (string, lexer.Po
 	}
 
 	return strings.Join(s, ""), token.Pos, stop
+}
+
+func isLineTerminator(s string) bool {
+	return strings.ContainsAny(s, "\n\r\f")
 }
