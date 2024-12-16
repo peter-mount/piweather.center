@@ -16,18 +16,6 @@ import (
 )
 
 func (s *Skymap) spherical() error {
-	log.Printf("Loading feature")
-
-	constLines, err := s.Manager.Feature("const.line")
-	if err != nil {
-		return err
-	}
-
-	constBorders, err := s.Manager.Feature("const.border")
-	if err != nil {
-		return err
-	}
-
 	log.Printf("Generating spherical %q", *s.sphericalMap)
 
 	w, h := 900, 900
@@ -35,9 +23,8 @@ func (s *Skymap) spherical() error {
 
 	proj := chart.NewStereographicProjection(
 		unit.RAFromHour(5.0).Angle(),
-		//unit.AngleFromDeg(0.0),
-		//unit.RAFromHour(5.0).Angle(),
-		unit.AngleFromDeg(90.0),
+		unit.AngleFromDeg(0.0),
+		//unit.AngleFromDeg(90.0),
 		float64(w)/2.0,
 		bounds,
 	)
@@ -55,10 +42,18 @@ func (s *Skymap) spherical() error {
 
 	layers.Add(chart.FloodFillLayer(proj))
 
-	layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
+	//layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
 
+	constBorders, err := s.Manager.Feature("const.border")
+	if err != nil {
+		return err
+	}
 	layers.Add(constBorders.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x4444}))
 
+	constLines, err := s.Manager.Feature("const.line")
+	if err != nil {
+		return err
+	}
 	layers.Add(constLines.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x5555}))
 
 	layers.Add(catalogue.NewCatalogLayer(s.catalog, render.BrightnessPixelStarRenderer, proj))
