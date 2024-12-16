@@ -141,6 +141,19 @@ func (s *FeatureSet) importGeoJson(o map[string]interface{}) (catalogue.FeatureS
 						return nil, err
 					}
 
+				case "Polygon":
+					if err := parseCoordLine(f, coord); err != nil {
+						return nil, err
+					}
+
+				case "MultiPolygon":
+					for _, srcLine := range coord {
+						for _, polyLine := range srcLine.([]interface{}) {
+							if err := parseCoordLine(f, polyLine.([]interface{})); err != nil {
+								return nil, err
+							}
+						}
+					}
 				default:
 					return nil, fmt.Errorf("unsupported geometry type: %v", geomType)
 				}
