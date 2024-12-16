@@ -28,6 +28,8 @@ type Path interface {
 
 	// IsEmpty returns true if there are no segments present.
 	IsEmpty() bool
+
+	SetClosed(closed bool)
 }
 
 type path struct {
@@ -35,6 +37,7 @@ type path struct {
 	BaseProjectionLayer
 	paths       []*draw2d.Path
 	currentPath *draw2d.Path
+	closed      bool
 }
 
 func NewPath(proj Projection) Path {
@@ -48,6 +51,10 @@ func (p *path) IsEmpty() bool {
 	return len(p.paths) == 0
 }
 
+func (p *path) SetClosed(closed bool) {
+	p.closed = closed
+}
+
 func (p *path) Start() Path {
 	p.End()
 	p.currentPath = &draw2d.Path{}
@@ -56,6 +63,10 @@ func (p *path) Start() Path {
 
 func (p *path) End() Path {
 	if p.currentPath != nil && !p.currentPath.IsEmpty() {
+		if p.closed {
+			p.currentPath.Close()
+		}
+
 		p.paths = append(p.paths, p.currentPath)
 	}
 	p.currentPath = nil
@@ -66,7 +77,10 @@ func (p *path) Add(x, y float64) Path {
 	if p.currentPath == nil {
 		p.Start()
 	}
-	if p.Contains(x, y) {
+	// If we are not a closed polygon then we can limit the path to just those points
+	// that are contained within the plot.
+	// If we filter out when closed then the fill breaks
+	if p.closed || p.Contains(x, y) {
 		if p.currentPath.IsEmpty() {
 			p.currentPath.MoveTo(x, y)
 		} else {
@@ -82,6 +96,10 @@ func (p *path) draw(gc draw2d.GraphicContext) {
 	p.End()
 
 	if !p.IsEmpty() {
-		gc.Stroke(p.paths...)
+		if p.closed {
+			gc.FillStroke(p.paths...)
+		} else {
+			gc.Stroke(p.paths...)
+		}
 	}
 }

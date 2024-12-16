@@ -142,11 +142,13 @@ func (s *FeatureSet) importGeoJson(o map[string]interface{}) (catalogue.FeatureS
 					}
 
 				case "Polygon":
+					f.SetPolygon(true)
 					if err := parseCoordLine(f, coord); err != nil {
 						return nil, err
 					}
 
 				case "MultiPolygon":
+					f.SetPolygon(true)
 					for _, srcLine := range coord {
 						for _, polyLine := range srcLine.([]interface{}) {
 							if err := parseCoordLine(f, polyLine.([]interface{})); err != nil {

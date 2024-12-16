@@ -42,19 +42,27 @@ func (s *Skymap) spherical() error {
 
 	layers.Add(chart.FloodFillLayer(proj))
 
-	//layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
-
-	constBorders, err := s.Manager.Feature("const.border")
+	mw, err := s.Manager.Feature("milkyway")
 	if err != nil {
 		return err
 	}
-	layers.Add(constBorders.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x4444}))
+	layers.Add(mw.GetLayerAll(proj).
+		SetFill(color.Gray16{Y: 0x1111}).
+		SetStroke(color.Gray16{Y: 0x1111}))
 
-	constLines, err := s.Manager.Feature("const.line")
-	if err != nil {
-		return err
-	}
-	layers.Add(constLines.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x5555}))
+	layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
+
+	//constBorders, err := s.Manager.Feature("const.border")
+	//if err != nil {
+	//	return err
+	//}
+	//layers.Add(constBorders.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x4444}))
+
+	//constLines, err := s.Manager.Feature("const.line")
+	//if err != nil {
+	//	return err
+	//}
+	//layers.Add(constLines.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x5555}))
 
 	layers.Add(catalogue.NewCatalogLayer(s.catalog, render.BrightnessPixelStarRenderer, proj))
 

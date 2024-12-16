@@ -22,7 +22,7 @@ func (s *Skymap) renderOverview() error {
 	bounds := image.Rect(0, 0, w, h)
 
 	proj := chart.NewPlainProjection(
-		unit.RAFromHour(5.0).Angle(),
+		unit.RAFromHour(0.0).Angle(),
 		bounds,
 	)
 
@@ -38,6 +38,14 @@ func (s *Skymap) renderOverview() error {
 		SetLineWidth(1)
 
 	layers.Add(chart.FloodFillLayer(proj))
+
+	mw, err := s.Manager.Feature("milkyway")
+	if err != nil {
+		return err
+	}
+	layers.Add(mw.GetLayerAll(proj).
+		SetFill(color.Gray16{Y: 0x1111}).
+		SetStroke(color.Gray16{Y: 0x1111}))
 
 	layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
 

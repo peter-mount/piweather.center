@@ -48,9 +48,10 @@ func (f *featureSet) GetLayerById(proj chart.Projection, id string) chart.Config
 }
 
 type Feature struct {
-	id    string
-	name  string
-	lines [][]chart.Point
+	id      string
+	name    string
+	lines   [][]chart.Point
+	polygon bool
 }
 
 func (f *Feature) Id() string {
@@ -61,12 +62,20 @@ func (f *Feature) Name() string {
 	return f.name
 }
 
+func (f *Feature) Polygon() bool {
+	return f.polygon
+}
+
 func (f *Feature) SetId(id string) {
 	f.id = id
 }
 
 func (f *Feature) SetName(name string) {
 	f.name = name
+}
+
+func (f *Feature) SetPolygon(polygon bool) {
+	f.polygon = polygon
 }
 
 func (f *Feature) AddLine(l []chart.Point) {
@@ -76,6 +85,7 @@ func (f *Feature) AddLine(l []chart.Point) {
 func (f *Feature) addToPath(p chart.Path) {
 	for _, line := range f.lines {
 		p.Start()
+		p.SetClosed(f.polygon)
 		for _, point := range line {
 			p.Add(p.Project(unit.AngleFromDeg(point.X), unit.AngleFromDeg(point.Y)))
 		}
@@ -106,6 +116,13 @@ func (f *Feature) write(w io.Writer) error {
 	var b []byte
 	b = util.AppendString(b, f.Id())
 	b = util.AppendString(b, f.Name())
+
+	polygon := byte(0)
+	if f.polygon {
+		polygon = 1
+	}
+	b = append(b, polygon)
+
 	b = le.AppendUint16(b, uint16(len(f.lines)))
 	if _, err := w.Write(b); err != nil {
 		return err
@@ -164,6 +181,9 @@ func (f *Feature) read(b []byte) []byte {
 
 	f.id, b = util.ReadString(b)
 	f.name, b = util.ReadString(b)
+
+	f.polygon = b[0] == 1
+	b = b[1:]
 
 	lineCount := le.Uint16(b)
 	b = b[2:]
