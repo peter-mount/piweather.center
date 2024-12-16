@@ -96,6 +96,12 @@ func (a Writer) Compress() Writer {
 		if err := a(gw); err != nil {
 			return err
 		}
+
+		// We must flush before closing, otherwise we can lose data
+		if err := gw.Flush(); err != nil {
+			return err
+		}
+
 		return gw.Close()
 	}
 }
