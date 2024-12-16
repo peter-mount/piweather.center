@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/chart"
+	"github.com/peter-mount/piweather.center/astro/chart/render"
 	io2 "github.com/peter-mount/piweather.center/util/io"
 	"github.com/soniakeys/unit"
 	"image"
@@ -39,7 +41,7 @@ func (s *Skymap) renderOverview() error {
 
 	layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
 
-	layers.Add(chart.NewCatalogLayer(s.catalog, chart.BrightnessPixelStarRenderer, proj))
+	layers.Add(catalogue.NewCatalogLayer(s.catalog, render.BrightnessPixelStarRenderer, proj))
 
 	layers.Draw(gc)
 

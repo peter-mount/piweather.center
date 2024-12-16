@@ -2,27 +2,26 @@ package skymap
 
 import (
 	"flag"
-	"github.com/peter-mount/go-build/application"
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
-	io2 "github.com/peter-mount/piweather.center/util/io"
 )
 
 type Skymap struct {
-	overview     *string `kernel:"flag,skymap-overview,Generate overview map"`
-	sphericalMap *string `kernel:"flag,spherical,Generate spherical map"`
+	overview     *string            `kernel:"flag,skymap-overview,Generate overview map"`
+	sphericalMap *string            `kernel:"flag,spherical,Generate spherical map"`
+	Manager      *catalogue.Manager `kernel:"inject"`
 	catalog      *catalogue.Catalog
 }
 
 func (s *Skymap) Start() error {
 	log.Println(version.Version)
 
+	var err error
+
 	// Load the YBSC catalog
-	s.catalog = &catalogue.Catalog{}
-	if err := io2.NewReader(s.catalog.Read).
-		Decompress().
-		Open(application.FileName(application.STATIC, "bsc5.bin")); err != nil {
+	s.catalog, err = s.Manager.YaleBrightStarCatalog()
+	if err != nil {
 		return err
 	}
 

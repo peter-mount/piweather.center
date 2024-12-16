@@ -13,6 +13,7 @@ func main() {
 		&build.ConfigInstaller{},
 		&font.FontDownloader{},
 		&build.Installer{},
+		&build.FeatureSet{},
 		&build.Vsop87Encoder{},
 		&build.YbscEncoder{},
 		&build.WebEncoder{},

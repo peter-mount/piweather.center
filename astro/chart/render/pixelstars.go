@@ -1,7 +1,8 @@
-package chart
+package render
 
 import (
 	"github.com/llgcode/draw2d"
+	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"image/color"
 	"math"
 )
@@ -12,7 +13,7 @@ import (
 //
 // The pixel layout is based on an old star chart program for the Apple Macintosh 128 as
 // published by Sky and Telescope back in the 1980's, so it looks crude but works for simple charts.
-func PixelStarsRenderer(gc draw2d.GraphicContext, s Star) {
+func PixelStarsRenderer(gc draw2d.GraphicContext, s catalogue.Star) {
 	gc.BeginPath()
 	gc.MoveTo(s.X-0.5, s.Y)
 	gc.LineTo(s.X+0.5, s.Y)
@@ -37,7 +38,7 @@ func PixelStarsRenderer(gc draw2d.GraphicContext, s Star) {
 
 // BrightnessPixelStarRenderer is like PixelStarsRenderer except this also sets the colour of the
 // star to be grey with White the brightest
-func BrightnessPixelStarRenderer(gc draw2d.GraphicContext, s Star) {
+func BrightnessPixelStarRenderer(gc draw2d.GraphicContext, s catalogue.Star) {
 	// YBSC ranges from -1.46 to 7.96
 	m := int(math.Max(-1.46, math.Min(8, s.Mag)) + 1.46)
 	m = 0xffff - (m * ((0xffff - 0x8000) / 8))
