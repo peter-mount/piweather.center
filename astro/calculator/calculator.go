@@ -48,9 +48,6 @@ type Calculator interface {
 	//	use CalculateSun instead
 	// Deprecated
 	SolarHZ(t value.Time) (unit.Angle, unit.Angle, error)
-
-	// SolarEphemeris calculate an ephemeris of the sun for a specific date
-	SolarEphemeris(t value.Time) (SolarEphemeris, error)
 }
 
 type calculator struct {
