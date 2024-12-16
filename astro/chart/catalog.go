@@ -73,6 +73,7 @@ func (l *catalogLayer) add(e catalogue.Entry) error {
 	}
 	return nil
 }
+
 func (l *catalogLayer) draw(gc draw2d.GraphicContext) {
 	for _, s := range l.stars {
 		l.renderer(gc, s)
