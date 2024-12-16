@@ -13,18 +13,14 @@ import (
 	"io"
 )
 
-func (s *Skymap) spherical() error {
-	log.Printf("Generating spherical %q", *s.sphericalMap)
+func (s *Skymap) renderOverview() error {
+	log.Printf("Generating overview %q", *s.overview)
 
-	w, h := 900, 900
+	w, h := 1080, 530
 	bounds := image.Rect(0, 0, w, h)
 
-	proj := chart.NewStereographicProjection(
+	proj := chart.NewPlainProjection(
 		unit.RAFromHour(5.0).Angle(),
-		unit.AngleFromDeg(0.0),
-		//unit.RAFromHour(5.0).Angle(),
-		//unit.AngleFromDeg(90.0),
-		float64(w)/2.0,
 		bounds,
 	)
 
@@ -54,5 +50,5 @@ func (s *Skymap) spherical() error {
 			return err
 		}
 		return b.Flush()
-	}).CreateFile(*s.sphericalMap)
+	}).CreateFile(*s.overview)
 }
