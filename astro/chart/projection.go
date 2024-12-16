@@ -65,3 +65,29 @@ func (prj *stereographicProjection) Project(x, y unit.Angle) (float64, float64) 
 	k := (2.0 * prj.R) / (1.0 + (prj.sLat * sY) + (prj.cLat * cY * cDx))
 	return k * px, k * py
 }
+
+// NewPlainProjection returns a simple Projection where the X and Y axes are plotted as-is
+// with the given long at the center
+func NewPlainProjection(long unit.Angle, bounds image.Rectangle) Projection {
+	return &plainProjection{
+		baseProjection: newBaseProjection(long, 0, 1, bounds),
+		cx:             float64(bounds.Dx()) / 2.0,
+		cy:             float64(bounds.Dy()) / 2.0,
+		dx:             float64(bounds.Dx()) / 360.0,
+		dy:             float64(bounds.Dy()) / 180.0,
+	}
+}
+
+type plainProjection struct {
+	baseProjection
+	cx, cy float64
+	dx, dy float64
+}
+
+func (prj *plainProjection) Project(x, y unit.Angle) (float64, float64) {
+	px := (x - prj.long).Deg()
+	if px > 180 {
+		px = px - 360
+	}
+	return px * prj.dx, y.Deg() * prj.dy
+}
