@@ -5,6 +5,8 @@ import (
 	"flag"
 	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/peter-mount/go-build/application"
+	"github.com/peter-mount/go-build/version"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	io2 "github.com/peter-mount/piweather.center/util/io"
 	"image"
@@ -14,11 +16,14 @@ import (
 )
 
 type Skymap struct {
-	overview *string `kernel:"flag,skymap-overview,Generate overview map"`
-	catalog  *catalogue.Catalog
+	overview     *string `kernel:"flag,skymap-overview,Generate overview map"`
+	sphericalMap *string `kernel:"flag,spherical,Generate spherical map"`
+	catalog      *catalogue.Catalog
 }
 
 func (s *Skymap) Start() error {
+	log.Println(version.Version)
+
 	// Load the YBSC catalog
 	s.catalog = &catalogue.Catalog{}
 	if err := io2.NewReader(s.catalog.Read).
@@ -36,6 +41,13 @@ func (s *Skymap) Start() error {
 		}
 	}
 
+	if *s.sphericalMap != "" {
+		done = true
+		if err := s.spherical(); err != nil {
+			return err
+		}
+	}
+
 	if !done {
 		flag.PrintDefaults()
 	}
@@ -43,6 +55,7 @@ func (s *Skymap) Start() error {
 }
 
 func (s *Skymap) renderOverview() error {
+	log.Printf("Generating overview %q", *s.overview)
 
 	dest := image.NewRGBA(image.Rect(0, 0, 1080, 530))
 
