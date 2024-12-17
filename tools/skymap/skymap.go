@@ -10,6 +10,7 @@ import (
 type Skymap struct {
 	overview     *string            `kernel:"flag,skymap-overview,Generate overview map"`
 	sphericalMap *string            `kernel:"flag,spherical,Generate spherical map"`
+	horizonMap   *string            `kernel:"flag,horizon,Generate horizon map"`
 	Manager      *catalogue.Manager `kernel:"inject"`
 	catalog      *catalogue.Catalog
 }
@@ -37,6 +38,13 @@ func (s *Skymap) Start() error {
 	if *s.sphericalMap != "" {
 		done = true
 		if err := s.spherical(); err != nil {
+			return err
+		}
+	}
+
+	if *s.horizonMap != "" {
+		done = true
+		if err := s.horizon(); err != nil {
 			return err
 		}
 	}

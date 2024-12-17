@@ -47,8 +47,12 @@ func (s *Skymap) renderOverview() error {
 
 	layers.Add(catalogue.NewCatalogLayer(s.catalog, render.BrightnessPixelStarRenderer, proj))
 
-	layers.Add(chart.BorderLayer(proj))
+	gc.Save()
+	gc.Translate(proj.GetCenter())
+	// We need to flip both axes when plotting equatorial coordinates
+	gc.Scale(-1, -1)
 	layers.Draw(gc)
+	gc.Restore()
 
 	return io2.NewWriter(func(w io.Writer) error {
 		b := bufio.NewWriter(w)

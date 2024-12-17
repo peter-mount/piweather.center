@@ -86,9 +86,7 @@ func (f *Feature) addToPath(p chart.Path) {
 	for _, line := range f.lines {
 		p.Start()
 		p.SetClosed(f.polygon)
-		for _, point := range line {
-			p.Add(p.Project(unit.AngleFromDeg(point.X), unit.AngleFromDeg(point.Y)))
-		}
+		p.AddPoints(line...)
 		p.End()
 	}
 }
@@ -136,8 +134,8 @@ func (f *Feature) write(w io.Writer) error {
 
 		b := make([]byte, 16)
 		for _, point := range line {
-			le.PutUint64(b[0:8], math.Float64bits(point.X))
-			le.PutUint64(b[8:16], math.Float64bits(point.Y))
+			le.PutUint64(b[0:8], math.Float64bits(float64(point.X)))
+			le.PutUint64(b[8:16], math.Float64bits(float64(point.Y)))
 			if _, err := w.Write(b); err != nil {
 				return err
 			}
@@ -196,8 +194,8 @@ func (f *Feature) read(b []byte) []byte {
 
 		for i := 0; i < int(pointCount); i++ {
 			line = append(line, chart.Point{
-				X: math.Float64frombits(le.Uint64(b[0:8])),
-				Y: math.Float64frombits(le.Uint64(b[8:16])),
+				X: unit.Angle(math.Float64frombits(le.Uint64(b[0:8]))),
+				Y: unit.Angle(math.Float64frombits(le.Uint64(b[8:16]))),
 			})
 			b = b[16:]
 		}

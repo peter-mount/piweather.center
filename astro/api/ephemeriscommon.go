@@ -39,6 +39,7 @@ type ephemerisCommon struct {
 }
 
 func (e *ephemerisCommon) init(name string, t time.Time, loc *globe.Coord, ε *coord.Obliquity) {
+	e.name = name
 	e.time = t
 	e.jd = julian.FromTime(t)
 	e.siderial = sidereal.FromJD(e.jd)

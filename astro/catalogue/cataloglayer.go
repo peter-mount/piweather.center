@@ -32,11 +32,12 @@ type catalogLayer struct {
 
 // Star within a CatalogLayer which has been projected onto a chart.
 type Star struct {
-	X, Y, Mag float64
+	P   chart.Point
+	Mag float64
 }
 
 // StarRenderer renders a star
-type StarRenderer func(draw2d.GraphicContext, Star)
+type StarRenderer func(draw2d.GraphicContext, chart.Projection, Star)
 
 // NewCatalogLayer creates a new CatalogLayer based on a Catalog.
 //
@@ -67,15 +68,15 @@ func (l *catalogLayer) FaintestFirst() {
 }
 
 func (l *catalogLayer) add(e Entry) error {
-	x, y := l.Project(e.RA().Angle(), e.Dec())
-	if l.Contains(x, y) {
-		l.stars = append(l.stars, Star{X: x, Y: y, Mag: e.Mag()})
+	pt := chart.Point{X: e.RA().Angle(), Y: e.Dec()}
+	if l.Projection().Contains(pt) {
+		l.stars = append(l.stars, Star{P: pt, Mag: e.Mag()})
 	}
 	return nil
 }
 
 func (l *catalogLayer) draw(gc draw2d.GraphicContext) {
 	for _, s := range l.stars {
-		l.renderer(gc, s)
+		l.renderer(gc, l.Projection(), s)
 	}
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/peter-mount/piweather.center/astro/chart"
 	"github.com/peter-mount/piweather.center/util"
 	"github.com/peter-mount/piweather.center/util/io"
+	"github.com/soniakeys/unit"
 	io2 "io"
 	"os"
 	"path/filepath"
@@ -181,7 +182,7 @@ func parseCoordLine(f *catalogue.Feature, srcLine []interface{}) error {
 			if err != nil {
 				return err
 			}
-			line = append(line, chart.Point{X: x, Y: y})
+			line = append(line, chart.Point{X: unit.AngleFromDeg(x), Y: unit.AngleFromDeg(y)})
 		}
 	}
 
