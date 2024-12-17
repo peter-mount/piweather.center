@@ -142,6 +142,6 @@ func (c *Catalog) Sort() {
 	})
 }
 
-func (c *Catalog) NewLayer(renderer StarRenderer, proj chart.Projection) chart.ConfigurableLayer {
+func (c *Catalog) NewLayer(renderer StarRenderer, proj chart.Projection) CatalogLayer {
 	return NewCatalogLayer(c, renderer, proj)
 }
