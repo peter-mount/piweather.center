@@ -55,25 +55,31 @@ func (s *Skymap) horizon() error {
 
 	gc := draw2dimg.NewGraphicContext(dest)
 
-	layers := chart.NewLayers()
+	layers := chart.NewLayers().
+		// Used to draw with the correct origin
+		SetProjection(proj).
+		// We need to flip X axis when plotting horizon coordinates
+		Flip(true, false)
 
 	// Common values for drawing
 	layers.SetFill(color.Black).
 		SetStroke(color.White).
 		SetLineWidth(1)
 
-	layers.Add(chart.FloodFillLayer(proj))
+	layers.Add(chart.FloodFillLayer(proj0))
 
-	//layers.Add(s.Manager.FeatureLayer("milkyway", proj).SetFillStroke(color.Gray16{Y: 0x1111}))
+	layers.Add(s.Manager.FeatureLayer("milkyway", proj).SetFillStroke(color.Gray16{Y: 0x1111}))
 
-	layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.RGBA{G: 0x66, A: 0xff}))
+	//layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.RGBA{G: 0x66, A: 0xff}))
 	//layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
 
-	layers.Add(chart.RaDecAxesLayer(proj0).SetStroke(color.RGBA{R: 0x66, A: 0xff}))
+	//layers.Add(chart.RaDecAxesLayer(proj0).SetStroke(color.RGBA{R: 0x66, A: 0xff}))
 
-	layers.Add(s.Manager.FeatureLayer("const.line", proj).SetStroke(color.Gray16{Y: 0x5555}))
+	//layers.Add(s.Manager.FeatureLayer("const.border", proj).SetStroke(color.RGBA{B: 0xaa, A: 0xff}))
+	layers.Add(s.Manager.FeatureLayer("const.line", proj).SetStroke(color.RGBA{B: 0xaa, A: 0xff}))
 
-	layers.Add(s.catalog.NewLayer(render.BrightnessPixelStarRenderer, proj))
+	layers.Add(s.catalog.NewLayer(render.BrightnessPixelStarRenderer, proj).
+		MagLimit(6))
 
 	// Solid green horizon
 	//layers.Add(chart.HorizonLayer(proj0).SetFillStroke(colornames.Darkgreen))
@@ -81,15 +87,11 @@ func (s *Skymap) horizon() error {
 	// Alternate dark green but Alpha allows for features below the horizon to still be visible.
 	// Note: Darkgreen is G:0x64 but 0x32 looks better for this
 	layers.Add(chart.HorizonLayer(proj0).SetFillStroke(color.RGBA{G: 0x32, A: 0x33}))
+	//layers.Add(chart.HorizonLayer(proj0).SetFillStroke(color.RGBA{G: 0x32, A: 0xff}))
 
 	//layers.Add(chart.BorderLayer(proj))
 
-	gc.Save()
-	gc.Translate(proj.GetCenter())
-	// We need to flip X axis when plotting horizon coordinates
-	gc.Scale(-1, 1)
 	layers.Draw(gc)
-	gc.Restore()
 
 	return io2.NewWriter(func(w io.Writer) error {
 		b := bufio.NewWriter(w)
