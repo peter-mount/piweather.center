@@ -42,30 +42,19 @@ func (s *Skymap) spherical() error {
 
 	layers.Add(chart.FloodFillLayer(proj))
 
-	mw, err := s.Manager.Feature("milkyway")
-	if err != nil {
-		return err
-	}
-	layers.Add(mw.GetLayerAll(proj).
+	layers.Add(s.Manager.FeatureLayer("milkyway", proj).
 		SetFill(color.Gray16{Y: 0x1111}).
 		SetStroke(color.Gray16{Y: 0x1111}))
 
 	layers.Add(chart.RaDecAxesLayer(proj).SetStroke(color.Gray16{Y: 0x3333}))
 
-	//constBorders, err := s.Manager.Feature("const.border")
-	//if err != nil {
-	//	return err
-	//}
-	//layers.Add(constBorders.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x4444}))
+	layers.Add(s.Manager.FeatureLayer("const.border", proj).SetStroke(color.Gray16{Y: 0x4444}))
 
-	//constLines, err := s.Manager.Feature("const.line")
-	//if err != nil {
-	//	return err
-	//}
-	//layers.Add(constLines.GetLayerAll(proj).SetStroke(color.Gray16{Y: 0x5555}))
+	layers.Add(s.Manager.FeatureLayer("const.line", proj).SetStroke(color.Gray16{Y: 0x5555}))
 
 	layers.Add(catalogue.NewCatalogLayer(s.catalog, render.BrightnessPixelStarRenderer, proj))
 
+	layers.Add(chart.BorderLayer(proj))
 	layers.Draw(gc)
 
 	return io2.NewWriter(func(w io.Writer) error {

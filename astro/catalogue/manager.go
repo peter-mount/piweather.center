@@ -1,7 +1,10 @@
 package catalogue
 
 import (
+	"github.com/llgcode/draw2d"
 	"github.com/peter-mount/go-build/application"
+	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/astro/chart"
 	"github.com/peter-mount/piweather.center/util/io"
 	"sync"
 )
@@ -26,6 +29,15 @@ func (m *Manager) YaleBrightStarCatalog() (*Catalog, error) {
 		m.ybsc = cat
 	}
 	return m.ybsc, nil
+}
+
+func (m *Manager) FeatureLayer(name string, proj chart.Projection) chart.ConfigurableLayer {
+	l, err := m.Feature(name)
+	if err != nil {
+		log.Printf("FeatureLayer(%q): %v", name, err)
+		return chart.NewDrawableLayer(func(_ draw2d.GraphicContext) {})
+	}
+	return l.GetLayerAll(proj)
 }
 
 func (m *Manager) Feature(name string) (FeatureSet, error) {

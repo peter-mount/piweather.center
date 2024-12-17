@@ -39,11 +39,7 @@ func (s *Skymap) renderOverview() error {
 
 	layers.Add(chart.FloodFillLayer(proj))
 
-	mw, err := s.Manager.Feature("milkyway")
-	if err != nil {
-		return err
-	}
-	layers.Add(mw.GetLayerAll(proj).
+	layers.Add(s.Manager.FeatureLayer("milkyway", proj).
 		SetFill(color.Gray16{Y: 0x1111}).
 		SetStroke(color.Gray16{Y: 0x1111}))
 
@@ -51,6 +47,7 @@ func (s *Skymap) renderOverview() error {
 
 	layers.Add(catalogue.NewCatalogLayer(s.catalog, render.BrightnessPixelStarRenderer, proj))
 
+	layers.Add(chart.BorderLayer(proj))
 	layers.Draw(gc)
 
 	return io2.NewWriter(func(w io.Writer) error {
