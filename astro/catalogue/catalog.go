@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/piweather.center/astro/chart"
 	"io"
 	"sort"
 )
@@ -139,4 +140,8 @@ func (c *Catalog) Sort() {
 	sort.SliceStable(c.stars, func(i, j int) bool {
 		return c.stars[i].mag > c.stars[j].mag
 	})
+}
+
+func (c *Catalog) NewLayer(renderer StarRenderer, proj chart.Projection) CatalogLayer {
+	return NewCatalogLayer(c, renderer, proj)
 }

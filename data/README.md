@@ -9,6 +9,12 @@ This is the GZipped Yale Bright Star Catalog (V5) and is used to provide an over
 
 You can read more about bsc5.dat.gz from [Harvard University](http://tdc-www.harvard.edu/catalogs/bsc5.html)
 
+# geojson
+
+The various geojson source files are from:
+
+* [celestial_data](https://github.com/dieghernan/celestial_data)
+
 # VSOP87B
 
 These are the [VSOP87B](http://cdsarc.u-strasbg.fr/viz-bin/cat/VI/81#/browse)

@@ -3,11 +3,12 @@ package calculator
 import (
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/astro/julian"
-	"github.com/peter-mount/piweather.center/astro/sun"
+	"github.com/peter-mount/piweather.center/astro/sidereal"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/weather/measurement"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/base"
+	coord2 "github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/nutation"
 	"github.com/soniakeys/meeus/v3/planetposition"
 	"github.com/soniakeys/meeus/v3/solar"
@@ -48,7 +49,9 @@ func (c *calculator) SolarHZ(t value.Time) (unit.Angle, unit.Angle, error) {
 
 	jd := julian.FromTime(t.Time())
 	loc := t.Location()
-	A, h := sun.ApparentHzVSOP87(jd, loc.Lat, loc.Lon, earth)
+	//A, h := sun.ApparentHzVSOP87(jd, loc.Lat, loc.Lon, earth)
+	α, δ, _ := solar.ApparentEquatorialVSOP87(earth, jd.Float())
+	A, h := coord2.EqToHz(α, δ, loc.Lat, loc.Lon, sidereal.FromJD(jd))
 	return A, h, nil
 }
 

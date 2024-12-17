@@ -1,16 +1,13 @@
 package astro
 
 import (
-	"github.com/peter-mount/piweather.center/astro/coord"
-	coord2 "github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/unit"
 )
 
 type Astro struct {
-	Angle      Angle      // Angle functions
-	Equatorial Equatorial // Equatorial functions
-	Sun        Sun        // Sun functions
+	Angle Angle // Angle functions
+	//Equatorial Equatorial // Equatorial functions
 }
 
 // Coord returns the Meeus coordinate on Earth.
@@ -23,8 +20,8 @@ func (_ Astro) Coord(lat, lon float64) *globe.Coord {
 	}
 }
 
-type Equatorial struct{}
-
-func (_ Equatorial) FromEq(e coord2.Equatorial) coord.Equatorial {
-	return coord.NewFromEq(e)
-}
+//type Equatorial struct{}
+//
+//func (_ Equatorial) FromEq(e coord2.Equatorial) coord.Equatorial {
+//	return coord.NewFromEq(e)
+//}
