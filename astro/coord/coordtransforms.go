@@ -86,11 +86,10 @@ type coordinateTransformer struct {
 //
 //	φ: latitude of observer on Earth
 //	ψ: longitude of observer on Earth
-
 func NewCoordinateTransformer(φ, ψ unit.Angle) CoordinateTransformer {
-	tr := &coordinateTransformer{φ: ψ, ψ: φ}
+	tr := &coordinateTransformer{φ: φ, ψ: ψ}
 
-	tr.sφ, tr.cφ = math.Sincos(tr.φ.Rad())
+	tr.sφ, tr.cφ = tr.φ.Sincos()
 
 	return tr
 }
