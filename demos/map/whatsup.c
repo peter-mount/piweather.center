@@ -4,7 +4,7 @@
 import (
     "github.com/peter-mount/go-anim/script/colour"
     "github.com/peter-mount/go-anim/script/graph"
-    "github.com/peter-mount/go-anim/script/render"
+    "github.com/peter-mount/go-anim/script/image"
     "github.com/peter-mount/piweather.center/script/astro/calendar"
     "github.com/peter-mount/piweather.center/script/astro/chart"
     "github.com/peter-mount/piweather.center/script/astro/geo"
@@ -47,8 +47,5 @@ main() {
         chart.Draw(gc)
     }
 
-    fileName:="/home/peter/test-horizon.png"
-    try( f:=os.Create(fileName) ) {
-        render.Encoder(fileName).Encode(f,ctx.Image())
-    }
+    image.WriteImage( "/home/peter/test-horizon.png", ctx.Image() )
 }
