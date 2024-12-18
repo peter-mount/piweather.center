@@ -40,7 +40,7 @@ func (c *visitor[T]) Http(d *Http) error {
 	return err
 }
 
-func initHttp(v Visitor[*initState], d *Http) error {
+func initHttp(v Visitor[*initState], _ *Http) error {
 	s := v.Get()
 	s.sensorParameters = make(map[string]*SourceParameter)
 	s.sourcePath = nil

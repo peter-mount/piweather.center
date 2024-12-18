@@ -458,7 +458,7 @@ func (e *executor) metricImpl(n string) error {
 	return nil
 }
 
-func (e *executor) metricExpression(v station2.Visitor[*executor], b *station2.MetricExpression) error {
+func (e *executor) metricExpression(_ station2.Visitor[*executor], b *station2.MetricExpression) error {
 	var err error
 	var res *api.Result
 
@@ -570,7 +570,7 @@ func (e *executor) function(v station2.Visitor[*executor], b *station2.Function)
 	return err
 }
 
-func (e *executor) locationExpression(v station2.Visitor[*executor], b *station2.LocationExpression) error {
+func (e *executor) locationExpression(_ station2.Visitor[*executor], b *station2.LocationExpression) error {
 	var err error
 	if b != nil {
 		var val value.Value

@@ -34,7 +34,7 @@ func (c *visitor[T]) Stations(d *Stations) error {
 	return err
 }
 
-func initStations(v Visitor[*initState], d *Stations) error {
+func initStations(v Visitor[*initState], _ *Stations) error {
 	v.Get().stationIds = make(map[string]*Station)
 	return nil
 }
