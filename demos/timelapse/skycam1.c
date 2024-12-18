@@ -20,6 +20,12 @@ import (
 
 main() {
 
+    // The width of each column on the top part of the frame
+    // e.g. this contains the camera image, cloud cover and sky map
+    topColWidth := image.Width4K/3
+    // This is the width of each entry, reduced so there's a gap between them
+    topColCellWidth := topColWidth-20
+
     cfg := map(
         // Set this to the directory containing the images
         "srcDir": "/home/peter/weather/cam",
@@ -41,29 +47,27 @@ main() {
         "background": colour.Colour("black"),
 
         // Width and position of the sky camera view - the left 40% of the frame
-        "skyWidth": image.Width4K*0.4,
+        "skyWidth": topColCellWidth,
         "skyX": 10,
         "skyY": 60,
         // usable image is 2656x2154 but as we should keep it square then limit it to
         // part of the frame with the most sky visible
         "skyBounds": util.Rect(2656-2154,0,2656,2154).Rect(),
 
-        // Position of the cloud coverage or skymap view - the right 30% of the frame
-        "auxViewX": image.Width4K-(image.Width4K*0.3),
-        "auxViewY": 60,
-        "auxViewW": (image.Width4K*0.3)-10,
-        "auxViewH": (image.Width4K*0.3)-10,
-
         // cloud config
-        "cloudX": image.Width4K-(image.Width4K*0.6)+20,
+        "cloudX": (image.Width4K-topColCellWidth)/2,
         "cloudY": 60,
-        "cloudWidth": (image.Width4K*0.3)-20,
-        "cloudHeight": (image.Width4K*0.3)-20,
+        "cloudWidth": topColCellWidth,
+
+        // Position of the cloud coverage or skymap view - the right 30% of the frame
+        "auxViewX": image.Width4K-topColCellWidth,
+        "auxViewY": 60,
+        "auxViewW": topColCellWidth,
 
         // skyMap config
         "horizonColour": colour.Colour("black"), // "#00320033"
         "horizonBorder": colour.Colour("white"),
-        "milkyWay": nil, // colour.Grey(17),
+        "milkyWay": colour.Grey(17),
         "constBorder": nil, // colour.Colour("#0000aa",
         "constLine": colour.Colour("#0000aa"),
         "magLimit": 99
@@ -117,15 +121,16 @@ renderFrame(ctx,cfg,srcName) {
 }
 
 renderClouds(ctx, cfg, srcImg) {
-    // Get a copy of the source resized to fit the output
-    img := image.Resize( cfg.cloudWidth, cfg.cloudHeight, srcImg, "")
-
-    // Run the cloud filter generating the statistics and
+    // Run the cloud filter generating the statistics and an image
     filter := cloud.FilterNoMask().Limit( 0.7 )
-    image.FilterOver(filter.Filter(),img)
+    img := image.FilterNew(filter.Filter(),srcImg)
     coverage := filter.Coverage()
 
     // Render the results
+    //
+    // NB: If the totals rendered are >100% this is down to %f in Sprintf always
+    // rounding up if the fraction is >=0.5 so although it appears wrong internally it's
+    // correct.
     try( ctx ) {
         gc := ctx.Gc()
         gc.Translate(cfg.cloudX, cfg.cloudY)
@@ -134,30 +139,22 @@ renderClouds(ctx, cfg, srcImg) {
         gc.SetFillColor( cfg.white )
         graph.SetFont( gc, "luxi 20 mono bold" )
         util.DrawStringLeft(gc,
-            0, cfg.cloudHeight+20,
-            "Cloud Cover %3.0f%%",
-            coverage.Cloud*100
+            0, cfg.cloudWidth+20,
+            "Cloud Cover %3.0f%% Sky %3.0f%% Obscured %3.0f%%",
+            coverage.Cloud, coverage.Sky, coverage.Obscured
         )
     }
 }
 
 createSkyMap(cfg) {
-    width := math.Min(cfg.auxViewW,cfg.auxViewH)
+    width := cfg.auxViewW
     chart := chart.NewHorizon( cfg.location, util.Rect(0,0,width,width).Rect() )
     chart.Background().SetFillStroke(cfg.black)
     chart.Horizon().SetFill(cfg.horizonColour).SetStroke(cfg.horizonBorder)
 
-//    if cfg.milkyWay != nil {
-//        chart.Feature("milkyway").SetFillStroke(cfg.milkyWay)
-//    }
-
-//    if cfg.constBorder != nil {
-//        chart.Feature("const.border").SetStroke(cfg.constBorder)
-//    }
-
-//    if cfg.constLine != nil {
-        chart.Feature("const.line").SetStroke(cfg.constLine)
-//    }
+    chart.Feature("milkyway").SetFillStroke(cfg.milkyWay)
+//  chart.Feature("const.border").SetStroke(cfg.constBorder)
+    chart.Feature("const.line").SetStroke(cfg.constLine)
 
     chart.YaleBrightStarCatalog().MagLimit(cfg.magLimit)
 

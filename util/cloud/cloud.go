@@ -14,6 +14,14 @@ type Filter interface {
 	// 0.84 is the default.
 	Limit(rbLimit float64) Filter
 
+	// GreenLimit sets the limit when red dominates blue.
+	// If green is below this level then we do not detect that pixel as cloud.
+	//
+	// This can detect some obstructions like tree foliage which would otherwise get detected as cloud.
+	//
+	// The default is 50000
+	GreenLimit(greenLimit uint32) Filter
+
 	// Filter returns a graph.Filter to use against a source image
 	Filter() graph.Filter
 
@@ -21,43 +29,54 @@ type Filter interface {
 }
 
 type Coverage struct {
-	Cloud float64 // percentage clouds
-	Sky   float64 // percentage sky
+	Cloud    float64 // percentage clouds
+	Sky      float64 // percentage sky
+	Obscured float64 // percentage obscured
 }
 
 type filter struct {
-	mask       image.Image // Mask (optional) to isolate the sky from obstructions
-	coverage   float64     // cloud coverage as a percentage
-	total      int         // total pixels in image
-	cloud      int         // pixels detected as cloud
-	sky        int         // pixels detected as the sky
-	rbLimit    float64     // red/blue limit to indicate cloud
-	skyColor   color.Color // colour for clear sky
-	cloudColor color.Color // colour for clouds
-	noColor    color.Color // colour for nothing detected or outside the mask
+	mask          image.Image // Mask (optional) to isolate the sky from obstructions
+	coverage      float64     // cloud coverage as a percentage
+	total         int         // total pixels in image
+	cloud         int         // pixels detected as cloud
+	sky           int         // pixels detected as the sky
+	obscured      int         // pixels detected as obscured
+	rbLimit       float64     // red/blue limit to indicate cloud
+	greenLimit    uint32      // green limit for when (r/b)>1. If below this limit we do not detect cloud
+	skyColor      color.Color // colour for clear sky
+	cloudColor    color.Color // colour for clouds, default original if nil
+	obscuredColor color.Color // colour for when obscured, default original if nil
+	noColor       color.Color // colour for nothing detected or outside the mask
 }
 
 func NewFilter(mask image.Image) Filter {
 	return &filter{
-		mask:     mask,
-		skyColor: colornames.Blue,
-		noColor:  colornames.Black,
-		rbLimit:  0.84,
+		mask:       mask,
+		skyColor:   colornames.Blue,
+		noColor:    colornames.Black,
+		rbLimit:    0.84,
+		greenLimit: 50000,
 	}
 }
 
 func (c *filter) Coverage() Coverage {
 	r := Coverage{}
 	if c.total > 0 {
-		tf := float64(c.total)
-		r.Cloud = float64(c.cloud) / tf
-		r.Sky = float64(c.sky) / tf
+		f := 100.0 / float64(c.total)
+		r.Cloud = f * float64(c.cloud)
+		r.Sky = f * float64(c.sky)
+		r.Obscured = f * float64(c.obscured)
 	}
 	return r
 }
 
 func (c *filter) Limit(rbLimit float64) Filter {
 	c.rbLimit = rbLimit
+	return c
+}
+
+func (c *filter) GreenLimit(greenLimit uint32) Filter {
+	c.greenLimit = greenLimit
 	return c
 }
 
@@ -80,24 +99,40 @@ func (c *filter) filter(x, y int, col color.Color) (color.Color, error) {
 	np := c.noColor
 
 	if c.isVisible(x, y) {
-		r, _, b, _ := col.RGBA()
-		if b > 0 {
-			rb := float64(r) / float64(b)
-			switch {
-			case rb > c.rbLimit:
-				c.cloud++
-				// Use cloudColor if set otherwise use the original colour.
-				// The latter gives realistic results when used as an image
-				if c.cloudColor != nil {
-					np = c.cloudColor
-				} else {
-					np = col
-				}
+		r, g, b, _ := col.RGBA()
 
-			default:
-				c.sky++
-				np = c.skyColor
+		rb := 0.0
+		if b > 0 {
+			rb = float64(r) / float64(b)
+		}
+
+		switch {
+		// This handles when red dominates blue but green is not as high.
+		// This can detect some obstructions like tree foliage which would
+		// otherwise get detected as clouds
+		case rb > 1 && g < 50000:
+			c.obscured++
+
+			if c.obscuredColor != nil {
+				np = c.obscuredColor
+			} else {
+				np = col
 			}
+
+		// Detect cloud
+		case rb > c.rbLimit:
+			c.cloud++
+
+			if c.cloudColor != nil {
+				np = c.cloudColor
+			} else {
+				np = col
+			}
+
+		// Default is sky
+		default:
+			c.sky++
+			np = c.skyColor
 		}
 	}
 
