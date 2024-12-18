@@ -60,8 +60,8 @@ func (c *calculator) Start() error {
 	// There are 8 major Planets ;-)
 	c.planetPositions = make([]*planetposition.V87Planet, 8)
 
-	// Path to lib directory for data lookup
-	c.rootDir = path.Join(filepath.Dir(os.Args[0]), "../lib")
+	// Path to script directory for data lookup
+	c.rootDir = path.Join(filepath.Dir(os.Args[0]), "../script")
 
 	// Register calculators
 	value.NewCalculator("SolarAltitude", c.SolarAltitudeCalculator())

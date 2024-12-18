@@ -1,6 +1,13 @@
-package astro
+package angle
 
-import "github.com/soniakeys/unit"
+import (
+	"github.com/peter-mount/go-script/packages"
+	"github.com/soniakeys/unit"
+)
+
+func init() {
+	packages.RegisterPackage(&Angle{})
+}
 
 type Angle struct{}
 

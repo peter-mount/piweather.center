@@ -11,7 +11,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
-	github.com/peter-mount/go-anim v0.0.0-20241217160345-3568866ef05d
+	github.com/peter-mount/go-anim v0.0.0-20241218114807-a958c4339040
 	github.com/peter-mount/go-build v0.0.0-20240804094359-01252fe8316a
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20241209122742-caa13094d526
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
@@ -25,6 +25,10 @@ require (
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+//replace github.com/peter-mount/go-script v0.0.0-20241218090358-129a6c764bf4 => ../script
+
+//replace github.com/peter-mount/go-anim v0.0.0-20241218114807-a958c4339040 => ../go-anim
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect

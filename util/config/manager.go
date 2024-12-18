@@ -50,7 +50,7 @@ type manager struct {
 }
 
 func (m *manager) Start() error {
-	// Path to lib directory for data lookup
+	// Path to script directory for data lookup
 	if *m.RootDirFlag == "" {
 		*m.RootDirFlag = path.Join(filepath.Dir(os.Args[0]), "../etc")
 	}

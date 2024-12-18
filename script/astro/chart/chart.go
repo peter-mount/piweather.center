@@ -1,4 +1,4 @@
-package astro
+package chart
 
 import (
 	"errors"
@@ -17,10 +17,10 @@ import (
 )
 
 func init() {
-	packages.Register("chart", &ChartPackage{})
+	packages.RegisterPackage(&Package{})
 }
 
-type ChartPackage struct {
+type Package struct {
 }
 
 type Chart struct {
@@ -34,7 +34,7 @@ type Chart struct {
 	manager     *catalogue.Manager
 }
 
-func (_ ChartPackage) NewStereographic(cx, cy unit.Angle, R float64, bounds image.Rectangle) *Chart {
+func (_ Package) NewStereographic(cx, cy unit.Angle, R float64, bounds image.Rectangle) *Chart {
 	projection := chart.NewStereographicProjection(cx, cy, R, bounds)
 
 	c := &Chart{
@@ -56,7 +56,7 @@ func (_ ChartPackage) NewStereographic(cx, cy unit.Angle, R float64, bounds imag
 	return c
 }
 
-func (_ ChartPackage) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Chart {
+func (_ Package) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Chart {
 	jd := julian.FromTime(time.Now())
 
 	c := &Chart{
