@@ -15,6 +15,7 @@ import (
     "github.com/peter-mount/piweather.center/script/astro/calendar"
     "github.com/peter-mount/piweather.center/script/astro/chart"
     "github.com/peter-mount/piweather.center/script/astro/geo"
+    "github.com/peter-mount/piweather.center/script/weather/cloud"
 )
 
 main() {
@@ -53,6 +54,12 @@ main() {
         "auxViewW": (image.Width4K*0.3)-10,
         "auxViewH": (image.Width4K*0.3)-10,
 
+        // cloud config
+        "cloudX": image.Width4K-(image.Width4K*0.6)+20,
+        "cloudY": 60,
+        "cloudWidth": (image.Width4K*0.3)-20,
+        "cloudHeight": (image.Width4K*0.3)-20,
+
         // skyMap config
         "horizonColour": colour.Colour("black"), // "#00320033"
         "horizonBorder": colour.Colour("white"),
@@ -73,7 +80,7 @@ main() {
 
 renderFrame(ctx,cfg,srcName) {
     // Get time from the file name
-    t := util.TimeFromFileNameIn(srcName,cfg.timeZone)
+    srcTime := util.TimeFromFileNameIn(srcName,cfg.timeZone)
 
     // Get the sky camera image
     skyImage := image.ReadImage(cfg.srcDir+"/"+ srcName)
@@ -95,7 +102,7 @@ renderFrame(ctx,cfg,srcName) {
             util.DrawStringRight( gc,
                 image.Width4K - 10, 23,
                 "%s",
-                t.Format(time.RFC1123))
+                srcTime.Format(time.RFC1123))
         }
 
         try( ctx ) {
@@ -103,7 +110,34 @@ renderFrame(ctx,cfg,srcName) {
             gc.DrawImage(skyImage)
         }
 
-        renderSkyMap(ctx,cfg,calendar.FromTime( time.Now()))
+        renderClouds(ctx,cfg,skyImage)
+
+        renderSkyMap(ctx,cfg,calendar.FromTime(srcTime))
+    }
+}
+
+renderClouds(ctx, cfg, srcImg) {
+    // Get a copy of the source resized to fit the output
+    img := image.Resize( cfg.cloudWidth, cfg.cloudHeight, srcImg, "")
+
+    // Run the cloud filter generating the statistics and
+    filter := cloud.FilterNoMask().Limit( 0.7 )
+    image.FilterOver(filter.Filter(),img)
+    coverage := filter.Coverage()
+
+    // Render the results
+    try( ctx ) {
+        gc := ctx.Gc()
+        gc.Translate(cfg.cloudX, cfg.cloudY)
+        gc.DrawImage( img )
+
+        gc.SetFillColor( cfg.white )
+        graph.SetFont( gc, "luxi 20 mono bold" )
+        util.DrawStringLeft(gc,
+            0, cfg.cloudHeight+20,
+            "Cloud Cover %3.0f%%",
+            coverage.Cloud*100
+        )
     }
 }
 
