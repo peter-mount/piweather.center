@@ -83,9 +83,7 @@ func (l *catalogLayer) MagLimit(magLim float64) CatalogLayer {
 
 func (l *catalogLayer) add(e Entry) error {
 	pt := chart.Point{X: e.RA().Angle(), Y: e.Dec()}
-	if l.Projection().Contains(pt) {
-		l.stars = append(l.stars, Star{P: pt, Mag: e.Mag()})
-	}
+	l.stars = append(l.stars, Star{P: pt, Mag: e.Mag()})
 	return nil
 }
 
