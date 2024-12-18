@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 )
 
 type Select struct {
@@ -17,7 +17,7 @@ func (v *visitor[T]) Select(b *Select) error {
 	if b != nil {
 		if v._select != nil {
 			err = v._select(v, b)
-			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
+			if errors.IsVisitorStop(err) || errors.IsVisitorExit(err) {
 				return nil
 			}
 		}

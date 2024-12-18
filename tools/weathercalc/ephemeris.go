@@ -2,9 +2,9 @@ package weathercalc
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/astro/api"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"gopkg.in/robfig/cron.v2"
@@ -90,7 +90,7 @@ func calculateEphemerisTarget(v station.Visitor[*ephemerisCalculator], d *statio
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	}
 
 	return err

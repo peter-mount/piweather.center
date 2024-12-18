@@ -2,6 +2,7 @@ package egress
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/amqp"
 	"strings"
@@ -35,7 +36,7 @@ func defineAmqp(v EgressVisitor[*State], a *amqp.Amqp) error {
 	if err != nil {
 		return err
 	}
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func defineMetric(v EgressVisitor[*State], a *Metric) error {

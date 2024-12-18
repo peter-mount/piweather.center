@@ -2,8 +2,8 @@ package renderer
 
 import (
 	"fmt"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/util/html"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
@@ -71,7 +71,7 @@ func init() {
 }
 
 func Gauge(v station.Visitor[*State], d *station.Gauge) error {
-	err := util.VisitorStop
+	err := errors.VisitorStop
 
 	switch d.GetType() {
 	case _barometer:
@@ -178,7 +178,7 @@ func barometer(v station.Visitor[*State], d *station.Gauge) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 var (
@@ -280,7 +280,7 @@ func compass(v station.Visitor[*State], d *station.Gauge) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func gauge(v station.Visitor[*State], d *station.Gauge) error {
@@ -356,7 +356,7 @@ func gauge(v station.Visitor[*State], d *station.Gauge) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func inclinometer(v station.Visitor[*State], d *station.Gauge) error {
@@ -448,7 +448,7 @@ func inclinometer(v station.Visitor[*State], d *station.Gauge) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 const (
@@ -539,7 +539,7 @@ func rainGauge(v station.Visitor[*State], d *station.Gauge) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func GaugeHands(s *State, d *station.Gauge, axis station.AxisDef, svg *html.Element, metricValues []value.Value) {

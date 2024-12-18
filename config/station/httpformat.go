@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"strings"
 )
 
@@ -46,7 +45,7 @@ func (c *visitor[T]) HttpFormat(d *HttpFormat) error {
 	if d != nil {
 		if c.httpFormat != nil {
 			err = c.httpFormat(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

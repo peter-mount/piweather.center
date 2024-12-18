@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 )
 
@@ -19,7 +18,7 @@ func (c *visitor[T]) MultiValue(d *MultiValue) error {
 	if d != nil {
 		if c.multiValue != nil {
 			err = c.multiValue(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

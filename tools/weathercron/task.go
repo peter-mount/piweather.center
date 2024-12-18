@@ -5,7 +5,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/station/expression"
 	"github.com/peter-mount/piweather.center/store/client"
@@ -165,7 +164,7 @@ func runTask(v station.Visitor[*Task], d *station.Task) error {
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	}
 
 	return err
@@ -186,7 +185,7 @@ func runTaskCondition(v station.Visitor[*Task], d *station.TaskCondition) error 
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	}
 
 	return err

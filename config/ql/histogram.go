@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 )
 
 type Histogram struct {
@@ -16,7 +16,7 @@ func (v *visitor[T]) Histogram(b *Histogram) error {
 	if b != nil {
 		if v.histogram != nil {
 			err = v.histogram(v, b)
-			if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
+			if errors.IsVisitorStop(err) || errors.IsVisitorExit(err) {
 				return nil
 			}
 		}

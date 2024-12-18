@@ -1,8 +1,8 @@
 package weathersensor
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	util2 "github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/sensors/reading"
 	"github.com/peter-mount/piweather.center/tools/weathersensor/payload"
 	"github.com/peter-mount/piweather.center/util/strings"
@@ -59,7 +59,7 @@ func processSensor(v station.Visitor[*processor], d *station.Sensor) error {
 	}
 
 	if err == nil {
-		err = util2.VisitorStop
+		err = errors.VisitorStop
 	}
 	return err
 }

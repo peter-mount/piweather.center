@@ -1,8 +1,8 @@
 package renderer
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/util/html"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
@@ -92,5 +92,5 @@ func MultiValue(v station.Visitor[*State], d *station.MultiValue) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }

@@ -3,7 +3,6 @@ package ql
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	util2 "github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/util"
@@ -76,7 +75,7 @@ func timeInit(v Visitor[*parserState], t *time2.Time) error {
 		return err
 	}
 
-	return util2.VisitorStop
+	return errors.VisitorStop
 }
 
 func timeZoneInit(v Visitor[*parserState], d *time2.TimeZone) error {

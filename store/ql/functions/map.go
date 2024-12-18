@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/peter-mount/go-script/errors"
 	ql2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/ql"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
@@ -173,7 +173,7 @@ func (f Function) Run(ex ql.Executor, v ql2.Visitor, fn *ql2.Function) error {
 		}
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 */
 
@@ -330,7 +330,7 @@ func funcTimeOf(ex ql.Executor /*v ql2.Visitor,*/, f *ql2.Function, args []ql.Va
 		return participle.Errorf(f.Pos, "Invalid station %d args expected 0..1", len(args))
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func funcTrend(ex ql.Executor /*_ ql2.Visitor,*/, _ *ql2.Function, args []ql.Value) error {
@@ -372,7 +372,7 @@ func funcTrend(ex ql.Executor /*_ ql2.Visitor,*/, _ *ql2.Function, args []ql.Val
 
 	ex.Push(r)
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 type SingleMathOperation func(float64) float64

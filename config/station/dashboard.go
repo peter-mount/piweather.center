@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"strings"
 )
@@ -22,7 +21,7 @@ func (c *visitor[T]) Dashboard(d *Dashboard) error {
 	if d != nil {
 		if c.dashboard != nil {
 			err = c.dashboard(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type Publisher struct {
@@ -17,7 +16,7 @@ func (c *visitor[T]) Publisher(d *Publisher) error {
 	if d != nil {
 		if c.publisher != nil {
 			err = c.publisher(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

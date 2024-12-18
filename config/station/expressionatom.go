@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
@@ -21,7 +20,7 @@ func (c *visitor[T]) ExpressionAtom(b *ExpressionAtom) error {
 	if b != nil {
 		if c.expressionAtom != nil {
 			err = c.expressionAtom(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

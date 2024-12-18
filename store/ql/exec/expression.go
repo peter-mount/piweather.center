@@ -4,7 +4,6 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 	"time"
 )
@@ -50,7 +49,7 @@ func expression(v lang2.Visitor[*Executor], s *lang2.Expression) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func expressionModifier(v lang2.Visitor[*Executor], s *lang2.ExpressionModifier) error {
@@ -88,7 +87,7 @@ func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) e
 		if err := v.AliasedGroup(s.Group); err != nil {
 			return err
 		}
-		return util.VisitorStop
+		return errors.VisitorStop
 	}
 
 	// Call summarize first
@@ -138,5 +137,5 @@ func aliasedExpression(v lang2.Visitor[*Executor], s *lang2.AliasedExpression) e
 	// Now we are done with this column, increment for the next one
 	ex.selectColumn++
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }

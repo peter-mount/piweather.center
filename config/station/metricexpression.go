@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"time"
 )
 
@@ -21,7 +20,7 @@ func (c *visitor[T]) MetricExpression(d *MetricExpression) error {
 	if d != nil {
 		if c.metricExpression != nil {
 			err = c.metricExpression(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

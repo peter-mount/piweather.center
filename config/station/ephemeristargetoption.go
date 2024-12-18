@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/astro/api"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 // EphemerisTargetOption declares the values to create metrics
@@ -19,7 +18,7 @@ func (c *visitor[T]) EphemerisTargetOption(d *EphemerisTargetOption) error {
 	if d != nil {
 		if c.ephemerisTargetOption != nil {
 			err = c.ephemerisTargetOption(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

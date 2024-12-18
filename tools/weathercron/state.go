@@ -3,7 +3,6 @@ package weathercron
 import (
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/util/strings"
 )
@@ -71,7 +70,7 @@ func addTask(v station.Visitor[*state], d *station.Task) error {
 func addMetric(v station.Visitor[*state], d *station.Metric) error {
 	st := v.Get()
 	st.jobEntry.addMetric(d.Name)
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func addCommand(v station.Visitor[*state], d command.Command) error {
@@ -85,5 +84,5 @@ func addCommand(v station.Visitor[*state], d command.Command) error {
 			}
 		}
 	}
-	return util.VisitorStop
+	return errors.VisitorStop
 }

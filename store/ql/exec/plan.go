@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
-	util2 "github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/file"
 	"github.com/peter-mount/piweather.center/store/ql"
@@ -84,7 +83,7 @@ func qpAliasedExpression(v lang2.Visitor[*QueryPlan], m *lang2.AliasedExpression
 	if err != nil {
 		return err
 	}
-	return util2.VisitorStop
+	return errors.VisitorStop
 }
 
 func qpMetric(v lang2.Visitor[*QueryPlan], m *lang2.Metric) error {
@@ -151,7 +150,7 @@ func qpExpression(v lang2.Visitor[*QueryPlan], m *lang2.Expression) error {
 		return err
 	}
 
-	return util2.VisitorStop
+	return errors.VisitorStop
 }
 
 func (qp *QueryPlan) GetMetric(m string) []ql.Value {

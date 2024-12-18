@@ -2,8 +2,8 @@ package exec
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	ql2 "github.com/peter-mount/piweather.center/store/ql"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 )
@@ -82,5 +82,5 @@ func function(v ql.Visitor[*Executor], d *ql.Function) error {
 		}
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }

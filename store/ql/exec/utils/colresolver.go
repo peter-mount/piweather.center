@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"strings"
 )
@@ -40,7 +39,7 @@ func crSelect(v lang2.Visitor[*colResolver], f *lang2.Select) error {
 	if err := v.SelectExpression(f.Expression); err != nil {
 		return err
 	}
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func crAliasedGroup(v lang2.Visitor[*colResolver], f *lang2.AliasedGroup) error {
@@ -64,7 +63,7 @@ func crAliasedGroup(v lang2.Visitor[*colResolver], f *lang2.AliasedGroup) error 
 	if err != nil {
 		return errors.Error(f.Pos, err)
 	}
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func crAliasedExpression(v lang2.Visitor[*colResolver], f *lang2.AliasedExpression) error {
@@ -99,7 +98,7 @@ func crAliasedExpression(v lang2.Visitor[*colResolver], f *lang2.AliasedExpressi
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func crFunction(v lang2.Visitor[*colResolver], f *lang2.Function) error {
@@ -115,7 +114,7 @@ func crFunction(v lang2.Visitor[*colResolver], f *lang2.Function) error {
 		}
 	}
 	r.append(")")
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func crMetric(v lang2.Visitor[*colResolver], f *lang2.Metric) error {

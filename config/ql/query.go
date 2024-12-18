@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/time"
 )
 
@@ -24,7 +24,7 @@ func (v *visitor[T]) Query(b *Query) error {
 		if v.query != nil {
 			err = v.query(v, b)
 		}
-		if util.IsVisitorStop(err) || util.IsVisitorExit(err) {
+		if errors.IsVisitorStop(err) || errors.IsVisitorExit(err) {
 			return nil
 		}
 

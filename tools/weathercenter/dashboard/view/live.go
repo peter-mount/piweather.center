@@ -1,8 +1,8 @@
 package view
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	station2 "github.com/peter-mount/piweather.center/station"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/dashboard/renderer"
 	"github.com/peter-mount/piweather.center/tools/weathercenter/ws"
@@ -42,7 +42,7 @@ func (s *Service) UpdateJS(stations *station.Stations) error {
 					reset(false)
 			}
 
-			return util.VisitorStop
+			return errors.VisitorStop
 		}).
 		//ComponentListEntry(func(v station.Visitor[*state], c *station.ComponentListEntry) error {
 		//	t := c.GetType()

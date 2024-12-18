@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type ExpressionLevel1 struct {
@@ -19,7 +18,7 @@ func (c *visitor[T]) ExpressionLevel1(b *ExpressionLevel1) error {
 	if b != nil {
 		if c.expressionLevel1 != nil {
 			err = c.expressionLevel1(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -55,7 +54,7 @@ func (c *visitor[T]) ExpressionLevel2(b *ExpressionLevel2) error {
 	if b != nil {
 		if c.expressionLevel2 != nil {
 			err = c.expressionLevel2(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -90,7 +89,7 @@ func (c *visitor[T]) ExpressionLevel3(b *ExpressionLevel3) error {
 	if b != nil {
 		if c.expressionLevel3 != nil {
 			err = c.expressionLevel3(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -126,7 +125,7 @@ func (c *visitor[T]) ExpressionLevel4(b *ExpressionLevel4) error {
 	if b != nil {
 		if c.expressionLevel4 != nil {
 			err = c.expressionLevel4(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -164,7 +163,7 @@ func (c *visitor[T]) ExpressionLevel5(b *ExpressionLevel5) error {
 	if b != nil {
 		if c.expressionLevel5 != nil {
 			err = c.expressionLevel5(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

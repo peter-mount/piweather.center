@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type Http struct {
@@ -19,7 +18,7 @@ func (c *visitor[T]) Http(d *Http) error {
 	if d != nil {
 		if c.http != nil {
 			err = c.http(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

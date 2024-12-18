@@ -2,8 +2,8 @@ package exec
 
 import (
 	"github.com/alecthomas/participle/v2"
+	"github.com/peter-mount/go-script/errors"
 	ql2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 	"github.com/peter-mount/piweather.center/weather/measurement"
@@ -58,7 +58,7 @@ func windRose(v ql2.Visitor[*Executor], s *ql2.WindRose) error {
 	}
 
 	// Tell the visitor to stop processing this Histogram statement
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func (ex *Executor) windRoseTable(wr *api.WindRose, f func(*api.WindRoseBucket) float64) {

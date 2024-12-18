@@ -7,7 +7,6 @@ import (
 	"github.com/peter-mount/go-script/calculator"
 	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/store/client"
@@ -187,7 +186,7 @@ func (e *executor) calculation(v station2.Visitor[*executor], b *station2.Calcul
 		// Handle no AS clause - result is the target metric
 		r, exists := e.latest.Latest(b.Target)
 		if !exists {
-			return util.VisitorStop
+			return errors.VisitorStop
 		}
 		e.push(r.Time, r.Value)
 	} else {
@@ -201,7 +200,7 @@ func (e *executor) calculation(v station2.Visitor[*executor], b *station2.Calcul
 
 	e.setMetric(b.Target, val)
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func (e *executor) Calculate(instructions ...calculator.Instruction) (float64, error) {
@@ -317,7 +316,7 @@ func (e *executor) expressionLevel1(v station2.Visitor[*executor], b *station2.E
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	} else {
 		err = errors.Error(b.Pos, err)
 	}
@@ -336,7 +335,7 @@ func (e *executor) expressionLevel2(v station2.Visitor[*executor], b *station2.E
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	} else {
 		err = errors.Error(b.Pos, err)
 	}
@@ -355,7 +354,7 @@ func (e *executor) expressionLevel3(v station2.Visitor[*executor], b *station2.E
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	} else {
 		err = errors.Error(b.Pos, err)
 	}
@@ -376,7 +375,7 @@ func (e *executor) expressionLevel4(v station2.Visitor[*executor], b *station2.E
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	} else {
 		err = errors.Error(b.Pos, err)
 	}
@@ -405,7 +404,7 @@ func (e *executor) expressionLevel5(v station2.Visitor[*executor], b *station2.E
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	} else {
 		err = errors.Error(b.Pos, err)
 	}
@@ -434,7 +433,7 @@ func (e *executor) expressionAtom(v station2.Visitor[*executor], b *station2.Exp
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	} else {
 		err = errors.Error(b.Pos, err)
 	}
@@ -481,7 +480,7 @@ func (e *executor) metricExpression(v station2.Visitor[*executor], b *station2.M
 						vc := r.Cell(1)
 						if vc.Value.IsValid() {
 							e.push(tc.Time, vc.Value)
-							return util.VisitorStop
+							return errors.VisitorStop
 						}
 					}
 				}
@@ -489,7 +488,7 @@ func (e *executor) metricExpression(v station2.Visitor[*executor], b *station2.M
 
 			// No result so set null
 			e.pushNull()
-			return util.VisitorStop
+			return errors.VisitorStop
 		}
 	}
 
@@ -504,7 +503,7 @@ func (e *executor) useFirst(_ station2.Visitor[*executor], b *station2.UseFirst)
 			// Set the new value then VisitorStop to tell
 			// calculation() to terminate
 			e.latest.Append(e.calc.ID(), rec)
-			return util.VisitorStop
+			return errors.VisitorStop
 		}
 	}
 	return nil
@@ -547,7 +546,7 @@ func (e *executor) function(v station2.Visitor[*executor], b *station2.Function)
 		if !arg.IsValid() {
 			e.restore()
 			e.pushNull()
-			return util.VisitorStop
+			return errors.VisitorStop
 		}
 
 		if t.IsZero() || t.Before(arg.Time) {
@@ -565,7 +564,7 @@ func (e *executor) function(v station2.Visitor[*executor], b *station2.Function)
 	if err == nil {
 		e.restore()
 		e.push(t, val)
-		return util.VisitorStop
+		return errors.VisitorStop
 	}
 
 	return err

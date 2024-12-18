@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"strings"
 )
 
@@ -19,7 +18,7 @@ func (c *visitor[T]) SourcePath(d *SourcePath) error {
 	if d != nil {
 		if c.sourcePath != nil {
 			err = c.sourcePath(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

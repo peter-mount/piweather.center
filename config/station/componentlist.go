@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type ComponentList struct {
@@ -16,7 +15,7 @@ func (c *visitor[T]) ComponentList(d *ComponentList) error {
 	if d != nil {
 		if c.componentList != nil {
 			err = c.componentList(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

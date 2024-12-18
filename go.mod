@@ -15,7 +15,7 @@ require (
 	github.com/peter-mount/go-build v0.0.0-20240804094359-01252fe8316a
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20241209122742-caa13094d526
 	github.com/peter-mount/go-mastodon v0.0.0-20221228215100-3fcdfd9b124a
-	github.com/peter-mount/go-script v0.0.0-20241215134044-126aea3fa02c
+	github.com/peter-mount/go-script v0.0.0-20241218090358-129a6c764bf4
 	github.com/peter-mount/nre-feeds v0.0.0-20240201140817-fd78167946e5
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/soniakeys/meeus/v3 v3.0.1

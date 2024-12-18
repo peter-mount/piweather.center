@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type LocationExpression struct {
@@ -17,7 +16,7 @@ func (c *visitor[T]) LocationExpression(d *LocationExpression) error {
 	var err error
 	if d != nil && c.locationExpression != nil {
 		err = c.locationExpression(c, d)
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 

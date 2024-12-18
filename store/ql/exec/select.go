@@ -1,8 +1,8 @@
 package exec
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/ql/exec/utils"
 )
 
@@ -20,7 +20,7 @@ func usingDefinitions(v lang2.Visitor[*Executor], s *lang2.UsingDefinitions) err
 		}
 		ex.using[e.Name] = e
 	}
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
@@ -69,5 +69,5 @@ func selectStatement(v lang2.Visitor[*Executor], s *lang2.Select) error {
 	}
 
 	// Tell the visitor to stop processing this Select statement
-	return util.VisitorStop
+	return errors.VisitorStop
 }
