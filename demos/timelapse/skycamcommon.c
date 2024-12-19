@@ -58,6 +58,9 @@ renderFrame(ctx,cfg,frame) {
         }
 
         cfg.layout.Layout(gc)
+
+        cfg.layout.Get("keogram").Sample(skyImage)
+
         cfg.layout.Draw(gc)
     }
 }

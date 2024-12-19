@@ -8,5 +8,6 @@ import (
 	_ "github.com/peter-mount/piweather.center/script/weather"
 	_ "github.com/peter-mount/piweather.center/script/weather/cloud"
 	_ "github.com/peter-mount/piweather.center/script/weather/db"
+	_ "github.com/peter-mount/piweather.center/script/weather/keogram"
 	_ "github.com/peter-mount/piweather.center/script/weather/value"
 )

@@ -17,13 +17,19 @@ import (
     "github.com/peter-mount/piweather.center/script/astro/chart"
     "github.com/peter-mount/piweather.center/script/astro/geo"
     "github.com/peter-mount/piweather.center/script/weather/cloud"
+    "github.com/peter-mount/piweather.center/script/weather/keogram"
 )
 
 include (
     "demos/timelapse/skycamcommon.c"
+    "demos/timelapse/skycamlayout.c"
 )
 
 main() {
+
+    ctx := graph.New4k()
+    //ctx := graph.New1080p().Scale(0.5,0.5)
+    //ctx := graph.New720p().Scale(1/3.0,1/3.0)
 
     // The width of each column on the top part of the frame
     // e.g. this contains the camera image, cloud cover and sky map
@@ -33,12 +39,12 @@ main() {
 
     cfg := map(
         // Set this to the directory containing the images
-        "srcDir": "/home/peter/weather/cam2",
+        "srcDir": "/home/peter/weather/cam4",
 
         // Privacy mask
-        "privmask": readImage( "/home/peter/weather/cam2-privmask.png" ),
+        "privmask": readImage( "/home/peter/weather/cam4-privmask.png" ),
         // Sky mask for cloud detection
-        "skymask": readImage( "/home/peter/weather/cam2-skymask.png" ),
+        "skymask": readImage( "/home/peter/weather/cam4-skymask.png" ),
 
         // The output video name
         "output": "/home/peter/test-video.png",
@@ -49,26 +55,11 @@ main() {
 
         "title": "Example sky camera timelapse",
 
-
         "black": colour.Colour("black"),
         "white": colour.Colour("white"),
 
         // Overall background colour of the video
         "background": colour.Colour("black"),
-
-        // Width and position of the sky camera view - the left 40% of the frame
-        "skyWidth": topColCellWidth,
-        "skyX": 10,
-        "skyY": 60,
-        // usable image is 2656x2154 but as we should keep it square then limit it to
-        // part of the frame with the most sky visible
-        "skyBounds": util.Rect(2656-2154,0,2656,2154).Rect(),
-
-        // cloud config
-        "cloudX": (image.Width4K-topColCellWidth)/2,
-        //"cloudX": image.Width4K-topColCellWidth,
-        "cloudY": 60,
-        "cloudWidth": topColCellWidth,
 
         // Position of the cloud coverage or skymap view - the right 30% of the frame
         "auxViewX": (image.Width4K-topColCellWidth)/2,
@@ -89,10 +80,6 @@ main() {
 
     createSkyMap(cfg)
 
-    ctx := graph.New4k()
-    //ctx := graph.New1080p().Scale(0.5,0.5)
-    //ctx := graph.New720p().Scale(1/3.0,1/3.0)
-
     files := util.GetImageFiles(cfg.srcDir)
     frames := util.SequenceIn(15,files,cfg.timeZone)
 
@@ -102,30 +89,4 @@ main() {
         renderFrame(ctx,cfg,frame)
         image.WriteImage(cfg.output, ctx.Image())
     }
-}
-
-createLayout(cfg) {
-    cfg.layout = layout.New(image.Width4K,image.Height4K).
-        RowContainer().
-            ColScaleContainer(1/3.0,1/3.0,1/3.0).
-                Font("luxi 32 mono bold").
-                Fill( cfg.white ).
-                Text("",cfg.title).End().
-                Text("","ME15Weather").Align("center").End().
-                Text("timeDisplay","%s").Align("right").End().
-            End().
-            ColScaleContainer(0.4,0.4,0.2).
-                Image("skyCamera").Inset(10).End().
-                Image("auxView").Inset(10).End().
-                RowContainer().
-                    Font("luxi 20 mono bold").
-                    Fill( cfg.white ).
-                    Text("cloudCover", "Cloud Cover %3.0f%% Sky %3.0f%% Obscured %3.0f%%").End().
-                    Text("jab1", "JabberGhjkfjdf").End().
-                    Text("jab2", "JabberGhjkfjdf").End().
-                End().
-            End().
-        End().
-    End().
-    Build()
 }
