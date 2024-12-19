@@ -18,5 +18,6 @@ type Script struct {
 func (s *Script) PostInit() error {
 	// These are actual services which we will expose to go-script
 	packages.Register("calculator", s.Calculator)
+	packages.RegisterPackage(s.Calculator)
 	return nil
 }

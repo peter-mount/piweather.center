@@ -12,10 +12,12 @@ import (
     "github.com/peter-mount/go-anim/script/image"
     "github.com/peter-mount/go-anim/script/render"
     "github.com/peter-mount/go-anim/script/util"
+    "github.com/peter-mount/piweather.center/astro/calculator"
     "github.com/peter-mount/piweather.center/script/astro/calendar"
     "github.com/peter-mount/piweather.center/script/astro/chart"
     "github.com/peter-mount/piweather.center/script/astro/geo"
     "github.com/peter-mount/piweather.center/script/weather/cloud"
+    "github.com/peter-mount/piweather.center/script/weather/value"
 )
 
 main() {
@@ -28,7 +30,7 @@ main() {
 
     cfg := map(
         // Set this to the directory containing the images
-        "srcDir": "/home/peter/weather/cam",
+        "srcDir": "/home/peter/weather/cam2",
 
         // The output video name
         "output": "/home/peter/test-video.mp4",
@@ -56,11 +58,13 @@ main() {
 
         // cloud config
         "cloudX": (image.Width4K-topColCellWidth)/2,
+        //"cloudX": image.Width4K-topColCellWidth,
         "cloudY": 60,
         "cloudWidth": topColCellWidth,
 
         // Position of the cloud coverage or skymap view - the right 30% of the frame
-        "auxViewX": image.Width4K-topColCellWidth,
+        "auxViewX": (image.Width4K-topColCellWidth)/2,
+        //"auxViewX": image.Width4K-topColCellWidth,
         "auxViewY": 60,
         "auxViewW": topColCellWidth,
 
@@ -75,17 +79,28 @@ main() {
 
     createSkyMap(cfg)
 
-    ctx := graph.New4k()
+    //ctx := graph.New4k()
+    //ctx := graph.New1080p().Scale(0.5,0.5)
+    ctx := graph.New720p().Scale(1/3.0,1/3.0)
 
     files := util.GetImageFiles(cfg.srcDir)
-    fileNum := len(files)
-    fmt.Printf("Rendering %d frames\n", fileNum)
+    frames := util.SequenceIn(15,files,cfg.timeZone)
+    frameCount := frames.Size()
+    fmt.Printf("Rendering %d frames\n", frameCount)
 
     try( out := render.New( cfg.output, 25 ) ) {
-        for i,file := range files {
-            fmt.Printf( "\rRendering %d/%d %.0f%% ",i,fileNum, (100.0*i)/fileNum)
-            renderFrame(ctx,cfg,file)
+        for i,frame := range frames {
+//            fmt.Printf( "\rRendering %d/%d %.0f%% %s ",
+//                i, frameCount,
+//                (100.0*i)/frameCount,
+//                frame.Time.Format("2006-01-02 15:04:05")
+//            )
+            renderFrame(ctx,cfg,frame)
             out.WriteImage(ctx.Image())
+
+//            if i>100 {
+//                break
+//            }
         }
     }
 
@@ -102,16 +117,23 @@ readImage(srcName) {
     }
 }
 
-renderFrame(ctx,cfg,srcName) {
+renderFrame(ctx,cfg,frame) {
     // Get time from the file name
-    srcTime := util.TimeFromFileNameIn(srcName,cfg.timeZone)
-    fmt.Printf("%s ",srcTime.Format("2006-01-02 15:04:05"))
+    srcTime := frame.Time
+    jd := calendar.FromTime(srcTime)
+    tm := value.BasicTime(srcTime,cfg.location.Coord(),0)
 
-    // Get the sky camera image
-    skyImage := readImage(srcName)
-    // usable image is 2656x2154 but as we should keep it square then limit
-    skyImage = image.Crop(skyImage, cfg.skyBounds)
-    skyImage = image.Resize(math.Min(cfg.skyWidth,cfg.skyBounds.Dx()),0,skyImage,"nearestNeighbour")
+    sun := calculator.CalculateSun(tm)
+
+    // Get the sky camera image, caching it as necessary
+    if frame.RequiresImage() {
+        img:=readImage(frame.Source)
+        // usable image is 2656x2154 but as we should keep it square then limit
+        //img = image.Crop(img, cfg.skyBounds)
+        img = image.Resize(math.Min(cfg.skyWidth,cfg.skyBounds.Dx()),0,img,"nearestNeighbour")
+        frame.SetImage(img)
+    }
+    skyImage := frame.Image()
 
     try( ctx ) {
         gc=ctx.Gc()
@@ -135,9 +157,11 @@ renderFrame(ctx,cfg,srcName) {
             gc.DrawImage(skyImage)
         }
 
-        renderClouds(ctx,cfg,skyImage)
-
-        renderSkyMap(ctx,cfg,calendar.FromTime(srcTime))
+        if sun.GetHorizontal().Alt >= 0 {
+            renderClouds(ctx,cfg,skyImage)
+        } else {
+            renderSkyMap(ctx,cfg,jd)
+        }
     }
 }
 
