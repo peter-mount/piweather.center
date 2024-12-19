@@ -12,10 +12,10 @@ func init() {
 
 type Cloud struct{}
 
-func (_ *Cloud) Filter(mask image.Image) cloud.Filter {
-	return cloud.NewFilter(mask)
+func (_ *Cloud) Filter(privMask, skyMask image.Image) cloud.Filter {
+	return cloud.NewFilter(privMask, skyMask)
 }
 
 func (_ *Cloud) FilterNoMask() cloud.Filter {
-	return cloud.NewFilter(nil)
+	return cloud.NewFilter(nil, nil)
 }

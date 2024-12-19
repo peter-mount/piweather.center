@@ -35,9 +35,11 @@ renderFrame(ctx,cfg,frame) {
     // Get the sky camera image, caching it as necessary
     if frame.RequiresImage() {
         img:=readImage(frame.Source)
-        // usable image is 2656x2154 but as we should keep it square then limit
-        //img = image.Crop(img, cfg.skyBounds)
-//        img = image.Resize(math.Min(cfg.skyWidth,cfg.skyBounds.Dx()),0,img,"nearestNeighbour")
+        // Apply privacy mask where black pixels are removed
+        img=image.Mask(img, cfg.privmask)
+        // Now auto-crop it, removing any black borders introduced by privmask
+        img=image.AutoCrop(img)
+        // Cache the image in the frame
         frame.SetImage(img)
     }
     skyImage := frame.Image()
@@ -62,7 +64,7 @@ renderFrame(ctx,cfg,frame) {
 
 renderClouds(ctx, cfg, srcImg) {
     // Run the cloud filter generating the statistics and an image
-    filter := cloud.FilterNoMask().Limit( 0.7 )
+    filter := cloud.Filter( cfg.privmask, cfg.skymask ).Limit( 0.7 )
     img := image.FilterNew(filter.Filter(),srcImg)
     coverage := filter.Coverage()
 

@@ -35,6 +35,11 @@ main() {
         // Set this to the directory containing the images
         "srcDir": "/home/peter/weather/cam2",
 
+        // Privacy mask
+        "privmask": readImage( "/home/peter/weather/cam2-privmask.png" ),
+        // Sky mask for cloud detection
+        "skymask": readImage( "/home/peter/weather/cam2-skymask.png" ),
+
         // The output video name
         "output": "/home/peter/test-video.png",
 

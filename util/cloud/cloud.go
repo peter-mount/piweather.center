@@ -35,6 +35,7 @@ type Coverage struct {
 }
 
 type filter struct {
+	privMask      image.Image // Privacy Mask (optional) to isolate areas not to be shown
 	mask          image.Image // Mask (optional) to isolate the sky from obstructions
 	coverage      float64     // cloud coverage as a percentage
 	total         int         // total pixels in image
@@ -49,8 +50,9 @@ type filter struct {
 	noColor       color.Color // colour for nothing detected or outside the mask
 }
 
-func NewFilter(mask image.Image) Filter {
+func NewFilter(privMask, mask image.Image) Filter {
 	return &filter{
+		privMask:   privMask,
 		mask:       mask,
 		skyColor:   colornames.Blue,
 		noColor:    colornames.Black,
@@ -95,10 +97,12 @@ func (c *filter) Filter() graph.Filter {
 }
 
 func (c *filter) filter(x, y int, col color.Color) (color.Color, error) {
-	c.total++
 	np := c.noColor
 
-	if c.isVisible(x, y) {
+	if c.isSky(x, y) {
+		// Count only sky pixels in the total
+		c.total++
+
 		r, g, b, _ := col.RGBA()
 
 		rb := 0.0
@@ -134,16 +138,27 @@ func (c *filter) filter(x, y int, col color.Color) (color.Color, error) {
 			c.sky++
 			np = c.skyColor
 		}
+	} else if c.isVisible(x, y) {
+		// If not sky but visible then keep the original colour
+		// This then shows the rest of the image
+		np = col
 	}
 
 	return np, nil
 }
 
 func (c *filter) isVisible(x, y int) bool {
-	if c.mask == nil {
-		return true
+	// If privacyMask is available then stop if it's masked out
+	if c.privMask != nil && graph.IsBlack(c.privMask.At(x, y)) {
+		return false
 	}
-	r, g, b, _ := c.mask.At(x, y).RGBA()
-	// Any bright pixel is true, otherwise false
-	return r > 0x800 || g > 0x800 || b > 0x800
+	return true
+}
+
+func (c *filter) isSky(x, y int) bool {
+	if c.mask != nil {
+		return graph.IsNotBlack(c.mask.At(x, y))
+	}
+
+	return true
 }
