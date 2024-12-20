@@ -77,7 +77,6 @@ renderSkyMap( cfg, jd, srcImg) {
     }
 
     bounds := srcImg.Bounds()
-    fmt.Println("map",bounds)
     mapCtx := graph.NewImageContext(image.Duplicate(srcImg))
 
     try( mapCtx ) {
