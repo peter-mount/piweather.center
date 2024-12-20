@@ -70,4 +70,12 @@ func SizeStarRenderer(gc draw2d.GraphicContext, p chart.Projection, s catalogue.
 	gc.BeginPath()
 	draw2dkit.Circle(gc, x, y, r)
 	gc.Fill()
+
+	if s.Name != "" {
+		gc.Save()
+		gc.Translate(x+5+r, y-5-r)
+		gc.Scale(-1, 1)
+		gc.FillString(s.Name)
+		gc.Restore()
+	}
 }

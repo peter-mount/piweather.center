@@ -48,6 +48,10 @@ type Calculator interface {
 	//	use CalculateSun instead
 	// Deprecated
 	SolarHZ(t value.Time) (unit.Angle, unit.Angle, error)
+
+	// SolarSystem calculates an ephemeris for the Sun, Moon and Planets for a single
+	// moment in time.
+	SolarSystem(t value.Time) (api.EphemerisDay, error)
 }
 
 type calculator struct {

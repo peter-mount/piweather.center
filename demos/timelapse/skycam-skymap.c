@@ -51,6 +51,8 @@ createSkyMap(cfg, bounds) {
     ybsc := chart.YaleBrightStarCatalog()
     if mapContains(cfg,"magLimit") ybsc.MagLimit(cfg.magLimit)
 
+    cfg.ephemLayer = chart.EphemerisDayLayer()
+
     // Add to the config our chart and it's own context
     cfg.map = chart
 }
@@ -60,6 +62,7 @@ createSkyMap(cfg, bounds) {
 // cfg      Configuration
 // jd       Julian Day Number of the moment to display
 // srcImg   Source image from the camera
+// ephem    Ephemeris for solar system objects
 //
 // requirements:
 //
@@ -70,11 +73,13 @@ createSkyMap(cfg, bounds) {
 //
 // "auxView"    Image component to display the map
 //
-renderSkyMap( cfg, jd, srcImg) {
+renderSkyMap( cfg, jd, srcImg, ephem) {
 
     if !mapContains(cfg, "map" ) {
         createSkyMap(cfg, srcImg.Bounds())
     }
+
+    cfg.ephemLayer.SetEphemeris(ephem)
 
     bounds := srcImg.Bounds()
     mapCtx := graph.NewImageContext(image.Duplicate(srcImg))

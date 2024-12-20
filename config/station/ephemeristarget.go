@@ -84,7 +84,7 @@ type EphemerisTargetType uint8
 const (
 	EphemerisTargetMercury EphemerisTargetType = iota
 	EphemerisTargetVenus
-	ephemerisTargetEarth // placeholder for the Earth, included as the values 0...7 match the VSOP planet id's.
+	EphemerisTargetEarth // placeholder for the Earth, included as the values 0...7 match the VSOP planet id's.
 	EphemerisTargetMars
 	EphemerisTargetJupiter
 	EphemerisTargetSaturn

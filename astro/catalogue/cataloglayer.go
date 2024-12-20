@@ -36,8 +36,9 @@ type catalogLayer struct {
 
 // Star within a CatalogLayer which has been projected onto a chart.
 type Star struct {
-	P   chart.Point
-	Mag float64
+	P    chart.Point
+	Mag  float64
+	Name string
 }
 
 // StarRenderer renders a star

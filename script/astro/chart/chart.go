@@ -155,3 +155,9 @@ func (c *Chart) YaleBrightStarCatalog() (chart.ConfigurableLayer, error) {
 	c.Layer().Add(l)
 	return l, nil
 }
+
+func (c *Chart) EphemerisDayLayer() catalogue.EphemerisDayLayer {
+	l := catalogue.NewEphemerisDayLayer(render.SizeStarRenderer, c.Projection())
+	c.Layer().Add(l)
+	return l
+}

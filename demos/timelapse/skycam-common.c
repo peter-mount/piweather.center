@@ -32,11 +32,14 @@ renderFrame(ctx,cfg,frame) {
     jd := calendar.FromTime(srcTime)
     tm := value.BasicTime(srcTime,cfg.location.Coord(),0)
 
+    // Calculate the solar system
+    ephem := calculator.SolarSystem(tm)
+
     // Calculate the sun - we need the altitude to know when to show the clouds or
     // the sky map.
-    sun := calculator.CalculateSun(tm)
+    sun := ephem.GetByName("Sun")
     sunAlt := sun.GetHorizontal().Alt
-    sunLimit := 0 // Show clouds until civil twilight ends
+    sunLimit := 0 // Show clouds whilst the Sun is above the horizon
 
     // Get the sky camera image, caching it as necessary
     if frame.RequiresImage() {
@@ -65,7 +68,7 @@ renderFrame(ctx,cfg,frame) {
         }
 
         if !firstFrame && sunAlt < sunLimit {
-            renderSkyMap( cfg, jd, skyImage )
+            renderSkyMap( cfg, jd, skyImage, ephem )
         }
 
         // Layout on the first frame only
