@@ -1,15 +1,7 @@
 
 import (
-    "github.com/peter-mount/go-anim/script/colour"
-    "github.com/peter-mount/go-anim/script/graph"
     "github.com/peter-mount/go-anim/script/image"
     "github.com/peter-mount/go-anim/script/layout"
-    "github.com/peter-mount/go-anim/script/render"
-    "github.com/peter-mount/go-anim/script/util"
-    "github.com/peter-mount/piweather.center/script/astro/calendar"
-    "github.com/peter-mount/piweather.center/script/astro/chart"
-    "github.com/peter-mount/piweather.center/script/astro/geo"
-    "github.com/peter-mount/piweather.center/script/weather/cloud"
     "github.com/peter-mount/piweather.center/script/weather/keogram"
 )
 

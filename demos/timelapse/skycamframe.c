@@ -10,19 +10,13 @@ import (
     "github.com/peter-mount/go-anim/script/colour"
     "github.com/peter-mount/go-anim/script/graph"
     "github.com/peter-mount/go-anim/script/image"
-    "github.com/peter-mount/go-anim/script/layout"
-    "github.com/peter-mount/go-anim/script/render"
     "github.com/peter-mount/go-anim/script/util"
-    "github.com/peter-mount/piweather.center/script/astro/calendar"
-    "github.com/peter-mount/piweather.center/script/astro/chart"
     "github.com/peter-mount/piweather.center/script/astro/geo"
-    "github.com/peter-mount/piweather.center/script/weather/cloud"
-    "github.com/peter-mount/piweather.center/script/weather/keogram"
 )
 
 include (
-    "demos/timelapse/skycamcommon.c"
-    "demos/timelapse/skycamlayout.c"
+    "demos/timelapse/skycam-common.c"
+    "demos/timelapse/skycam-layout.c"
 )
 
 main() {
@@ -68,12 +62,13 @@ main() {
         "auxViewW": topColCellWidth,
 
         // skyMap config
-        "horizonColour": colour.Colour("black"), // "#00320033"
-        "horizonBorder": colour.Colour("white"),
-        "milkyWay": colour.Grey(17),
-        "constBorder": nil, // colour.Colour("#0000aa",
+        //"milkyWay": colour.Grey(17),
+        //"constBorder": colour.Colour("#0000aa"),
         "constLine": colour.Colour("#0000aa"),
-        "magLimit": 99
+        //"magLimit": 5,
+        // Horizon - horizonColour is required, border is optional
+        //"horizonBorder": colour.Colour("white"),
+        "horizonColour": colour.Colour("black") // "#00320033"
     )
 
     createLayout(cfg)
