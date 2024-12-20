@@ -23,12 +23,20 @@ readImage(srcName) {
 }
 
 renderFrame(ctx,cfg,frame) {
+    // is this the firstFrame? if so then we need to render it twice
+    // to ensure the layout is correct
+    firstFrame := !mapContains(cfg,"layoutCompleted")
+
     // Get time from the file name
     srcTime := frame.Time
     jd := calendar.FromTime(srcTime)
     tm := value.BasicTime(srcTime,cfg.location.Coord(),0)
 
+    // Calculate the sun - we need the altitude to know when to show the clouds or
+    // the sky map.
     sun := calculator.CalculateSun(tm)
+    sunAlt := sun.GetHorizontal().Alt
+    sunLimit := 0 // Show clouds until civil twilight ends
 
     // Get the sky camera image, caching it as necessary
     if frame.RequiresImage() {
@@ -49,16 +57,36 @@ renderFrame(ctx,cfg,frame) {
         cfg.layout.Get("timeDisplay").Args(srcTime.Format(time.RFC1123))
         cfg.layout.Get("skyCamera").SetImage(skyImage)
 
-//        if sun.GetHorizontal().Alt >= 0 {
-//            renderClouds( cfg, skyImage )
-//        } else {
-            renderSkyMap( cfg, jd )
-//        }
+        // render clouds whilst the sun is above sunLimit
+        // however we also do this for the firstFrame regardless as we
+        // need to configure the Image component with the correct size
+        if firstFrame || sunAlt >= sunLimit {
+            renderClouds( cfg, skyImage )
+        }
 
-        cfg.layout.Layout(gc)
+        if !firstFrame && sunAlt < sunLimit {
+            renderSkyMap( cfg, jd, skyImage )
+        }
 
+        // Layout on the first frame only
+        if firstFrame cfg.layout.Layout(gc)
+
+        // These must be done after we are laid out as they need to know their sizes
         cfg.layout.Get("keogram").Sample(skyImage)
 
         cfg.layout.Draw(gc)
+
+        // If first frame then render it a second time.
+        // This allows us to be certain the first frame is laid out correctly
+        // specifically the Image components
+        if firstFrame {
+            cfg.layoutCompleted = true
+
+            // We also need a copy of the bounds for auxView as right now it's got the cloud view
+            cfg.skymapBounds := cfg.layout.Get("auxView").InsetBounds()
+
+            renderFrame(ctx,cfg,frame)
+        }
+
     }
 }

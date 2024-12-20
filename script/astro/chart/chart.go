@@ -62,7 +62,7 @@ func (_ Package) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Chart {
 	c := &Chart{
 		chartLayer:  chart.NewLayers(),
 		transformer: coord.NewCoordinateTransformer(loc.Latitude, loc.Longitude).Sidereal(sidereal.FromJD(jd)),
-		projection0: chart.NewStereographicProjection(0, unit.AngleFromDeg(90), float64(bounds.Dx())/4.1, bounds),
+		projection0: chart.NewStereographicProjection(0, unit.AngleFromDeg(90), float64(bounds.Dx())/4.0, bounds),
 		manager:     &catalogue.Manager{},
 	}
 

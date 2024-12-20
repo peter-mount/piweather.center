@@ -7,6 +7,7 @@
 
 import (
     "github.com/peter-mount/go-anim/script/graph"
+    "github.com/peter-mount/go-anim/script/image"
     "github.com/peter-mount/go-anim/script/util"
     "github.com/peter-mount/piweather.center/script/astro/chart"
 )
@@ -26,10 +27,12 @@ import (
 // cfg.constLine        Colour of the constellation outlines (if used)
 // cfg.magLimit         Magnitude limit for stars. 3, 4 or 5 for light pollution, 6 for visible, 99 for everything
 
-createSkyMap(cfg) {
-    width := cfg.auxViewW
-    chart := chart.NewHorizon( cfg.location, util.Rect(0,0,width,width).Rect() )
-    chart.Background().SetFillStroke(cfg.black)
+createSkyMap(cfg, bounds) {
+    bounds = util.Rect(0,0, cfg.mapW, cfg.mapH).Rect()
+    cfg.mapBounds = bounds
+    chart := chart.NewHorizon( cfg.location, bounds )
+
+    chart.Background().SetFillStroke(cfg.mapBackground)
 
     // Horizon with the border colour being optional
     if mapContains(cfg,"horizonColour", "horizonBorder") {
@@ -50,13 +53,13 @@ createSkyMap(cfg) {
 
     // Add to the config our chart and it's own context
     cfg.map = chart
-    cfg.mapCtx = graph.NewSizedContext(width,width)
 }
 
 // render the sky map
 //
 // cfg      Configuration
 // jd       Julian Day Number of the moment to display
+// srcImg   Source image from the camera
 //
 // requirements:
 //
@@ -67,16 +70,28 @@ createSkyMap(cfg) {
 //
 // "auxView"    Image component to display the map
 //
-renderSkyMap( cfg, jd ) {
+renderSkyMap( cfg, jd, srcImg) {
 
-    // This will speed things up by reducing lookup times
-    mapCtx := cfg.mapCtx
+    if !mapContains(cfg, "map" ) {
+        createSkyMap(cfg, srcImg.Bounds())
+    }
+
+    bounds := srcImg.Bounds()
+    fmt.Println("map",bounds)
+    mapCtx := graph.NewImageContext(image.Duplicate(srcImg))
 
     try( mapCtx ) {
         gc := mapCtx.Gc()
         cfg.map.JD(jd)
+
+        gc.Translate( cfg.mapX, cfg.mapY )
         cfg.map.Draw(gc)
     }
 
-    cfg.layout.Get("auxView").SetImage( mapCtx.Image() )
+    // Now draw this image over the source using skymask to show just
+    // the stars actually visible in the camera
+    mapImg := image.DrawMask( mapCtx.Image(), cfg.skymask, srcImg )
+
+    auxView := cfg.layout.Get("auxView")
+    auxView.SetImage( mapImg )
 }
