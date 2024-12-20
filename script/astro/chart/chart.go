@@ -151,7 +151,7 @@ func (c *Chart) YaleBrightStarCatalog() (chart.ConfigurableLayer, error) {
 	if err != nil {
 		return nil, err
 	}
-	l := f.NewLayer(render.BrightnessPixelStarRenderer, c.Projection())
+	l := f.NewLayer(render.SizeStarRenderer, c.Projection())
 	c.Layer().Add(l)
 	return l, nil
 }
