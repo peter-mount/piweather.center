@@ -32,14 +32,26 @@ renderFrame(ctx,cfg,frame) {
     jd := calendar.FromTime(srcTime)
     tm := value.BasicTime(srcTime,cfg.location.Coord(),0)
 
+    layout := cfg.layout
+
     // Calculate the solar system
     ephem := calculator.SolarSystem(tm)
 
     // Calculate the sun - we need the altitude to know when to show the clouds or
     // the sky map.
     sun := ephem.GetByName("Sun")
-    sunAlt := sun.GetHorizontal().Alt
     sunLimit := 0 // Show clouds whilst the Sun is above the horizon
+    altAz := sun.GetHorizontal()
+    sunAlt := altAz.Alt
+    layout.Get("sunAltAz").Args( sunAlt, altAz.Az )
+    layout.Get("sunDist").Args( sun.GetDistance() )
+    layout.Get("sunTime").Args( sun.GetLightTime() )
+
+    moon := ephem.GetByName("Moon")
+    altAz = moon.GetHorizontal()
+    layout.Get("moonAltAz").Args( altAz.Alt, altAz.Az )
+    layout.Get("moonDist").Args( moon.GetDistance() )
+    layout.Get("moonTime").Args( moon.GetLightTime() )
 
     // Get the sky camera image, caching it as necessary
     if frame.RequiresImage() {

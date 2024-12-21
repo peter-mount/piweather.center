@@ -28,7 +28,7 @@ main() {
 
     cfg := config()
     // Set this to the directory containing the images
-    cfg.srcDir = "/home/peter/weather/cam4"
+    cfg.srcDir = "/home/peter/weather/cam4b"
 
     // Privacy mask
     cfg.privmask = readImage( "/home/peter/weather/cam4-privmask.png" )
