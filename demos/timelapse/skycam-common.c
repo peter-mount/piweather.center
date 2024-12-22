@@ -88,7 +88,7 @@ renderFrame(ctx,cfg,frame) {
         if firstFrame cfg.layout.Layout(gc)
 
         // These must be done after we are laid out as they need to know their sizes
-        cfg.layout.Get("keogram").Sample(skyImage)
+        cfg.layout.Get("keogram").Sample(frame, skyImage)
 
         cfg.layout.Draw(gc)
 
