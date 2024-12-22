@@ -21,6 +21,8 @@ config() {
 
         // Overall background colour of the video
         "background": colour.Colour("black"),
+        "titlebar": colour.Colour("#0f2a3f"),
+        "foreground": colour.Colour("lightblue"),
 
         // Position of the cloud coverage or skymap view - the right 30% of the frame
         "auxViewX": (image.Width4K-topColCellWidth)/2,

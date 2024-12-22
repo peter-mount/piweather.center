@@ -16,23 +16,35 @@ createLayout(cfg) {
                 Text("timeDisplay","%s").Align("right").End().
             End().
             ColScaleContainer(0.4,0.4,0.2).
-                Image("skyCamera").Inset(10).End().
-                Image("auxView").Inset(10).End().
+                TitledContainer("","Sky Camera").
+                    Image("skyCamera").Inset(0).End().
+                End().
+                TitledContainer("","Processed view").
+                    Image("auxView").Inset(0).End().
+                End().
                 RowContainer().
                     Font("luxi 20 mono bold").
-                    Fill( cfg.white ).
-                    Value("cloudCover", "Cloud Cover","%3.0f%% Sky %3.0f%% Obscured %3.0f%%",0,0,0).End().
-                    Value("sunRaDec", "Sun Position","%s %s",0,0).End().
-                    Value("sunAltAz", "Sun Position","%s %s",0,0).End().
-                    Value("sunDist","Distance","%s").End().
-                    Value("sunTime","Light Time","%s").End().
-                    Value("moonAltAz", "Moon Position","%s %s",0,0).End().
-                    Value("moonDist","Distance","%s").End().
-                    Value("moonTime","Light Time","%s").End().
+                    Fill( cfg.foreground ).
+                    TitledContainer("","Station").
+                        Value("cloudCover", "Cloud Cover","%3.0f%% Cloud\n%3.0f%% Sky\n%3.0f%% Obscured",0,0,0).End().
+                    End().
+                    TitledContainer("","Sun").
+                        Value("sunRaDec", "Equatorial","%s\n%s",0,0).End().
+                        Value("sunAltAz", "Horizon","%s\n%s",0,0).End().
+                        Value("sunDist","Distance","%s").End().
+                        Value("sunTime","Light Time","%s").End().
+                    End().
+                    TitledContainer("","Moon").
+                        Value("moonAltAz", "Moon Position","%s\n%s",0,0).End().
+                        Value("moonDist","Distance","%s").End().
+                        Value("moonTime","Light Time","%s").End().
+                    End().
                 End().
             End().
             ColScaleContainer(0.4,0.4,0.2).
-                AddComponent( "keogram", keogram.Keogram() ).End().
+                TitledContainer("","Keogram").
+                    AddComponent( "keogram", keogram.Keogram() ).End().
+                End().
             End().
         End().
     End().
