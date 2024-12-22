@@ -22,12 +22,13 @@ createLayout(cfg) {
                     Font("luxi 20 mono bold").
                     Fill( cfg.white ).
                     Value("cloudCover", "Cloud Cover","%3.0f%% Sky %3.0f%% Obscured %3.0f%%",0,0,0).End().
-                    Value("sunAltAz", "Sun Position","% 4.0f° % 4.0f°",0,0).End().
+                    Value("sunRaDec", "Sun Position","%s %s",0,0).End().
+                    Value("sunAltAz", "Sun Position","%s %s",0,0).End().
                     Value("sunDist","Distance","%s").End().
                     Value("sunTime","Light Time","%s").End().
-                    Text("moonAltAz", "Moon % 4.0f° % 4.0f°",0,0).End().
-                    Text("moonDist","Dist %s").End().
-                    Text("moonTime","Light Time %s").End().
+                    Value("moonAltAz", "Moon Position","%s %s",0,0).End().
+                    Value("moonDist","Distance","%s").End().
+                    Value("moonTime","Light Time","%s").End().
                 End().
             End().
             ColScaleContainer(0.4,0.4,0.2).

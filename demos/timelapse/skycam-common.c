@@ -3,6 +3,7 @@
 import (
     "github.com/peter-mount/go-anim/script/image"
     "github.com/peter-mount/piweather.center/astro/calculator"
+    "github.com/peter-mount/piweather.center/script/astro/api"
     "github.com/peter-mount/piweather.center/script/astro/calendar"
     "github.com/peter-mount/piweather.center/script/weather/value"
 )
@@ -43,13 +44,13 @@ renderFrame(ctx,cfg,frame) {
     sunLimit := 0 // Show clouds whilst the Sun is above the horizon
     altAz := sun.GetHorizontal()
     sunAlt := altAz.Alt
-    layout.Get("sunAltAz").Args( sunAlt, altAz.Az )
+    layout.Get("sunRaDec").Args( sun.Value(api.EquatorialRA), sun.Value(api.EquatorialDec) )
+    layout.Get("sunAltAz").Args( sun.Value(api.HorizonAltitude), sun.Value(api.HorizonBearing) )
     layout.Get("sunDist").Args( sun.GetDistance() )
     layout.Get("sunTime").Args( sun.GetLightTime() )
 
     moon := ephem.GetByName("Moon")
-    altAz = moon.GetHorizontal()
-    layout.Get("moonAltAz").Args( altAz.Alt, altAz.Az )
+    layout.Get("moonAltAz").Args( moon.Value(api.HorizonAltitude), moon.Value(api.HorizonBearing) )
     layout.Get("moonDist").Args( moon.GetDistance() )
     layout.Get("moonTime").Args( moon.GetLightTime() )
 
