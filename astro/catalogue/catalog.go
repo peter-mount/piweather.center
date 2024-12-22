@@ -75,8 +75,6 @@ func (c *Catalog) Read(r io.Reader) error {
 	}
 	size := (int(b[0]) << 8) | int(b[1])
 
-	log.Printf("expecting %d stars", size)
-
 	c.stars = nil
 	b = make([]byte, 8)
 	for i := 0; i < size; i++ {
