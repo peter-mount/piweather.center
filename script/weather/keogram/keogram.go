@@ -95,10 +95,12 @@ func (k *Keogram) Sample(frame *frames.Frame, src image.Image) {
 			gc := ctx.Gc()
 			gc.SetFillColor(color.White)
 			_ = graph.SetFont(gc, "luxi 14 mono bold")
-			gc.Translate(float64(keoBounds.Dx())-k.axisMetric.MaxLineHeight-1, float64(keoBounds.Max.Y))
+			gc.Translate(float64(keoBounds.Dx())-k.axisMetric.MaxLineHeight-1, float64(keoBounds.Max.Y)-(k.axisMetric.MaxLineWidth/2))
 			gc.Rotate(util.ToRad * -90.0)
 			gc.Translate(25, 0)
-			k.axisMetric.Fill(gc)
+
+			mb := image.Rect(0, 0, int(k.axisMetric.MaxLineWidth), int(k.axisMetric.MaxLineHeight))
+			util.RightAlignment.Fill(gc, mb, 0, s)
 		}
 	}
 }
