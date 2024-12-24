@@ -30,7 +30,8 @@ import (
 createSkyMap(cfg, bounds) {
     bounds = util.Rect(0,0, cfg.mapW, cfg.mapH).Rect()
     cfg.mapBounds = bounds
-    chart := chart.NewHorizon( cfg.location, bounds )
+    //chart := chart.NewHorizon( cfg.location, bounds )
+    chart := chart.NewAngular( cfg.location, bounds, math.Min(bounds.Dx(), bounds.Dy())/2, 80 )
 
     chart.Background().SetFillStroke(cfg.mapBackground)
 

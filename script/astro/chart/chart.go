@@ -93,6 +93,50 @@ func (_ Package) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Chart {
 	return c
 }
 
+// NewAngular returns a chart which matches a fisheye lens.
+//
+// loc 		LatLong of location on Earth
+// bounds	of the image
+// R 		radius of lens on the frame
+// alpha	half of the lens field of view
+func (_ Package) NewAngular(loc *coord.LatLong, bounds image.Rectangle, R, alpha float64) *Chart {
+	jd := julian.FromTime(time.Now())
+
+	c := &Chart{
+		chartLayer:  chart.NewLayers(),
+		transformer: coord.NewCoordinateTransformer(loc.Latitude, loc.Longitude).Sidereal(sidereal.FromJD(jd)),
+		projection0: chart.NewAngularProjection(bounds, R, unit.AngleFromDeg(alpha)),
+		manager:     &catalogue.Manager{},
+	}
+
+	c.projection = c.projection0.Transform(func(p chart.Point) chart.Point {
+		A, h := c.transformer.EqToHz(p.X.RA(), p.Y)
+		return chart.Point{X: A, Y: h}
+		//f := A.Deg() + 180.0
+		//for f < 0.0 {
+		//	f = f + 360
+		//}
+		//for f >= 360 {
+		//	f = f - 360
+		//}
+		//return chart.Point{X: unit.AngleFromDeg(f), Y: h}
+	})
+
+	c.background = chart.FloodFillLayer(c.projection0)
+	c.horizon = chart.HorizonLayer(c.projection0)
+
+	c.rootLayer = chart.NewLayers().
+		// Use the root projection, but we need to flip the x-axis
+		SetProjection(c.projection0).
+		Flip(true, false).
+		// Core layers
+		Add(c.background).
+		Add(c.chartLayer).
+		Add(c.horizon)
+
+	return c
+}
+
 func (c *Chart) Draw(ctx draw2d.GraphicContext) {
 	defer func() {
 		if err1 := recover(); err1 != nil {

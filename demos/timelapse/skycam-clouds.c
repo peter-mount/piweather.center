@@ -25,7 +25,7 @@ renderClouds( cfg, srcImg ) {
     //
     // The limit 0.7 is the level used to determine clouds.
     // 0.7 seems reasonable, but originally I used 0.84
-    filter := cloud.Filter( cfg.privmask, cfg.skymask ).Limit( 0.7 )
+    filter := cloud.Filter( cfg.privmask, cfg.skymask ).Limit( 0.6 )
     img := image.FilterNew(filter.Filter(),srcImg)
 
     // The coverage statistics from the filter
