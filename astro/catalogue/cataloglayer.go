@@ -36,8 +36,9 @@ type catalogLayer struct {
 
 // Star within a CatalogLayer which has been projected onto a chart.
 type Star struct {
-	P   chart.Point
-	Mag float64
+	P    chart.Point
+	Mag  float64
+	Name string
 }
 
 // StarRenderer renders a star
@@ -83,9 +84,7 @@ func (l *catalogLayer) MagLimit(magLim float64) CatalogLayer {
 
 func (l *catalogLayer) add(e Entry) error {
 	pt := chart.Point{X: e.RA().Angle(), Y: e.Dec()}
-	if l.Projection().Contains(pt) {
-		l.stars = append(l.stars, Star{P: pt, Mag: e.Mag()})
-	}
+	l.stars = append(l.stars, Star{P: pt, Mag: e.Mag()})
 	return nil
 }
 

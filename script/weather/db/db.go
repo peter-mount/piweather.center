@@ -1,4 +1,4 @@
-package weather
+package db
 
 import (
 	"github.com/peter-mount/go-script/packages"
@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	packages.Register("weatherdb", &DB{})
+	packages.RegisterPackage(&DB{})
 }
 
 type DB struct{}

@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/astro/api"
-	"github.com/peter-mount/piweather.center/config/util"
 	"strings"
 )
 
@@ -23,7 +22,7 @@ func (c *visitor[T]) EphemerisTarget(d *EphemerisTarget) error {
 	if d != nil {
 		if c.ephemerisTarget != nil {
 			err = c.ephemerisTarget(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -64,7 +63,7 @@ func initEphemerisTarget(v Visitor[*initState], d *EphemerisTarget) error {
 	}
 	d.ephemerisOption = ephemerisOption
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func (b *builder[T]) EphemerisTarget(f func(Visitor[T], *EphemerisTarget) error) Builder[T] {
@@ -85,7 +84,7 @@ type EphemerisTargetType uint8
 const (
 	EphemerisTargetMercury EphemerisTargetType = iota
 	EphemerisTargetVenus
-	ephemerisTargetEarth // placeholder for the Earth, included as the values 0...7 match the VSOP planet id's.
+	EphemerisTargetEarth // placeholder for the Earth, included as the values 0...7 match the VSOP planet id's.
 	EphemerisTargetMars
 	EphemerisTargetJupiter
 	EphemerisTargetSaturn

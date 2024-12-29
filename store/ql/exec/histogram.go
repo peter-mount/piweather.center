@@ -1,8 +1,8 @@
 package exec
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	ql2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 //type histogram struct {
@@ -35,5 +35,5 @@ func histogram(v ql2.Visitor[*Executor], s *ql2.Histogram) error {
 	}
 
 	// Tell the visitor to stop processing this Histogram statement
-	return util.VisitorStop
+	return errors.VisitorStop
 }

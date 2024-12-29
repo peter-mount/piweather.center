@@ -1,8 +1,8 @@
 package utils
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 )
 
@@ -38,20 +38,20 @@ var (
 				}
 			}
 
-			return util.VisitorStop
+			return errors.VisitorStop
 		}).
 		Function(func(v ql.Visitor[*getAggregatorsState], d *ql.Function) error {
 			st := v.Get()
 
 			// Stop looking if we have already got a function
 			if st.functions[st.col] != nil {
-				return util.VisitorStop
+				return errors.VisitorStop
 			}
 
 			// Lookup and accept if it's an aggregator
 			if f, exists := functions.GetFunction(d.Name); exists && f.IsAggregator() {
 				st.functions[st.col] = &f
-				return util.VisitorStop
+				return errors.VisitorStop
 			}
 
 			// Carry on until we get the first aggregator function.

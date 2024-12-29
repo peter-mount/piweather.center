@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"strings"
 )
@@ -21,7 +20,7 @@ func (c *visitor[T]) Function(d *Function) error {
 	if d != nil {
 		if c.function != nil {
 			err = c.function(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

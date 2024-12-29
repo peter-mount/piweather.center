@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
@@ -21,7 +20,7 @@ func (c *visitor[T]) SourceParameter(d *SourceParameter) error {
 	if d != nil {
 		if c.sourceParameter != nil {
 			err = c.sourceParameter(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -66,7 +65,7 @@ func initSourceParameter(v Visitor[*initState], d *SourceParameter) error {
 	}
 
 	if err == nil {
-		err = util.VisitorStop
+		err = errors.VisitorStop
 	}
 
 	return err

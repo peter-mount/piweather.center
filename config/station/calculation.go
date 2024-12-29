@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"strings"
 )
@@ -25,7 +24,7 @@ func (c *visitor[T]) Calculation(d *Calculation) error {
 	if d != nil {
 		if c.calculation != nil {
 			err = c.calculation(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

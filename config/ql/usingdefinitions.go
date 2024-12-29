@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 )
 
 type UsingDefinitions struct {
@@ -22,7 +22,7 @@ func (v *visitor[T]) UsingDefinitions(b *UsingDefinitions) error {
 		if v.usingDefinitions != nil {
 			err = v.usingDefinitions(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {

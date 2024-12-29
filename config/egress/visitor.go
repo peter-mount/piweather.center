@@ -1,7 +1,7 @@
 package egress
 
 import (
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/amqp"
 )
 
@@ -45,7 +45,7 @@ func (v *visitor[T]) Script(b *Script) error {
 		if v.script != nil {
 			err = v.script(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -74,7 +74,7 @@ func (v *visitor[T]) Action(b *Action) error {
 		if v.action != nil {
 			err = v.action(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {
@@ -90,7 +90,7 @@ func (v *visitor[T]) Amqp(b *amqp.Amqp) error {
 		if v.amqp != nil {
 			err = v.amqp(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 	}
@@ -103,7 +103,7 @@ func (v *visitor[T]) Metric(b *Metric) error {
 		if v.metric != nil {
 			err = v.metric(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -125,7 +125,7 @@ func (v *visitor[T]) Publish(b *Publish) error {
 		if v.publish != nil {
 			err = v.publish(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 	}

@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/command"
 )
 
@@ -18,7 +17,7 @@ func (c *visitor[T]) TaskCondition(d *TaskCondition) error {
 	if d != nil {
 		if c.taskCondition != nil {
 			err = c.taskCondition(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 			if errors.IsBreak(err) {

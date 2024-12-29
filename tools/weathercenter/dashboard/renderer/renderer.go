@@ -2,8 +2,8 @@ package renderer
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	station2 "github.com/peter-mount/piweather.center/station"
 	"net/http"
 )
@@ -42,7 +42,7 @@ func (r *Renderer) Render(stationId, dashboardId string) (string, int) {
 		Set(s).
 		Dashboard(dash.Dashboard())
 
-	if err != nil && !util.IsVisitorStop(err) {
+	if err != nil && !errors.IsVisitorStop(err) {
 		log.Printf("render %s:%s got %v", stationId, dashboardId, err)
 		return "", http.StatusInternalServerError
 	}

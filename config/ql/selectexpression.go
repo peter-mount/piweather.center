@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 )
 
 type SelectExpression struct {
@@ -16,7 +16,7 @@ func (v *visitor[T]) SelectExpression(b *SelectExpression) error {
 	if b != nil {
 		if v.selectExpression != nil {
 			err = v.selectExpression(v, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

@@ -48,6 +48,10 @@ type Calculator interface {
 	//	use CalculateSun instead
 	// Deprecated
 	SolarHZ(t value.Time) (unit.Angle, unit.Angle, error)
+
+	// SolarSystem calculates an ephemeris for the Sun, Moon and Planets for a single
+	// moment in time.
+	SolarSystem(t value.Time) (api.EphemerisDay, error)
 }
 
 type calculator struct {
@@ -60,8 +64,8 @@ func (c *calculator) Start() error {
 	// There are 8 major Planets ;-)
 	c.planetPositions = make([]*planetposition.V87Planet, 8)
 
-	// Path to lib directory for data lookup
-	c.rootDir = path.Join(filepath.Dir(os.Args[0]), "../lib")
+	// Path to script directory for data lookup
+	c.rootDir = path.Join(filepath.Dir(os.Args[0]), "../script")
 
 	// Register calculators
 	value.NewCalculator("SolarAltitude", c.SolarAltitudeCalculator())

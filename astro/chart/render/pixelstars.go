@@ -2,6 +2,7 @@ package render
 
 import (
 	"github.com/llgcode/draw2d"
+	"github.com/llgcode/draw2d/draw2dkit"
 	"github.com/peter-mount/piweather.center/astro/catalogue"
 	"github.com/peter-mount/piweather.center/astro/chart"
 	"image/color"
@@ -60,4 +61,21 @@ func BrightnessPixelStarRenderer(gc draw2d.GraphicContext, p chart.Projection, s
 	}
 	gc.Stroke()
 	gc.Restore()
+}
+
+func SizeStarRenderer(gc draw2d.GraphicContext, p chart.Projection, s catalogue.Star) {
+	x, y := p.Project(s.P)
+
+	r := 1 + math.Min(0, 2*(4.0-s.Mag))
+	gc.BeginPath()
+	draw2dkit.Circle(gc, x, y, r)
+	gc.Fill()
+
+	if s.Name != "" {
+		gc.Save()
+		gc.Translate(x+5+r, y-5-r)
+		gc.Scale(-1, 1)
+		gc.FillString(s.Name)
+		gc.Restore()
+	}
 }

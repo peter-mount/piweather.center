@@ -1,8 +1,8 @@
 package exec
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	lang2 "github.com/peter-mount/piweather.center/config/ql"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/ql/functions"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"time"
@@ -74,5 +74,5 @@ func tableSelect(v lang2.Visitor[*Executor], s *lang2.TableSelect) error {
 	}
 
 	// Tell the visitor to stop processing this Select statement
-	return util.VisitorStop
+	return errors.VisitorStop
 }

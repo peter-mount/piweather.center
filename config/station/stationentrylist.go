@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type StationEntryList struct {
@@ -16,7 +15,7 @@ func (c *visitor[T]) StationEntryList(d *StationEntryList) error {
 	if d != nil {
 		if c.stationEntry != nil {
 			err = c.stationEntryList(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

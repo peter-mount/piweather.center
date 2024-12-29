@@ -3,7 +3,7 @@ package ql
 import (
 	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/store/api"
 	"time"
@@ -26,7 +26,7 @@ func (v *visitor[T]) QueryRange(b *QueryRange) error {
 	if b != nil {
 		if v.queryRange != nil {
 			err = v.queryRange(v, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -92,7 +92,7 @@ func initQueryRange(v Visitor[*parserState], q *QueryRange) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func (b *builder[T]) QueryRange(f func(Visitor[T], *QueryRange) error) Builder[T] {

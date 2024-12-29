@@ -8,8 +8,7 @@ import (
 	_ "github.com/peter-mount/go-script/stdlib/math"
 	_ "github.com/peter-mount/go-script/stdlib/time"
 	"github.com/peter-mount/piweather.center/astro/calculator"
-	_ "github.com/peter-mount/piweather.center/tools/weatherscript/lib/astro"
-	_ "github.com/peter-mount/piweather.center/tools/weatherscript/lib/weather"
+	_ "github.com/peter-mount/piweather.center/script"
 )
 
 type Script struct {
@@ -19,5 +18,6 @@ type Script struct {
 func (s *Script) PostInit() error {
 	// These are actual services which we will expose to go-script
 	packages.Register("calculator", s.Calculator)
+	packages.RegisterPackage(s.Calculator)
 	return nil
 }

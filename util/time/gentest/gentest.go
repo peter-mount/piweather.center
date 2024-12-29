@@ -351,8 +351,8 @@ func getAvailableTimeZones() []string {
 	for _, zd := range []string{
 		// Update path according to your OS
 		"/usr/share/zoneinfo/",
-		"/usr/share/lib/zoneinfo/",
-		"/usr/lib/locale/TZ/",
+		"/usr/share/script/zoneinfo/",
+		"/usr/script/locale/TZ/",
 	} {
 		timeZones = walkTzDir(zd, timeZones)
 

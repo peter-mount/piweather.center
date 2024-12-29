@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/time"
 )
 
@@ -18,7 +18,7 @@ func (v *visitor[T]) ExpressionModifier(b *ExpressionModifier) error {
 		if v.expressionModifier != nil {
 			err = v.expressionModifier(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {

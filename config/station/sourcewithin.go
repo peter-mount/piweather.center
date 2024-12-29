@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 // SourceWithin allows you to embed SourceParameter(s) with a common path
@@ -19,7 +18,7 @@ func (c *visitor[T]) SourceWithin(d *SourceWithin) error {
 	if d != nil {
 		if c.sourceWithin != nil {
 			err = c.sourceWithin(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -63,7 +62,7 @@ func initSourceWithin(v Visitor[*initState], d *SourceWithin) error {
 		return errors.Error(d.Pos, err)
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func (b *builder[T]) SourceWithin(f func(Visitor[T], *SourceWithin) error) Builder[T] {

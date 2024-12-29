@@ -120,8 +120,6 @@ func (prj *stereographicProjection) Transform(f ProjectionTransform) Projection 
 func NewPlainProjection(long unit.Angle, bounds image.Rectangle) Projection {
 	return &plainProjection{
 		baseProjection: newBaseProjection(long, 0, 1, bounds),
-		cx:             float64(bounds.Dx()) / 2.0,
-		cy:             float64(bounds.Dy()) / 2.0,
 		dx:             float64(bounds.Dx()) / 360.0,
 		dy:             float64(bounds.Dy()) / 180.0,
 	}
@@ -129,7 +127,6 @@ func NewPlainProjection(long unit.Angle, bounds image.Rectangle) Projection {
 
 type plainProjection struct {
 	baseProjection
-	cx, cy float64
 	dx, dy float64
 }
 
@@ -147,6 +144,42 @@ func (prj *plainProjection) Project(p Point) (float64, float64) {
 }
 
 func (prj *plainProjection) Transform(f ProjectionTransform) Projection {
+	return TransformProjection(prj, f)
+}
+
+// NewAngularProjection returns an Angular Projection which works for projecting onto the
+// view of a fisheye lens (also known as an f-theta lens).
+//
+// bounds 	of the image in pixels
+// R 		radius of fisheye lens in pixels
+// alpha	half of the field of view of the fisheye lens
+func NewAngularProjection(bounds image.Rectangle, R float64, alpha unit.Angle) Projection {
+	return &angularProjection{
+		baseProjection: newBaseProjection(0, 0, R/alpha.Rad(), bounds),
+		h0:             unit.AngleFromDeg(90),
+	}
+}
+
+type angularProjection struct {
+	baseProjection
+	h0 unit.Angle
+}
+
+func (prj *angularProjection) Contains(p Point) bool {
+	x, y := prj.Project(p)
+	return image.Pt(int(x), int(y)).In(prj.insetBounds)
+}
+
+func (prj *angularProjection) Project(p Point) (float64, float64) {
+	// As we use the origin as the zenith:
+	// k = r*H/alpha, x = -k sin(A), y = k cos(A)
+	// conversion from h0 is because H is angular distance from zenith whereas p.Y is altitude from horizon
+	k := prj.R * float64(prj.h0-p.Y)
+	sa, ca := p.X.Sincos()
+	return -(k * sa), +(k * ca)
+}
+
+func (prj *angularProjection) Transform(f ProjectionTransform) Projection {
 	return TransformProjection(prj, f)
 }
 

@@ -4,7 +4,6 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"strings"
 )
 
@@ -19,7 +18,7 @@ func (c *visitor[T]) Ephemeris(d *Ephemeris) error {
 	if d != nil {
 		if c.ephemeris != nil {
 			err = c.ephemeris(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

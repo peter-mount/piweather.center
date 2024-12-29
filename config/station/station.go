@@ -24,7 +24,7 @@ func (c *visitor[T]) Station(d *Station) error {
 	if d != nil {
 		if c.station != nil {
 			err = c.station(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

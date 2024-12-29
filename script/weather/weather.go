@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	packages.Register("weather", &Weather{})
+	packages.RegisterPackage(&Weather{})
 }
 
 type Weather struct{}

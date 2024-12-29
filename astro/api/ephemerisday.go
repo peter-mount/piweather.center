@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/piweather.center/weather/value"
 	"github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/unit"
+	"strings"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type EphemerisDay interface {
 	util.List[EphemerisResult]
 	SetObliquity(ε unit.Angle) EphemerisDay
 	NewResult(name string) EphemerisResult
+	GetByName(name string) EphemerisResult
 }
 
 type ephemerisDay struct {
@@ -52,4 +54,14 @@ func (r *ephemerisDay) NewResult(name string) EphemerisResult {
 	e := newEphemerisResult(name, &r.ephemerisCommon)
 	r.Add(e)
 	return e
+}
+
+func (r *ephemerisDay) GetByName(name string) EphemerisResult {
+	name = strings.ToLower(name)
+	for _, e := range r.Days() {
+		if strings.ToLower(e.Name()) == name {
+			return e
+		}
+	}
+	return nil
 }

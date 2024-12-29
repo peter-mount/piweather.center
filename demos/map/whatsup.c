@@ -1,6 +1,15 @@
 // Example script to plot a chart based on what's visible in the sky at a specific time
 // and location on the Earth.
 
+import (
+    "github.com/peter-mount/go-anim/script/colour"
+    "github.com/peter-mount/go-anim/script/graph"
+    "github.com/peter-mount/go-anim/script/image"
+    "github.com/peter-mount/piweather.center/script/astro/calendar"
+    "github.com/peter-mount/piweather.center/script/astro/chart"
+    "github.com/peter-mount/piweather.center/script/astro/geo"
+)
+
 main() {
     // Location of London, UK
     location := geo.LatLong(51.5, -8/60.0, 0)
@@ -10,11 +19,11 @@ main() {
     white := colour.Colour("white")
     horizonColour := colour.Colour("darkgreen")
 
-    jd := astroTime.FromTime( time.Now())
+    jd := calendar.FromTime( time.Now())
     fmt.Printf("Generating map for %v\n", jd)
 
     // Create the context we will render into
-    ctx := animGraphic.NewSizedContext(900,900)
+    ctx := graph.NewSizedContext(900,900)
 
     // Start a Horizon chart for the specified location and date
     chart := chart.NewHorizon( location, ctx.Image().Bounds() ).JD(jd)
@@ -38,8 +47,5 @@ main() {
         chart.Draw(gc)
     }
 
-    fileName:="/home/peter/test-horizon.png"
-    try( f:=os.Create(fileName) ) {
-        render.Encoder(fileName).Encode(f,ctx.Image())
-    }
+    image.WriteImage( "/home/peter/test-horizon.png", ctx.Image() )
 }

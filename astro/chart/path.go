@@ -84,14 +84,7 @@ func (p *path) AddPoint(pt Point) Path {
 	if p.currentPath == nil {
 		p.Start()
 	}
-	// If we are not a closed polygon then we can limit the path to just those points
-	// that are contained within the plot.
-	// If we filter out when closed then the fill breaks
-	if p.closed || p.projection.Contains(pt) {
-		p.currentPath = append(p.currentPath, pt)
-	} else {
-		p.End()
-	}
+	p.currentPath = append(p.currentPath, pt)
 	return p
 }
 

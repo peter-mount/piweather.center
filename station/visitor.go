@@ -2,8 +2,8 @@ package station
 
 import (
 	"github.com/peter-mount/go-kernel/v2/log"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"strconv"
 	"strings"
@@ -85,7 +85,7 @@ func addCalculation(v station.Visitor[*visitorState], d *station.Calculation) er
 	calc := newCalculation(st.station, d)
 	st.calculation = calc
 	st.station.addCalculation(calc)
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error {
@@ -124,13 +124,13 @@ func visitDashboard(v station.Visitor[*visitorState], d *station.Dashboard) erro
 	// If somehow we have no station set then stop processing the Dashboard
 	if st.station == nil {
 		st.dashboard = nil
-		return util.VisitorStop
+		return errors.VisitorStop
 	}
 
 	// Stop here if the dashboard isn't registered - should never occur
 	st.dashboard = st.station.GetDashboard(d.Name)
 	if st.dashboard == nil {
-		return util.VisitorStop
+		return errors.VisitorStop
 	}
 
 	return nil
@@ -152,7 +152,7 @@ func notifyDashboard(v station.Visitor[*visitorState], d *station.Dashboard) err
 		}
 
 		err = v.ComponentListEntry(d.Components)
-		if err == nil || util.IsVisitorStop(err) {
+		if err == nil || errors.IsVisitorStop(err) {
 			// Add the response to responses and stop here as we've already visited the component
 			if st.response.IsValid() {
 				st.responses = append(st.responses, st.response)
@@ -160,7 +160,7 @@ func notifyDashboard(v station.Visitor[*visitorState], d *station.Dashboard) err
 			st.response = nil
 
 			// Stop processing the dashboard as we have done that here
-			err = util.VisitorStop
+			err = errors.VisitorStop
 		}
 	}
 
@@ -184,7 +184,7 @@ func visitStation(v station.Visitor[*visitorState], d *station.Station) error {
 
 	// If no station or the station then stop processing it
 	if st.station == nil {
-		return util.VisitorStop
+		return errors.VisitorStop
 	}
 
 	return nil
@@ -200,7 +200,7 @@ func visitStationFilterMetric(v station.Visitor[*visitorState], d *station.Stati
 
 		// If the station does not accept the metric then stop processing it
 		if !st.station.AcceptMetric(m.Metric) {
-			err = util.VisitorStop
+			err = errors.VisitorStop
 		}
 	}
 
@@ -224,7 +224,7 @@ func addMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) erro
 		comp.Sorted()
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func visitMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) error {
@@ -257,7 +257,7 @@ func visitMultiValue(v station.Visitor[*visitorState], d *station.MultiValue) er
 		}
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func addGauge(v station.Visitor[*visitorState], d *station.Gauge) error {
@@ -292,7 +292,7 @@ func addMetricListImpl(v station.Visitor[*visitorState], id string, d *station.M
 		}
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
 
 func visitMetricListImpl(v station.Visitor[*visitorState], d ResponseComponent, l *station.MetricList) error {
@@ -327,5 +327,5 @@ func visitMetricListImpl(v station.Visitor[*visitorState], d ResponseComponent, 
 		}
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }

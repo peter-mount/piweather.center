@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/weather/value"
 )
@@ -24,7 +23,7 @@ func (c *visitor[T]) MetricList(d *MetricList) error {
 	if d != nil {
 		if c.metricList != nil {
 			err = c.metricList(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

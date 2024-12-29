@@ -1,4 +1,4 @@
-package astro
+package chart
 
 import (
 	"errors"
@@ -17,10 +17,10 @@ import (
 )
 
 func init() {
-	packages.Register("chart", &ChartPackage{})
+	packages.RegisterPackage(&Package{})
 }
 
-type ChartPackage struct {
+type Package struct {
 }
 
 type Chart struct {
@@ -34,7 +34,7 @@ type Chart struct {
 	manager     *catalogue.Manager
 }
 
-func (_ ChartPackage) NewStereographic(cx, cy unit.Angle, R float64, bounds image.Rectangle) *Chart {
+func (_ Package) NewStereographic(cx, cy unit.Angle, R float64, bounds image.Rectangle) *Chart {
 	projection := chart.NewStereographicProjection(cx, cy, R, bounds)
 
 	c := &Chart{
@@ -56,13 +56,13 @@ func (_ ChartPackage) NewStereographic(cx, cy unit.Angle, R float64, bounds imag
 	return c
 }
 
-func (_ ChartPackage) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Chart {
+func (_ Package) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Chart {
 	jd := julian.FromTime(time.Now())
 
 	c := &Chart{
 		chartLayer:  chart.NewLayers(),
 		transformer: coord.NewCoordinateTransformer(loc.Latitude, loc.Longitude).Sidereal(sidereal.FromJD(jd)),
-		projection0: chart.NewStereographicProjection(0, unit.AngleFromDeg(90), float64(bounds.Dx())/4.1, bounds),
+		projection0: chart.NewStereographicProjection(0, unit.AngleFromDeg(90), float64(bounds.Dx())/4.0, bounds),
 		manager:     &catalogue.Manager{},
 	}
 
@@ -76,6 +76,50 @@ func (_ ChartPackage) NewHorizon(loc *coord.LatLong, bounds image.Rectangle) *Ch
 			f = f - 360
 		}
 		return chart.Point{X: unit.AngleFromDeg(f), Y: h}
+	})
+
+	c.background = chart.FloodFillLayer(c.projection0)
+	c.horizon = chart.HorizonLayer(c.projection0)
+
+	c.rootLayer = chart.NewLayers().
+		// Use the root projection, but we need to flip the x-axis
+		SetProjection(c.projection0).
+		Flip(true, false).
+		// Core layers
+		Add(c.background).
+		Add(c.chartLayer).
+		Add(c.horizon)
+
+	return c
+}
+
+// NewAngular returns a chart which matches a fisheye lens.
+//
+// loc 		LatLong of location on Earth
+// bounds	of the image
+// R 		radius of lens on the frame
+// alpha	half of the lens field of view
+func (_ Package) NewAngular(loc *coord.LatLong, bounds image.Rectangle, R, alpha float64) *Chart {
+	jd := julian.FromTime(time.Now())
+
+	c := &Chart{
+		chartLayer:  chart.NewLayers(),
+		transformer: coord.NewCoordinateTransformer(loc.Latitude, loc.Longitude).Sidereal(sidereal.FromJD(jd)),
+		projection0: chart.NewAngularProjection(bounds, R, unit.AngleFromDeg(alpha)),
+		manager:     &catalogue.Manager{},
+	}
+
+	c.projection = c.projection0.Transform(func(p chart.Point) chart.Point {
+		A, h := c.transformer.EqToHz(p.X.RA(), p.Y)
+		return chart.Point{X: A, Y: h}
+		//f := A.Deg() + 180.0
+		//for f < 0.0 {
+		//	f = f + 360
+		//}
+		//for f >= 360 {
+		//	f = f - 360
+		//}
+		//return chart.Point{X: unit.AngleFromDeg(f), Y: h}
 	})
 
 	c.background = chart.FloodFillLayer(c.projection0)
@@ -151,7 +195,13 @@ func (c *Chart) YaleBrightStarCatalog() (chart.ConfigurableLayer, error) {
 	if err != nil {
 		return nil, err
 	}
-	l := f.NewLayer(render.BrightnessPixelStarRenderer, c.Projection())
+	l := f.NewLayer(render.SizeStarRenderer, c.Projection())
 	c.Layer().Add(l)
 	return l, nil
+}
+
+func (c *Chart) EphemerisDayLayer() catalogue.EphemerisDayLayer {
+	l := catalogue.NewEphemerisDayLayer(render.SizeStarRenderer, c.Projection())
+	c.Layer().Add(l)
+	return l
 }

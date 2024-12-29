@@ -2,7 +2,6 @@ package station
 
 import (
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/command"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
@@ -154,7 +153,7 @@ func (c *visitor[T]) Command(d command.Command) error {
 	if d != nil {
 		if c.command != nil {
 			err = c.command(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -169,7 +168,7 @@ func (c *visitor[T]) CronTab(d time.CronTab) error {
 	if d != nil {
 		if c.crontab != nil {
 			err = c.crontab(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -183,7 +182,7 @@ func (c *visitor[T]) Location(d *location.Location) error {
 	var err error
 	if d != nil && c.location != nil {
 		err = c.location(c, d)
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -196,7 +195,7 @@ func (c *visitor[T]) TimeZone(d *time.TimeZone) error {
 	var err error
 	if d != nil && c.timeZone != nil {
 		err = c.timeZone(c, d)
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 
@@ -210,7 +209,7 @@ func (c *visitor[T]) Unit(d *units.Unit) error {
 	if d != nil {
 		if c.unit != nil {
 			err = c.unit(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

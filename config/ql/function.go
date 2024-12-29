@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 )
 
 // Function handles function calls
@@ -19,7 +19,7 @@ func (v *visitor[T]) Function(b *Function) error {
 		if v.function != nil {
 			err = v.function(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 		if err == nil {

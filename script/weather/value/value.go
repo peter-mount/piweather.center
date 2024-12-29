@@ -1,4 +1,4 @@
-package weather
+package value
 
 import (
 	"github.com/peter-mount/go-script/packages"
@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	packages.Register("value", &Value{})
+	packages.RegisterPackage(&Value{})
 }
 
 type Value struct{}

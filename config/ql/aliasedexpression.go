@@ -2,7 +2,7 @@ package ql
 
 import (
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
 
@@ -22,7 +22,7 @@ func (v *visitor[T]) AliasedExpression(b *AliasedExpression) error {
 	if b != nil {
 		if v.aliasedExpression != nil {
 			err = v.aliasedExpression(v, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type Load struct {
@@ -17,7 +16,7 @@ func (c *visitor[T]) Load(b *Load) error {
 	if b != nil {
 		if c.load != nil {
 			err = c.load(c, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

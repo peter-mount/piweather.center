@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 type SourceParameterListEntry struct {
@@ -18,7 +17,7 @@ func (c *visitor[T]) SourceParameterListEntry(d *SourceParameterListEntry) error
 	if d != nil {
 		if c.sourceParameterListEntry != nil {
 			err = c.sourceParameterListEntry(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

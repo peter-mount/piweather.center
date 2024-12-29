@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/weather/value"
 	"math"
 )
@@ -22,7 +21,7 @@ func (c *visitor[T]) Axis(d *Axis) error {
 	if d != nil {
 		if c.axis != nil {
 			err = c.axis(c, d)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

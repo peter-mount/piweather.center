@@ -3,7 +3,6 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
-	util2 "github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/store/api"
 	"github.com/peter-mount/piweather.center/util"
 	"strings"
@@ -25,7 +24,7 @@ func (c *visitor[T]) MetricPattern(d *MetricPattern) error {
 	if d != nil {
 		if c.metricPattern != nil {
 			err = c.metricPattern(c, d)
-			if util2.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}

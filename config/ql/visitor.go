@@ -1,7 +1,7 @@
 package ql
 
 import (
-	"github.com/peter-mount/piweather.center/config/util"
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 )
@@ -86,7 +86,7 @@ func (v *visitor[T]) TimeZone(b *time.TimeZone) error {
 	if b != nil {
 		if v.timeZone != nil {
 			err = v.timeZone(v, b)
-			if util.IsVisitorStop(err) {
+			if errors.IsVisitorStop(err) {
 				return nil
 			}
 		}
@@ -100,7 +100,7 @@ func (v *visitor[T]) Time(b *time.Time) error {
 		if v.time != nil {
 			err = v.time(v, b)
 		}
-		if util.IsVisitorStop(err) {
+		if errors.IsVisitorStop(err) {
 			return nil
 		}
 		for _, e := range b.Expression {

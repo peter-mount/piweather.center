@@ -1,8 +1,8 @@
 package renderer
 
 import (
+	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/station"
-	"github.com/peter-mount/piweather.center/config/util"
 )
 
 func Text(v station.Visitor[*State], d *station.Text) error {
@@ -16,5 +16,5 @@ func Text(v station.Visitor[*State], d *station.Text) error {
 		return err
 	}
 
-	return util.VisitorStop
+	return errors.VisitorStop
 }
