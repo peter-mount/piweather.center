@@ -13,7 +13,7 @@ import (
 func (s *Service) httpSensor(v station.Visitor[*state], d *station.Http) error {
 	st := v.Get()
 
-	err := s.addHttp(strings.ToUpper(d.Method), st.station.Name, st.sensor.Target.OriginalName, st.sensor)
+	err := s.addHttp(strings.ToUpper(d.Method), st.station.Name, st.sensor.Target.Name, st.sensor)
 
 	if err == nil {
 		s.sensorCount++

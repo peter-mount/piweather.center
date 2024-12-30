@@ -1,6 +1,7 @@
 package station
 
 import (
+	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
@@ -28,6 +29,10 @@ func (c *visitor[T]) Sensor(d *Sensor) error {
 		}
 
 		if err == nil {
+			err = c.Metric(d.Target)
+		}
+
+		if err == nil {
 			err = c.sensorCommon(d)
 		}
 
@@ -39,17 +44,15 @@ func (c *visitor[T]) Sensor(d *Sensor) error {
 // Shared by visitor.Sensor() and initSensor()
 // Used specifically to ensure we visit everything EXCEPT the target metric during init
 func (c *visitor[T]) sensorCommon(d *Sensor) error {
-	err := c.Metric(d.Target)
+	var err error
 
-	if err == nil {
-		switch {
-		case d.Http != nil:
-			err = c.Http(d.Http)
-		case d.I2C != nil:
-			err = c.I2C(d.I2C)
-		case d.Serial != nil:
-			err = c.Serial(d.Serial)
-		}
+	switch {
+	case d.Http != nil:
+		err = c.Http(d.Http)
+	case d.I2C != nil:
+		err = c.I2C(d.I2C)
+	case d.Serial != nil:
+		err = c.Serial(d.Serial)
 	}
 
 	if err == nil {
@@ -86,9 +89,23 @@ func initSensor(v Visitor[*initState], d *Sensor) error {
 	}
 	s.sensors[d.Target.Name] = d.Pos
 
-	s.sensorPrefix = d.Target.Name + "."
+	// Restore old sensorPrefix on exit
+	old := s.sensorPrefix
+	defer func() {
+		s.sensorPrefix = old
+	}()
 
-	err := (v.(*visitor[*initState])).sensorCommon(d)
+	// Init target before we set sensorPrefix otherwise we get the target duplicated
+	s.sensorPrefix = d.Target.Name + "."
+	//err := v.Metric(d.Target)
+	fmt.Printf("Prefix %q was %q\n", s.sensorPrefix, old)
+
+	var err error
+
+	if err == nil {
+		err = (v.(*visitor[*initState])).sensorCommon(d)
+	}
+
 	if err == nil {
 		err = errors.VisitorStop
 	}

@@ -25,7 +25,7 @@ func (s *Service) i2cSensor(v station.Visitor[*state], sensor *station.I2C) erro
 		return errors.Errorf(sensor.Pos, "failed to init instance %q: %v", st.sensor.Target, err)
 	}
 
-	publisher := s.publisher(st.sensor)
+	publisher := s.publisher(st.station.Name, st.sensor.Target.Name, st.sensor)
 
 	switch dev.Info().PollMode {
 	case bus.PollReading:
@@ -35,7 +35,7 @@ func (s *Service) i2cSensor(v station.Visitor[*state], sensor *station.I2C) erro
 		s.addSensor(
 			"i2c",
 			st.station.Name,
-			st.sensor.Target.OriginalName,
+			st.sensor.Target.Name,
 			"poll "+st.sensor.Poll.Definition(),
 			fmt.Sprintf("%d:0x%02x", sensor.Bus, sensor.Device),
 			"")

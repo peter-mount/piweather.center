@@ -1,7 +1,6 @@
 package weathersensor
 
 import (
-	"context"
 	errors2 "errors"
 	"github.com/peter-mount/go-build/version"
 	"github.com/peter-mount/go-kernel/v2"
@@ -134,7 +133,7 @@ func (s *Service) addHttp(method, stationId, sensorId string, d *station2.Sensor
 
 	m2[sensorId] = d
 
-	s.httpPublisher[stationId+"."+sensorId] = s.publisher(d)
+	s.httpPublisher[stationId+"."+sensorId] = s.publisher(stationId, sensorId, d)
 	return nil
 }
 
@@ -168,14 +167,13 @@ func (s *Service) sensor(v station2.Visitor[*state], d *station2.Sensor) error {
 // PollDevice will configure a task that will poll the given instance based on a cron definition.
 // Any errors returned by the device when it's polled will be reported in the log.
 func (s *Service) PollDevice(dev device.Device, instance device.Instance, publisher publisher.Publisher, cronDef string) error {
-	_, err := s.Cron.AddTask(cronDef, func(_ context.Context) error {
+	_, err := s.Cron.AddFunc(cronDef, func() {
 		err := instance.RunDevice(publisher)
 		if err != nil {
 			log.Printf("device %q error %s",
 				dev.Info().ID,
 				err.Error())
 		}
-		return nil
 	})
 	return err
 }

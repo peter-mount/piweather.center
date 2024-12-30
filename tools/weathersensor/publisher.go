@@ -5,10 +5,10 @@ import (
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 )
 
-func (s *Service) publisher(sensor *station.Sensor) publisher.Publisher {
+func (s *Service) publisher(stationId, sensorId string, sensor *station.Sensor) publisher.Publisher {
 
 	pubBuilder := publisher.NewBuilder().
-		SetId(sensor.Target.Name).
+		SetId(stationId + "." + sensorId).
 		FilterEmpty()
 
 	for _, p := range sensor.Publisher {
@@ -17,7 +17,6 @@ func (s *Service) publisher(sensor *station.Sensor) publisher.Publisher {
 			pubBuilder = pubBuilder.Log()
 		case p.DB:
 			pubBuilder = pubBuilder.DB(s.DatabaseBroker)
-			//pubBuilder = pubBuilder.DB(s)
 		}
 	}
 

@@ -28,7 +28,7 @@ func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial
 
 	instance := dev.NewInstance(sensor.Port, mode)
 
-	publisher := s.publisher(st.sensor)
+	publisher := s.publisher(st.station.Name, st.sensor.Target.Name, st.sensor)
 
 	switch dev.Info().PollMode {
 	case bus.PollReading:
@@ -37,7 +37,7 @@ func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial
 		s.addSensor(
 			"serial",
 			st.station.Name,
-			st.sensor.Target.OriginalName,
+			st.sensor.Target.Name,
 			"poll "+st.sensor.Poll.Definition(),
 			sensor.Port,
 			fmt.Sprintf("%d", sensor.BaudRate))
@@ -48,7 +48,7 @@ func (s *Service) serialSensor(v station.Visitor[*state], sensor *station.Serial
 		s.addSensor(
 			"serial",
 			st.station.Name,
-			st.sensor.Target.OriginalName,
+			st.sensor.Target.Name,
 			"push",
 			sensor.Port,
 			fmt.Sprintf("%d", sensor.BaudRate))

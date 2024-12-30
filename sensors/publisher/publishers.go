@@ -5,6 +5,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/piweather.center/sensors/reading"
 	"github.com/peter-mount/piweather.center/store/api"
+	"strings"
 )
 
 // logPublisher is a Publisher which will log the Reading as JSON to the log
@@ -39,6 +40,15 @@ func setId(id string) Publisher {
 	return func(r *reading.Reading) error {
 		if r != nil {
 			r.ID = id
+
+			// If keys do not start with prefix then prefix them
+			prefix := id + "."
+			for k, v := range r.Readings {
+				if !strings.HasPrefix(k, prefix) {
+					r.Readings[prefix+k] = v
+					delete(r.Readings, k)
+				}
+			}
 		}
 		return nil
 	}
