@@ -129,7 +129,7 @@ func (s *Service) addHttp(method, stationId, sensorId string, d *station2.Sensor
 	}
 
 	if e, ok := m2[sensorId]; ok {
-		return errors.Errorf(d.Pos, "http %s already present at %s", d.Http.Method, e.Pos)
+		return errors.Errorf(d.Pos, "http %s %q already present at %s", d.Http.Method, sensorId, e.Pos)
 	}
 
 	m2[sensorId] = d

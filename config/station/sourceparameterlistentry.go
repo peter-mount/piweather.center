@@ -23,11 +23,12 @@ func (c *visitor[T]) SourceParameterListEntry(d *SourceParameterListEntry) error
 		}
 
 		if err == nil {
-			err = c.SourceWithin(d.Within)
-		}
-
-		if err == nil {
-			err = c.SourceParameter(d.Parameter)
+			switch {
+			case d.Within != nil:
+				err = c.SourceWithin(d.Within)
+			case d.Parameter != nil:
+				err = c.SourceParameter(d.Parameter)
+			}
 		}
 
 		return errors.Error(d.Pos, err)
