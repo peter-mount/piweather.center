@@ -85,7 +85,7 @@ func (calc *Calculator) Start() error {
 // loadLatestMetrics retrieves the current metrics from the DB server
 func (calc *Calculator) loadLatestMetrics() error {
 	if *calc.DBServer != "" {
-		c := &client.Client{Url: *calc.DBServer}
+		c := &client.Client{Url: *calc.DBServer, Internal: true}
 
 		// form a map of the metrics we are interested in
 		m := make(map[string]interface{})

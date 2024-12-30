@@ -106,7 +106,7 @@ func (j *Task) run() {
 }
 
 func (j *Task) loadMetrics() error {
-	cl := client.Client{Url: j.dbServer}
+	cl := client.Client{Url: j.dbServer, Internal: true}
 	for _, metric := range j.latest.Metrics() {
 		resp, err := cl.Metric(metric)
 		if err != nil {

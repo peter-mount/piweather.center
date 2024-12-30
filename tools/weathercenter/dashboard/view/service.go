@@ -160,7 +160,7 @@ func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
 // loadLatestMetrics retrieves the current metrics from the DB server
 func (s *Service) loadLatestMetrics() error {
 	if *s.DBServer != "" {
-		c := &client.Client{Url: *s.DBServer}
+		c := &client.Client{Url: *s.DBServer, Internal: true}
 		r, err := c.LatestMetrics()
 		if err != nil {
 			return err

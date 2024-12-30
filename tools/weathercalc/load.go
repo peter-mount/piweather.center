@@ -50,7 +50,7 @@ func (calc *Calculator) loadFromDB(c *station.Calculation) error {
 	query := strings.Join(q, " ")
 	log.Printf("DB: %s", query)
 
-	cl := client.Client{Url: *calc.DBServer}
+	cl := client.Client{Url: *calc.DBServer, Internal: true}
 	res, err := cl.Query(query)
 	if err != nil {
 		return participle.Errorf(b.Pos, "%s", err.Error())

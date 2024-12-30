@@ -470,7 +470,7 @@ func (e *executor) metricExpression(_ station2.Visitor[*executor], b *station2.M
 
 		q := fmt.Sprintf(`between "now" add %q and "now" limit 1 select timeof(),first(%s)`, b.Offset, b.Metric.Name)
 
-		cl := client.Client{Url: e.dbServer}
+		cl := client.Client{Url: e.dbServer, Internal: true}
 		res, err = cl.Query(q)
 		if err == nil {
 			if len(res.Table) > 0 {
