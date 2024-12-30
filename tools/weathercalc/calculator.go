@@ -235,5 +235,5 @@ func (calc *Calculator) calculate(c *expression.Calculation) {
 
 func (calc *Calculator) calculateResult(c *expression.Calculation) (value.Value, time.Time, error) {
 	return expression.NewExecutor(c.ID(), c.Station().Location.Time(), *calc.DBServer, calc.Latest).
-		CalculateResult(c.Src())
+		CalculateResult(c)
 }

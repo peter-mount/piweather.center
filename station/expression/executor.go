@@ -19,7 +19,7 @@ import (
 )
 
 type Executor interface {
-	CalculateResult(*station2.Calculation) (value.Value, time.Time, error)
+	CalculateResult(calculation *Calculation) (value.Value, time.Time, error)
 	Evaluate(*station2.Expression) (value.Value, time.Time, error)
 }
 
@@ -101,10 +101,11 @@ func (e *executor) setMetric(m string, v StackEntry) {
 	}
 }
 
-func (e *executor) CalculateResult(c *station2.Calculation) (value.Value, time.Time, error) {
+func (e *executor) CalculateResult(c *Calculation) (value.Value, time.Time, error) {
 	e.calculator.Reset()
 
-	err := e.visitor.Calculation(c)
+	e.calc = c
+	err := e.visitor.Calculation(c.Src())
 
 	r, exists := e.pop()
 	if err != nil {
