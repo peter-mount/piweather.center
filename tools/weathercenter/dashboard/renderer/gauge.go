@@ -128,6 +128,11 @@ func barometer(v station.Visitor[*State], d *station.Gauge) error {
 				Attr(DominantBaseline, Middle).
 				Attr(TextAnchor, Middle).
 				ExecEnd(func(svg *html.Element) {
+					//We need an arc that's part of a circle, so the best way is to use a circle with a stroke-dasharray.
+					//Here we need to calculate the dash in drawing units. 1 unit = 2πr/360 so here 2π*90/360=1.57
+					//
+					//As the arc starts clockwise from the East position, we start with 22.5° which is 22.5*1.57=35.
+					//Then we skip the next 134° (212 units) and then draw for another 224° (353 units).
 					svg = svg.Circle().
 						CX(0).CY(0).R(90).
 						Fill(None).Stroke(Black).StrokeWidth("3px").
@@ -166,7 +171,7 @@ func barometer(v station.Visitor[*State], d *station.Gauge) error {
 					}
 
 					// The display hands
-					GaugeHands(s, d, axis, svg, metricValues)
+					GaugeHands(s, d, axis, svg, -112.5, metricValues)
 
 					svg = svg.Circle().R(10).Fill(Black).End()
 				})
@@ -343,7 +348,7 @@ func gauge(v station.Visitor[*State], d *station.Gauge) error {
 					}
 
 					// The display hands
-					GaugeHands(s, d, axis, svg, metricValues)
+					GaugeHands(s, d, axis, svg, -90, metricValues)
 
 					// Center dial cap
 					svg = svg.Circle().R(10).Fill(Black).End()
@@ -542,9 +547,9 @@ func rainGauge(v station.Visitor[*State], d *station.Gauge) error {
 	return errors.VisitorStop
 }
 
-func GaugeHands(s *State, d *station.Gauge, axis station.AxisDef, svg *html.Element, metricValues []value.Value) {
+func GaugeHands(s *State, d *station.Gauge, axis station.AxisDef, svg *html.Element, offset float64, metricValues []value.Value) {
 	for i, v := range metricValues {
-		ang := d.Axis.EnsureWithin(v.Float(), axis.Delta, -90)
+		ang := d.Axis.EnsureWithin(v.Float(), axis.Delta, offset)
 		svg = svg.G().
 			Attr(Transform, Rotate(ang)).
 			Path().
