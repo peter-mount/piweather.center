@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/peter-mount/go-script/calculator"
 	"github.com/peter-mount/piweather.center/config/station"
 	time2 "github.com/peter-mount/piweather.center/util/time"
 	"gopkg.in/yaml.v3"
@@ -74,6 +75,23 @@ func (p *Payload) Get(path *station.SourcePath) (interface{}, bool) {
 		}
 	}
 	return nil, false
+}
+
+func (p *Payload) GetString(n string) string {
+	m := p.data
+	v, ok := m[n]
+	if ok {
+		s, _ := calculator.GetString(v)
+		return s
+	}
+	return ""
+}
+
+func (p *Payload) GetIntString(n string) string {
+	s := p.GetString(n)
+	s = strings.TrimRight(s, "0")
+	s = strings.TrimSuffix(s, ".")
+	return s
 }
 
 func FromBytes(id string, format station.HttpFormatType, timestamp *station.SourcePath, msg []byte) (*Payload, error) {

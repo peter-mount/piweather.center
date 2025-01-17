@@ -10,6 +10,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/rest"
 	"github.com/peter-mount/go-script/errors"
 	station2 "github.com/peter-mount/piweather.center/config/station"
+	"github.com/peter-mount/piweather.center/sensors/bus/rtl433"
 	"github.com/peter-mount/piweather.center/sensors/device"
 	"github.com/peter-mount/piweather.center/sensors/publisher"
 	"github.com/peter-mount/piweather.center/station"
@@ -30,12 +31,14 @@ type Service struct {
 	DatabaseBroker broker.DatabaseBroker `kernel:"inject"`
 	Stations       *station.Stations     `kernel:"inject"`
 	Rest           *rest.Server          `kernel:"inject"`
+	RTL433         *rtl433.RTL433        `kernel:"inject"`
 	WebPrefix      *string               `kernel:"flag,web-prefix,Prefix for http endpoints,/i"`
 	// internal from here
 	dashDir       string
 	mutex         sync.Mutex
 	httpSensors   map[string]map[string]map[string]*station2.Sensor // lookup for each http sensor for rest service
 	httpPublisher map[string]publisher.Publisher                    // map of publishers
+	rtl433Sensors map[string][]*station2.Sensor                     // lookup for each sensor per frequency
 	sensorTable   *table.Table                                      // Used for debugging
 	sensorCount   int                                               // Number of sensors defined
 }
@@ -49,6 +52,9 @@ func (s *Service) PostInit() error {
 	s.dashDir = filepath.Join(s.Config.EtcDir(), dashDir)
 	s.httpSensors = make(map[string]map[string]map[string]*station2.Sensor)
 	s.httpPublisher = make(map[string]publisher.Publisher)
+
+	s.rtl433Sensors = make(map[string][]*station2.Sensor)
+
 	s.sensorTable = table.New("Station", "Sensor", "Type", "Path", "Method", "Options")
 
 	// Load existing dashboards
@@ -61,6 +67,7 @@ func (s *Service) PostInit() error {
 	err = station2.NewBuilder[*state]().
 		Http(s.httpSensor).
 		I2C(s.i2cSensor).
+		Rtl433(s.rtl433).
 		Sensor(s.sensor).
 		Serial(s.serialSensor).
 		Station(s.station).
@@ -104,6 +111,7 @@ func (s *Service) Start() error {
 		log.Println(version.Version)
 		log.Printf("Sensors:\n%s", s.sensorTable.SortTable(0, 1, 2).String())
 	}
+
 	return nil
 }
 

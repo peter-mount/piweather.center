@@ -8,20 +8,26 @@ import (
 	"github.com/peter-mount/piweather.center/util/strings"
 )
 
-func (s *Service) process(id string, d *station.Sensor, body []byte) error {
+func (s *Service) processHttp(id string, d *station.Sensor, body []byte) error {
+	return s.process(id, d.Http.Format.GetType(), d.Http.Timestamp, d, body)
+}
 
-	p, err := payload.FromBytes(id, d.Http.Format.GetType(), d.Http.Timestamp, body)
+func (s *Service) process(id string, format station.HttpFormatType, timestamp *station.SourcePath, d *station.Sensor, body []byte) error {
+	p, err := payload.FromBytes(id, format, timestamp, body)
 	if err == nil && p != nil {
-		err = processorVisitor.Clone().
-			Set(&processor{
-				id:      id,
-				service: s,
-				payload: p,
-			}).
-			Sensor(d)
+		err = s.processPayload(id, p, d)
 	}
-
 	return err
+}
+
+func (s *Service) processPayload(id string, p *payload.Payload, d *station.Sensor) error {
+	return processorVisitor.Clone().
+		Set(&processor{
+			id:      id,
+			service: s,
+			payload: p,
+		}).
+		Sensor(d)
 }
 
 type processor struct {
@@ -29,14 +35,12 @@ type processor struct {
 	id      string
 	payload *payload.Payload
 	sensor  *station.Sensor
-	http    *station.Http
 	r       *reading.Reading
 }
 
 var (
 	processorVisitor = station.NewBuilder[*processor]().
 		Sensor(processSensor).
-		Http(processHttp).
 		SourceParameter(processSourceParameter).
 		Build()
 )
@@ -53,7 +57,14 @@ func processSensor(v station.Visitor[*processor], d *station.Sensor) error {
 		s.r = nil
 	}()
 
-	err := v.SourceParameterList(d.Http.SourceParameters)
+	var err error
+	switch {
+	case d.Http != nil:
+		err = v.SourceParameterList(d.Http.SourceParameters)
+	case d.Rtl433 != nil:
+		err = v.SourceParameterList(d.Rtl433.SourceParameters)
+	}
+
 	if err == nil {
 		err = s.service.GetPublisher(s.r.ID).Do(s.r)
 	}
@@ -62,11 +73,6 @@ func processSensor(v station.Visitor[*processor], d *station.Sensor) error {
 		err = errors.VisitorStop
 	}
 	return err
-}
-
-func processHttp(v station.Visitor[*processor], d *station.Http) error {
-	v.Get().http = d
-	return nil
 }
 
 func processSourceParameter(v station.Visitor[*processor], d *station.SourceParameter) error {

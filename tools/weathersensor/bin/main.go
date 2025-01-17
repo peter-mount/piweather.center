@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/peter-mount/go-kernel/v2"
+	_ "github.com/peter-mount/piweather.center/sensors/devices"
 	"github.com/peter-mount/piweather.center/tools/weathersensor"
 	"log"
 )

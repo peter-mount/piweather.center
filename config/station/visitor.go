@@ -44,6 +44,7 @@ type Visitor[T any] interface {
 	MetricPattern(*MetricPattern) error
 	MultiValue(*MultiValue) error
 	Publisher(*Publisher) error
+	Rtl433(*Rtl433) error
 	Sensor(*Sensor) error
 	Serial(*Serial) error
 	SourceParameter(*SourceParameter) error
@@ -114,6 +115,7 @@ type common[T any] struct {
 	metricPattern            func(Visitor[T], *MetricPattern) error
 	multiValue               func(Visitor[T], *MultiValue) error
 	publisher                func(Visitor[T], *Publisher) error
+	rtl433                   func(Visitor[T], *Rtl433) error
 	sensor                   func(Visitor[T], *Sensor) error
 	serial                   func(Visitor[T], *Serial) error
 	sourceParameter          func(Visitor[T], *SourceParameter) error

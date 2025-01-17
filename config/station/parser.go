@@ -41,6 +41,7 @@ var (
 		MetricExpression(initMetricExpression).
 		MetricPattern(initMetricPattern).
 		TimeZone(initTimeZone).
+		Rtl433(initRtl433).
 		Sensor(initSensor).
 		Serial(initSerial).
 		SourceParameter(initSourceParameter).

@@ -44,7 +44,7 @@ func (s *Service) handleHttp(r *rest.Rest) error {
 		return nil
 	}
 
-	err := s.process(stationId+"."+sensorId, d, body)
+	err := s.processHttp(stationId+"."+sensorId, d, body)
 	if err != nil {
 		r.Status(http.StatusInternalServerError).
 			ContentType("text/plain; charset=utf-8").

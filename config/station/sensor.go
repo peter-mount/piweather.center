@@ -12,6 +12,7 @@ type Sensor struct {
 	Target    *Metric      `parser:"'sensor' '(' @@"`
 	Http      *Http        `parser:"( @@"`
 	I2C       *I2C         `parser:"| @@"`
+	Rtl433    *Rtl433      `parser:"| @@"`
 	Serial    *Serial      `parser:"| @@ )"`
 	Poll      time.CronTab `parser:"('poll' '(' @@ ')')?"`
 	Publisher []*Publisher `parser:"'publish' '(' @@+ ')' ')'"`
@@ -49,6 +50,8 @@ func (c *visitor[T]) sensorCommon(d *Sensor) error {
 		err = c.Http(d.Http)
 	case d.I2C != nil:
 		err = c.I2C(d.I2C)
+	case d.Rtl433 != nil:
+		err = c.Rtl433(d.Rtl433)
 	case d.Serial != nil:
 		err = c.Serial(d.Serial)
 	}

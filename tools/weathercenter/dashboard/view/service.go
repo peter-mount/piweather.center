@@ -39,6 +39,9 @@ const (
 	stationHome      = "/s/{stationId}"
 	stationHomeS     = "/s/{stationId}/"
 	stationDashboard = "/s/{stationId}/{dash:.{1,}}"
+	yearDashboard    = "/s/{stationId}/{dash:.{1,}}/{year:[0-9]{4,}}"
+	monthDashboard   = "/s/{stationId}/{dash:.{1,}}/{year[0-9]{4,}}/{month:[0,9]{1,2}}"
+	dayDashboard     = "/s/{stationId}/{dash:.{1,}}/{year[0-9]{4,}}/{month:[0,9]{1,2}}/{day:[0,9]{1,2}}"
 )
 
 func (s *Service) Start() error {
@@ -143,16 +146,6 @@ func (s *Service) showDashboardImpl(r *rest.Rest, dashName string) error {
 	r.Status(status).
 		ContentType("text/html").
 		Value([]byte(content))
-
-	//live := s.getLive(serverId + "." + dash)
-	//if live == nil {
-	//	r.Status(http.StatusNotFound)
-	//	return nil
-	//}
-
-	//data := dash.GetData()
-	//
-	//return s.Template.ExecuteTemplate(r, "dash/main.html", data)
 
 	return nil
 }

@@ -43,6 +43,7 @@ type Builder[T any] interface {
 	MetricPattern(func(Visitor[T], *MetricPattern) error) Builder[T]
 	MultiValue(func(Visitor[T], *MultiValue) error) Builder[T]
 	Publisher(func(Visitor[T], *Publisher) error) Builder[T]
+	Rtl433(func(Visitor[T], *Rtl433) error) Builder[T]
 	Sensor(func(Visitor[T], *Sensor) error) Builder[T]
 	Serial(func(Visitor[T], *Serial) error) Builder[T]
 	SourceParameter(func(Visitor[T], *SourceParameter) error) Builder[T]
