@@ -20,6 +20,7 @@ func (s *Service) rtl433(v station.Visitor[*state], sensor *station.Rtl433) erro
 
 	s.addSensor("rtl433", st.station.Name, st.sensor.Target.OriginalName, "", "", freq+"M")
 
+	// Copy st.sensor as we need this value and st is transient
 	parentSensor := st.sensor
 	publisherId := st.station.Name + "." + parentSensor.Target.OriginalName
 	s.httpPublisher[publisherId] = s.publisher(parentSensor)
@@ -29,7 +30,7 @@ func (s *Service) rtl433(v station.Visitor[*state], sensor *station.Rtl433) erro
 		Id:      sensor.Id,
 		SubType: sensor.SubType,
 		Handler: func(message *rtl433.Message) {
-			_ = s.processPayload(publisherId, message.Payload, st.sensor)
+			_ = s.processPayload(publisherId, message.Payload, parentSensor)
 		},
 	})
 
