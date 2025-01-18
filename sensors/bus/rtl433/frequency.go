@@ -36,7 +36,17 @@ func (f *Frequency) Process(m *Message) {
 func (f *Frequency) start() {
 	log.Printf("Starting RTL433 frequency %s", f.frequency)
 
-	cmd := exec.Command("rtl_433", "-f", f.frequency, "-F", "json")
+	// Note: Order of the arguments is important here
+	cmd := exec.Command(
+		"rtl_433",
+		// Use classic FSK Pulse Detection - required for WS90 to work
+		"-Y", "classic",
+		// Optional, so far not caused any issues, works without or with 250k
+		"-s", "1024k",
+		// Now set frequency
+		"-f", f.frequency,
+		// We need json output ;-)
+		"-F", "json")
 
 	r, err := cmd.StdoutPipe()
 
