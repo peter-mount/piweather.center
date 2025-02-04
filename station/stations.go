@@ -1,7 +1,9 @@
 package station
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2/cron"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"github.com/peter-mount/piweather.center/config/station"
 	"github.com/peter-mount/piweather.center/store/api"
@@ -61,10 +63,10 @@ func (s *Stations) PostInit() error {
 }
 
 // LoadOption defines how LoadDirectory operates when loading station config
-type LoadOption uint8
+type LoadOption uint16
 
 func (l LoadOption) Is(b LoadOption) bool {
-	return l == 0 || l&b == b
+	return (l & b) == b
 }
 
 func (l LoadOption) Not(b LoadOption) bool {
@@ -87,8 +89,13 @@ const (
 	SensorOption
 	// JobOption indicates that LoadDirectory should include jobs
 	JobOption
-	// AllOption indicates all options apply
+	// AllOption indicates all type options apply
 	AllOption LoadOption = 0xff
+	// TestOption is used when checking config is correct, but disables
+	// certain features like creating Cron jobs etc during loading
+	TestOption LoadOption = 0x8000
+	// NoOption indicates nothing
+	NoOption LoadOption = 0
 )
 
 func (s *Stations) LoadDirectory(path, fileSuffix string, loadOption LoadOption) (*station.Stations, error) {
@@ -102,6 +109,14 @@ func (s *Stations) LoadDirectory(path, fileSuffix string, loadOption LoadOption)
 		IsFile().
 		Walk(path); err != nil && !os.IsNotExist(err) {
 		return nil, err
+	}
+
+	if loadOption.Is(TestOption) {
+		log.Printf("Loading files %v", files)
+	}
+
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no config files found for %s", fileSuffix)
 	}
 
 	// Load all the loadedStations

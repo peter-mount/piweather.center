@@ -95,24 +95,26 @@ func addDashboard(v station.Visitor[*visitorState], d *station.Dashboard) error 
 	st.idSeq = 0
 	st.station.addDashboard(de)
 
-	var useCron bool
-	if d.Update != nil {
-		id, err := st.stations.Cron.AddFunc(d.Update.Definition(), func() {
-			// TODO check we need to update the UID here?
-			// Make a new Uid so client refreshes
-			st.dashboard.cronSeq++
-			uid := strings.Split(st.dashboard.uid, "-")
-			st.dashboard.uid = uid[0] + "-" + strconv.Itoa(st.dashboard.cronSeq)
-		})
-		if err == nil {
-			st.dashboard.cronId = int(id)
-			useCron = true
-			log.Printf("Cron: Adding %q %d", d.Name, st.dashboard.cronId)
+	if st.loadOption.Not(TestOption) {
+		var useCron bool
+		if d.Update != nil {
+			id, err := st.stations.Cron.AddFunc(d.Update.Definition(), func() {
+				// TODO check we need to update the UID here?
+				// Make a new Uid so client refreshes
+				st.dashboard.cronSeq++
+				uid := strings.Split(st.dashboard.uid, "-")
+				st.dashboard.uid = uid[0] + "-" + strconv.Itoa(st.dashboard.cronSeq)
+			})
+			if err == nil {
+				st.dashboard.cronId = int(id)
+				useCron = true
+				log.Printf("Cron: Adding %q %d", d.Name, st.dashboard.cronId)
+			}
 		}
-	}
-	st.station.updateCron(st.dashboard, useCron)
+		st.station.updateCron(st.dashboard, useCron)
 
-	log.Printf("Added Dashboard \"%s/%s\"", st.station.station.Name, d.Name)
+		log.Printf("Added Dashboard \"%s/%s\"", st.station.station.Name, d.Name)
+	}
 
 	return nil
 }

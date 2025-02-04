@@ -6,12 +6,13 @@ import (
 )
 
 type StationEntry struct {
-	Pos         lexer.Position
-	Calculation *Calculation `parser:"( @@"`
-	Dashboard   *Dashboard   `parser:"| @@"`
-	Ephemeris   *Ephemeris   `parser:"| @@"`
-	Tasks       *Tasks       `parser:"| @@"`
-	Sensor      *Sensor      `parser:"| @@ )"`
+	Pos           lexer.Position
+	CalculateFrom *CalculateFrom `parser:"( 'calculate' ( 'from' @@"`
+	Calculation   *Calculation   `parser:"  | @@ )"`
+	Dashboard     *Dashboard     `parser:"| @@"`
+	Ephemeris     *Ephemeris     `parser:"| @@"`
+	Tasks         *Tasks         `parser:"| @@"`
+	Sensor        *Sensor        `parser:"| @@ )"`
 }
 
 func (c *visitor[T]) StationEntry(d *StationEntry) error {
@@ -26,6 +27,9 @@ func (c *visitor[T]) StationEntry(d *StationEntry) error {
 
 		if err == nil {
 			switch {
+			case d.CalculateFrom != nil:
+				err = c.CalculateFrom(d.CalculateFrom)
+
 			case d.Calculation != nil:
 				err = c.Calculation(d.Calculation)
 

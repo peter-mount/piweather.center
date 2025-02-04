@@ -27,6 +27,7 @@ var (
 	initVisitor = NewBuilder[*initState]().
 		Axis(initAxis).
 		Calculation(initCalculation).
+		CalculateFrom(initCalculateFrom).
 		Container(initContainer).
 		CronTab(initCronTab).
 		Dashboard(initDashboard).
