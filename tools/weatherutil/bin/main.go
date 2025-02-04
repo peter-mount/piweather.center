@@ -11,13 +11,12 @@ import (
 )
 
 func main() {
-	err := kernel.Launch(
+	if err := kernel.Launch(
 		&config.Config{},
 		&query.Query{},
 		&rename.Rename{},
 		&statistics.Stats{},
-	)
-	if err != nil {
+	); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

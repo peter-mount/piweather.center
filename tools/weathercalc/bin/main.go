@@ -1,19 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	_ "github.com/peter-mount/piweather.center/astro/calculator"
 	"github.com/peter-mount/piweather.center/tools/weathercalc"
 	_ "github.com/peter-mount/piweather.center/weather/forecast"
 	_ "github.com/peter-mount/piweather.center/weather/measurement"
-	"log"
+	"os"
 )
 
 func main() {
-	err := kernel.Launch(
+	if err := kernel.Launch(
 		&weathercalc.Service{},
-	)
-	if err != nil {
-		log.Fatal(err)
+	); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
