@@ -15,6 +15,24 @@ type StationEntry struct {
 	Sensor        *Sensor        `parser:"| @@ )"`
 }
 
+func (e *StationEntry) GetTarget() string {
+	switch {
+	case e.CalculateFrom != nil:
+		return e.CalculateFrom.From
+	case e.Calculation != nil:
+		return e.Calculation.OriginalTarget
+	case e.Dashboard != nil:
+		return e.Dashboard.Name
+	case e.Ephemeris != nil:
+		return e.Ephemeris.Target
+	case e.Sensor != nil:
+		return e.Sensor.Target.OriginalName
+	default:
+		// No target
+		return ""
+	}
+}
+
 func (c *visitor[T]) StationEntry(d *StationEntry) error {
 	var err error
 	if d != nil {

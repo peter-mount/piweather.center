@@ -1,7 +1,7 @@
 package station
 
 import (
-	"github.com/alecthomas/participle/v2"
+	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/time"
@@ -16,6 +16,7 @@ type CalculateFrom struct {
 	Unit        *units.Unit     `parser:"@@?"`                   // optional Unit we require the results to use
 	Aggregators *AggregatorList `parser:"@@"`                    // List of aggregators to calculate
 	ResetEvery  time.CronTab    `parser:"('reset' 'every' @@)?"` // Crontab to reset the value
+	initialised bool            // true once this instance has been initialised
 }
 
 func (c *visitor[T]) CalculateFrom(d *CalculateFrom) error {
@@ -50,22 +51,65 @@ func visitCalculateFrom[T any](v Visitor[T], d *CalculateFrom) error {
 }
 
 func initCalculateFrom(v Visitor[*initState], d *CalculateFrom) error {
+	// Only initialise once
+	if d.initialised {
+		return nil
+	}
+
 	s := v.Get()
 
 	from := strings.ToLower(d.From)
 
+	script := []string{fmt.Sprintf("station( %q", s.station.Name)}
 	for _, ag := range d.Aggregators.GetAggregators() {
-		target := from + "." + ag
+		target := strings.ToLower(from + "." + ag)
 
 		if e, exists := s.calculations[target]; exists {
-			return participle.Errorf(d.Pos, "calculation for %q already defined at %s", target, e.String())
+			return errors.Errorf(d.Pos, "calculation for %q already defined at %s", target, e.String())
 		}
 
-		//d.Target = s.prefixMetric(target)
+		script = append(script, fmt.Sprintf("calculate( %q", target))
+
+		if d.ResetEvery != nil {
+			script = append(script, fmt.Sprintf("reset every %q", d.ResetEvery.Definition()))
+		}
+
+		script = append(script,
+			fmt.Sprintf(`load %q with "%s(%s)"`, "today", ag, from),
+			fmt.Sprintf("usefirst %q", from),
+			fmt.Sprintf("as %s(current,%q)", ag, from),
+			")")
 		s.calculations[target] = d.Pos
 	}
 
-	return nil
+	// Now parse this new script
+	script = append(script, ")")
+	newStations, err := s.parser.ParseString(d.Pos.Filename, strings.Join(script, "\n"))
+	if err == nil {
+		d.initialised = true
+
+		// Force Pos to be the same as CalculateFrom
+		err = pseudoSetPosition(d.Pos).Stations(newStations)
+		if err == nil {
+			// Add to pseudoCalculations
+			for _, stn := range newStations.Stations {
+				if stn.Entries != nil {
+					for _, e := range stn.Entries.Entries {
+						if e.Calculation != nil {
+							s.pseudoCalculations = append(s.pseudoCalculations, e.Calculation)
+						}
+					}
+				}
+			}
+		}
+	} else {
+		fmt.Println(strings.Join(script, "\n"))
+	}
+
+	if err == nil {
+		err = errors.VisitorStop
+	}
+	return errors.Error(d.Pos, err)
 }
 
 func (b *builder[T]) CalculateFrom(f func(Visitor[T], *CalculateFrom) error) Builder[T] {

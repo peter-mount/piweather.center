@@ -1,7 +1,6 @@
 package station
 
 import (
-	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
 	"github.com/peter-mount/piweather.center/config/util/time"
@@ -10,13 +9,14 @@ import (
 
 // Calculation defines a metric to calculate.
 type Calculation struct {
-	Pos        lexer.Position
-	Target     string       `parser:"'(' @String"`           // Name of metric to calculate
-	Every      time.CronTab `parser:"('every' @@)?"`         // Calculate at specified intervals
-	ResetEvery time.CronTab `parser:"('reset' 'every' @@)?"` // Crontab to reset the value
-	Load       *Load        `parser:"(@@)?"`                 // Load from the DB on startup
-	UseFirst   *UseFirst    `parser:"(@@)?"`                 // If set and no value use this expression
-	Expression *Expression  `parser:"('as' @@) ')'"`         // Expression to perform calculation
+	Pos            lexer.Position
+	Target         string       `parser:"'(' @String"`           // Name of metric to calculate
+	Every          time.CronTab `parser:"('every' @@)?"`         // Calculate at specified intervals
+	ResetEvery     time.CronTab `parser:"('reset' 'every' @@)?"` // Crontab to reset the value
+	Load           *Load        `parser:"(@@)?"`                 // Load from the DB on startup
+	UseFirst       *UseFirst    `parser:"(@@)?"`                 // If set and no value use this expression
+	Expression     *Expression  `parser:"('as' @@) ')'"`         // Expression to perform calculation
+	OriginalTarget string
 }
 
 func (c *visitor[T]) Calculation(d *Calculation) error {
@@ -68,11 +68,15 @@ func initCalculation(v Visitor[*initState], d *Calculation) error {
 	target := strings.ToLower(d.Target)
 
 	if e, exists := s.calculations[target]; exists {
-		return participle.Errorf(d.Pos, "calculation for %q already defined at %s", d.Target, e.String())
+		return errors.Errorf(d.Pos, "calculation for %q already defined at %s", d.Target, e.String())
 	}
 
-	d.Target = s.prefixMetric(target)
-	s.calculations[target] = d.Pos
+	if d.OriginalTarget == "" {
+		d.OriginalTarget = target
+		d.Target = s.prefixMetric(target)
+		s.calculations[target] = d.Pos
+	}
+
 	return nil
 }
 
@@ -83,8 +87,8 @@ func (b *builder[T]) Calculation(f func(Visitor[T], *Calculation) error) Builder
 
 func printCalculation(v Visitor[*printState], d *Calculation) error {
 	return v.Get().Run(d.Pos, func(st *printState) error {
-		st.AppendHead("").
-			AppendHead("calculate( %q", d.Target).
+		st.AppendPos(d.Pos).
+			AppendHead("calculate( %q", d.OriginalTarget).
 			AppendFooter(")")
 
 		var err error

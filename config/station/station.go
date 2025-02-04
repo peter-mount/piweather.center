@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
+	"sort"
 	"strings"
 	time2 "time"
 )
@@ -60,6 +61,7 @@ func initStation(v Visitor[*initState], d *Station) error {
 	s.calculations = make(map[string]lexer.Position)
 	s.dashboards = make(map[string]lexer.Position)
 	s.sensors = make(map[string]lexer.Position)
+	s.station = nil
 	s.sensorPrefix = ""
 	s.stationPrefix = ""
 
@@ -77,6 +79,7 @@ func initStation(v Visitor[*initState], d *Station) error {
 	}
 
 	if err == nil {
+		s.station = d
 		s.stationId = d.Name
 		s.stationPrefix = s.stationId + "."
 
@@ -94,6 +97,48 @@ func initStation(v Visitor[*initState], d *Station) error {
 
 		// Ensure stationId is unique
 		err = assertStationUnique(&s.stationIds, d)
+	}
+
+	if err == nil {
+		err = visitStation(v, d)
+	}
+
+	if len(s.pseudoCalculations) > 0 {
+		// Import and test pseudo calculations
+		for _, calc := range s.pseudoCalculations {
+			d.Entries.Entries = append(d.Entries.Entries, &StationEntry{
+				Pos:         calc.Pos,
+				Calculation: calc,
+			})
+		}
+	}
+
+	// Finally sort entries
+	{
+		e := d.Entries.Entries
+		sort.SliceStable(e, func(i, j int) bool {
+			a, b := e[i], e[j]
+			at, bt := a.GetTarget(), b.GetTarget()
+
+			switch {
+			// Sort by target A < B
+			case at != "" && bt != "":
+				return at < bt
+				// A before non target B
+			case at != "":
+				return false
+				// B before non target A
+			case bt != "":
+				return true
+			default:
+				// Sort by file position
+				return a.Pos.String() < b.Pos.String()
+			}
+		})
+	}
+
+	if err == nil {
+		err = errors.VisitorStop
 	}
 
 	return errors.Error(d.Pos, err)

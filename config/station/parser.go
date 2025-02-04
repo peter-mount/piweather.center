@@ -55,11 +55,12 @@ var (
 		Build()
 )
 
-func stationInit(q *Stations, err error) (*Stations, error) {
+func stationInit(p util.Parser[Stations], q *Stations, err error) (*Stations, error) {
 
 	if err == nil {
 		err = initVisitor.Clone().
 			Set(&initState{
+				parser:   p,
 				location: time2.Local,
 			}).
 			Stations(q)
@@ -69,18 +70,21 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 }
 
 type initState struct {
-	stationId        string                      // copy of the stationId being processed
-	stationPrefix    string                      // stationId + "."
-	sensorPrefix     string                      // sensorId + "."
-	stationIds       map[string]*Station         // map of Stations, for id uniqueness
-	calculations     map[string]lexer.Position   // map of calculations within a Station, for target uniqueness
-	dashboards       map[string]lexer.Position   // map of Dashboards within a Station, for id uniqueness
-	sensors          map[string]lexer.Position   // map of Sensors within a station, for sensorPrefix uniqueness
-	sensorParameters map[string]*SourceParameter // Map of SourceParameter's used to ensure target metrics are unique
-	sourcePath       []string                    // Prefix for source path, used with SourceWithin
-	ephemeris        *Ephemeris                  // Ephemeris being scanned
-	ephemerisTarget  *EphemerisTarget            // EphemerisTarget being scanned
-	location         *time2.Location             // Time zone
+	parser             util.Parser[Stations]       // copy of parser
+	stationId          string                      // copy of the stationId being processed
+	station            *Station                    // Station being processed
+	stationPrefix      string                      // stationId + "."
+	sensorPrefix       string                      // sensorId + "."
+	stationIds         map[string]*Station         // map of Stations, for id uniqueness
+	calculations       map[string]lexer.Position   // map of calculations within a Station, for target uniqueness
+	dashboards         map[string]lexer.Position   // map of Dashboards within a Station, for id uniqueness
+	sensors            map[string]lexer.Position   // map of Sensors within a station, for sensorPrefix uniqueness
+	sensorParameters   map[string]*SourceParameter // Map of SourceParameter's used to ensure target metrics are unique
+	sourcePath         []string                    // Prefix for source path, used with SourceWithin
+	ephemeris          *Ephemeris                  // Ephemeris being scanned
+	ephemerisTarget    *EphemerisTarget            // EphemerisTarget being scanned
+	location           *time2.Location             // Time zone
+	pseudoCalculations []*Calculation              // Pseudo Calculations
 }
 
 func (s *initState) prefixMetric(m string) string {
