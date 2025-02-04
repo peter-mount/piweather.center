@@ -36,6 +36,16 @@ func (b *builder[T]) Text(f func(Visitor[T], *Text) error) Builder[T] {
 	return b
 }
 
+func printText(v Visitor[*printState], d *Text) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("text(").
+			AppendComponent(d.Component).
+			AppendBody("%q", d.Text).
+			AppendFooter(")")
+		return nil
+	})
+}
+
 func (c *Text) GetID() string {
 	return c.Component.GetID()
 }

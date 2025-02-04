@@ -27,6 +27,7 @@ var (
 	initVisitor = NewBuilder[*initState]().
 		Axis(initAxis).
 		Calculation(initCalculation).
+		CalculateFrom(initCalculateFrom).
 		Container(initContainer).
 		CronTab(initCronTab).
 		Dashboard(initDashboard).
@@ -54,11 +55,12 @@ var (
 		Build()
 )
 
-func stationInit(q *Stations, err error) (*Stations, error) {
+func stationInit(p util.Parser[Stations], q *Stations, err error) (*Stations, error) {
 
 	if err == nil {
 		err = initVisitor.Clone().
 			Set(&initState{
+				parser:   p,
 				location: time2.Local,
 			}).
 			Stations(q)
@@ -68,7 +70,9 @@ func stationInit(q *Stations, err error) (*Stations, error) {
 }
 
 type initState struct {
+	parser           util.Parser[Stations]       // copy of parser
 	stationId        string                      // copy of the stationId being processed
+	station          *Station                    // Station being processed
 	stationPrefix    string                      // stationId + "."
 	sensorPrefix     string                      // sensorId + "."
 	stationIds       map[string]*Station         // map of Stations, for id uniqueness
@@ -80,10 +84,26 @@ type initState struct {
 	ephemeris        *Ephemeris                  // Ephemeris being scanned
 	ephemerisTarget  *EphemerisTarget            // EphemerisTarget being scanned
 	location         *time2.Location             // Time zone
+	newEntries       *StationEntryList           // Generated entries
 }
 
 func (s *initState) prefixMetric(m string) string {
 	return s.stationPrefix + s.sensorPrefix + m
+}
+
+func (s *initState) addStationEntry(e *StationEntry) error {
+	if s.newEntries == nil {
+		s.newEntries = &StationEntryList{Pos: e.Pos}
+	}
+	s.newEntries.AddStationEntry(e)
+	return nil
+}
+
+func (s *initState) assertCalculation(pos lexer.Position, target string) error {
+	if e, exists := s.calculations[target]; exists {
+		return errors.Errorf(pos, "calculation for %q already defined at %s", target, e.String())
+	}
+	return nil
 }
 
 func initLocation(v Visitor[*initState], d *location.Location) error {

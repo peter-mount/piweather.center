@@ -25,24 +25,8 @@ func (c *visitor[T]) ExpressionAtom(b *ExpressionAtom) error {
 			}
 		}
 
-		if err == nil && b.Current != nil {
-			err = c.Current(b.Current)
-		}
-
-		if err == nil && b.Function != nil {
-			err = c.Function(b.Function)
-		}
-
-		if err == nil && b.Metric != nil {
-			err = c.MetricExpression(b.Metric)
-		}
-
-		if err == nil && b.Location != nil {
-			err = c.LocationExpression(b.Location)
-		}
-
-		if err == nil && b.Using != nil {
-			err = c.Unit(b.Using)
+		if err == nil {
+			err = visitExpressionAtom[T](c, b)
 		}
 
 		err = errors.Error(b.Pos, err)
@@ -50,7 +34,39 @@ func (c *visitor[T]) ExpressionAtom(b *ExpressionAtom) error {
 	return err
 }
 
+func visitExpressionAtom[T any](v Visitor[T], d *ExpressionAtom) error {
+	var err error
+	if d != nil {
+		switch {
+		case d.Current != nil:
+			err = v.Current(d.Current)
+
+		case d.Function != nil:
+			err = v.Function(d.Function)
+
+		case d.Location != nil:
+			err = v.LocationExpression(d.Location)
+
+		case d.Metric != nil:
+			err = v.MetricExpression(d.Metric)
+		}
+
+		if err == nil && d.Using != nil {
+			err = v.Unit(d.Using)
+		}
+	}
+	return err
+}
+
 func (b *builder[T]) ExpressionAtom(f func(Visitor[T], *ExpressionAtom) error) Builder[T] {
 	b.expressionAtom = f
 	return b
+}
+
+func printExpressionAtom(v Visitor[*printState], d *ExpressionAtom) error {
+	err := visitExpressionAtom(v, d)
+	if err == nil {
+		err = errors.VisitorStop
+	}
+	return err
 }

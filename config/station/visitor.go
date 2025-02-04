@@ -11,6 +11,7 @@ import (
 type Visitor[T any] interface {
 	Axis(*Axis) error
 	Calculation(*Calculation) error
+	CalculateFrom(*CalculateFrom) error
 	Command(command.Command) error
 	Component(*Component) error
 	ComponentList(*ComponentList) error
@@ -25,11 +26,11 @@ type Visitor[T any] interface {
 	EphemerisTargetOption(*EphemerisTargetOption) error
 	Expression(*Expression) error
 	ExpressionAtom(*ExpressionAtom) error
-	ExpressionLevel1(b *ExpressionLevel1) error
-	ExpressionLevel2(b *ExpressionLevel2) error
-	ExpressionLevel3(b *ExpressionLevel3) error
-	ExpressionLevel4(b *ExpressionLevel4) error
-	ExpressionLevel5(b *ExpressionLevel5) error
+	ExpressionLevel1(*ExpressionLevel1) error
+	ExpressionLevel2(*ExpressionLevel2) error
+	ExpressionLevel3(*ExpressionLevel3) error
+	ExpressionLevel4(*ExpressionLevel4) error
+	ExpressionLevel5(*ExpressionLevel5) error
 	Function(*Function) error
 	Gauge(*Gauge) error
 	Http(*Http) error
@@ -81,6 +82,7 @@ type visitor[T any] struct {
 type common[T any] struct {
 	axis                     func(Visitor[T], *Axis) error
 	calculation              func(Visitor[T], *Calculation) error
+	calculateFrom            func(Visitor[T], *CalculateFrom) error
 	command                  func(Visitor[T], command.Command) error
 	component                func(Visitor[T], *Component) error
 	componentList            func(Visitor[T], *ComponentList) error

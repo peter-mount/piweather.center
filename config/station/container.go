@@ -23,14 +23,21 @@ func (c *visitor[T]) Container(d *Container) error {
 		}
 
 		if err == nil {
-			err = c.Component(d.Component)
-		}
-
-		if err == nil {
-			err = c.ComponentList(d.Components)
+			err = visitContainer[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+func visitContainer[T any](v Visitor[T], d *Container) error {
+	var err error
+	if d != nil {
+		err = v.Component(d.Component)
+
+		if err == nil {
+			err = v.ComponentList(d.Components)
+		}
 	}
 	return err
 }
@@ -51,6 +58,14 @@ func initContainer(_ Visitor[*initState], d *Container) error {
 func (b *builder[T]) Container(f func(Visitor[T], *Container) error) Builder[T] {
 	b.container = f
 	return b
+}
+
+func printContainer(v Visitor[*printState], d *Container) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("%s(", d.Type).
+			AppendFooter(")")
+		return nil
+	})
 }
 
 func (c *Container) GetType() string {

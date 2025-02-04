@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/tools/weathersensor"
-	"log"
+	"os"
 )
 
 // main entry point for the weathersensor binary.
@@ -27,7 +28,7 @@ import (
 //       of removing the import on step 2, just add the appropriate import for your driver in step 3.
 
 func main() {
-	err := kernel.Launch(
+	if err := kernel.Launch(
 		// Must be first to enable us to capture this first before anything else does
 		&weathersensor.ListDevices{},
 		&weathersensor.Service{},
@@ -40,8 +41,8 @@ func main() {
 		// before the failure. In that case it was a cabling fault causing the i2c bus to crash.
 		//
 		//&kernel.MemUsage{},
-	)
-	if err != nil {
-		log.Fatal(err)
+	); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }

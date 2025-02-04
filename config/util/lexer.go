@@ -43,7 +43,7 @@ type Parser[G any] interface {
 	ParseFiles(fileNames ...string) (*G, error)
 }
 
-type ParserInit[G any] func(q *G, err error) (*G, error)
+type ParserInit[G any] func(p Parser[G], q *G, err error) (*G, error)
 
 type defaultParser[G any] struct {
 	lexer  *lexer.StatefulDefinition
@@ -89,12 +89,13 @@ func NewParserExt[G any](rules []lexer.SimpleRule, optFactory func(l lexer.Defin
 	}
 }
 
-func defaultInit[G any](q *G, err error) (*G, error) {
+func defaultInit[G any](_ Parser[G], q *G, err error) (*G, error) {
 	return q, err
 }
 
 func (p *defaultParser[G]) Parse(fileName string, r io.Reader, opts ...participle.ParseOption) (*G, error) {
-	return p.init(p.parser.Parse(fileName, r, opts...))
+	v, err := p.parser.Parse(fileName, r, opts...)
+	return p.init(p, v, err)
 }
 
 // CheckSummable is implemented by parsable entities to store a checksum of the parsed content
@@ -120,14 +121,14 @@ func (p *defaultParser[G]) ParseBytes(fileName string, b []byte, opts ...partici
 	return p.init(p.parseBytes(fileName, b, opts...))
 }
 
-func (p *defaultParser[G]) parseBytes(fileName string, b []byte, opts ...participle.ParseOption) (*G, error) {
+func (p *defaultParser[G]) parseBytes(fileName string, b []byte, opts ...participle.ParseOption) (Parser[G], *G, error) {
 	v, err := p.parser.ParseBytes(fileName, b, opts...)
 	if err == nil {
 		if c, ok := any(v).(CheckSummable); ok {
 			c.SetChecksum(sha1.Sum(b))
 		}
 	}
-	return v, err
+	return p, v, err
 }
 
 func (p *defaultParser[G]) ParseString(fileName, src string, opts ...participle.ParseOption) (*G, error) {
@@ -138,10 +139,10 @@ func (p *defaultParser[G]) ParseFile(fileName string, opts ...participle.ParseOp
 	return p.init(p.parseFile(fileName, opts...))
 }
 
-func (p *defaultParser[G]) parseFile(fileName string, opts ...participle.ParseOption) (*G, error) {
+func (p *defaultParser[G]) parseFile(fileName string, opts ...participle.ParseOption) (Parser[G], *G, error) {
 	b, err := os.ReadFile(fileName)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	return p.parseBytes(fileName, b, opts...)
 }
@@ -154,7 +155,7 @@ func (p *defaultParser[G]) ParseFiles(fileNames ...string) (*G, error) {
 	var r *G
 	for _, n := range fileNames {
 		// parse but do not init here
-		script, err := p.parseFile(n)
+		_, script, err := p.parseFile(n)
 		if err == nil {
 			if r == nil {
 				// First entry then use it
@@ -174,5 +175,5 @@ func (p *defaultParser[G]) ParseFiles(fileNames ...string) (*G, error) {
 	}
 
 	// Run init against the final merged entity
-	return p.init(r, nil)
+	return p.init(p, r, nil)
 }

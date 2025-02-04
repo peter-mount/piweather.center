@@ -393,18 +393,33 @@ station( "home"
 				},
 			},
 		},
-		// metric
+		// calculate from
 		{
-			name: "tasks",
+			name: "calculate from",
 			tests: []test{
 				{
-					name: "execute",
-					script: `
-station("home"
-	tasks(
-		"daily" ls -l /tmp
-	)
-)`,
+					name:   "max",
+					script: `station("home" calculate from "ws.uv" unit "uv" ( max ) reset every "day" )`,
+				},
+				{
+					name:   "max unit",
+					script: `station("home" calculate from "ws.uv" ( max ) reset every "day" )`,
+				},
+				{
+					name:   "min",
+					script: `station("home" calculate from "ws.uv" unit "uv" ( min ) reset every "day" )`,
+				},
+				{
+					name:   "avg",
+					script: `station("home" calculate from "ws.uv" unit "uv" ( avg ) reset every "day" )`,
+				},
+				{
+					name:   "minmax",
+					script: `station("home" calculate from "ws.uv" unit "uv" ( min max ) reset every "day" )`,
+				},
+				{
+					name:   "duplicates",
+					script: `station("home" calculate from "ws.uv" unit "uv" ( min max avg min avg max ) reset every "day" )`,
 				},
 			},
 		},

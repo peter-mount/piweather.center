@@ -29,22 +29,30 @@ func (c *visitor[T]) Gauge(d *Gauge) error {
 		}
 
 		if err == nil {
-			err = c.Component(d.Component)
-		}
-
-		if err == nil {
-			err = c.Unit(d.Unit)
-		}
-
-		if err == nil {
-			err = c.Axis(d.Axis)
-		}
-
-		if err == nil {
-			err = c.MetricList(d.Metrics)
+			err = visitGauge[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitGauge[T any](v Visitor[T], d *Gauge) error {
+	var err error
+	if d != nil {
+		err = v.Component(d.Component)
+
+		if err == nil {
+			err = v.Unit(d.Unit)
+		}
+
+		if err == nil {
+			err = v.Axis(d.Axis)
+		}
+
+		if err == nil {
+			err = v.MetricList(d.Metrics)
+		}
 	}
 	return err
 }
@@ -68,6 +76,16 @@ func initGauge(_ Visitor[*initState], d *Gauge) error {
 func (b *builder[T]) Gauge(f func(Visitor[T], *Gauge) error) Builder[T] {
 	b.gauge = f
 	return b
+}
+
+func printGauge(v Visitor[*printState], d *Gauge) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("%s(", d.Type).
+			AppendComponent(d.Component).
+			AppendBody("%q", d.Label).
+			AppendFooter(")")
+		return visitGauge(v, d)
+	})
 }
 
 func (c *Gauge) AcceptMetric(v api.Metric) bool {

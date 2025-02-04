@@ -33,3 +33,10 @@ func (b *builder[T]) UseFirst(f func(Visitor[T], *UseFirst) error) Builder[T] {
 	b.useFirst = f
 	return b
 }
+
+func printUseFirst(v Visitor[*printState], d *UseFirst) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("usefirst %q", d.Metric.OriginalName)
+		return nil
+	})
+}

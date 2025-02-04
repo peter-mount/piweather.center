@@ -30,18 +30,26 @@ func (c *visitor[T]) Station(d *Station) error {
 		}
 
 		if err == nil {
-			err = c.Location(d.Location)
-		}
-
-		if err == nil {
-			err = c.TimeZone(d.TimeZone)
-		}
-
-		if err == nil {
-			err = c.StationEntryList(d.Entries)
+			err = visitStation[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitStation[T any](v Visitor[T], d *Station) error {
+	var err error
+	if d != nil {
+		err = v.Location(d.Location)
+
+		if err == nil {
+			err = v.TimeZone(d.TimeZone)
+		}
+
+		if err == nil {
+			err = v.StationEntryList(d.Entries)
+		}
 	}
 	return err
 }
@@ -52,6 +60,7 @@ func initStation(v Visitor[*initState], d *Station) error {
 	s.calculations = make(map[string]lexer.Position)
 	s.dashboards = make(map[string]lexer.Position)
 	s.sensors = make(map[string]lexer.Position)
+	s.station = nil
 	s.sensorPrefix = ""
 	s.stationPrefix = ""
 
@@ -69,6 +78,7 @@ func initStation(v Visitor[*initState], d *Station) error {
 	}
 
 	if err == nil {
+		s.station = d
 		s.stationId = d.Name
 		s.stationPrefix = s.stationId + "."
 
@@ -88,7 +98,27 @@ func initStation(v Visitor[*initState], d *Station) error {
 		err = assertStationUnique(&s.stationIds, d)
 	}
 
+	if err == nil {
+		err = visitStation(v, d)
+	}
+
+	d.Entries.Merge(s.newEntries)
+	d.Entries.Sort()
+
+	if err == nil {
+		err = errors.VisitorStop
+	}
+
 	return errors.Error(d.Pos, err)
+}
+
+func printStation(v Visitor[*printState], d *Station) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendPos(d.Pos).
+			AppendHead("station( %q", d.Name).
+			AppendFooter(")")
+		return visitStation(v, d)
+	})
 }
 
 func (b *builder[T]) Station(f func(Visitor[T], *Station) error) Builder[T] {
@@ -109,4 +139,11 @@ func assertStationUnique(m *map[string]*Station, s *Station) error {
 // If there are no dashboards this returns nil.
 func (s *Station) HomeDashboard() *Dashboard {
 	return s.Entries.HomeDashboard()
+}
+
+func (s *Station) AddStationEntry(e *StationEntry) {
+	if s.Entries == nil {
+		s.Entries = &StationEntryList{Pos: s.Pos}
+	}
+	s.Entries.AddStationEntry(e)
 }

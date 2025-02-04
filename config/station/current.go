@@ -30,3 +30,10 @@ func (b *builder[T]) Current(f func(Visitor[T], *Current) error) Builder[T] {
 	b.current = f
 	return b
 }
+
+func printCurrent(v Visitor[*printState], d *Current) error {
+	if d.Current {
+		v.Get().Append("current")
+	}
+	return errors.VisitorStop
+}
