@@ -66,9 +66,8 @@ func initCalculation(v Visitor[*initState], d *Calculation) error {
 	s := v.Get()
 
 	target := strings.ToLower(d.Target)
-
-	if e, exists := s.calculations[target]; exists {
-		return errors.Errorf(d.Pos, "calculation for %q already defined at %s", d.Target, e.String())
+	if err := s.assertCalculation(d.Pos, target); err != nil {
+		return err
 	}
 
 	if d.OriginalTarget == "" {

@@ -6,7 +6,6 @@ import (
 	"github.com/peter-mount/piweather.center/config/util"
 	"github.com/peter-mount/piweather.center/config/util/location"
 	"github.com/peter-mount/piweather.center/config/util/time"
-	"sort"
 	"strings"
 	time2 "time"
 )
@@ -103,39 +102,8 @@ func initStation(v Visitor[*initState], d *Station) error {
 		err = visitStation(v, d)
 	}
 
-	if len(s.pseudoCalculations) > 0 {
-		// Import and test pseudo calculations
-		for _, calc := range s.pseudoCalculations {
-			d.Entries.Entries = append(d.Entries.Entries, &StationEntry{
-				Pos:         calc.Pos,
-				Calculation: calc,
-			})
-		}
-	}
-
-	// Finally sort entries
-	{
-		e := d.Entries.Entries
-		sort.SliceStable(e, func(i, j int) bool {
-			a, b := e[i], e[j]
-			at, bt := a.GetTarget(), b.GetTarget()
-
-			switch {
-			// Sort by target A < B
-			case at != "" && bt != "":
-				return at < bt
-				// A before non target B
-			case at != "":
-				return false
-				// B before non target A
-			case bt != "":
-				return true
-			default:
-				// Sort by file position
-				return a.Pos.String() < b.Pos.String()
-			}
-		})
-	}
+	d.Entries.Merge(s.newEntries)
+	d.Entries.Sort()
 
 	if err == nil {
 		err = errors.VisitorStop
@@ -171,4 +139,11 @@ func assertStationUnique(m *map[string]*Station, s *Station) error {
 // If there are no dashboards this returns nil.
 func (s *Station) HomeDashboard() *Dashboard {
 	return s.Entries.HomeDashboard()
+}
+
+func (s *Station) AddStationEntry(e *StationEntry) {
+	if s.Entries == nil {
+		s.Entries = &StationEntryList{Pos: s.Pos}
+	}
+	s.Entries.AddStationEntry(e)
 }

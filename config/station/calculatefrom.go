@@ -60,12 +60,11 @@ func initCalculateFrom(v Visitor[*initState], d *CalculateFrom) error {
 
 	from := strings.ToLower(d.From)
 
-	script := []string{fmt.Sprintf("station( %q", s.station.Name)}
+	var script []string
 	for _, ag := range d.Aggregators.GetAggregators() {
 		target := strings.ToLower(from + "." + ag)
-
-		if e, exists := s.calculations[target]; exists {
-			return errors.Errorf(d.Pos, "calculation for %q already defined at %s", target, e.String())
+		if err := s.assertCalculation(d.Pos, target); err != nil {
+			return err
 		}
 
 		script = append(script, fmt.Sprintf("calculate( %q", target))
@@ -83,27 +82,10 @@ func initCalculateFrom(v Visitor[*initState], d *CalculateFrom) error {
 	}
 
 	// Now parse this new script
-	script = append(script, ")")
-	newStations, err := s.parser.ParseString(d.Pos.Filename, strings.Join(script, "\n"))
+	err := s.ParseAndInclude(d.Pos, script)
 	if err == nil {
+		// Mark so we don't initialise again
 		d.initialised = true
-
-		// Force Pos to be the same as CalculateFrom
-		err = pseudoSetPosition(d.Pos).Stations(newStations)
-		if err == nil {
-			// Add to pseudoCalculations
-			for _, stn := range newStations.Stations {
-				if stn.Entries != nil {
-					for _, e := range stn.Entries.Entries {
-						if e.Calculation != nil {
-							s.pseudoCalculations = append(s.pseudoCalculations, e.Calculation)
-						}
-					}
-				}
-			}
-		}
-	} else {
-		fmt.Println(strings.Join(script, "\n"))
 	}
 
 	if err == nil {

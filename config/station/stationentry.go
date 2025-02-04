@@ -11,8 +11,8 @@ type StationEntry struct {
 	Calculation   *Calculation   `parser:"  | @@ )"`
 	Dashboard     *Dashboard     `parser:"| @@"`
 	Ephemeris     *Ephemeris     `parser:"| @@"`
-	Tasks         *Tasks         `parser:"| @@"`
-	Sensor        *Sensor        `parser:"| @@ )"`
+	Sensor        *Sensor        `parser:"| @@"`
+	Tasks         *Tasks         `parser:"| @@ )"`
 }
 
 func (e *StationEntry) GetTarget() string {

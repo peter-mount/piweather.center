@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/peter-mount/go-kernel/v2"
 	"github.com/peter-mount/piweather.center/tools/weatherutil/config"
 	"github.com/peter-mount/piweather.center/tools/weatherutil/query"
 	"github.com/peter-mount/piweather.center/tools/weatherutil/rename"
 	"github.com/peter-mount/piweather.center/tools/weatherutil/statistics"
-	"log"
+	"os"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
 		&statistics.Stats{},
 	)
 	if err != nil {
-		log.Fatal(err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }

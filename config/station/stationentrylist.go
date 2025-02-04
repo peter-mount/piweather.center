@@ -3,6 +3,7 @@ package station
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
+	"sort"
 )
 
 type StationEntryList struct {
@@ -51,6 +52,41 @@ func initStationEntryList(v Visitor[*initState], d *StationEntryList) error {
 func (b *builder[T]) StationEntryList(f func(Visitor[T], *StationEntryList) error) Builder[T] {
 	b.stationEntryList = f
 	return b
+}
+
+func (s *StationEntryList) AddStationEntry(e *StationEntry) {
+	s.Entries = append(s.Entries, e)
+}
+
+func (s *StationEntryList) Merge(b *StationEntryList) {
+	if b != nil {
+		for _, e := range b.Entries {
+			s.AddStationEntry(e)
+		}
+	}
+}
+
+func (s *StationEntryList) Sort() {
+	e := s.Entries
+	sort.SliceStable(e, func(i, j int) bool {
+		a, b := e[i], e[j]
+		at, bt := a.GetTarget(), b.GetTarget()
+
+		switch {
+		// Sort by target A < B
+		case at != "" && bt != "":
+			return at < bt
+			// A before non target B
+		case at != "":
+			return false
+			// B before non target A
+		case bt != "":
+			return true
+		default:
+			// Sort by file position
+			return a.Pos.String() < b.Pos.String()
+		}
+	})
 }
 
 // HomeDashboard returns the home dashboard which is by definition the first dashboard in the definition
