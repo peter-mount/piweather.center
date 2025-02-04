@@ -3,6 +3,7 @@ package ql
 import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/peter-mount/go-script/errors"
+	util2 "github.com/peter-mount/piweather.center/config/util"
 	time2 "github.com/peter-mount/piweather.center/config/util/time"
 	"github.com/peter-mount/piweather.center/config/util/units"
 	"github.com/peter-mount/piweather.center/util"
@@ -35,7 +36,7 @@ var (
 				Build()
 )
 
-func scriptInit(q *Query, err error) (*Query, error) {
+func scriptInit(_ util2.Parser[Query], q *Query, err error) (*Query, error) {
 	if err == nil {
 		err = scriptInitVisitor.Clone().
 			Set(newParserState()).
@@ -44,7 +45,7 @@ func scriptInit(q *Query, err error) (*Query, error) {
 	return q, err
 }
 
-func expressionInit(q *Expression, err error) (*Expression, error) {
+func expressionInit(_ util2.Parser[Expression], q *Expression, err error) (*Expression, error) {
 	if err == nil {
 		err = expressionInitVisitor.Clone().
 			Set(newParserState()).

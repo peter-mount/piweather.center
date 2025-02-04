@@ -12,7 +12,7 @@ func NewParser() util.Parser[Script] {
 	return util.NewParser[Script](nil, nil, egressInit)
 }
 
-func egressInit(q *Script, err error) (*Script, error) {
+func egressInit(_ util.Parser[Script], q *Script, err error) (*Script, error) {
 	if err == nil {
 		state := NewState()
 
