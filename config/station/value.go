@@ -25,14 +25,22 @@ func (c *visitor[T]) Value(d *Value) error {
 		}
 
 		if err == nil {
-			err = c.Component(d.Component)
-		}
-
-		if err == nil {
-			err = c.MetricList(d.Metrics)
+			err = visitValue(c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitValue[T any](v Visitor[T], d *Value) error {
+	var err error
+	if d != nil {
+		err = v.Component(d.Component)
+
+		if err == nil {
+			err = v.MetricList(d.Metrics)
+		}
 	}
 	return err
 }
@@ -48,6 +56,16 @@ func initValue(_ Visitor[*initState], d *Value) error {
 func (b *builder[T]) Value(f func(Visitor[T], *Value) error) Builder[T] {
 	b.value = f
 	return b
+}
+
+func printValue(v Visitor[*printState], d *Value) error {
+	return v.Get().
+		Start().
+		AppendHead("%s(", d.Type).
+		AppendComponent(d.Component).
+		AppendBody("%q", d.Label).
+		AppendFooter(")").
+		EndError(d.Pos, visitValue(v, d))
 }
 
 func (c *Value) AcceptMetric(v api.Metric) bool {

@@ -62,3 +62,33 @@ func (b *builder[T]) Task(f func(Visitor[T], *Task) error) Builder[T] {
 	b.task = f
 	return b
 }
+
+func printTask(v Visitor[*printState], d *Task) error {
+	st := v.Get()
+	st.Start().
+		AppendPos(d.Pos).
+		AppendHead("schedule %q (", d.CronTab.Definition()).
+		AppendFooter(")")
+
+	var err error
+	for _, cond := range d.Conditions {
+		err = v.TaskCondition(cond)
+		if err != nil {
+			break
+		}
+	}
+
+	if err == nil {
+		switch {
+		case d.Default != nil:
+			err = st.Start().
+				AppendHead("default:").
+				EndError(d.Pos, v.Command(d.Default))
+
+		case d.Execute != nil:
+			err = v.Command(d.Execute)
+		}
+	}
+
+	return st.EndError(d.Pos, err)
+}

@@ -22,12 +22,7 @@ func (c *visitor[T]) Tasks(d *Tasks) error {
 		}
 
 		if err == nil {
-			for _, task := range d.Tasks {
-				err = c.Task(task)
-				if err != nil {
-					break
-				}
-			}
+			err = visitTasks[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
@@ -35,7 +30,29 @@ func (c *visitor[T]) Tasks(d *Tasks) error {
 	return err
 }
 
+func visitTasks[T any](v Visitor[T], d *Tasks) error {
+	var err error
+	if d != nil {
+		for _, task := range d.Tasks {
+			err = v.Task(task)
+			if err != nil {
+				break
+			}
+		}
+	}
+	return err
+}
+
 func (b *builder[T]) Tasks(f func(Visitor[T], *Tasks) error) Builder[T] {
 	b.tasks = f
 	return b
+}
+
+func printTasks(v Visitor[*printState], d *Tasks) error {
+	return v.Get().
+		Start().
+		AppendPos(d.Pos).
+		AppendHead("tasks(").
+		AppendFooter(")").
+		EndError(d.Pos, visitTasks(v, d))
 }

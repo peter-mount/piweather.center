@@ -19,6 +19,7 @@ type Config struct {
 	Config   config.Manager    `kernel:"inject"`
 	Stations *station.Stations `kernel:"inject"`
 	Suffix   *string           `kernel:"flag,check,Check configuration"`
+	Debug    *bool             `kernel:"flag,check-debug,Perform additional checks"`
 	dashDir  string
 }
 
@@ -59,7 +60,11 @@ func (r *Config) check(suffix string) error {
 
 func (r *Config) checkConfig(loadOpt station.LoadOption, suffix string) (bool, error) {
 	log.Printf("Checking %q", suffix)
-	_, err := r.Stations.LoadDirectory(r.dashDir, suffix, loadOpt)
+	stations, err := r.Stations.LoadDirectory(r.dashDir, suffix, loadOpt)
+
+	if err == nil && *r.Debug {
+		fmt.Println(stations.String())
+	}
 
 	if err != nil {
 		s := err.Error()

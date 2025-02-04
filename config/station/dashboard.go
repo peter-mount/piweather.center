@@ -27,14 +27,22 @@ func (c *visitor[T]) Dashboard(d *Dashboard) error {
 		}
 
 		if err == nil {
-			err = c.Component(d.Component)
-		}
-
-		if err == nil {
-			err = c.ComponentListEntry(d.Components)
+			err = visitDashboard[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitDashboard[T any](v Visitor[T], d *Dashboard) error {
+	var err error
+	if d != nil {
+		err = v.Component(d.Component)
+
+		if err == nil {
+			err = v.ComponentListEntry(d.Components)
+		}
 	}
 	return err
 }
@@ -87,6 +95,25 @@ func initDashboard(v Visitor[*initState], d *Dashboard) error {
 func (b *builder[T]) Dashboard(f func(Visitor[T], *Dashboard) error) Builder[T] {
 	b.dashboard = f
 	return b
+}
+
+func printDashboard(v Visitor[*printState], d *Dashboard) error {
+	st := v.Get()
+	st.Start().
+		AppendPos(d.Pos).
+		AppendHead("dashboard( %q", d.Name).
+		AppendComponent(d.Component).
+		AppendFooter(")")
+
+	if d.Live {
+		st.AppendBody("live")
+	}
+
+	if d.Update != nil {
+		st.AppendBody("update %q", d.Update.Definition())
+	}
+
+	return st.EndError(d.Pos, visitDashboard(v, d))
 }
 
 func (c *Dashboard) GetType() string {

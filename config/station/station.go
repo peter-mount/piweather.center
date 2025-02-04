@@ -30,18 +30,26 @@ func (c *visitor[T]) Station(d *Station) error {
 		}
 
 		if err == nil {
-			err = c.Location(d.Location)
-		}
-
-		if err == nil {
-			err = c.TimeZone(d.TimeZone)
-		}
-
-		if err == nil {
-			err = c.StationEntryList(d.Entries)
+			err = visitStation[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitStation[T any](v Visitor[T], d *Station) error {
+	var err error
+	if d != nil {
+		err = v.Location(d.Location)
+
+		if err == nil {
+			err = v.TimeZone(d.TimeZone)
+		}
+
+		if err == nil {
+			err = v.StationEntryList(d.Entries)
+		}
 	}
 	return err
 }
@@ -89,6 +97,15 @@ func initStation(v Visitor[*initState], d *Station) error {
 	}
 
 	return errors.Error(d.Pos, err)
+}
+
+func printStation(v Visitor[*printState], d *Station) error {
+	return v.Get().
+		Start().
+		AppendPos(d.Pos).
+		AppendHead("station( %q", d.Name).
+		AppendFooter(")").
+		EndError(d.Pos, visitStation(v, d))
 }
 
 func (b *builder[T]) Station(f func(Visitor[T], *Station) error) Builder[T] {

@@ -126,3 +126,11 @@ func (a *Stations) replace(m *map[string]*Station, c *Stations, e *Station) erro
 
 	return nil
 }
+
+func (a *Stations) String() string {
+	ps := newPrintState()
+	_ = printVisitor.Clone().
+		Set(ps).
+		Stations(a)
+	return ps.String()
+}

@@ -30,10 +30,18 @@ func (c *visitor[T]) Metric(d *Metric) error {
 		}
 
 		if err == nil {
-			err = c.Unit(d.Unit)
+			err = visitMetric[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitMetric[T any](v Visitor[T], d *Metric) error {
+	var err error
+	if d != nil {
+		err = v.Unit(d.Unit)
 	}
 	return err
 }
@@ -66,6 +74,13 @@ func initMetric(v Visitor[*initState], d *Metric) error {
 func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 	b.metric = f
 	return b
+}
+
+func printMetric(v Visitor[*printState], d *Metric) error {
+	return v.Get().
+		Start().
+		AppendHead("%q", d.OriginalName).
+		EndError(d.Pos, visitMetric(v, d))
 }
 
 func (m *Metric) AcceptMetric(v api.Metric) bool {
