@@ -53,3 +53,27 @@ func (b *builder[T]) Function(f func(Visitor[T], *Function) error) Builder[T] {
 	b.function = f
 	return b
 }
+
+func printFunction(v Visitor[*printState], d *Function) error {
+	var err error
+
+	st := v.Get().
+		Append("%s(", d.Name)
+
+	for i, e := range d.Expressions {
+		if i > 0 {
+			st.Append(",")
+		}
+
+		err = v.Expression(e)
+		if err != nil {
+			break
+		}
+	}
+	st.Append(")")
+
+	if err == nil {
+		err = errors.VisitorStop
+	}
+	return err
+}

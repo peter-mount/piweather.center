@@ -29,14 +29,22 @@ func (c *visitor[T]) CalculateFrom(d *CalculateFrom) error {
 		}
 
 		if err == nil {
-			err = c.Unit(d.Unit)
-		}
-
-		if err == nil {
-			err = c.CronTab(d.ResetEvery)
+			err = visitCalculateFrom[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitCalculateFrom[T any](v Visitor[T], d *CalculateFrom) error {
+	var err error
+	if d != nil {
+		err = v.Unit(d.Unit)
+
+		if err == nil {
+			err = v.CronTab(d.ResetEvery)
+		}
 	}
 	return err
 }
@@ -63,4 +71,33 @@ func initCalculateFrom(v Visitor[*initState], d *CalculateFrom) error {
 func (b *builder[T]) CalculateFrom(f func(Visitor[T], *CalculateFrom) error) Builder[T] {
 	b.calculateFrom = f
 	return b
+}
+
+func printCalculateFrom(v Visitor[*printState], d *CalculateFrom) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		// calculate from is expanded so we show it as a comment
+		st.Comment().
+			AppendPos(d.Pos).
+			AppendHead("// calculate from %q", d.From)
+
+		if d.Unit != nil {
+			st.Start().
+				AppendHead("unit %q", d.Unit.Using).
+				End()
+		}
+
+		if d.Aggregators != nil {
+			st.Start().
+				AppendHead("( %s )", strings.Join(d.Aggregators.GetAggregators(), " ")).
+				End()
+		}
+
+		if d.ResetEvery != nil {
+			st.Start().
+				AppendHead("reset every %q", d.ResetEvery.Definition()).
+				End()
+		}
+
+		return nil
+	})
 }

@@ -44,16 +44,16 @@ func (b *builder[T]) TaskCondition(f func(Visitor[T], *TaskCondition) error) Bui
 }
 
 func printTaskCondition(v Visitor[*printState], d *TaskCondition) error {
-	st := v.Get().
-		Start().
-		AppendHead("case")
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("case")
 
-	err := v.Expression(d.Expression)
-	st.Append(":")
+		err := v.Expression(d.Expression)
+		st.Append(":")
 
-	if err == nil {
-		err = v.Command(d.Execute)
-	}
+		if err == nil {
+			err = v.Command(d.Execute)
+		}
 
-	return st.EndError(d.Pos, err)
+		return err
+	})
 }

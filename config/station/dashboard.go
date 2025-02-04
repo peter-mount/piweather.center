@@ -98,22 +98,22 @@ func (b *builder[T]) Dashboard(f func(Visitor[T], *Dashboard) error) Builder[T] 
 }
 
 func printDashboard(v Visitor[*printState], d *Dashboard) error {
-	st := v.Get()
-	st.Start().
-		AppendPos(d.Pos).
-		AppendHead("dashboard( %q", d.Name).
-		AppendComponent(d.Component).
-		AppendFooter(")")
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendPos(d.Pos).
+			AppendHead("dashboard( %q", d.Name).
+			AppendComponent(d.Component).
+			AppendFooter(")")
 
-	if d.Live {
-		st.AppendBody("live")
-	}
+		if d.Live {
+			st.AppendBody("live")
+		}
 
-	if d.Update != nil {
-		st.AppendBody("update %q", d.Update.Definition())
-	}
+		if d.Update != nil {
+			st.AppendBody("update %q", d.Update.Definition())
+		}
 
-	return st.EndError(d.Pos, visitDashboard(v, d))
+		return visitDashboard(v, d)
+	})
 }
 
 func (c *Dashboard) GetType() string {

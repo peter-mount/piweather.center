@@ -77,10 +77,10 @@ func (b *builder[T]) Metric(f func(Visitor[T], *Metric) error) Builder[T] {
 }
 
 func printMetric(v Visitor[*printState], d *Metric) error {
-	return v.Get().
-		Start().
-		AppendHead("%q", d.OriginalName).
-		EndError(d.Pos, visitMetric(v, d))
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("%q", d.OriginalName)
+		return visitMetric(v, d)
+	})
 }
 
 func (m *Metric) AcceptMetric(v api.Metric) bool {

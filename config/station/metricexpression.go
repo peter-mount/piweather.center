@@ -49,6 +49,16 @@ func (b *builder[T]) MetricExpression(f func(Visitor[T], *MetricExpression) erro
 	return b
 }
 
+func printMetricExpression(v Visitor[*printState], d *MetricExpression) error {
+	st := v.Get()
+	if d.Offset == "" {
+		st.Append("%q", d.Metric.OriginalName)
+	} else {
+		st.Append("%q offset %q", d.Metric.OriginalName, d.Offset)
+	}
+	return errors.VisitorStop
+}
+
 // HasOffset returns true of Offset is defined and the parsed value is not 0
 func (m *MetricExpression) HasOffset() bool {
 	return m.offset != 0

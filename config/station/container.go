@@ -61,11 +61,11 @@ func (b *builder[T]) Container(f func(Visitor[T], *Container) error) Builder[T] 
 }
 
 func printContainer(v Visitor[*printState], d *Container) error {
-	return v.Get().
-		Start().
-		AppendHead("%s(", d.Type).
-		AppendFooter(")").
-		EndError(d.Pos, visitContainer(v, d))
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("%s(", d.Type).
+			AppendFooter(")")
+		return nil
+	})
 }
 
 func (c *Container) GetType() string {

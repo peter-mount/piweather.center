@@ -13,13 +13,25 @@ import (
 
 var (
 	printVisitor = NewBuilder[*printState]().
+		CalculateFrom(printCalculateFrom).
+		Calculation(printCalculation).
 		Command(printCommand).
 		Container(printContainer).
 		CronTab(printCron).
+		Current(printCurrent).
 		Dashboard(printDashboard).
+		ExpressionAtom(printExpressionAtom).
+		ExpressionLevel1(printExpressionLevel1).
+		ExpressionLevel2(printExpressionLevel2).
+		ExpressionLevel3(printExpressionLevel3).
+		ExpressionLevel4(printExpressionLevel4).
+		ExpressionLevel5(printExpressionLevel5).
+		Function(printFunction).
 		Gauge(printGauge).
+		Load(printLoad).
 		Location(printLocation).
 		Metric(printMetric).
+		MetricExpression(printMetricExpression).
 		Station(printStation).
 		Task(printTask).
 		TaskCondition(printTaskCondition).
@@ -27,6 +39,7 @@ var (
 		Text(printText).
 		TimeZone(printTimeZone).
 		Unit(printUnit).
+		UseFirst(printUseFirst).
 		Value(printValue).
 		Build()
 )
@@ -34,7 +47,7 @@ var (
 func newPrintState() *printState {
 	root := &printNode{}
 	return &printState{
-		indentSize: 4,
+		indentSize: 2,
 		root:       root,
 		current:    root,
 	}
@@ -49,7 +62,8 @@ type printState struct {
 type printNode struct {
 	parent   *printNode
 	children []*printNode
-	indent   int
+	indent   int // Indent amount
+	comment  int // >0 then we are commented out
 	header   []string
 	body     []string
 	footer   []string
@@ -63,6 +77,9 @@ func (s *printState) String() string {
 
 func (n *printNode) append(l []string) []string {
 	indent := strings.Repeat(" ", n.indent)
+	if n.comment > 0 {
+		indent = indent[:n.comment] + "// " + indent[n.comment:]
+	}
 
 	l = n.appendImpl(indent, l, n.body)
 
@@ -82,14 +99,33 @@ func (n *printNode) appendImpl(indent string, l []string, content []string) []st
 	return l
 }
 
+// Run is the same as Start().EndError()
+// except it ensures that the node is completed regardless of the error returned
+func (s *printState) Run(p lexer.Position, f func(*printState) error) error {
+	current := s.current
+	defer func() {
+		s.current = current
+	}()
+	return s.Start().
+		EndError(p, f(s))
+}
+
 func (s *printState) Start() *printState {
 	n := &printNode{
-		parent: s.current,
-		indent: s.current.indent + s.indentSize,
+		parent:  s.current,
+		indent:  s.current.indent + s.indentSize,
+		comment: s.current.comment,
 	}
 
 	s.current.children = append(s.current.children, n)
 	s.current = n
+	return s
+}
+
+func (s *printState) Comment() *printState {
+	if s.current.comment == 0 {
+		s.current.comment = s.current.indent - s.indentSize
+	}
 	return s
 }
 
@@ -173,63 +209,48 @@ func (s *printState) Append(f string, a ...any) *printState {
 }
 
 func printCron(v Visitor[*printState], d time.CronTab) error {
-	return v.Get().
-		Start().
-		AppendHead("%q", d.Definition()).
-		EndError(d.Position(), nil)
+	v.Get().Append("%q", d.Definition())
+	return nil
 }
 
 func printLocation(v Visitor[*printState], d *location.Location) error {
-	st := v.Get()
-
-	if d.Notes == "" {
-		st.Start().
-			AppendHead("location( %q %q %q %.0f )", d.Name, d.Latitude, d.Longitude, d.Altitude).
-			End()
-
-	} else {
-		st.Start().
-			AppendHead("location( %q %q %q %.0f", d.Name, d.Latitude, d.Longitude, d.Altitude).
-			AppendBody("note %s ", d.Notes).
-			AppendFooter(")").
-			End()
-	}
-
-	return errors.VisitorStop
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		if d.Notes == "" {
+			st.AppendHead("location( %q %q %q %.0f )", d.Name, d.Latitude, d.Longitude, d.Altitude)
+		} else {
+			st.AppendHead("location( %q %q %q %.0f", d.Name, d.Latitude, d.Longitude, d.Altitude).
+				AppendBody("note %s ", d.Notes).
+				AppendFooter(")")
+		}
+		return nil
+	})
 }
 
 func printTimeZone(v Visitor[*printState], d *time.TimeZone) error {
-	st := v.Get()
-
-	st.Start().
-		AppendHead("timezone( %q )", d.TimeZone).
-		End()
-
-	return errors.VisitorStop
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("timezone( %q )", d.TimeZone)
+		return nil
+	})
 }
 
 func printUnit(v Visitor[*printState], d *units.Unit) error {
-	st := v.Get()
-
-	st.Start().
-		AppendHead("unit %q", d.Using).
-		End()
-
-	return errors.VisitorStop
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("unit %q", d.Using)
+		return nil
+	})
 }
 
 func printCommand(v Visitor[*printState], d command.Command) error {
-	// create command line with any " escaped
-	var args []string
-	args = append(args, fmt.Sprintf("%q", d.Command()))
-	for _, arg := range d.Args() {
-		args = append(args, fmt.Sprintf("%q", arg))
-	}
+	return v.Get().Run(d.Position(), func(st *printState) error {
 
-	v.Get().
-		Start().
-		AppendHead(strings.Join(args, " ")).
-		End()
+		var args []string
+		args = append(args, fmt.Sprintf("%q", d.Command()))
+		for _, arg := range d.Args() {
+			args = append(args, fmt.Sprintf("%q", arg))
+		}
 
-	return errors.VisitorStop
+		st.AppendHead(strings.Join(args, " "))
+
+		return nil
+	})
 }

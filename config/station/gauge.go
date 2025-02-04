@@ -79,13 +79,13 @@ func (b *builder[T]) Gauge(f func(Visitor[T], *Gauge) error) Builder[T] {
 }
 
 func printGauge(v Visitor[*printState], d *Gauge) error {
-	return v.Get().
-		Start().
-		AppendHead("%s(", d.Type).
-		AppendComponent(d.Component).
-		AppendBody("%q", d.Label).
-		AppendFooter(")").
-		EndError(d.Pos, visitGauge(v, d))
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("%s(", d.Type).
+			AppendComponent(d.Component).
+			AppendBody("%q", d.Label).
+			AppendFooter(")")
+		return visitGauge(v, d)
+	})
 }
 
 func (c *Gauge) AcceptMetric(v api.Metric) bool {

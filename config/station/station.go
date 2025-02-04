@@ -100,12 +100,12 @@ func initStation(v Visitor[*initState], d *Station) error {
 }
 
 func printStation(v Visitor[*printState], d *Station) error {
-	return v.Get().
-		Start().
-		AppendPos(d.Pos).
-		AppendHead("station( %q", d.Name).
-		AppendFooter(")").
-		EndError(d.Pos, visitStation(v, d))
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendPos(d.Pos).
+			AppendHead("station( %q", d.Name).
+			AppendFooter(")")
+		return visitStation(v, d)
+	})
 }
 
 func (b *builder[T]) Station(f func(Visitor[T], *Station) error) Builder[T] {

@@ -59,13 +59,13 @@ func (b *builder[T]) Value(f func(Visitor[T], *Value) error) Builder[T] {
 }
 
 func printValue(v Visitor[*printState], d *Value) error {
-	return v.Get().
-		Start().
-		AppendHead("%s(", d.Type).
-		AppendComponent(d.Component).
-		AppendBody("%q", d.Label).
-		AppendFooter(")").
-		EndError(d.Pos, visitValue(v, d))
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("%s(", d.Type).
+			AppendComponent(d.Component).
+			AppendBody("%q", d.Label).
+			AppendFooter(")")
+		return visitValue(v, d)
+	})
 }
 
 func (c *Value) AcceptMetric(v api.Metric) bool {

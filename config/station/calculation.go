@@ -30,26 +30,34 @@ func (c *visitor[T]) Calculation(d *Calculation) error {
 		}
 
 		if err == nil {
-			err = c.CronTab(d.Every)
-		}
-
-		if err == nil {
-			err = c.CronTab(d.ResetEvery)
-		}
-
-		if err == nil {
-			err = c.Load(d.Load)
-		}
-
-		if err == nil {
-			err = c.UseFirst(d.UseFirst)
-		}
-
-		if err == nil {
-			err = c.Expression(d.Expression)
+			err = visitCalculation[T](c, d)
 		}
 
 		err = errors.Error(d.Pos, err)
+	}
+	return err
+}
+
+func visitCalculation[T any](v Visitor[T], d *Calculation) error {
+	var err error
+	if d != nil {
+		err = v.CronTab(d.Every)
+
+		if err == nil {
+			err = v.CronTab(d.ResetEvery)
+		}
+
+		if err == nil {
+			err = v.Load(d.Load)
+		}
+
+		if err == nil {
+			err = v.UseFirst(d.UseFirst)
+		}
+
+		if err == nil {
+			err = v.Expression(d.Expression)
+		}
 	}
 	return err
 }
@@ -71,4 +79,35 @@ func initCalculation(v Visitor[*initState], d *Calculation) error {
 func (b *builder[T]) Calculation(f func(Visitor[T], *Calculation) error) Builder[T] {
 	b.calculation = f
 	return b
+}
+
+func printCalculation(v Visitor[*printState], d *Calculation) error {
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("").
+			AppendHead("calculate( %q", d.Target).
+			AppendFooter(")")
+
+		var err error
+
+		if d.Every != nil {
+			st.AppendBody("every %q", d.Every.Definition())
+		}
+
+		if d.ResetEvery != nil {
+			st.AppendBody("reset every %q", d.ResetEvery.Definition())
+		}
+
+		if d.Load != nil {
+			_ = v.Load(d.Load)
+		}
+
+		if d.UseFirst != nil && err == nil {
+			_ = v.UseFirst(d.UseFirst)
+		}
+
+		return st.Run(d.Expression.Pos, func(st *printState) error {
+			st.AppendHead("as")
+			return v.Expression(d.Expression)
+		})
+	})
 }

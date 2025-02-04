@@ -49,10 +49,10 @@ func (b *builder[T]) Tasks(f func(Visitor[T], *Tasks) error) Builder[T] {
 }
 
 func printTasks(v Visitor[*printState], d *Tasks) error {
-	return v.Get().
-		Start().
-		AppendPos(d.Pos).
-		AppendHead("tasks(").
-		AppendFooter(")").
-		EndError(d.Pos, visitTasks(v, d))
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendPos(d.Pos).
+			AppendHead("tasks(").
+			AppendFooter(")")
+		return visitTasks(v, d)
+	})
 }

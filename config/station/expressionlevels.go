@@ -185,3 +185,68 @@ func (b *builder[T]) ExpressionLevel5(f func(Visitor[T], *ExpressionLevel5) erro
 	b.expressionLevel5 = f
 	return b
 }
+
+func printExpressionLevelX[L any, R any](v Visitor[*printState], l L, op string, r R, lf func(L) error, rf func(R) error) error {
+	err := lf(l)
+	if err == nil && op != "" {
+		v.Get().Append(" %s ", op)
+		err = rf(r)
+	}
+
+	if err == nil {
+		err = errors.VisitorStop
+	}
+	return err
+}
+
+func printExpressionLevel1(v Visitor[*printState], d *ExpressionLevel1) error {
+	return printExpressionLevelX(v, d.Left, d.Op, d.Right, v.ExpressionLevel2, v.ExpressionLevel1)
+}
+
+func printExpressionLevel2(v Visitor[*printState], d *ExpressionLevel2) error {
+	return printExpressionLevelX(v, d.Left, d.Op, d.Right, v.ExpressionLevel3, v.ExpressionLevel2)
+}
+
+func printExpressionLevel3(v Visitor[*printState], d *ExpressionLevel3) error {
+	return printExpressionLevelX(v, d.Left, d.Op, d.Right, v.ExpressionLevel4, v.ExpressionLevel3)
+}
+
+func printExpressionLevel4(v Visitor[*printState], d *ExpressionLevel4) error {
+	var err error
+	if d.Left != nil {
+		v.Get().Append(" %s ", d.Op)
+		err = v.ExpressionLevel5(d.Left)
+	} else {
+		err = v.ExpressionLevel5(d.Right)
+	}
+
+	if err == nil {
+		err = errors.VisitorStop
+	}
+	return err
+}
+
+func printExpressionLevel5(v Visitor[*printState], d *ExpressionLevel5) error {
+	st := v.Get()
+	var err error
+	switch {
+	case d.Float != nil:
+		st.Append("%.3f", *d.Float)
+	case d.True:
+		st.Append("true")
+	case d.False:
+		st.Append("false")
+	case d.SubExpression != nil:
+		st.Append("( ")
+		err = v.Expression(d.SubExpression)
+		st.Append(" )")
+
+	case d.Atom != nil:
+		err = v.ExpressionAtom(d.Atom)
+	}
+
+	if err == nil {
+		err = errors.VisitorStop
+	}
+	return err
+}

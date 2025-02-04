@@ -37,13 +37,13 @@ func (b *builder[T]) Text(f func(Visitor[T], *Text) error) Builder[T] {
 }
 
 func printText(v Visitor[*printState], d *Text) error {
-	return v.Get().
-		Start().
-		AppendHead("text(").
-		AppendComponent(d.Component).
-		AppendBody("%q", d.Text).
-		AppendFooter(")").
-		EndError(d.Pos, nil)
+	return v.Get().Run(d.Pos, func(st *printState) error {
+		st.AppendHead("text(").
+			AppendComponent(d.Component).
+			AppendBody("%q", d.Text).
+			AppendFooter(")")
+		return nil
+	})
 }
 
 func (c *Text) GetID() string {
