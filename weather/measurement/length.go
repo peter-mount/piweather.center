@@ -11,6 +11,7 @@ func init() {
 	Feet = value.NewLowerBoundUnit("Feet", "Feet", " ft", 3, 0)
 	Yard = value.NewLowerBoundUnit("Yard", "Yard", " yd", 3, 0)
 	Miles = value.NewLowerBoundUnit("Miles", "Miles", " mi", 3, 0)
+	LD = value.NewLowerBoundUnit("LD", "Lunar Distance", " ld", 3, 0)
 	AU = value.NewLowerBoundUnit("AU", "Astronomical Unit", " au", 3, 0)
 	LightYear = value.NewLowerBoundUnit("LightYear", "Lightyear", " ly", 3, 0)
 
@@ -22,12 +23,13 @@ func init() {
 	value.NewBasicBiTransform(Feet, Meters, footToM)
 	value.NewBasicBiTransform(Yard, Meters, yardToM)
 	value.NewBasicBiTransform(Miles, Meters, mileToM)
+	value.NewBasicBiTransform(LD, Meters, ldToM)
 	value.NewBasicBiTransform(AU, Meters, auToM)
 	value.NewBasicBiTransform(LightYear, Meters, lyToKm*kmToM)
 
 	value.NewBasicBiTransform(LightYear, Kilometers, lyToKm)
 
-	Length = value.NewGroup("Length", Meters, Kilometers, CentiMeters, MilliMeters, Inches, Feet, Yard, Miles, AU, LightYear)
+	Length = value.NewGroup("Length", Meters, Kilometers, CentiMeters, MilliMeters, Inches, Feet, Yard, Miles, LD, AU, LightYear)
 }
 
 var (
@@ -40,6 +42,7 @@ var (
 	Feet        *value.Unit
 	Yard        *value.Unit
 	Miles       *value.Unit
+	LD          *value.Unit
 	AU          *value.Unit
 	LightYear   *value.Unit
 )

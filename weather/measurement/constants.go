@@ -14,6 +14,7 @@ const (
 	mpsToKph        = hrsToSec / kmToM
 	mpsToMph        = hrsToSec / mileToM
 	mpsToKnots      = hrsToSec / nauticalMileToM
+	ldToM           = 384399000       // 1LD in meters
 	auToM           = 149597870700    // 1AU in meters
 	lyToKm          = 9460730472580.8 // 1 light year in kilometers
 
