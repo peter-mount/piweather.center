@@ -1,0 +1,27 @@
+\subsection{Dewpoint}
+
+The dew point is the temperature the air needs to be cooled to at constant pressure in order
+to produce a relative humidity of 100\percent.
+This temperature depends on the pressure and water content of the air.
+When the air is cooled below the dew point, its moisture capacity is reduced and
+airborne water vapor will condense to form liquid water known as dew.
+When this occurs through the air's contact with a colder surface, dew will form on that surface.
+
+\begin{tabular}{c c c}
+    $T_a$ & \textbf{b} & \textbf{c} \\
+    \hline
+    $> 0$ & 17.368 & 238.88 \\
+    $\leq 0$ & 17.996 & 247.15 \\
+    \hline
+\end{tabular}
+
+$ d = \dfrac{ b \times T_a }{ c + T_a } $
+
+$ T_{dp} = c \times \log{ \dfrac{R_h}{100 \times e^d}} $
+
+where:
+\begin{description}[leftmargin=3em,style=nextline]
+    \item[$T_{dp}$] the dew point in degrees Celsius
+    \item[$T_a$] the air temperature in degrees Celsius
+    \item[$R_h$] the Relative Humidity
+\end{description}

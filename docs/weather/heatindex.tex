@@ -6,20 +6,22 @@ It is only valid for temperatures above $80^{\circ}F$.
 
 Heat Index is defined by the following Formula:
 
-\marginnote{
-    We calculate the first equation first and if it's value is $>=80^{\circ}F$ then we calculate
-    the second equation
-}\[
-    T_{hi} =
-    \begin{cases}
-    \dfrac{61 + T_a + 1.2(T_a - 68) + 0.095 R_h}{2} & \quad \textbf{if } T_{hi} < 80^{\circ}F \\
-    \\
-    42.379 + 2.04901523 T_a + 10.14333127 R_h & \quad \textbf{if } T_{hi} >= 80^{\circ}F \\
-    - 0.22475541T_a R_h - 6.83783x10^-3T_a^2 \\
-    - 5.481717x10^-2R_h^2 + 1.22874x10^-3T_a^2 R_h \\
-    + 8.5282x10^-4T_a R_h^2 - 1.99x10^-6T_a^2 R^2
-    \end{cases}
-\]
+$ T_{hi} = 61 + T_a + 1.2(T_a - 68) + 0.095\,R_h $
+
+If $T_{hi} \geq 80^{\circ}F$ then calculate it using Rothfusz regression:
+
+$ T_{hi} = \begin{array}[t]{l}
+    42.379 \\
+    + 2.04901523 \, T_a \\
+    + 10.14333127 \, R_h \\
+    - 0.22475541 \, T_a \, R_h \\
+    - 6.83783x10^{-3} \, {T_a}^2 \\
+    - 5.481717x10^{-2} \, {R_h}^2 \\
+    + 1.22874x10^{-3} \, {T_a}^2 \, R_h \\
+    + 8.5282x10^{-4} \, T_a \, {R_h}^2 \\
+    - 1.99x10^{-6} \, {T_a}^2 \, {R_h}^2
+    \end{array}
+$
 
 where:
 \begin{description}[leftmargin=3em,style=nextline]
