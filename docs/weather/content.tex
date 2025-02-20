@@ -1,2 +1,26 @@
+\setchapterstyle{kao}
 %\setchapterpreamble[u]{\margintoc}
-\chapter{The Weather}\labch{weather}
+\chapter{The Weather}
+\labch{weather}
+
+\section{Definitions}
+\marginnote{
+    For some values, especially temperature or velocity,
+    the unit will be determined by a specific formula.
+
+    Internally, the system will automatically convert into the required units.
+}
+\begin{description}[leftmargin=4em,style=nextline]
+\item[$R_h$]        Relative Humidity as a percentage
+\item[$T_a$]        Ambient temperature
+\item[$T_{wc}$]     Wind Chill index
+\item[$v_{wind}$]     wind speed.
+\end{description}
+
+\section{Calculations}
+\input{weather/feelslike.tex}
+\input{weather/heatindex.tex}
+\input{weather/windchill.tex}
+
+\section{Forecasting}
+\input{weather/zambretti.tex}

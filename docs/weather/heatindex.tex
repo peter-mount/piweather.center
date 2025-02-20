@@ -1,0 +1,29 @@
+\subsection{Heat Index}
+
+The heat index\index{Heat Index} is an index that combines air temperature and relative humidity, in shaded areas,
+and represents how a human perceives the temperature.
+It is only valid for temperatures above $80^{\circ}F$.
+
+Heat Index is defined by the following Formula:
+
+\marginnote{
+    We calculate the first equation first and if it's value is $>=80^{\circ}F$ then we calculate
+    the second equation
+}\[
+    T_{hi} =
+    \begin{cases}
+    \dfrac{61 + T_a + 1.2(T_a - 68) + 0.095 R_h}{2} & \quad \textbf{if } T_{hi} < 80^{\circ}F \\
+    \\
+    42.379 + 2.04901523 T_a + 10.14333127 R_h & \quad \textbf{if } T_{hi} >= 80^{\circ}F \\
+    - 0.22475541T_a R_h - 6.83783x10^-3T_a^2 \\
+    - 5.481717x10^-2R_h^2 + 1.22874x10^-3T_a^2 R_h \\
+    + 8.5282x10^-4T_a R_h^2 - 1.99x10^-6T_a^2 R^2
+    \end{cases}
+\]
+
+where:
+\begin{description}[leftmargin=3em,style=nextline]
+\item[$T_{hi}$] the heat index, based on the Fahrenheit scale
+\item[$T_a$] the air temperature in degrees Fahrenheit
+\item[$R_h$] the Relative Humidity
+\end{description}

@@ -36,6 +36,7 @@
 \newenvironment{switch}[1]{\renewcommand{\case}{\ifequals{#1}}}{}
 
 \usepackage{stringstrings}
+\usepackage{enumitem}
 
 %\graphicspath{{examples/documentation/images/}{images/}} % Paths in which to look for images
 
@@ -93,6 +94,8 @@
 
 \mainmatter % Denotes the start of the main document content, resets page numbering and uses arabic numbers
 \setchapterstyle{kao} % Choose the default chapter heading style
+
+\let\Command\texttt
 
 \input{content.tex}
 

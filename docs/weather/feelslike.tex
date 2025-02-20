@@ -1,0 +1,21 @@
+\subsection{Feels Like}
+
+Feels Like\index{Feels Like} is the temperature a human perceives based on
+the actual temperature, relative humidity and wind speed.
+
+\[
+    T_{fl} =
+    \begin{cases}
+        T_{wc} = \textbf{WindChill}( T_a, v_{wind} ) & \quad \textbf{if } T_a \leq 50^{\circ}F \and v_{wind} \leq 3 mph\\
+        T_{hi} = \textbf{HeatIndex}( T_a, R_h) & \quad \textbf{if } T_a \geq 80^{\circ}F \\
+        T_a & \quad \textbf{otherwise}
+    \end{cases}
+\]
+
+where:
+\begin{description}[leftmargin=3em,style=nextline]
+    \item[$T_{fl}$]     The Feels like temperature in degrees Fahrenheit
+    \item[$T_a$]        the air temperature in degrees Fahrenheit
+    \item[$v_{wind}$]   the wind speed in miles per hour
+    \item[$R_h$]        Relative Humidity
+\end{description}

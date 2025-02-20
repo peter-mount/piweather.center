@@ -1,0 +1,48 @@
+\subsection{Zambretti Forecaster}
+
+\subsubsection{Overview}
+\marginnote{
+    It is reported that the forecasts are most accurate when generated at 9.00 am local time.
+}
+The original Zambretti Forecaster\index{Zambretti Forecaster}
+was developed in 1915 by precision instrument makers Negretti and Zambra.
+It was a hand-held disc calculator, that provided on-demand short-term forecasts of up to 12 hours.
+It consists of 3 plastic discs of descending radius, arranged concentrically
+and secured together by means of a rivet.
+
+The large outside disc A has a short scale calibrated in wind direction,
+the middle disc B, has an index to be aligned appropriately with the wind direction scale on A,
+and itself carries a scale calibrated in units of barometric pressure (inches of mercury or millibars).
+
+The inner disc C has an index settable to the atmospheric pressure on B and three windows which
+allow the selection of a reading based upon of the rising or falling of the barometer in
+Winter or Summer.
+
+Through the appropriate window, an alphabetic letter is visible ( printed on disc A)
+and this letter is the key to the forecast which can be read off on the obverse side of the instrument.
+
+The calculator uses the mean sea level pressure (MSLP) and pressure trend (steady, rising or falling)
+as the primary input. The season (Summer or Winter) and the wind play a minor role in determining the
+forecast.
+
+\subsubsection{Implementation}
+
+The Zambretti Forecast is implemented with the
+\Command{CalculateZambrettiForecast}\index{CalculateZambrettiForecast}
+function.
+
+This function accepts 5 parameters:
+
+t is the Time of the forecast.
+
+h is the Hemisphere the weather station is located within.
+
+pressure0 is the previous pressure at mean sea level, ideally 3 hours before t.
+
+pressure is the pressure at mean sea level at t.
+
+windDirection is the wind direction at t.
+
+\begin{lstlisting}[caption={Import Zambretti Forecaster},language=Go]
+import "github.com/peter-mount/piweather.center/weather/forecast"
+\end{lstlisting}
