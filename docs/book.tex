@@ -16,11 +16,17 @@
 	\usepackage[english]{babel} % Load characters and hyphenation
 \fi
 \usepackage[english=british]{csquotes}	% English quotes
-
 \usepackage{longtable}
 
 % Load the bibliography package
 \usepackage{kaobiblio}
+% Change the ordering so it's title, author (year)
+\renewcommand{\formatmargincitation}[1]{% The parameter is a single citation key
+	\parencite{#1}: \citefield{#1}[emph]{title}, \citeauthor*{#1} (\iffieldundef{year}{\bibsstring{nodate}}{\printfield{year}})%
+}
+\renewcommand{\formatmarginsupercitation}[1]{% The parameter is a single citation key
+	\supercite{#1} \citefield{#1}[emph]{title}, \citeauthor*{#1} (\iffieldundef{year}{\bibsstring{nodate}}{\printfield{year}})%
+}
 \addbibresource{main.bib} % Bibliography file
 
 % Load mathematical packages for theorems and related environments
