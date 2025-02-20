@@ -2,6 +2,9 @@
 %	Some utility commands
 %----------------------------------------------------------------------------------------
 
+% rewrite vreftab as the existing one duplicates the word Table - 20250220
+\renewcommand{\vreftab}[1]{\hyperref[tab:#1]{\vref{tab:#1}}}
+
 % Extend section etc to clear the page first.
 % *paged clears to a new page
 % *pagedleft clears so we appear on the left page

@@ -20,14 +20,14 @@ The computation of the heat index is done using the Rothfusz regression\sidesupe
    \item[\RelativeHumidity] the \texttt{Relative Humidity}\index{Relative Humidity}
 }
 
-For the coefficients, use \vreftab{heatIndexCelsius} \AmbientTemperature is in Celsius
-or \vreftab{heatIndexFahrenheit} if in Fahrenheit.
+For the coefficients, use \vreftab{heatIndexCelsius} if \AmbientTemperature is in Celsius
+or \vreftab{heatIndexFahrenheit} if it's in Fahrenheit.
 \end{definition}
 
 The Rothfusz regression is not appropriate when conditions of temperature and humidity warrant a heat index value below about \Fahrenheit{80}.
 In those cases, a simpler formula is applied\sidesupercite{WikiHeatIndex}:
 \begin{definition}Simplified Heat Index
-\[ \HeatIndex = 61 + \AmbientTemperature + 1.2(\AmbientTemperature - 68) + 0.095\,\RelativeHumidity \]
+\[ \HeatIndex = 61 + \AmbientTemperature + 1.2\,(\AmbientTemperature - 68) + 0.095\,\RelativeHumidity \]
 
 \end{definition}
 
