@@ -29,15 +29,6 @@
 % Load the package for hyperreferences
 \usepackage{kaorefs}
 
-% Switch implementation https://tex.stackexchange.com/a/187710
-\usepackage{xifthen}
-\newcommand{\ifequals}[3]{\ifthenelse{\equal{#1}{#2}}{#3}{}}
-\newcommand{\case}[2]{#1 #2} % Dummy, so \renewcommand has something to overwrite...
-\newenvironment{switch}[1]{\renewcommand{\case}{\ifequals{#1}}}{}
-
-\usepackage{stringstrings}
-\usepackage{enumitem}
-
 %\graphicspath{{examples/documentation/images/}{images/}} % Paths in which to look for images
 
 \makeindex[columns=3, title=Alphabetical Index, intoc] % Make LaTeX produce the files required to compile the index
@@ -48,12 +39,12 @@
 \makenomenclature % Make LaTeX produce the files required to compile the nomenclature
 
 % Reset sidenote counter at chapters
-%\counterwithin*{sidenote}{chapter}
+\counterwithin*{sidenote}{chapter}
 %----------------------------------------------------------------------------------------
 
 \begin{document}
 	
-\input{frontmatter.tex}
+\input{frontmatter}
 
 % Note that \maketitle outputs the pages before here
 \maketitle
@@ -95,14 +86,35 @@
 \mainmatter % Denotes the start of the main document content, resets page numbering and uses arabic numbers
 \setchapterstyle{kao} % Choose the default chapter heading style
 
-\let\Command\texttt
-
-\input{content.tex}
+\input{content}
 
 %----------------------------------------------------------------------------------------
 
 \backmatter % Denotes the end of the main document content
 \setchapterstyle{plain} % Output plain chapters from this point onwards
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+% The bibliography needs to be compiled with biber using your LaTeX editor, or on the command line with 'biber main' from the template directory
+
+\defbibnote{bibnote}{Here are the references in citation order.\par\bigskip} % Prepend this text to the bibliography
+\printbibliography[heading=bibintoc, title=Bibliography, prenote=bibnote] % Add the bibliography heading to the ToC, set the title of the bibliography and output the bibliography note
+
+%----------------------------------------------------------------------------------------
+%	NOMENCLATURE
+%----------------------------------------------------------------------------------------
+
+% The nomenclature needs to be compiled on the command line with 'makeindex main.nlo -s nomencl.ist -o main.nls' from the template directory
+
+\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
+\nomenclature{$h$}{Planck constant}
+
+\renewcommand{\nomname}{Notation} % Rename the default 'Nomenclature'
+\renewcommand{\nompreamble}{The next list describes several symbols that will be later used within the body of the document.} % Prepend this text to the nomenclature
+
+\printnomenclature % Output the nomenclature
 
 %----------------------------------------------------------------------------------------
 %	GLOSSARY

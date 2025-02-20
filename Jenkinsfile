@@ -131,6 +131,9 @@ node("go") {
   stage("openbsd_ppc64") {
     sh 'make -f Makefile.gen openbsd_ppc64'
   }
+  stage("openbsd_riscv64") {
+    sh 'make -f Makefile.gen openbsd_riscv64'
+  }
   stage("plan9_386") {
     sh 'make -f Makefile.gen plan9_386'
   }
@@ -151,12 +154,6 @@ node("go") {
   }
   stage("windows_amd64") {
     sh 'make -f Makefile.gen windows_amd64'
-  }
-  stage("windows_arm6") {
-    sh 'make -f Makefile.gen windows_arm6'
-  }
-  stage("windows_arm7") {
-    sh 'make -f Makefile.gen windows_arm7'
   }
   stage("windows_arm64") {
     sh 'make -f Makefile.gen windows_arm64'
