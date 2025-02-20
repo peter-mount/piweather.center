@@ -9,24 +9,19 @@ The computation of the heat index is done using the Rothfusz regression\sidesupe
 \NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}
 \begin{definition}Heat Index
 \begin{eqnarray*}
-   \HeatIndex &=& \begin{array}[t]{l}
-                   42.379 \\
-                   + 2.04901523 \, \AmbientTemperature \\
-                   + 10.14333127 \, \RelativeHumidity \\
-                   - 0.22475541 \, \AmbientTemperature \, \RelativeHumidity \\
-                   - 6.83783x10^{-3} \, \AmbientTemperature^2 \\
-                   - 5.481717x10^{-2} \, \RelativeHumidity^2 \\
-                   + 1.22874x10^{-3} \, \AmbientTemperature^2 \, \RelativeHumidity \\
-                   + 8.5282x10^{-4} \, \AmbientTemperature \, \RelativeHumidity^2 \\
-                   - 1.99x10^{-6} \, \AmbientTemperature^2 \, \RelativeHumidity^2
-      \end{array}
+    \HeatIndex &=& c_1 + c_2\,\AmbientTemperature + c_3\,\RelativeHumidity + c_4\,\AmbientTemperature\,\RelativeHumidity \\
+    && + c_5\,\AmbientTemperature^2 + c_6\,\RelativeHumidity^2 + c_7\,\AmbientTemperature^2\,\RelativeHumidity \\
+    && + c_8\,\AmbientTemperature\,\RelativeHumidity^2 + c_9\,\AmbientTemperature^2\,\RelativeHumidity^2
 \end{eqnarray*}
 
 \WhereDescription{
-   \item[\HeatIndex] the \texttt{Heat Index}, based on the Fahrenheit scale
-   \item[\AmbientTemperature] the \texttt{Ambient temperature}\index{Temperature!Ambient} in degrees Fahrenheit
+   \item[\HeatIndex] the \texttt{Heat Index}, in the same unit as \AmbientTemperature.
+   \item[\AmbientTemperature] the \texttt{Ambient temperature}\index{Temperature!Ambient}
    \item[\RelativeHumidity] the \texttt{Relative Humidity}\index{Relative Humidity}
 }
+
+For the coefficients, use \vreftab{heatIndexCelsius} \AmbientTemperature is in Celsius
+or \vreftab{heatIndexFahrenheit} if in Fahrenheit.
 \end{definition}
 
 The Rothfusz regression is not appropriate when conditions of temperature and humidity warrant a heat index value below about \Fahrenheit{80}.
@@ -35,3 +30,23 @@ In those cases, a simpler formula is applied\sidesupercite{WikiHeatIndex}:
 \[ \HeatIndex = 61 + \AmbientTemperature + 1.2(\AmbientTemperature - 68) + 0.095\,\RelativeHumidity \]
 
 \end{definition}
+
+\begin{table}[ht]
+    \caption[Coefficients for Heat Index Rothfusz regression in Celsius]{Coefficients for Celsius}
+    \labtab{heatIndexCelsius}
+    \begin{tabular}{l l l}
+        $c_1 = -8.784\,694\,755\,56$ & $c_2 = 1.611\,394\,11$ & $c_3 = 2.338\,548\,839\,89$ \\
+        $c_4 = -0.146\,116\,05$ & $c_5 = -0.012\,308\,094$ & $c_6 = -0.016\,424\,827\,777\,8$ \\
+        $c_7 = 2.211\,732 \times 10^{-3}$ & $c_8 = 7.2546 \times 10^{-4}$ & $c_9 = -3.582 \times 10^{-6}$
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht]
+    \caption[Coefficients for Heat Index Rothfusz regression in Fahrenheit]{Coefficients for Fahrenheit}
+    \labtab{heatIndexFahrenheit}
+    \begin{tabular}{l l l}
+        $c_1 = -42.379$ & $c_2 = 2.049\,015\,23$ & $c_3 = 10.143\,331\,27$ \\
+        $c_4 = -0.224\,755\,41$ & $c_5 = -6.837\,83 \times 10^{-3}$ & $c_6 = -5.481\,717 \times 10^{-2}$ \\
+        $c_7 = 1.228\,74 \times 10^{-3}$ & $c_8 = 8.5282 \times 10^{-4}$ & $c_9 = -1.99 \times 10^{-6}$
+    \end{tabular}
+\end{table}
