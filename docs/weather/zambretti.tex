@@ -1,11 +1,10 @@
 \sectionpaged{Zambretti Forecaster}
 
-\subsubsection{Overview}
+The original Zambretti Forecaster\index{Zambretti Forecaster}
+was developed in 1915 by precision instrument makers Negretti and Zambra.
 \marginnote{
     It is reported that the forecasts are most accurate when generated at 9.00 am local time.
 }
-The original Zambretti Forecaster\index{Zambretti Forecaster}
-was developed in 1915 by precision instrument makers Negretti and Zambra.
 It was a hand-held disc calculator, that provided on-demand short-term forecasts of up to 12 hours.
 It consists of 3 plastic discs of descending radius, arranged concentrically
 and secured together by means of a rivet.
@@ -25,10 +24,51 @@ The calculator uses the mean sea level pressure (MSLP) and pressure trend (stead
 as the primary input.
 The season (Summer or Winter) and the wind play a minor role in determining the forecast.
 
+\subsection{Zambretti Severity}
+
+The Zambretti Severity is a number between 0\ldots25 and sometimes represented as a letter of the alphabet.
+
+\begin{table}[ht]
+    \caption[Zambretti Severity Number and it's associated Forecast]{Zambretti Severity number and Forecast}
+    \labtab{zambrettiSeverityNumberForecast}
+    \begin{tabular}{c c l}
+        \toprule
+        \multicolumn{2}{c}{Severity} & Forecast \\
+        \midrule
+        0 & A & Settled fine \\
+        1 & B & Fine weather \\
+        2 & C & Becoming fine \\
+        3 & D & Fine, becoming less settled \\
+        4 & E & Fine, possible showers \\
+        5 & F & Fairly fine, improving \\
+        6 & G & Fairly fine, possible showers early \\
+        7 & H & Fairly fine, showery later \\
+        8 & I & Showery early, improving \\
+        9 & J & Changeable, mending \\
+        10 & K & Fairly fine, showers likely \\
+        11 & L & Rather unsettled clearing later \\
+        12 & M & Unsettled, probably improving \\
+        13 & N & Showery, bright intervals \\
+        14 & O & Showery, becoming less settled \\
+        15 & P & Changeable, some rain \\
+        16 & Q & Unsettled, short fine intervals \\
+        17 & R & Unsettled, rain later \\
+        18 & S & Unsettled, some rain \\
+        19 & T & Mostly very unsettled \\
+        20 & U & Occasional rain, worsening \\
+        21 & V & Rain at times, very unsettled \\
+        22 & W & Rain at frequent intervals \\
+        23 & X & Rain, very unsettled \\
+        24 & Y & Stormy, may improve \\
+        25 & Z & Stormy, much rain \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 \paragraph{Implementation}
 
 The Zambretti Forecast is implemented with the
-\Command{CalculateZambrettiForecast}
+\textttt{CalculateZambrettiForecast}
 function.
 
 This function accepts 5 parameters:
