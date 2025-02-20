@@ -45,7 +45,7 @@
 \makenomenclature % Make LaTeX produce the files required to compile the nomenclature
 
 % Reset sidenote counter at chapters
-\counterwithin*{sidenote}{chapter}
+%\counterwithin*{sidenote}{chapter}
 
 %----------------------------------------------------------------------------------------
 %	Some utility commands
@@ -61,14 +61,24 @@
 \newcommand{\subsubsectionpagedleft}[1]{\cleartoleftpage\subsubsection{#1}}
 \newcommand{\subsubsectionpagedright}[1]{\cleardoublepage\subsubsection{#1}}
 
+% Declare a new unit for nomenclature but also create a command to include it in equations
+\newcommand{\NewValueUnit}[3]{\newcommand{#1}{{#2}}\nomenclature{\[#1\]}{#3}}
+
 %----------------------------------------------------------------------------------------
 
 \begin{document}
-	
+
 \input{frontmatter}
 
 % Note that \maketitle outputs the pages before here
 \maketitle
+
+%----------------------------------------------------------------------------------------
+%       PREFACE
+%----------------------------------------------------------------------------------------
+
+\input{preface}
+\index{preface}
 
 %----------------------------------------------------------------------------------------
 %	TABLE OF CONTENTS & LIST OF FIGURES/TABLES
@@ -128,9 +138,8 @@
 %----------------------------------------------------------------------------------------
 
 % The nomenclature needs to be compiled on the command line with 'makeindex main.nlo -s nomencl.ist -o main.nls' from the template directory
-
-\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
-\nomenclature{$h$}{Planck constant}
+%\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
+%\nomenclature{$h$}{Planck constant}
 
 \renewcommand{\nomname}{Notation} % Rename the default 'Nomenclature'
 \renewcommand{\nompreamble}{The next list describes several symbols that will be later used within the body of the document.} % Prepend this text to the nomenclature

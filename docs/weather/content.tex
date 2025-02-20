@@ -3,18 +3,12 @@
 \chapter{The Weather}
 \labch{weather}
 
-\section{Definitions}\label{sec:definitions}
-For some values, especially temperature or velocity,
-the unit will be determined by a specific formula.
-Internally, the system will automatically convert into the required units.
+% Declare entries that come from outside, e.g. temp, humidity etc here.
+% This derived in formulae can go by those formulae.
 
-\begin{description}[leftmargin=4em,style=nextline]
-\item[$R_h$]        Relative Humidity as a percentage
-\item[$T_a$]        Ambient temperature
-\item[$T_{dp}$]     Dew point
-\item[$T_{wc}$]     Wind Chill index
-\item[$v_{wind}$]     wind speed.
-\end{description}
+\NewValueUnit{\RelativeHumidity}{R_h}{Relative Humidity}
+\NewValueUnit{\AmbientTemperature}{T_a}{Ambient temperature}
+\NewValueUnit{\WindSpeed}{v_{wind}}{Wind speed}
 
 \input{weather/dewpoint}
 \input{weather/feelslike}

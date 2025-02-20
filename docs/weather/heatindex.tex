@@ -4,28 +4,29 @@ The heat index\index{Heat Index} is an index that combines air temperature and r
 and represents how a human perceives the temperature.
 It is only valid for temperatures above $80^{\circ}F$.
 
-Heat Index is defined by the following Formula:
+The computation of the heat index is done using the Rothfusz regression\sidesupercite{RothfuszHeatIndex}:
 
-$ T_{hi} = 61 + T_a + 1.2(T_a - 68) + 0.095\,R_h $
+\NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}%
+$ \HeatIndex = \begin{array}[t]{l}
+   42.379 \\
+   + 2.04901523 \, \AmbientTemperature \\
+   + 10.14333127 \, \RelativeHumidity \\
+   - 0.22475541 \, \AmbientTemperature \, \RelativeHumidity \\
+   - 6.83783x10^{-3} \, \AmbientTemperature^2 \\
+   - 5.481717x10^{-2} \, \RelativeHumidity^2 \\
+   + 1.22874x10^{-3} \, \AmbientTemperature^2 \, \RelativeHumidity \\
+   + 8.5282x10^{-4} \, \AmbientTemperature \, \RelativeHumidity^2 \\
+   - 1.99x10^{-6} \, \AmbientTemperature^2 \, \RelativeHumidity^2
+\end{array} $
 
-If $T_{hi} \geq 80^{\circ}F$ then calculate it using Rothfusz regression:
+The Rothfusz regression is not appropriate when conditions of temperature and humidity warrant a heat index value below about $80^{\circ}F$.
+In those cases, a simpler formula is applied\sidesupercite{WikiHeatIndex}:
 
-$ T_{hi} = \begin{array}[t]{l}
-    42.379 \\
-    + 2.04901523 \, T_a \\
-    + 10.14333127 \, R_h \\
-    - 0.22475541 \, T_a \, R_h \\
-    - 6.83783x10^{-3} \, {T_a}^2 \\
-    - 5.481717x10^{-2} \, {R_h}^2 \\
-    + 1.22874x10^{-3} \, {T_a}^2 \, R_h \\
-    + 8.5282x10^{-4} \, T_a \, {R_h}^2 \\
-    - 1.99x10^{-6} \, {T_a}^2 \, {R_h}^2
-    \end{array}
-$
+$ \HeatIndex = 61 + \AmbientTemperature + 1.2(\AmbientTemperature - 68) + 0.095\,\RelativeHumidity $
 
 where:
 \begin{description}[leftmargin=3em,style=nextline]
-\item[$T_{hi}$] the \texttt{Heat Index}, based on the Fahrenheit scale
-\item[$T_a$] the \texttt{Ambient temperature}\index{Temperature, Ambient} in degrees Fahrenheit
-\item[$R_h$] the \texttt{Relative Humidity}\index{Relative Humidity}
+\item[$\HeatIndex$] the \texttt{Heat Index}, based on the Fahrenheit scale
+\item[$\AmbientTemperature$] the \texttt{Ambient temperature}\index{Temperature!Ambient} in degrees Fahrenheit
+\item[$\RelativeHumidity$] the \texttt{Relative Humidity}\index{Relative Humidity}
 \end{description}
