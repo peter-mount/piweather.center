@@ -46,6 +46,21 @@
 
 % Reset sidenote counter at chapters
 \counterwithin*{sidenote}{chapter}
+
+%----------------------------------------------------------------------------------------
+%	Some utility commands
+%----------------------------------------------------------------------------------------
+
+\newcommand{\sectionpaged}[1]{\clearpage\section{#1}}
+\newcommand{\sectionpagedleft}[1]{\cleartoleftpage\section{#1}}
+\newcommand{\sectionpagedright}[1]{\cleardoublepage\section{#1}}
+\newcommand{\subsectionpaged}[1]{\clearpage\subsection{#1}}
+\newcommand{\subsectionpagedleft}[1]{\cleartoleftpage\subsection{#1}}
+\newcommand{\subsectionpagedright}[1]{\cleardoublepage\subsection{#1}}
+\newcommand{\subsubsectionpaged}[1]{\clearpage\subsubsection{#1}}
+\newcommand{\subsubsectionpagedleft}[1]{\cleartoleftpage\subsubsection{#1}}
+\newcommand{\subsubsectionpagedright}[1]{\cleardoublepage\subsubsection{#1}}
+
 %----------------------------------------------------------------------------------------
 
 \begin{document}

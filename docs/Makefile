@@ -14,8 +14,8 @@ pdf: book.pdf
 
 book.pdf: cleanpart book.tex
 	@-echo "TeX BUILD  book.tex";\
-	pdflatex -interaction=nonstopmode -draftmode book.tex >/dev/null 2>&1
+	pdflatex -interaction=nonstopmode -draftmode book.tex >/dev/null 2>&1 || true
 	@-echo "TeX biber  book";\
 	biber book 2>&1 >/dev/null
 	@-echo "TeX PDF    book.tex";\
-	pdflatex -interaction=nonstopmode book.tex >/dev/null 2>&1
+	pdflatex -interaction=nonstopmode book.tex >/dev/null 2>&1 || true
