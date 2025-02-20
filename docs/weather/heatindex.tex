@@ -8,7 +8,7 @@ The computation of the heat index is done using the Rothfusz regression\sidesupe
 
 \NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}
 \begin{definition}Heat Index
-\begin{eqnarray}
+\begin{eqnarray*}
    \HeatIndex &=& \begin{array}[t]{l}
                    42.379 \\
                    + 2.04901523 \, \AmbientTemperature \\
@@ -20,7 +20,7 @@ The computation of the heat index is done using the Rothfusz regression\sidesupe
                    + 8.5282x10^{-4} \, \AmbientTemperature \, \RelativeHumidity^2 \\
                    - 1.99x10^{-6} \, \AmbientTemperature^2 \, \RelativeHumidity^2
       \end{array}
-\end{eqnarray}
+\end{eqnarray*}
 
 \WhereDescription{
    \item[\HeatIndex] the \texttt{Heat Index}, based on the Fahrenheit scale

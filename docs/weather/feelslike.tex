@@ -6,19 +6,19 @@ Feels Like is the temperature a human perceives based on the actual temperature,
 
 \NewValueUnit{\FeelsLike}{T_{fl}}{Feels Like}
 \begin{definition}Calculating Feels Like:
-\begin{eqnarray}
+\begin{eqnarray*}
     \FeelsLike &=&
     \begin{cases}
-        \WindChill = \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature \leq \Fahrenheit{50}\,and\,\WindSpeed \geq 3 mph\\
+        \WindChill = \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature \leq \Fahrenheit{50} \land \WindSpeed \geq 3 mph\\
         \HeatIndex = \textbf{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature \geq \Fahrenheit{80} \\
         \AmbientTemperature & \quad \textbf{otherwise}
     \end{cases}
-\end{eqnarray}
+\end{eqnarray*}
 
 \WhereDescription{
-    \item[$\FeelsLike$]             The Feels like temperature in degrees \Fahrenheit{}
-    \item[$\AmbientTemperature$]    the air temperature in degrees \Fahrenheit{}
-    \item[$\WindSpeed$]             the wind speed in miles per hour
+    \item[$\FeelsLike$]             The Feels like temperature in \Fahrenheit{}
+    \item[$\AmbientTemperature$]    the air temperature in \Fahrenheit{}
+    \item[$\WindSpeed$]             the wind speed in \MilesPerHour{}
     \item[$\RelativeHumidity$]      Relative Humidity
 }
 \end{definition}
