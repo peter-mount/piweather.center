@@ -17,7 +17,7 @@ func FeelsLike(temp, relHumidity, windSpeed value.Value) (value.Value, error) {
 		return value.Value{}, err
 	}
 
-	windSpeed, err = windSpeed.As(MetersPerSecond)
+	windSpeed, err = windSpeed.As(MilesPerHour)
 	if err != nil {
 		return value.Value{}, err
 	}
