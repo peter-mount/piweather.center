@@ -2,31 +2,36 @@
 
 The heat index\index{Heat Index} is an index that combines air temperature and relative humidity, in shaded areas,
 and represents how a human perceives the temperature.
-It is only valid for temperatures above $80^{\circ}F$.
+It is only valid for temperatures above \Fahrenheit{80}.
 
 The computation of the heat index is done using the Rothfusz regression\sidesupercite{RothfuszHeatIndex}:
 
-\NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}%
-$ \HeatIndex = \begin{array}[t]{l}
-   42.379 \\
-   + 2.04901523 \, \AmbientTemperature \\
-   + 10.14333127 \, \RelativeHumidity \\
-   - 0.22475541 \, \AmbientTemperature \, \RelativeHumidity \\
-   - 6.83783x10^{-3} \, \AmbientTemperature^2 \\
-   - 5.481717x10^{-2} \, \RelativeHumidity^2 \\
-   + 1.22874x10^{-3} \, \AmbientTemperature^2 \, \RelativeHumidity \\
-   + 8.5282x10^{-4} \, \AmbientTemperature \, \RelativeHumidity^2 \\
-   - 1.99x10^{-6} \, \AmbientTemperature^2 \, \RelativeHumidity^2
-\end{array} $
+\NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}
+\begin{definition}Heat Index
+\begin{eqnarray}
+   \HeatIndex &=& \begin{array}[t]{l}
+                   42.379 \\
+                   + 2.04901523 \, \AmbientTemperature \\
+                   + 10.14333127 \, \RelativeHumidity \\
+                   - 0.22475541 \, \AmbientTemperature \, \RelativeHumidity \\
+                   - 6.83783x10^{-3} \, \AmbientTemperature^2 \\
+                   - 5.481717x10^{-2} \, \RelativeHumidity^2 \\
+                   + 1.22874x10^{-3} \, \AmbientTemperature^2 \, \RelativeHumidity \\
+                   + 8.5282x10^{-4} \, \AmbientTemperature \, \RelativeHumidity^2 \\
+                   - 1.99x10^{-6} \, \AmbientTemperature^2 \, \RelativeHumidity^2
+      \end{array}
+\end{eqnarray}
 
-The Rothfusz regression is not appropriate when conditions of temperature and humidity warrant a heat index value below about $80^{\circ}F$.
+\WhereDescription{
+   \item[\HeatIndex] the \texttt{Heat Index}, based on the Fahrenheit scale
+   \item[\AmbientTemperature] the \texttt{Ambient temperature}\index{Temperature!Ambient} in degrees Fahrenheit
+   \item[\RelativeHumidity] the \texttt{Relative Humidity}\index{Relative Humidity}
+}
+\end{definition}
+
+The Rothfusz regression is not appropriate when conditions of temperature and humidity warrant a heat index value below about \Fahrenheit{80}.
 In those cases, a simpler formula is applied\sidesupercite{WikiHeatIndex}:
+\begin{definition}Simplified Heat Index
+\[ \HeatIndex = 61 + \AmbientTemperature + 1.2(\AmbientTemperature - 68) + 0.095\,\RelativeHumidity \]
 
-$ \HeatIndex = 61 + \AmbientTemperature + 1.2(\AmbientTemperature - 68) + 0.095\,\RelativeHumidity $
-
-where:
-\begin{description}[leftmargin=3em,style=nextline]
-\item[$\HeatIndex$] the \texttt{Heat Index}, based on the Fahrenheit scale
-\item[$\AmbientTemperature$] the \texttt{Ambient temperature}\index{Temperature!Ambient} in degrees Fahrenheit
-\item[$\RelativeHumidity$] the \texttt{Relative Humidity}\index{Relative Humidity}
-\end{description}
+\end{definition}

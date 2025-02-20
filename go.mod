@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
-	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/peter-mount/go-anim v0.0.0-20250218200716-17e2f5f48f5c
 	github.com/peter-mount/go-build v0.0.0-20250218200125-f187f75a6a5d
 	github.com/peter-mount/go-kernel/v2 v2.0.3-0.20250218195942-5604474bedd7

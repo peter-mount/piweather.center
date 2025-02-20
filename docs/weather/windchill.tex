@@ -6,16 +6,17 @@ Wind chill is the sensation of cold produced by
 the wind for a given ambient air temperature on exposed skin.
 It's values are always lower than the air temperature in the range where the
 formula is valid.\sidesupercite{WikiWindChill}
-It's only valid for temperatures at or below $50^{\circ}F$ and wind speeds above $3 mph$.
+It's only valid for temperatures at or below \Fahrenheit{50} and wind speeds above $3 mph$.
 
+\NewValueUnit{\WindChill}{T_{wc}}{Wind Chill Index}
+\begin{definition}
 Wind Chill is defined by the following formula\sidesupercite{WeatherGovWindChill}:
 
-\NewValueUnit{\WindChill}{T_{wc}}{Wind Chill Index}%
-$ \WindChill = 35.74 + 0.6215\,\AmbientTemperature -35.75\,\WindSpeed^{+0.16} + 0.4275\,\AmbientTemperature\,\WindSpeed^{+0.16} $
+\[ \WindChill = 35.74 + 0.6215\,\AmbientTemperature -35.75\,\WindSpeed^{+0.16} + 0.4275\,\AmbientTemperature\,\WindSpeed^{+0.16} \]
 
-where:
-\begin{description}[leftmargin=3em,style=nextline]
-\item[$\WindChill$]   the wind chill index, based on the Fahrenheit scale
-\item[$\AmbientTemperature$]      the air temperature in degrees Fahrenheit
-\item[$\WindSpeed$] the wind speed in miles per hour
-\end{description}
+\WhereDescription{
+\item[\WindChill]   the wind chill index in \Fahrenheit{}
+\item[\AmbientTemperature]      the air temperature in \Fahrenheit{}
+\item[\WindSpeed] the wind speed in miles per hour
+}
+\end{definition}

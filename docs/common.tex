@@ -1,0 +1,30 @@
+%----------------------------------------------------------------------------------------
+%	Some utility commands
+%----------------------------------------------------------------------------------------
+
+% Extend section etc to clear the page first.
+% *paged clears to a new page
+% *pagedleft clears so we appear on the left page
+% *pagedright clears so we appear on the right page
+\newcommand{\sectionpaged}[1]{\clearpage\section{#1}}
+\newcommand{\sectionpagedleft}[1]{\cleartoleftpage\section{#1}}
+\newcommand{\sectionpagedright}[1]{\cleardoublepage\section{#1}}
+\newcommand{\subsectionpaged}[1]{\clearpage\subsection{#1}}
+\newcommand{\subsectionpagedleft}[1]{\cleartoleftpage\subsection{#1}}
+\newcommand{\subsectionpagedright}[1]{\cleardoublepage\subsection{#1}}
+\newcommand{\subsubsectionpaged}[1]{\clearpage\subsubsection{#1}}
+\newcommand{\subsubsectionpagedleft}[1]{\cleartoleftpage\subsubsection{#1}}
+\newcommand{\subsubsectionpagedright}[1]{\cleardoublepage\subsubsection{#1}}
+
+% Declare a type which can be used in or outside math mode
+\newcommand{\NewMathSymb}[2]{\newcommand{#1}{\ensuremath{#2}}}
+
+% Declare a new unit for nomenclature but also create a command to include it in equations
+\newcommand{\NewValueUnit}[3]{\NewMathSymb{#1}{{#2}}\nomenclature{\[#1\]}{#3}}
+
+% Common description layout for listing what value units are
+\newcommand{\WhereDescription}[1]{where:\begin{description}[leftmargin=3em,style=nextline]#1\end{description}}
+
+% Some common units
+\newcommand{\Celsius}[1]{\ensuremath{#1^{\circ}C}}
+\newcommand{\Fahrenheit}[1]{\ensuremath{#1^{\circ}F}}

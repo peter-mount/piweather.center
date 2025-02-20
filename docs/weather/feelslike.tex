@@ -2,23 +2,23 @@
 \index{Feels Like}
 \index{Temperature!Feels Like}
 
-Feels Like is the temperature a human perceives based on
-the actual temperature, relative humidity and wind speed.
+Feels Like is the temperature a human perceives based on the actual temperature, relative humidity and wind speed.
 
-\NewValueUnit{\FeelsLike}{T_{fl}}{Feels Like}%
-\[
-    \FeelsLike =
+\NewValueUnit{\FeelsLike}{T_{fl}}{Feels Like}
+\begin{definition}Calculating Feels Like:
+\begin{eqnarray}
+    \FeelsLike &=&
     \begin{cases}
-        \WindChill = \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature \leq 50^{\circ}F \and v\WindSpeed \geq 3 mph\\
-        \HeatIndex = \textbf{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature \geq 80^{\circ}F \\
+        \WindChill = \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature \leq \Fahrenheit{50}\,and\,\WindSpeed \geq 3 mph\\
+        \HeatIndex = \textbf{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature \geq \Fahrenheit{80} \\
         \AmbientTemperature & \quad \textbf{otherwise}
     \end{cases}
-\]
+\end{eqnarray}
 
-where:
-\begin{description}[leftmargin=3em,style=nextline]
-    \item[$\FeelsLike$]             The Feels like temperature in degrees Fahrenheit
-    \item[$\AmbientTemperature$]    the air temperature in degrees Fahrenheit
+\WhereDescription{
+    \item[$\FeelsLike$]             The Feels like temperature in degrees \Fahrenheit{}
+    \item[$\AmbientTemperature$]    the air temperature in degrees \Fahrenheit{}
     \item[$\WindSpeed$]             the wind speed in miles per hour
     \item[$\RelativeHumidity$]      Relative Humidity
-\end{description}
+}
+\end{definition}

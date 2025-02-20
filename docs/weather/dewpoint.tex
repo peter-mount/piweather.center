@@ -6,24 +6,21 @@ When the air is cooled below the dew point, its moisture capacity is reduced and
 airborne water vapor will condense to form liquid water known as dew.
 When this occurs through the air's contact with a colder surface, dew will form on that surface.
 
-The dew point is calculated from the following formulae\sidesupercite{WikiDewPoint}:
+\NewValueUnit{\DewPoint}{T_{dp}}{Dew point Temperature}
+\begin{definition}
+Calculating Dew point\sidesupercite{WikiDewPoint}:
+\begin{eqnarray}
+        d &=& \begin{cases}
+            \dfrac{ 17.368\,\AmbientTemperature }{ 238.88 + \AmbientTemperature } & \quad \textbf{if } \AmbientTemperature > 0\\
+            \\
+            \dfrac{ 17.996\,\AmbientTemperature }{ 247.15 + \AmbientTemperature } & \quad \textbf{if } \AmbientTemperature \leq 0
+        \end{cases} \\
+        \DewPoint &=& c \times \log{ \dfrac{\RelativeHumidity}{100 \times e^d}}
+\end{eqnarray}
 
-\begin{tabular}{c c c}
-    $\AmbientTemperature$ & \textbf{b} & \textbf{c} \\
-    \hline
-    $> 0$ & 17.368 & 238.88 \\
-    $\leq 0$ & 17.996 & 247.15 \\
-    \hline
-\end{tabular}
-
-$ d = \dfrac{ b \times \AmbientTemperature }{ c + \AmbientTemperature } $
-
-\NewValueUnit{\DewPoint}{T_{dp}}{Dew point Temperature}%
-$ \DewPoint = c \times \log{ \dfrac{\RelativeHumidity}{100 \times e^d}} $
-
-where:
-\begin{description}[leftmargin=3em,style=nextline]
-    \item[$\DewPoint$] the \texttt{Dew point} in degrees Celsius
-    \item[$\AmbientTemperature$] the \texttt{Ambient temperature}\index{Temperature!Ambient} in degrees Celsius
+\WhereDescription{
+    \item[$\DewPoint$] the \texttt{Dew point} in \Celsius{}
+    \item[$\AmbientTemperature$] the \texttt{Ambient temperature}\index{Temperature!Ambient} in \Celsius{}
     \item[$\RelativeHumidity$] the \texttt{Relative Humidity}\index{Relative Humidity}
-\end{description}
+}
+\end{definition}
