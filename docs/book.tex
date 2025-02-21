@@ -60,6 +60,13 @@
 
 % Note that \maketitle outputs the pages before here
 \maketitle
+\setchapterstyle{kao} % Choose the default chapter heading style
+
+%----------------------------------------------------------------------------------------
+% Page number on chapter pages
+% https://github.com/fmarotta/kaobook/issues/131#issuecomment-825535103
+%----------------------------------------------------------------------------------------
+\renewcommand{\chapterpagestyle}{pagenum.scrheadings}
 
 %----------------------------------------------------------------------------------------
 %       PREFACE
@@ -84,20 +91,39 @@
 
 \tableofcontents % Output the table of contents
 
+% see below but this forces pages to follow without blanks
+\let\cleardoublepage\clearpage
+
+%\addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures % Output the list of figures
 
 % Comment both of the following lines to have the LOF and the LOT on 
 % different pages
-\let\cleardoublepage\bigskip
-\let\clearpage\bigskip
+%\let\cleardoublepage\bigskip
+%\let\clearpage\bigskip
 
-\addcontentsline{toc}{chapter}{\listtablename}
+%\addcontentsline{toc}{chapter}{\listtablename}
 \listoftables % Output the list of tables
 
-\addcontentsline{toc}{chapter}{\listfigurename}
+%\addcontentsline{toc}{chapter}{\lstlistlistingname}
 \listoflstlistings % Output the list of listings
 
 \endgroup
+
+%----------------------------------------------------------------------------------------
+%	NOMENCLATURE
+%
+% Usually at the end but I like it at the start
+%----------------------------------------------------------------------------------------
+
+% The nomenclature needs to be compiled on the command line with 'makeindex main.nlo -s nomencl.ist -o main.nls' from the template directory
+%\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
+%\nomenclature{$h$}{Planck constant}
+
+\renewcommand{\nomname}{Notation} % Rename the default 'Nomenclature'
+\renewcommand{\nompreamble}{The next list describes several symbols that will be later used within the body of the document.} % Prepend this text to the nomenclature
+
+\printnomenclature % Output the nomenclature
 
 %----------------------------------------------------------------------------------------
 %	MAIN BODY
@@ -111,7 +137,8 @@
 %----------------------------------------------------------------------------------------
 
 \backmatter % Denotes the end of the main document content
-\setchapterstyle{plain} % Output plain chapters from this point onwards
+\setchapterstyle{kao} % Choose the default chapter heading style
+%\setchapterstyle{plain} % Output plain chapters from this point onwards
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
@@ -121,19 +148,6 @@
 
 \defbibnote{bibnote}{Here are the references in citation order.\par\bigskip} % Prepend this text to the bibliography
 \printbibliography[heading=bibintoc, title=Bibliography, prenote=bibnote] % Add the bibliography heading to the ToC, set the title of the bibliography and output the bibliography note
-
-%----------------------------------------------------------------------------------------
-%	NOMENCLATURE
-%----------------------------------------------------------------------------------------
-
-% The nomenclature needs to be compiled on the command line with 'makeindex main.nlo -s nomencl.ist -o main.nls' from the template directory
-%\nomenclature{$c$}{Speed of light in a vacuum inertial frame}
-%\nomenclature{$h$}{Planck constant}
-
-\renewcommand{\nomname}{Notation} % Rename the default 'Nomenclature'
-\renewcommand{\nompreamble}{The next list describes several symbols that will be later used within the body of the document.} % Prepend this text to the nomenclature
-
-\printnomenclature % Output the nomenclature
 
 %----------------------------------------------------------------------------------------
 %	GLOSSARY

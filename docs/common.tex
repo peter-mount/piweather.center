@@ -23,7 +23,7 @@
 \newcommand{\NewMathSymb}[2]{\newcommand{#1}{\ensuremath{#2}}}
 
 % Declare a new unit for nomenclature but also create a command to include it in equations
-\newcommand{\NewValueUnit}[3]{\NewMathSymb{#1}{{#2}}\nomenclature{\[#1\]}{#3}}
+\newcommand{\NewValueUnit}[3]{\NewMathSymb{#1}{{#2}}\nomenclature{\[#2\]}{#3}}
 
 % Common description layout for listing what value units are
 \newcommand{\WhereDescription}[1]{where:\begin{description}[leftmargin=3em,style=nextline]#1\end{description}}
