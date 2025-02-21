@@ -4,13 +4,12 @@
 
 Feels Like is the temperature a human perceives based on the actual temperature, relative humidity and wind speed.
 
-\NewValueUnit{\FeelsLike}{T_{fl}}{Feels Like}
 \begin{definition}Calculating Feels Like:
 \begin{eqnarray*}
     \FeelsLike &=&
     \begin{cases}
-        \WindChill = \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature \leq \Fahrenheit{50} \land \WindSpeed \geq 3 mph\\
-        \HeatIndex = \textbf{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature \geq \Fahrenheit{80} \\
+        \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature\leq\Fahrenheit{50} \land \WindSpeed\geq\MilesPerHour{3}\\
+        \textbf{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature\geq\Fahrenheit{80} \\
         \AmbientTemperature & \quad \textbf{otherwise}
     \end{cases}
 \end{eqnarray*}
