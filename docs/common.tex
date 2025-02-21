@@ -28,9 +28,28 @@
 % Common description layout for listing what value units are
 \newcommand{\WhereDescription}[1]{where:\begin{description}[leftmargin=3em,style=nextline]#1\end{description}}
 
+%----------------------------------------------------------------------------------------
 % Some common units
+%----------------------------------------------------------------------------------------
 \newcommand{\Celsius}[1]{\ensuremath{#1^{\circ}\mathrm{C}}}
 \newcommand{\Fahrenheit}[1]{\ensuremath{#1^{\circ}\mathrm{F}}}
 \newcommand{\MetersPerSecond}[1]{\ensuremath{#1\,\mathrm{ms}^{-1}}}
 \newcommand{\MilesPerHour}[1]{\ensuremath{#1\,\mathrm{mph}}}
 \newcommand{\hPascal}[1]{\ensuremath{#1\,\mathrm{hPa}}}
+
+%----------------------------------------------------------------------------------------
+% Declare entries that come from outside, e.g. temp, humidity etc here.
+% This derived in formulae can go by those formulae.
+%----------------------------------------------------------------------------------------
+\NewValueUnit{\RelativeHumidity}{R_h}{Relative Humidity (percentage value between 0\dots100)}
+\NewValueUnit{\AmbientTemperature}{T_a}{Ambient temperature}
+\NewValueUnit{\WindSpeed}{v_{wind}}{Wind speed}
+\NewValueUnit{\WindGust}{v_{gust}}{Wind Gust speed}
+
+%----------------------------------------------------------------------------------------
+% Entries defined in the book but need to be declared first
+%----------------------------------------------------------------------------------------
+\NewValueUnit{\DewPoint}{T_{dp}}{Dew point Temperature}
+\NewValueUnit{\FeelsLike}{T_{fl}}{Feels Like}
+\NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}
+\NewValueUnit{\WindChill}{T_{wc}}{Wind Chill Index}

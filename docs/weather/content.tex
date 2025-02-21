@@ -3,20 +3,6 @@
 \chapter{The Weather}
 \labch{weather}
 
-% Declare entries that come from outside, e.g. temp, humidity etc here.
-% This derived in formulae can go by those formulae.
-
-\NewValueUnit{\RelativeHumidity}{R_h}{Relative Humidity (percentage value between 0\dots100)}
-\NewValueUnit{\AmbientTemperature}{T_a}{Ambient temperature}
-\NewValueUnit{\WindSpeed}{v_{wind}}{Wind speed}
-\NewValueUnit{\WindGust}{v_{gust}}{Wind Gust speed}
-
-% Entries defined later but need to be declared first
-\NewValueUnit{\DewPoint}{T_{dp}}{Dew point Temperature}
-\NewValueUnit{\FeelsLike}{T_{fl}}{Feels Like}
-\NewValueUnit{\HeatIndex}{T_{hi}}{Heat Index}
-\NewValueUnit{\WindChill}{T_{wc}}{Wind Chill Index}
-
 \input{weather/dewpoint}
 \input{weather/feelslike}
 \input{weather/heatindex}
