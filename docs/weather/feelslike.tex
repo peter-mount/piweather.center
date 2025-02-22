@@ -3,19 +3,21 @@
 \index{Temperature!Feels Like}
 
 Feels Like is the temperature a human perceives based on the actual temperature, relative humidity and wind speed.
+It is a composite function based on either \GoFunctionRef{WindChill} or \GoFunctionRef{HeatIndex} dependent on the prevailing
+weather conditions.
 
-\begin{definition}Calculating Feels Like:
+\begin{definition}Feels Like:
 \begin{eqnarray*}
     \FeelsLike &=&
     \begin{cases}
-        \textbf{WindChill}( \AmbientTemperature, \WindSpeed ) & \quad \textbf{if } \AmbientTemperature\leq\Fahrenheit{50} \land \WindSpeed\geq\MilesPerHour{3}\\
-        \textbf{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature\geq\Fahrenheit{80} \\
+        \GoFunctionCall{WindChill}{\AmbientTemperature, \WindSpeed} & \quad \textbf{if } \AmbientTemperature\leq\Fahrenheit{50} \land \WindSpeed\geq\MilesPerHour{3}\\
+        \GoFunction{HeatIndex}( \AmbientTemperature, \RelativeHumidity) & \quad \textbf{if } \AmbientTemperature\geq\Fahrenheit{80} \\
         \AmbientTemperature & \quad \textbf{otherwise}
     \end{cases}
 \end{eqnarray*}
 
 \WhereDescription{
-    \item[$\FeelsLike$]             The Feels like temperature in \Fahrenheit{}
+    \item[$\FeelsLike$]             The feels like temperature in \Fahrenheit{}
     \item[$\AmbientTemperature$]    the air temperature in \Fahrenheit{}
     \item[$\WindSpeed$]             the wind speed in \MilesPerHour{}
     \item[$\RelativeHumidity$]      Relative Humidity

@@ -1,4 +1,5 @@
 \sectionpaged{Wind Chill}
+\labsec{WindChill}
 \index{Wind Chill}
 \index{Temperature!Wind Chill}
 
@@ -8,14 +9,15 @@ It's values are always lower than the air temperature in the range where the
 formula is valid.\sidesupercite{WikiWindChill}
 It's only valid for temperatures at or below \Fahrenheit{50} and wind speeds above \MilesPerHour{3}.
 
-\begin{definition}
-Wind Chill is defined by the following formula\sidesupercite{WeatherGovWindChill}:
-
-\[ \WindChill = 35.74 + 0.6215\,\AmbientTemperature -35.75\,\WindSpeed^{+0.16} + 0.4275\,\AmbientTemperature\,\WindSpeed^{+0.16} \]
+\begin{definition}Wind Chill is defined by the following formula\sidesupercite{WeatherGovWindChill}:
+\labdef{windChill}
+\begin{eqnarray*}
+\WindChill &=& 35.74 + 0.6215\,\AmbientTemperature -35.75\,\WindSpeed^{+0.16} + 0.4275\,\AmbientTemperature\,\WindSpeed^{+0.16}
+\end{eqnarray*}
 
 \WhereDescription{
-\item[\WindChill]   the wind chill index in \Fahrenheit{}
-\item[\AmbientTemperature]      the air temperature in \Fahrenheit{}
-\item[\WindSpeed] the wind speed in \MilesPerHour{}
+    \item[\WindChill] the wind chill index in \Fahrenheit{}
+    \item[\AmbientTemperature] the air temperature in \Fahrenheit{}
+    \item[\WindSpeed] the wind speed in \MilesPerHour{}
 }
 \end{definition}

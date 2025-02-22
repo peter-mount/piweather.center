@@ -45,10 +45,11 @@
 % Formatting
 %----------------------------------------------------------------------------------------
 % Display syntax
-%\newcommand{\SyntaxDefinition}[0]{\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]}
-%\newcommand{\SyntaxDefinition}[0]{\textmd}
-%\newcommand{\Statement}[1]{\texttt{#1}}
 \newcommand{\Statement}[0]{\texttt}
+
+\newcommand{\GoFunction}[1]{\textbf{#1}}
+\newcommand{\GoFunctionRef}[1]{\GoFunction{#1}\sidenote{{#1} in \vref{sec:#1}}}
+\newcommand{\GoFunctionCall}[2]{\textbf{#1}(#2)}
 
 %----------------------------------------------------------------------------------------
 % Some common units
