@@ -52,6 +52,25 @@ Line \ref{line:calculate:simple:target} declares we are calculating the metric \
 Line \ref{line:calculate:simple:as} is the expression where we use the heatIndex function,
 passing the metrics \Metric{ecowitt.temp} and \Metric{ecowitt.humidity}.
 
+\subsubsectionfit{Example calculation with no metrics}
+\label{subsec:config:calculate:nometric}
+Calculations don't always require a source metric.
+Some are based on the stations location and/or the time of day for their results.
+\marginnote[-0.3cm]{Calculating the Sun's location is better performed by \Statement{ephemeris} in \vref{config:ephemeris}}
+In this example we calculate the Sun's altitude at the weather station for the time of day.
+
+\begin{lstlisting}[language=Go,caption={Example calculation},escapechar=|]
+calculate( "local.solarAltitude"       |\label{line:calculate:nometric:target}|
+    every "minute"                   |\label{line:calculate:nometric:every}|
+    as solarAltitude() unit "degree" |\label{line:calculate:nometric:as}|
+)
+\end{lstlisting}
+
+As before, line \ref{line:calculate:simple:target} declares we are calculating the metric \Metric{local.solarAltitude}.
+Line \ref{line:calculate:simple:as} causes the calculation to be performed once every minute,
+whilst line \ref{line:calculate:simple:as} uses the \GoFunction{solarAltitude} function for the calculation.
+This function uses no metrics but does use the stations location and the current time.
+
 \subsubsectionfit{Example aggregation}
 Aggregations like min, max \etc can be used as a function like in subsec:config:calculate:simple
 

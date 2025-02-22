@@ -1,0 +1,84 @@
+\subsectionpaged{Ephemeris}
+\label{config:ephemeris}
+\index{ephemeris}
+\index{Config!ephemeris}
+
+\begin{lstlisting}[language=Go,style=kaolstplain,escapechar=|]
+ephemeris( "sensor"
+    {
+        every "crontab" [on start]
+        { |\textit{target}|( |\textit{options}\dots| ) [as "name"] }+
+    }+
+)
+\end{lstlisting}
+
+\Statement{ephemeris} calculates an ephemeris of astronomical objects on a specific schedule.
+
+\paragraph{sensor} is the base sensor Id for the ephemeris.
+When the ephemeris is being created, the generated metrics will be formed with the sensor id, the target name followed
+by the requested fields.
+
+\paragraph{every}defines when the calculation should be performed.
+\marginnote{It's advised to always set \textbf{on start} as it ensures data is available, rather than wait up to
+an hour or more before the first calculation is performed.}
+For most objects once an hour suffices, although the Sun and Moon are better calculated at shorter periods as they
+move fast in relation to the station.
+If \textbf{on start} is present then the ephemeris will also be calculated when the \CalculatorService
+starts.
+
+\paragraph{target} is the object name to calculate. \vref{tab:config:ephemeris:targets} lists the currently available target names.
+
+\paragraph{options}is a list of fields to include in the ephemeris.
+
+\begin{table}[ht]
+ \caption{Ephemeris Targets}
+ \labtab{config:ephemeris:targets}
+ \begin{tabular}{l l l}
+ \toprule
+ target & Advised crontab \\
+ \midrule
+ sun & \multirow{2}{*}{minute} \\
+ moon & \\
+ \midrule
+ mercury & \multirow{7}{*}{hour} \\
+ venus & \\
+ mars & \\
+ jupiter & \\
+ saturn & \\
+ uranus & \\
+ neptune & \\
+ \bottomrule
+ \end{tabular}
+\end{table}
+
+\subsubsectionfit{Example ephemeris}
+\label{subsec:config:ephemeris:simple}
+This example shows how to calculate an ephemeris.
+
+\begin{lstlisting}[language=Go,caption={Example ephemeris},escapechar=|]
+ephemeris( "sol" |\label{line:ephemeris:simple:sensor}|
+    every "minute" on start |\label{line:ephemeris:simple:minute}|
+        sun(allDataOptions, equatorial, horizon) |\label{line:ephemeris:simple:sun}|
+        moon(allDataOptions, equatorial, horizon)
+    every "hour" on start |\label{line:ephemeris:simple:hour}|
+        mercury(allDataOptions, equatorial, horizon)
+        venus(allDataOptions, equatorial, horizon)
+        mars(allDataOptions, equatorial, horizon)
+        jupiter(allDataOptions, equatorial, horizon)
+        saturn(allDataOptions, equatorial, horizon)
+        uranus(allDataOptions, equatorial, horizon)
+        neptune(allDataOptions, equatorial, horizon)
+    )
+\end{lstlisting}
+
+Line \ref{line:ephemeris:simple:sensor} defines the sensor id as "sol".
+
+Line \ref{line:ephemeris:simple:minute} declares we want the following targets calculated every minute and
+when the service starts.
+
+Line \ref{line:ephemeris:simple:sun} declares a target. Here it's the Sun and we want to use the options:
+allDataOptions, equatorial and horizon.
+For simplicity, all the targets are using the same options.
+
+Line \ref{line:ephemeris:simple:hour} declares we want the following targets calculated once every hour and
+when the service starts.

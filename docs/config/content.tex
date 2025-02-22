@@ -28,6 +28,7 @@ statement( "metric"
     ( |\textit{value}\dots| )
     [load "when" with "expression"]
     [usefirst "metric"]
+    { |\textit{options}\dots| }+
     as |\textit{expression}\dots|
 )
 \end{lstlisting}
@@ -38,6 +39,7 @@ statement( "metric"
         Definition & Purpose & Reference \\
         \midrule
         \text{[\,]} & The statements inside are optional} & \\
+        \{\,\}+ & content can be repeated multiple times & \\
         (\,) & related configuration, (\,) required} & \\
         \dots & One or more values expected} & \\
         "crontab" & Crontab schedule & \vref{config:crontab}} \\
@@ -57,6 +59,7 @@ Any other type of string is dependent on the individual statement.
 \input{config/calculate}
 \input{config/calculatefrom}
 \input{config/crontab}
+\input{config/ephemeris}
 \input{config/location}
 \input{config/station}
 \input{config/timezone}
