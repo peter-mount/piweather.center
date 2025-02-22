@@ -1,0 +1,56 @@
+\subsectionfit{Location}
+\index{location}
+\index{Config!location}
+
+\begin{lstlisting}[language=Go,style=kaolstplain]
+location( "name" "latitude" "longitude" ["altitude"] )
+\end{lstlisting}
+
+The \Statement{location} statement defines the location on the Earth's surface
+where a weather station is located.
+It's used to enable the system to perform various calculations like when the Sun
+rises or sets as well as other phenomena specific to your location.
+
+\ParameterDescription{
+    \item[name] the name of the station.
+    \item[latitude] latitude of the station
+    \item[longitude] longitude of the station
+    \item[altitude] altitude of the station
+}
+
+\paragraph{name} As the system can manage multiple weather stations, name must be unique.
+This uniqueness can be just locally, but if you join multiple systems together then
+
+\paragraph{Latitude and Longitude} are defined in one of the following formats:
+
+\ParameterDescription{
+    \item[12.345] Degrees in decimal
+    \item[12:34.56] Degrees \& Minutes with Minutes in decimal
+    \item[12:34:56] Degrees, Minutes \& Seconds. Seconds can be a decimal
+}
+
+For declaring which hemisphere the station is in, you can prefix the Degrees field with one of the prefixes
+in \vreftab{locationDegreePrefix}.
+If no prefix is included then the location is in the North/East respectively.
+
+\begin{table}[hb]
+    \labtab{locationDegreePrefix}
+    \caption[Latitude and Longitiude Prefixes]{Prefixes for degrees}
+    \raggedright
+    \begin{tabular}{ c c c }
+        \hline
+        & Latitude & Longitude \\
+        \hline
+        N & \multirow{2}{*}{North} & \multirow{2}{*}{East} \\
+        + & &\\
+        \hline
+        S & \multirow{2}{*}{South} & \multirow{2}{*}{West} \\
+        - & &\\
+        \hline
+    \end{tabular}
+\end{table}
+
+\paragraph{Altitude} is optional.
+It's defined in meters above mean sea level and will default to 0 if it's not set.
+It is however advisable to set it as it is used in certain calculations like calculating the Pressure if at sea level
+and in forecasts.

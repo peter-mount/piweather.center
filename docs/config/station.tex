@@ -1,0 +1,25 @@
+\subsectionfit{Station}
+\index{station}
+\index{Config!station}
+
+\SyntaxDefinition{\Statement{station}( [\Statement{location}(\dots)] \Statement{timezone}(\dots)] \dots )}
+
+\begin{lstlisting}[language=Go,style=kaolstplain]
+station( "name"
+    location( "name" "latitude" "longitude" "altitude" )
+    timezone( "timezone" )
+    // For .calc files
+    calculate from ...
+    calculate(...)
+    ephemeris(...)
+    // For .station files
+    dashboard(...)
+    // For .sensor files
+    sensor(...)
+    // For .cron files
+    tasks(...)
+)
+\end{lstlisting}
+
+\Statement{station} is the base statement within configuration and defines both the station's name and location on the
+Earth as well as a container for configuration specific to that station.

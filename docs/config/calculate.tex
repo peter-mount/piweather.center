@@ -1,0 +1,16 @@
+\subsectionfit{Calculate}
+\index{calculate}
+\index{Config!calculate}
+
+\begin{lstlisting}[language=Go,style=kaolstplain]
+calculate( "target.metric.name"
+    [every "crontab"]
+    [reset every "crontab"]
+    [load expression]
+    [usefirst]
+    as expression...
+)
+\end{lstlisting}
+
+\Statement{calculate} defines a calculation to be performed at either regular intervals or whenever one or more
+metrics change value.

@@ -1,0 +1,28 @@
+\setchapterstyle{kao}
+%\setchapterpreamble[u]{\margintoc}
+\chapter{Configuration}
+\labch{configuration}
+
+The main configuration of the various applications is done by a series of configuration files, one for each application.
+These files, however, follow the same syntax, so this section defines that common syntax.
+
+\begin{lstlisting}[caption={Example configuration file},language=Go]
+// Configuration example showing the portion that is common to all
+// configuration files
+station( "tower"
+    location( "Tower of London" "51.511380329" "-0.0777891" 34 )
+    timezone( "Europe/London" )
+
+    // Configuration specific entries here
+)
+\end{lstlisting}
+
+\paragraph{Comments} can be included in the configuration files by using \SyntaxDefinition{//}
+
+\sectionpaged{Reference}\label{sec:config:reference}
+
+\input{config/calculate}
+\input{config/crontab}
+\input{config/location}
+\input{config/station}
+\input{config/timezone}

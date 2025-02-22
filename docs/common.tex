@@ -5,19 +5,30 @@
 % rewrite vreftab as the existing one duplicates the word Table - 20250220
 \renewcommand{\vreftab}[1]{\hyperref[tab:#1]{\vref{tab:#1}}}
 
+% Force page break if there's not enough room
+\newcommand{\clearpagefit}{\Needspace{15\baselineskip}}
+
 % Extend section etc to clear the page first.
+% *fit clears to a new page if there's not enough room
 % *paged clears to a new page
 % *pagedleft clears so we appear on the left page
 % *pagedright clears so we appear on the right page
+\newcommand{\sectionfit}[1]{\clearpagefit\section{#1}}
 \newcommand{\sectionpaged}[1]{\clearpage\section{#1}}
 \newcommand{\sectionpagedleft}[1]{\cleartoleftpage\section{#1}}
 \newcommand{\sectionpagedright}[1]{\cleardoublepage\section{#1}}
+
+\newcommand{\subsectionfit}[1]{\clearpagefit\subsection{#1}}
 \newcommand{\subsectionpaged}[1]{\clearpage\subsection{#1}}
 \newcommand{\subsectionpagedleft}[1]{\cleartoleftpage\subsection{#1}}
 \newcommand{\subsectionpagedright}[1]{\cleardoublepage\subsection{#1}}
+
+\newcommand{\subsubsectionfit}[1]{\clearpagefit\subsubsection{#1}}
 \newcommand{\subsubsectionpaged}[1]{\clearpage\subsubsection{#1}}
 \newcommand{\subsubsectionpagedleft}[1]{\cleartoleftpage\subsubsection{#1}}
 \newcommand{\subsubsectionpagedright}[1]{\cleardoublepage\subsubsection{#1}}
+
+\newcommand{\paragraphfit}[1]{\clearpagefit\paragraph{#1}}
 
 % Declare a type which can be used in or outside math mode
 \newcommand{\NewMathSymb}[2]{\newcommand{#1}{\ensuremath{#2}}}
@@ -28,11 +39,23 @@
 % Common description layout for listing what value units are
 \newcommand{\WhereDescription}[1]{where:\begin{description}[leftmargin=3em,style=nextline]#1\end{description}}
 
+\newcommand{\ParameterDescription}[1]{where:\begin{description}[leftmargin=5em,style=nextline]#1\end{description}}
+
+%----------------------------------------------------------------------------------------
+% Formatting
+%----------------------------------------------------------------------------------------
+% Display syntax
+%\newcommand{\SyntaxDefinition}[0]{\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]}
+%\newcommand{\SyntaxDefinition}[0]{\textmd}
+%\newcommand{\Statement}[1]{\texttt{#1}}
+\newcommand{\Statement}[0]{\texttt}
+
 %----------------------------------------------------------------------------------------
 % Some common units
 %----------------------------------------------------------------------------------------
 \newcommand{\Celsius}[1]{\ensuremath{#1^{\circ}\mathrm{C}}}
 \newcommand{\Fahrenheit}[1]{\ensuremath{#1^{\circ}\mathrm{F}}}
+\newcommand{\Meters}[1]{\ensuremath{#1\,\mathrm{m}}}
 \newcommand{\MetersPerSecond}[1]{\ensuremath{#1\,\mathrm{ms}^{-1}}}
 \newcommand{\MilesPerHour}[1]{\ensuremath{#1\,\mathrm{mph}}}
 
