@@ -7,6 +7,7 @@ It is only valid for temperatures above \Fahrenheit{80}.
 The computation of the heat index is done using the Rothfusz regression\sidesupercite{RothfuszHeatIndex}:
 
 \begin{definition}Heat Index
+\labdef{heatIndexRothfuszDefinition}
 \begin{eqnarray*}
     \HeatIndex &=& c_1 + c_2\,\AmbientTemperature + c_3\,\RelativeHumidity + c_4\,\AmbientTemperature\,\RelativeHumidity \\
     && + c_5\,\AmbientTemperature^2 + c_6\,\RelativeHumidity^2 + c_7\,\AmbientTemperature^2\,\RelativeHumidity \\
@@ -17,10 +18,8 @@ The computation of the heat index is done using the Rothfusz regression\sidesupe
    \item[\HeatIndex] the \texttt{Heat Index}, in the same unit as \AmbientTemperature.
    \item[\AmbientTemperature] the \texttt{Ambient temperature}\index{Temperature!Ambient}
    \item[\RelativeHumidity] the \texttt{Relative Humidity}\index{Relative Humidity}
+    \item[$c_#$] coefficients defined in \vreftab{heatIndexRothfusz}
 }
-
-For the coefficients, use \vreftab{heatIndexCelsius} if \AmbientTemperature is in Celsius
-or \vreftab{heatIndexFahrenheit} if it's in Fahrenheit.
 \end{definition}
 
 The Rothfusz regression is not appropriate when conditions of temperature and humidity warrant a heat index value below about \Fahrenheit{80}.
@@ -30,22 +29,23 @@ In those cases, a simpler formula is applied\sidesupercite{WikiHeatIndex}:
 
 \end{definition}
 
+The following table defines the coefficients used by \vref{def:heatIndexRothfuszDefinition}
 \begin{table}[ht]
-    \caption[Coefficients for Heat Index Rothfusz regression in Celsius]{Coefficients for Celsius}
-    \labtab{heatIndexCelsius}
-    \begin{tabular}{l l l}
-        $c_1 = -8.784\,694\,755\,56$ & $c_2 = 1.611\,394\,11$ & $c_3 = 2.338\,548\,839\,89$ \\
-        $c_4 = -0.146\,116\,05$ & $c_5 = -0.012\,308\,094$ & $c_6 = -0.016\,424\,827\,777\,8$ \\
-        $c_7 = 2.211\,732 \times 10^{-3}$ & $c_8 = 7.2546 \times 10^{-4}$ & $c_9 = -3.582 \times 10^{-6}$
-    \end{tabular}
-\end{table}
-
-\begin{table}[ht]
-    \caption[Coefficients for Heat Index Rothfusz regression in Fahrenheit]{Coefficients for Fahrenheit}
-    \labtab{heatIndexFahrenheit}
-    \begin{tabular}{l l l}
-        $c_1 = -42.379$ & $c_2 = 2.049\,015\,23$ & $c_3 = 10.143\,331\,27$ \\
-        $c_4 = -0.224\,755\,41$ & $c_5 = -6.837\,83 \times 10^{-3}$ & $c_6 = -5.481\,717 \times 10^{-2}$ \\
-        $c_7 = 1.228\,74 \times 10^{-3}$ & $c_8 = 8.5282 \times 10^{-4}$ & $c_9 = -1.99 \times 10^{-6}$
+    \caption[Coefficients for Heat Index Rothfusz regression in Celsius]{Coefficients for regression}
+    \labtab{heatIndexRothfusz}
+    \begin{tabular}{p{1em} n{3}{13} n{3}{8}}
+        \toprule
+        & {Celsius} & {Fahrenheit} \\
+        \midrule
+        $c_1$ & -8.78469475556      & -42.379 \\
+        $c_2$ & 1.61139411          & 2.04901523 \\
+        $c_3$ & 2.33854883989       & 10.14333127 \\
+        $c_4$ & -0.14611605         & -0.22475541 \\
+        $c_5$ & -0.012308094        & -6.83783e-3 \\
+        $c_6$ & -0.0164248277778    & -5.481717e-2 \\
+        $c_7$ & 2.211732e-3         & 1.22874e-3 \\
+        $c_8$ & 7.2546e-4           & 8.5282e-4 \\
+        $c_9$ & -3.582e-6           & -1.99e-6$ \\
+        \bottomrule
     \end{tabular}
 \end{table}

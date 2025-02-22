@@ -1,13 +1,13 @@
-\subsectionfit{Crontab}
+\subsectionpaged{Crontab}
 \index{crontab}
 \index{Config!crontab}
 
+\marginnote{Setting the timezone with \textmf{TZ=} is not supported here as that is set at the station level.}
 In configuration, some fields define a crontab which defines when something should happen over time.
 This is a simple string which consists of either a pre-defined name or a definition.
 
 \subsubsection{Crontab definitions}
-
-Crontab definitions follow one of two formats with fields defined in \vreftab{config:crontab:fields}:
+Definitions follow one of two formats with fields defined in \vref{tab:config:crontab:fields}:
 
 \textbf{``minute hour dom month dow''} which follows the standard Unix cron format.
 
@@ -30,22 +30,41 @@ Crontab definitions follow one of two formats with fields defined in \vreftab{co
  \end{tabular}
 \end{table}
 
-A field may be an asterisk (*), which always stands for ``first-last''.
+\textbf{Wildcard} A field may be an asterisk (*), which always stands for ``first-last''.
 
-Ranges of numbers are allowed.
+\textbf{Ranges} of numbers are allowed.
+\marginnote{If hours is set to 8--11 then execute at hours 8, 9, 10 \& 11.}
 Ranges are two numbers separated with a hyphen.
 The specified range is inclusive.
-For example, 8--11 for an ``hours'' entry specifies execution at hours 8, 9, 10 and 11.
 
-Lists are allowed.
+\textbf{Lists} are allowed.
+\marginnote{Examples: ``1,2,5,9'', ``0-4,8-12''.}
 A list is a set of numbers (or ranges) separated by commas.
-Examples: ``1,2,5,9'', ``0-4,8-12''.
 
-Step values can be used in conjunction with ranges.
+\textbf{Step values} can be used in conjunction with ranges.
+\marginnote{e.g. For seconds, 0/15 means at 0, 15, 30 \& 45 seconds each minute, but 5/15 means 5, 20, 35 \& 50.}
 Following a range with ``/<number>'' specifies skips of the number's value through the range.
 For example, ``0-23/2'' can be used in the hours field to specify command execution every other hour.
 Steps are also permitted after an asterisk, so if you want to say ``every two hours'', just use ``*/2''.
 
-Names can also be used for the ``month'' and ``day of week'' fields.
+\textbf{Names} can also be used for the ``month'' and ``day of week'' fields.
 Use the first three letters of the particular day or month (case doesn't matter).
 Ranges or lists of names are not allowed.
+
+\subsubsection{Predefined definitions}
+Several predefined definitions are also supported:
+
+\begin{table}[ht]
+ \caption[Predefined Crontab definitions]{Predefined definitions}
+ \labtab{config:crontab:predefined}
+ \begin{tabular}{l l l}
+  \toprule
+  name & action & crontab equivalent \\
+  \midrule
+  daily, day, midnight & Run at Midnight & ``0 0 0 * * *'' \\
+  hour, hourly & Run every hour & ``0 0 * * * *'' \\
+  minute & Run every minute & ``0 * * * * *'' \\
+  second & Run every second & ``* * * * * *'' \\
+  \bottomrule
+ \end{tabular}
+\end{table}
