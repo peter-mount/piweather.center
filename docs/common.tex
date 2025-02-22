@@ -54,13 +54,24 @@
 % Formatting
 %----------------------------------------------------------------------------------------
 % Display syntax
+
+% Service name
+\newcommand{\ServiceName}[1]{\texttt{#1}}
+\newcommand{\CalculatorService}{\ServiceName{calculator}}
+\newcommand{\DatabaseService}{\ServiceName{database}}
+
+% Statement
 \newcommand{\Statement}[0]{\texttt}
 
+\newcommand{\Metric}[1]{\texttt{#1}}
+
+% Function name with references. Go prefix is to stop collision with other packages
 \newcommand{\GoFunction}[1]{\textbf{#1}}
 \newcommand{\GoFunctionRef}[1]{\GoFunction{#1}\sidenote{{#1} in \vref{sec:#1}}}
 \newcommand{\GoFunctionCall}[2]{\textbf{#1}(#2)}
 
-\newcommand{\vrefCustom}[2]{{#1}\sidenote{{#1}: \vref{#2}}}
+% Reference in margin as wither sidenote or marginnote
+\newcommand{\vrefSide}[2]{{#1}\sidenote{{#1}: \vref{#2}}}
 \newcommand{\vrefMargin}[2]{{#1}\marginnote{{#1}: \vref{#2}}}
 
 %----------------------------------------------------------------------------------------

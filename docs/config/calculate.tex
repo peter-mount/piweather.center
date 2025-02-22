@@ -7,11 +7,83 @@
 calculate( "target.metric.name"
     [every "crontab"](*\marginnote{crontab \vref{config:crontab}}*)
     [reset every "crontab"]
-    [load expression]
-    [usefirst]
+    [load "when" with (*\textit{expression}\dots*)]
+    [usefirst "metric"]
     as expression...
 )
 \end{lstlisting}
 
 \Statement{calculate} defines a calculation to be performed at either regular intervals or whenever one or more
 metrics change value.
+
+\paragraph{every}defines when the calculation should be performed over time.
+This is usually used for periodic calculations that do not depend on metrics.
+For example calculating the Sun's altitude at the weather station.
+
+\paragraph{reset every}defines when the metric being calculated should be reset to some default value by using
+the \textbf{load} option.
+
+\paragraph{load}defines a database expression to perform and the range of time to retrive it, to get the metric's initial value.
+This is usually performed when the \ServiceName{calculator} starts, however it can also be called periodically with
+the \textbf{reset every} option.
+\paragraph{usefirst}defines a metric to use as the initial value if a metric has no value or is being reset by
+\textbf{reset every} and \textbf{load} has not returned any value.
+
+\paragraph{as}is the expression to perform whenever the calculation is performed.
+If the expression references any metrics then they become triggers so that, whenever they are updated then this
+calculation is performed.
+
+\subsubsection{Example calculation}
+\label{subsec:config:calculate:simple}
+This example shows how a calculation can be performed whenever one or more metric's are updated.
+Here we will calculate the \vrefMargin{Heat Index}{sec:HeatIndex} using metrics for temperature and humidity.
+The following calculation will calculate the \GoFuncRef{HeatIndex} using \Metric{ecowitt.temp} and
+\Metric{ecowitt.humidity} as the function's parameters.
+The result will be converted into Celsius and stored into the metric \Metric{ecowitt.heatIndex}.
+
+\begin{lstlisting}[language=Go,caption={Example calculation},escapechar=|]
+calculate( "ecowitt.heatIndex" |\label{line:calculate:simple:target}|
+    as heatIndex( "ecowitt.temp", "ecowitt.humidity" ) |\label{line:calculate:simple:as}|
+)
+\end{lstlisting}
+
+Line \ref{line:calculate:simple:target} declares we are calculating the metric \Metric{ecowitt.heatIndex.max}.
+
+Line \ref{line:calculate:simple:as} is the expression where we use the heatIndex function,
+passing the metrics \Metric{ecowitt.temp} and \Metric{ecowitt.humidity}.
+
+\subsubsectionfit{Example aggregation}
+Aggregations like min, max \etc can be used as a function like in subsec:config:calculate:simple
+
+\marginnote{This example can be simplified with \Statement{calculate for} in \vref{config:calculateFor}}
+The following calculation will automatically record the maximum value of a metric for the current day:
+
+\begin{lstlisting}[language=Go,caption={Example aggregation calculation},escapechar=|]
+calculate( "ecowitt.heatIndex.max" |\label{line:calculate:aggregator:target}|
+    reset every "day" |\label{line:calculate:aggregator:reset}|
+    load "today" with "max(ecowitt.heatIndex)" |\label{line:calculate:aggregator:load}|
+    usefirst "ecowitt.heatIndex" |\label{line:calculate:aggregator:usefirst}|
+    as max( current,"ecowitt.heatIndex") |\label{line:calculate:aggregator:as}|
+        unit "celsius" |\label{line:calculate:aggregator:unit}|
+)
+\end{lstlisting}
+
+Line \ref{line:calculate:aggregator:target} declares we are calculating \Metric{ecowitt.heatIndex.max}.
+
+Line \ref{line:calculate:aggregator:reset} indicates the metric will be reset once every day at midnight.
+
+Line \ref{line:calculate:aggregator:load} will, when either the \CalculatorService starts,
+or the reset on line \ref{line:calculate:aggregator:reset} triggers, get the initial value from the database as
+the maximum value since midnight.
+
+If no value is in memory (either on startup or the database returned no values),
+then line \ref{line:calculate:aggregator:usefirst} ensures that we do have a value by using the current value of
+\Metric{ecowitt.heatIndex}.
+
+Finally line \ref{line:calculate:aggregator:as} declares the expression to calculate.
+In this instance to use the maximum of the current value of \Metric{ecowitt.heatIndex.max} and \Metric{ecowitt.heatIndex}
+and storing the result in Celsius.
+
+Because we reference \Metric{ecowitt.heatIndex.max} in the calculation, it becomes a trigger so whenever it is updated
+then the calculation is performed.
+
