@@ -1,10 +1,11 @@
 \subsectionfit{Calculate}
+\label{config:calculate}
 \index{calculate}
 \index{Config!calculate}
 
 \begin{lstlisting}[language=Go,style=kaolstplain]
 calculate( "target.metric.name"
-    [every "crontab"]
+    [every "crontab"](*\marginnote{crontab \vref{config:crontab}}*)
     [reset every "crontab"]
     [load expression]
     [usefirst]

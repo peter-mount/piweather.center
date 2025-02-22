@@ -2,20 +2,22 @@
 \index{station}
 \index{Config!station}
 
-\SyntaxDefinition{\Statement{station}( [\Statement{location}(\dots)] \Statement{timezone}(\dots)] \dots )}
-
 \begin{lstlisting}[language=Go,style=kaolstplain]
 station( "name"
     location( "name" "latitude" "longitude" "altitude" )
     timezone( "timezone" )
+
     // For .calc files
     calculate from ...
     calculate(...)
     ephemeris(...)
+
     // For .station files
     dashboard(...)
+
     // For .sensor files
     sensor(...)
+
     // For .cron files
     tasks(...)
 )

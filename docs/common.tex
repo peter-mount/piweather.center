@@ -1,4 +1,13 @@
 %----------------------------------------------------------------------------------------
+% Listings
+%----------------------------------------------------------------------------------------
+% This fixes lstlisting so (* TeX commands *) will work
+\lstset{
+    escapeinside={(*}{*)},          % if you want to add LaTeX within your code
+    breaklines=true
+}
+
+%----------------------------------------------------------------------------------------
 %	Some utility commands
 %----------------------------------------------------------------------------------------
 
@@ -50,6 +59,9 @@
 \newcommand{\GoFunction}[1]{\textbf{#1}}
 \newcommand{\GoFunctionRef}[1]{\GoFunction{#1}\sidenote{{#1} in \vref{sec:#1}}}
 \newcommand{\GoFunctionCall}[2]{\textbf{#1}(#2)}
+
+\newcommand{\vrefCustom}[2]{{#1}\sidenote{{#1}: \vref{#2}}}
+\newcommand{\vrefMargin}[2]{{#1}\marginnote{{#1}: \vref{#2}}}
 
 %----------------------------------------------------------------------------------------
 % Some common units
