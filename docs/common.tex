@@ -54,20 +54,28 @@
 %----------------------------------------------------------------------------------------
 % Some common units
 %----------------------------------------------------------------------------------------
-\newcommand{\Celsius}[1]{\ensuremath{#1^{\circ}\mathrm{C}}}
-\newcommand{\Fahrenheit}[1]{\ensuremath{#1^{\circ}\mathrm{F}}}
-\newcommand{\Meters}[1]{\ensuremath{#1\,\mathrm{m}}}
-\newcommand{\MetersPerSecond}[1]{\ensuremath{#1\,\mathrm{ms}^{-1}}}
-\newcommand{\MilesPerHour}[1]{\ensuremath{#1\,\mathrm{mph}}}
+% This either writes nothing if param1 is empty, or the number formatted with a \, suffixed
+\newcommand{\UnitNumPrint}[1]{\if\relax\detokenize{#1}\relax\else\numprint{#1}\,\fi}
+
+%\newcommand{\Celsius}[1]{\ensuremath{#1^{\circ}\mathrm{C}}}
+\newcommand{\Celsius}[1]{\ensuremath{\UnitNumPrint{#1}^{\circ}\!C}}
+
+%\newcommand{\Fahrenheit}[1]{\ensuremath{#1^{\circ}\mathrm{F}}}
+%\newcommand{\Fahrenheit}[1]{\ensuremath{#1 ^{\circ}\!F}}
+\newcommand{\Fahrenheit}[1]{\ensuremath{\UnitNumPrint{#1}^{\circ}\!F}}
+
+\newcommand{\Meters}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{m}}}
+\newcommand{\MetersPerSecond}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{ms}^{-1}}}
+\newcommand{\MilesPerHour}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{mph}}}
 
 % Pressure units
-\newcommand{\Atmospheres}[1]{\ensuremath{#1\,\mathrm{atm}}}
-\newcommand{\Pascal}[1]{\ensuremath{#1\,\mathrm{Pa}}}
-\newcommand{\hPascal}[1]{\ensuremath{#1\,\mathrm{hPa}}}
-\newcommand{\Millibars}[1]{\ensuremath{#1\,\mathrm{mb}}}
-\newcommand{\mmMercury}[1]{\ensuremath{#1\,\mathrm{mmHg}}}
-\newcommand{\inchesMercury}[1]{\ensuremath{#1\,\mathrm{inches\,Hg}}}
-\newcommand{\PSI}[1]{\ensuremath{#1\,\mathrm{psi}}}
+\newcommand{\Atmospheres}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{atm}}}
+\newcommand{\Pascal}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{Pa}}}
+\newcommand{\hPascal}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{hPa}}}
+\newcommand{\Millibars}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{mb}}}
+\newcommand{\mmMercury}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{mmHg}}}
+\newcommand{\inchesMercury}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{inches\,Hg}}}
+\newcommand{\PSI}[1]{\ensuremath{\UnitNumPrint{#1}\mathrm{psi}}}
 
 %----------------------------------------------------------------------------------------
 % Declare entries that come from outside, e.g. temp, humidity etc here.
