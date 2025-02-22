@@ -1,0 +1,83 @@
+\subsectionpaged{Calculate From}
+\label{config:calculateFrom}
+\index{calculate from}
+\index{Config!calculate from}
+
+\begin{lstlisting}[language=Go,style=kaolstplain,escapechar=|]
+calculate from "metric"
+    [unit "unit"]
+    ( |\textit{aggregates}\dots| )
+    [reset every "crontab"]
+\end{lstlisting}
+
+\Statement{calculate from} calculates one or more aggregate metrics from a single source metric.
+
+It is a convenience form of \Statement{calculate()} removing a lot of boilerplate configuration into a single statement.
+
+\paragraph{unit}defines the unit we want the results to be in.
+If not defined then the unit of the output of the aggregate function is used.
+
+\paragraph{aggregates\dots}define the aggregations to perform, usually one or more of the following:
+\begin{table}[ht]
+    \begin{tabular}{l l}
+        \toprule
+        Aggregator & Function \\
+        \midrule
+        avg & Average \\
+        min & Minimum \\
+        max & Maximum \\
+        sum & Summation \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\paragraph{reset every}defines when the metric being calculated should be reset to some default value.
+
+\subsubsectionfit{Example}
+The following example shows how to calculate the minimum and maximum values of a specific metric.
+
+\begin{lstlisting}[language=Go,caption={Example calculation for},escapechar=|,label=lst:calculatefrom:example]
+calculate from "ws90.humidity"  |\label{line:calculatefrom:example:src}|
+    unit "relativeHumidity"     |\label{line:calculatefrom:example:unit}|
+    ( avg min max )             |\label{line:calculatefrom:example:aggregators}|
+    reset every "day"           |\label{line:calculatefrom:example:reset}|
+\end{lstlisting}
+
+Line \ref{line:calculatefrom:example:src} declares the metric we will trigger the calculations from.
+
+Line \ref{line:calculatefrom:example:unit} defines the unit we want the results to be recorded under.
+
+Line \ref{line:calculatefrom:example:aggregators} declares which aggregators to use.
+
+Line \ref{line:calculatefrom:example:reset} indicates we want the metrics to be reset once every day at midnight.
+
+The result of this is that two new metrics are generated using \Metric{ws90.humidity} as the source.
+As we are using \Statement{avg}, \Statement{min} and \Statement{max} here then this will create the metrics
+\Metric{ws90.humidity.avg}, \Metric{ws90.humidity.min} and \Metric{ws90.humidity.max} respectively.
+
+\subsubsectionfit{Expanding the example}
+The configuration in \vref{lst:calculatefrom:example} is equivalent to the following standard configuration:
+
+\begin{lstlisting}[language=Go,caption={calculation for example expanded},escapechar=|,label=lst:calculatefrom:expanded]
+calculate( "ws90.humidity.avg"
+    reset every "day"
+    load "today" with "avg(ws90.humidity)"
+    usefirst "ws90.humidity"
+    as avg(current,"ws90.humidity") unit "relativeHumidity"
+)
+
+calculate( "ws90.humidity.min"
+    reset every "day"
+    load "today" with "min(ws90.humidity)"
+    usefirst "ws90.humidity"
+    as min(current,"ws90.humidity") unit "relativeHumidity"
+)
+
+calculate( "ws90.humidity.max"
+    reset every "day"
+    load "today" with "max(ws90.humidity)"
+    usefirst "ws90.humidity"
+    as max(current,"ws90.humidity") unit "relativeHumidity"
+)
+
+\end{lstlisting}

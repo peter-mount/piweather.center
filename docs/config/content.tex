@@ -18,29 +18,32 @@ station( "tower"
 
 \paragraph{Comments} can be included in the configuration files by using \SyntaxDefinition{//}
 
-\sectionpaged{Reference}\label{sec:config:reference}
+\sectionpagedright{Reference}\label{sec:config:reference}
 
 In this section, the following syntax is used for describing the syntax of various statements:
 
-\begin{lstlisting}[language=Go,style=kaolstplain]
-calculate( "metric"
+\begin{lstlisting}[language=Go,style=kaolstplain,escapechar=|]
+statement( "metric"
     [every "crontab"]
-    [reset every "crontab"]
+    ( |\textit{value}\dots| )
     [load "when" with "expression"]
     [usefirst "metric"]
-    as (*\textit{expression}\dots*)
+    as |\textit{expression}\dots|
 )
 \end{lstlisting}
 
-\begin{table}[ht]
+\begin{table}[h!]
     \begin{tabular}{l l l}
         \toprule
         Definition & Purpose & Reference \\
         \midrule
-        \text{[\dots]} & \multicolumn{2}{l}{The statements inside are optional} \\
+        \text{[\,]} & The statements inside are optional} & \\
+        (\,) & related configuration, (\,) required} & \\
+        \dots & One or more values expected} & \\
         "crontab" & Crontab schedule & \vref{config:crontab}} \\
         "metric" & A named metric & \\
-        "timezone" & Time Zone name & \vref{config:timezone}}\\
+        "timezone" & Time Zone name & \vref{config:timezone}} \\
+        "unit" & Unit of measurement & \\
         \textit{expression} & Expression to evaluate & \\
         "expression" & Database Expression & \\
         \bottomrule
@@ -52,7 +55,7 @@ Any other type of string is dependent on the individual statement.
 \clearpage
 
 \input{config/calculate}
-\input{config/calculatefor}
+\input{config/calculatefrom}
 \input{config/crontab}
 \input{config/location}
 \input{config/station}
