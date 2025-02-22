@@ -31,23 +31,21 @@ This uniqueness can be just locally, but if you join multiple systems together t
 }
 
 For declaring which hemisphere the station is in, you can prefix the Degrees field with one of the prefixes
-in \vreftab{locationDegreePrefix}.
+in the following table.
 If no prefix is included then the location is in the North/East respectively.
 
 \begin{table}[hb]
-    \labtab{locationDegreePrefix}
-    \caption[Latitude and Longitiude Prefixes]{Prefixes for degrees}
     \raggedright
     \begin{tabular}{ c c c }
-        \hline
+        \toprule
         & Latitude & Longitude \\
-        \hline
+        \midrule
         N & \multirow{2}{*}{North} & \multirow{2}{*}{East} \\
         + & &\\
         \hline
         S & \multirow{2}{*}{South} & \multirow{2}{*}{West} \\
         - & &\\
-        \hline
+        \bottomrule
     \end{tabular}
 \end{table}
 
