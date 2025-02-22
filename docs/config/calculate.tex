@@ -5,11 +5,11 @@
 
 \begin{lstlisting}[language=Go,style=kaolstplain]
 calculate( "target.metric.name"
-    [every "crontab"](*\marginnote{crontab \vref{config:crontab}}*)
+    [every "crontab"]
     [reset every "crontab"]
-    [load "when" with (*\textit{expression}\dots*)]
+    [load "when" with "expression"]
     [usefirst "metric"]
-    as expression...
+    as (*\textit{expression}\dots*)
 )
 \end{lstlisting}
 

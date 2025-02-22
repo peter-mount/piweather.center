@@ -2,24 +2,24 @@
 \index{station}
 \index{Config!station}
 
-\begin{lstlisting}[language=Go,style=kaolstplain]
+\begin{lstlisting}[language=Go,style=kaolstplain,escapechar=|]
 station( "name"
     location( "name" "latitude" "longitude" "altitude" )
-    timezone( "timezone" )
+    [timezone( "timezone" )]
 
     // For .calc files
-    calculate from ...
-    calculate(...)
-    ephemeris(...)
+    [calculate from |\dots|]
+    [calculate(|\dots|)]
+    [ephemeris(|\dots|)]
 
     // For .station files
-    dashboard(...)
+    [dashboard(|\dots|)]
 
     // For .sensor files
-    sensor(...)
+    [sensor(|\dots|)]
 
     // For .cron files
-    tasks(...)
+    [tasks(|\dots|)]
 )
 \end{lstlisting}
 
