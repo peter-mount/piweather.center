@@ -16,22 +16,24 @@ calculate( "target.metric.name"
 \Statement{calculate} defines a calculation to be performed at either regular intervals or whenever one or more
 metrics change value.
 
-\paragraph{every}defines when the calculation should be performed over time.
+\ParameterDescription{
+\item[every]defines when the calculation should be performed over time.
 This is usually used for periodic calculations that do not depend on metrics.
 For example calculating the Sun's altitude at the weather station.
 
-\paragraph{reset every}defines when the metric being calculated should be reset to some default value by using
+\item[reset every]defines when the metric being calculated should be reset to some default value by using
 the \textbf{load} option.
 
-\paragraph{load}defines a database expression to perform and the range of time to retrive it, to get the metric's initial value.
+\item[load]defines a database expression to perform and the range of time to retrive it, to get the metric's initial value.
 This is usually performed when the \ServiceName{calculator} starts, however it can also be called periodically with
 the \textbf{reset every} option.
-\paragraph{usefirst}defines a metric to use as the initial value if a metric has no value or is being reset by
+\item[usefirst]defines a metric to use as the initial value if a metric has no value or is being reset by
 \textbf{reset every} and \textbf{load} has not returned any value.
 
-\paragraph{as}is the expression to perform whenever the calculation is performed.
+\item[as]is the expression to perform whenever the calculation is performed.
 If the expression references any metrics then they become triggers so that, whenever they are updated then this
 calculation is performed.
+}
 
 \subsubsection{Example calculation}
 \label{subsec:config:calculate:simple}

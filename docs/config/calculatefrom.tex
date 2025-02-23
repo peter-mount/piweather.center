@@ -14,11 +14,18 @@ calculate from "metric"
 
 It is a convenience form of \Statement{calculate()} removing a lot of boilerplate configuration into a single statement.
 
-\paragraph{unit}defines the unit we want the results to be in.
+\ParameterDescription{
+\item[unit]defines the unit we want the results to be in.
 If not defined then the unit of the output of the aggregate function is used.
 
-\paragraph{aggregates\dots}define the aggregations to perform, usually one or more of the following:
+\item[aggregates]define the aggregations to perform. The available functions are listed in \vref{config:calculatefor:aggregate:table}.
+
+\item[reset every]defines when the metric being calculated should be reset to some default value.
+}
+
 \begin{table}[ht]
+    \caption{Available aggregate functions for calculate for}
+    \label{config:calculatefor:aggregate:table}
     \begin{tabular}{l l}
         \toprule
         Aggregator & Function \\
@@ -30,8 +37,6 @@ If not defined then the unit of the output of the aggregate function is used.
         \bottomrule
     \end{tabular}
 \end{table}
-
-\paragraph{reset every}defines when the metric being calculated should be reset to some default value.
 
 \subsubsectionfit{Example}
 The following example shows how to calculate the minimum and maximum values of a specific metric.

@@ -13,43 +13,45 @@ It's used to enable the system to perform various calculations like when the Sun
 rises or sets as well as other phenomena specific to your location.
 
 \ParameterDescription{
-    \item[name] the name of the station.
+    \item[name] the unique name\sidenote{As the system can manage multiple weather stations, name must be unique.
+    This uniqueness can be just locally, but if you join multiple systems together then this must be unique across all of them.
+    } of the station.
     \item[latitude] latitude of the station
     \item[longitude] longitude of the station
-    \item[altitude] altitude of the station
+    \item[altitude] altitude\sidenote{
+        Altitude is optional, however advisable to set it as it is used in certain calculations like
+        calculating the Pressure at mean sea level and in forecasts.
+    } of the station in meters above mean sea level.
 }
 
-\paragraph{name} As the system can manage multiple weather stations, name must be unique.
-This uniqueness can be just locally, but if you join multiple systems together then
+Latitude and Longitude are defined in one of the following formats:
 
-\paragraph{Latitude and Longitude} are defined in one of the following formats:
-
-\ParameterDescription{
-    \item[12.345] Degrees in decimal
-    \item[12:34.56] Degrees \& Minutes with Minutes in decimal
-    \item[12:34:56] Degrees, Minutes \& Seconds. Seconds can be a decimal
-}
+\begin{table}[hb]
+    \raggedright
+    \begin{tabular}{ l|l }
+        \hrule
+            12.345      & Degrees in decimal \\
+            12:34.56    & Degrees \& decimal Minutes \\
+            12:34:56.78 & Degrees, Minutes \& decimal Seconds \\
+        \hrule
+    \end{tabular}
+\end{table}
 
 For declaring which hemisphere the station is in, you can prefix the Degrees field with one of the prefixes
 in the following table.
 If no prefix is included then the location is in the North/East respectively.
 
 \begin{table}[hb]
-    \raggedright
     \begin{tabular}{ c c c }
         \toprule
-        & Latitude & Longitude \\
+        Hemisphere & Latitude & Longitude \\
         \midrule
-        N & \multirow{2}{*}{North} & \multirow{2}{*}{East} \\
-        + & &\\
-        \hline
-        S & \multirow{2}{*}{South} & \multirow{2}{*}{West} \\
-        - & &\\
+        Northern    & + N   & \\
+        Southern    & - S   & \\
+        \midrule
+        Eastern     &       & + E \\
+        Western     &       & - W \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\paragraph{Altitude} is optional.
-It's defined in meters above mean sea level and will default to 0 if it's not set.
-It is however advisable to set it as it is used in certain calculations like calculating the Pressure if at sea level
-and in forecasts.
