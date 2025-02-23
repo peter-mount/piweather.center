@@ -22,6 +22,11 @@
 % *paged clears to a new page
 % *pagedleft clears so we appear on the left page
 % *pagedright clears so we appear on the right page
+\renewcommand*\cleartoleftpage{%
+    \clearpage
+    \ifodd\value{page}\hbox{}\newpage\fi
+}
+
 \newcommand{\sectionfit}[1]{\clearpagefit\section{#1}}
 \newcommand{\sectionpaged}[1]{\clearpage\section{#1}}
 \newcommand{\sectionpagedleft}[1]{\cleartoleftpage\section{#1}}
@@ -48,7 +53,7 @@
 % Common description layout for listing what value units are
 \newcommand{\WhereDescription}[1]{where:\begin{description}[leftmargin=3em,style=nextline]#1\end{description}}
 
-\newcommand{\ParameterDescription}[1]{where:\begin{description}[leftmargin=5em,style=nextline]#1\end{description}}
+\newcommand{\ParameterDescription}[1]{\begin{description}[leftmargin=5em,style=nextline]#1\end{description}}
 
 %----------------------------------------------------------------------------------------
 % Formatting
@@ -79,6 +84,8 @@
 %----------------------------------------------------------------------------------------
 % This either writes nothing if param1 is empty, or the number formatted with a \, suffixed
 \newcommand{\UnitNumPrint}[1]{\if\relax\detokenize{#1}\relax\else\numprint{#1}\,\fi}
+
+\newcommand{\Degrees}[1]{\ensuremath{\UnitNumPrint{#1}^{\circ}}}
 
 %\newcommand{\Celsius}[1]{\ensuremath{#1^{\circ}\mathrm{C}}}
 \newcommand{\Celsius}[1]{\ensuremath{\UnitNumPrint{#1}^{\circ}\!C}}

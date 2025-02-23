@@ -67,8 +67,8 @@ const (
 	EquatorialRA
 	EquatorialDec
 
-	// Distance of object
-	Distance
+	// DistanceEarth of object from Earth
+	DistanceEarth
 
 	// LightTime to the object from Earth
 	LightTime
@@ -99,6 +99,8 @@ const (
 	// AllCoordinateOptions possible coordinate options
 	AllCoordinateOptions = Ecliptic | Equatorial | Galactic | Horizon
 
+	Distance = DistanceEarth | DistanceSun | LightTime
+
 	// Equatorial coordinates
 	Equatorial = EquatorialRA | EquatorialDec
 
@@ -115,32 +117,33 @@ const (
 var (
 	ephemerisOptionNames = map[string]EphemerisOption{
 		// Note: Key here MUST be in lower case
-		"alloptions":           AllOptions,
-		"alldataoptions":       AllDataOptions,
-		"allcoordinateoptions": AllCoordinateOptions,
-		"altitude":             HorizonAltitude,
-		"azimuth":              HorizonAzimuth,
-		"bearing":              HorizonBearing,
-		"equatorial":           Equatorial,
-		"dec":                  EquatorialDec,
-		"diameter":             SemiDiameter,
-		"distance":             Distance,
-		"distanceSun":          DistanceSun,
-		"ecliptic":             Ecliptic,
-		"eclipticlatitude":     EclipticLatitude,
-		"eclipticlongitude":    EclipticLongitude,
-		"galactic":             Galactic,
-		"galacticlatitude":     GalacticLatitude,
-		"galacticlongitude":    GalacticLongitude,
-		"horizon":              Horizon,
-		"lighttime":            LightTime,
-		"ra":                   EquatorialRA,
+		"all":               AllOptions,
+		"alldata":           AllDataOptions,
+		"allcoordinates":    AllCoordinateOptions,
+		"altitude":          HorizonAltitude,
+		"azimuth":           HorizonAzimuth,
+		"bearing":           HorizonBearing,
+		"equatorial":        Equatorial,
+		"dec":               EquatorialDec,
+		"diameter":          SemiDiameter,
+		"distance":          Distance,
+		"distanceEarth":     DistanceEarth,
+		"distanceSun":       DistanceSun,
+		"ecliptic":          Ecliptic,
+		"eclipticlatitude":  EclipticLatitude,
+		"eclipticlongitude": EclipticLongitude,
+		"galactic":          Galactic,
+		"galacticlatitude":  GalacticLatitude,
+		"galacticlongitude": GalacticLongitude,
+		"horizon":           Horizon,
+		"lighttime":         LightTime,
+		"ra":                EquatorialRA,
 	}
 
 	ephemerisMetrics = map[EphemerisOption]string{
 		SemiDiameter:      "diameter",
-		Distance:          "dist.earth",
-		LightTime:         "dist.lightTime",
+		DistanceEarth:     "dist.earth",
+		LightTime:         "dist.lighttime",
 		DistanceSun:       "dist.sun",
 		HorizonAltitude:   "hz.altitude",
 		HorizonAzimuth:    "hz.azimuth",
@@ -161,6 +164,7 @@ var (
 		AllDataOptions,
 		Ecliptic,
 		Galactic,
+		Distance,
 	}
 )
 
