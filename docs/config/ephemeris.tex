@@ -1,7 +1,7 @@
 \subsectionpagedleft{Ephemeris}
 \label{config:ephemeris}
-\index{ephemeris}
-\index{Config!ephemeris}
+\index{Ephemeris}
+\index{Config!Ephemeris}
 
 \begin{lstlisting}[language=Go,style=kaolstplain,escapechar=|]
 ephemeris( "sensor"
@@ -40,11 +40,18 @@ starts.
  \hline
  \multicolumn{3}{l}{\textbf{target}} & \textbf{advised crontab} \\
  \hline
- sun & moon && minute \\
+ sun\index{Sun}\index{Ephemeris!Sun} &
+     moon\index{Moon}\index{Ephemeris!Moon} &
+     & minute \\
  \hline
- mercury & venus & mars & \multirow{3}{*}{hour} \\
- jupiter & saturn & uranus & \\
- neptune &&& \\
+ mercury\index{Mercury}\index{Ephemeris!Mercury} &
+    venus\index{Venus}\index{Ephemeris!Venus} &
+    mars\index{Mars}\index{Ephemeris!Mars} &
+    \multirow{3}{*}{hour} \\
+ jupiter\index{Jupiter}\index{Ephemeris!Jupiter} &
+    saturn\index{Saturn}\index{Ephemeris!Saturn} &
+    uranus\index{Uranus}\index{Ephemeris!Uranus} & \\
+ neptune\index{Neptune}\index{Ephemeris!Neptune} &&& \\
  \hline
  \end{tabular}
 \end{table}
@@ -59,25 +66,25 @@ starts.
  \hline
  \multirow{14}{*}{\rotatebox[origin=c]{90}{all}} &
     \multirow{9}{*}{\rotatebox[origin=c]{90}{allCoordinates}} &
-        \multirow{2}{*}{equatorial} & ra & Right Ascension & eq.ra\\
-    &   &   & dec & Declination & eq.dec \\
+        \multirow{2}{*}{equatorial\index{Equatorial}\index{Ephemeris!Equatorial}} & ra & Right Ascension\index{Right Ascension}\index{Ephemeris!Equatorial!Right Ascension}\index{Coordinate!Equatorial!Right Ascension} & eq.ra\\
+    &   &   & dec & Declination\index{Declination}\index{Ephemeris!Equatorial!Declination}\index{Coordinate!Equatorial!Declination} & eq.dec \\
         \cline{3-6}
-    &   & \multirow{2}{*}{ecliptic} & eclipticLatitude & Ecliptic Latitude & ecl.lat \\
-    &   &   & eclipticLongitude & Ecliptic Longitude & ecl.lon \\
+    &   & \multirow{2}{*}{ecliptic\index{Ecliptic}\index{Ephemeris!Ecliptic}} & eclipticLatitude & Ecliptic Latitude\index{Ephemeris!Ecliptic!Latitude}\index{Coordinate!Ecliptic!Latitude} & ecl.lat \\
+    &   &   & eclipticLongitude & Ecliptic Longitude\index{Ephemeris!Ecliptic!Longitude}\index{Coordinate!Ecliptic!Longitude} & ecl.lon \\
         \cline{3-6}
-    &   & \multirow{2}{*}{galactic} & galacticLatitude & Galactic Latitude & gal.lat\\
-    &   &   & galacticLongitude & Galactic Longitude & gal.lon \\
+    &   & \multirow{2}{*}{galactic\index{Galactic}\index{Ephemeris!Galactic}\index{Cordinate!Galactic}} & galacticLatitude\index{Galactic!Latitude}\index{Ephemeris!Galactic!Latitude}\index{Cordinate!Galactic!Latitude} & Galactic Latitude & gal.lat\\
+    &   &   & galacticLongitude & Galactic Longitude\index{Galactic!Longitude}\index{Ephemeris!Galactic!Longitude}\index{Cordinate!Galactic!Longitude} & gal.lon \\
         \cline{3-6}
-    &   & \multirow{3}{*}{horizon} & altitude & Altitude above horizon & hz.altitude \\
-    &   &   & azimuth & Azimuth clockwise from \Degrees{0} South & hz.azimuth \\
-    &   &   & bearing & Bearing clockwise from \Degrees{0} North & hz.bearing \\
+    &   & \multirow{3}{*}{horizon\index{Horizon}\index{Ephemeris!Horizon}\index{Cordinate!Horizon}} & altitude & Altitude\index{Altitude}\index{Horizon!Altitude}\index{Ephemeris!Horizon!Altitude}\index{Cordinate!Horizon!Altitude}} above horizon & hz.altitude \\
+    &   &   & azimuth & Azimuth\index{Azimuth}\index{Horizon!Azimuth}\index{Ephemeris!Horizon!Azimuth}\index{Cordinate!Horizon!Azimuth}} clockwise from \Degrees{0} South & hz.azimuth \\
+    &   &   & bearing & Bearing\index{Bearing}\index{Horizon!Bearing}\index{Ephemeris!Horizon!Bearing}\index{Cordinate!Horizon!Bearing}} clockwise from \Degrees{0} North & hz.bearing \\
     \cline{2-6}
  &  \multirow{4}{*}{\rotatebox[origin=c]{90}{allData}} &
-            & diameter & The objects semi-diameter & diameter \\
+            & diameter\index{Diameter}\index{Ephemeris!Diameter} & The objects semi-diameter\index{Semi-diameter} & diameter \\
         \cline{3-6}
-    &   & \multirow{3}{*}{distance} & distanceEarth & Distance from the Earth & dist.earth \\
-    &   &   & distanceSun & Distance from the Sun & dist.sun \\
-    &   &   & lightTime & Time from Earth at the speed of light & dist.lighttime \\
+    &   & \multirow{3}{*}{distance\index{Distance}\index{Ephemeris!Distance}} & distanceEarth\index{Distance!from Earth}\index{Ephemeris!Distance Earth}} & Distance from the Earth & dist.earth \\
+    &   &   & distanceSun\index{Distance!from Sun}\index{Ephemeris!Distance Sun} & Distance from the Sun & dist.sun \\
+    &   &   & lightTime\index{Light Time}\index{Ephemeris!Light Time} & Time from Earth at the speed of light & dist.lighttime \\
  \hline
  \end{tabular}
 \end{table*}

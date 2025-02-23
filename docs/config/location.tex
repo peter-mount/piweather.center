@@ -1,6 +1,6 @@
 \subsectionfit{Location}
 \label{config:location}
-\index{location}
+\index{Location}
 \index{Config!location}
 
 \begin{lstlisting}[language=Go,style=kaolstplain]
@@ -16,9 +16,9 @@ rises or sets as well as other phenomena specific to your location.
     \item[name] the unique name\sidenote{As the system can manage multiple weather stations, name must be unique.
     This uniqueness can be just locally, but if you join multiple systems together then this must be unique across all of them.
     } of the station.
-    \item[latitude] latitude of the station
-    \item[longitude] longitude of the station
-    \item[altitude] altitude\sidenote{
+    \item[latitude] latitude\index{Latitude} of the station
+    \item[longitude] longitude\index{Longitude} of the station
+    \item[altitude] altitude\index{Altitude}\sidenote{
         Altitude is optional, however advisable to set it as it is used in certain calculations like
         calculating the Pressure at mean sea level and in forecasts.
     } of the station in meters above mean sea level.

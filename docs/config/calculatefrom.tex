@@ -1,7 +1,8 @@
 \subsectionpaged{Calculate From}
 \label{config:calculateFrom}
-\index{calculate from}
+\index{Calculate from}
 \index{Config!calculate from}
+\index{Schedule!reset every}
 
 \begin{lstlisting}[language=Go,style=kaolstplain,escapechar=|]
 calculate from "metric"
@@ -30,10 +31,10 @@ If not defined then the unit of the output of the aggregate function is used.
         \toprule
         Aggregator & Function \\
         \midrule
-        avg & Average \\
-        min & Minimum \\
-        max & Maximum \\
-        sum & Summation \\
+        avg & Average   \index{avg}\index{Aggregate!avg}\index{Function!avg}\\
+        min & Minimum   \index{min}\index{Aggregate!min}\index{Function!min}\\
+        max & Maximum   \index{max}\index{Aggregate!max}\index{Function!max}\\
+        sum & Summation \index{sum}\index{Aggregate!sum}\index{Function!sum}\\
         \bottomrule
     \end{tabular}
 \end{table}
