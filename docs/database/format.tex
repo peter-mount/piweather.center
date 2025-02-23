@@ -1,0 +1,209 @@
+\section{Database File Format}
+\label{sec:database:format}
+
+The metrics are stored within individual files, one for each metric per day.
+The file's consist of three sections, the preamble, the header and the data segments.
+All multibyte values are in little-endian format.
+
+The following is an example of the first 128 bytes of a database file:
+
+\begin{table*}[h*)]
+    \begin{tabular}{r|rrrrrrrrrrrrrrrr|l}
+        \hline
+        \multirow{2}{*}{\textbf{offset}}& \multicolumn{16}{c|}{\textbf{Hexadecimal}} & \multirow{2}{*}{\textbf{Text}} \\
+         &  \textbf{0}&\textbf{1}&\textbf{2}&\textbf{3}&
+            \textbf{4}&\textbf{5}&\textbf{6}&\textbf{7}&
+            \textbf{8}&\textbf{9}&\textbf{A}&\textbf{B}&
+            \textbf{C}&\textbf{D}&\textbf{E}&\textbf{F}& \\
+        \hline
+        0000 &
+            % PIWEATHERDB
+            \cellcolor{yellow}50 & \cellcolor{yellow}49 & \cellcolor{yellow}57 & \cellcolor{yellow}54 &
+            \cellcolor{yellow}48 & \cellcolor{yellow}52 & \cellcolor{yellow}44 & \multicolumn{1}{r|}{\cellcolor{yellow}42} &
+            %
+            \cellcolor{blue!25}30 & \multicolumn{1}{r|}{\cellcolor{blue!25}00} &
+            %
+            \cellcolor{red!25}01 & \multicolumn{1}{r|}{\cellcolor{red!25}00} &
+            %
+            \cellcolor{green!25}01 & \multicolumn{1}{r|}{\cellcolor{green!25}00} &
+            \cellcolor{grey!10}18 & \cellcolor{grey!10}00 &
+            \texttt{PIWTHRDB0.......}\\
+        \hline
+        0010 & \cellcolor{green!25}0f & \multicolumn{1}{r|}{\cellcolor{green!25}00} &
+            \cellcolor{yellow}68 & \cellcolor{yellow}6f & \cellcolor{yellow}6d & \cellcolor{yellow}65 &
+            \cellcolor{yellow}2e & \cellcolor{yellow}67 & \cellcolor{yellow}65 & \cellcolor{yellow}69 &
+            \cellcolor{yellow}67 & \cellcolor{yellow}65 & \cellcolor{yellow}72 & \cellcolor{yellow}2e & \cellcolor{yellow}63 & \cellcolor{yellow}70 &
+            \texttt{..home.geiger.cp}\\
+            \cline{2-17}
+        0020 &
+        \multicolumn{1}{r|}{\cellcolor{yellow}6d} &
+            00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & \texttt{m...............}\\
+        \hline
+        0030 &
+            % r1 time
+            \cellcolor{yellow}80 & \cellcolor{yellow}2a & \cellcolor{yellow}b1 & \cellcolor{yellow}67 &
+            \cellcolor{yellow}00 & \cellcolor{yellow}00 & \cellcolor{yellow}00 & \cellcolor{yellow}00 &
+            % r1 val
+            \cellcolor{green!25}00 & \cellcolor{green!25}00 & \cellcolor{green!25}00 & \cellcolor{green!25}00 &
+            \cellcolor{green!25}00 & \cellcolor{green!25}00 & \cellcolor{green!25}31 & \cellcolor{green!25}40 &
+            \texttt{.*.g..........1@}\\
+            \cline{10-17}
+        0040 &
+            % r1 unit
+            \cellcolor{red!25}23 & \cellcolor{red!25}11 & \cellcolor{red!25}c0 & \cellcolor{red!25}53 &
+            \cellcolor{red!25}c6 & \cellcolor{red!25}0b & \cellcolor{red!25}b2 & \multicolumn{1}{r|}{\cellcolor{red!25}05} &
+            81 & 2a & b1 & 67 & 00 & 00 & 00 & 00 & \texttt{#..S.....*.g....}\\
+        \cline{2-9}
+        0050 & 00 & 00 & 00 & 00 & 00 & 00 & 32 & 40 & 23 & 11 & c0 & 53 & c6 & 0b & b2 & 05 & \texttt{......2@#..S....}\\
+        \cline{2-17}
+        0060 & 82 & 2a & b1 & 67 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 32 & 40 & \texttt{.*.g..........2@}\\
+        \cline{10-17}
+        0070 & 23 & 11 & c0 & 53 & c6 & 0b & b2 & \multicolumn{1}{r|}{05} & 83 & 2a & b1 & 67 & 00 & 00 & 00 & 00 & \texttt{#..S.....*.g....}\\
+        \cline{2-9}
+    \end{tabular}
+\end{table*}
+
+\subsection{Preamble}
+\label{subsec:database:preamble}
+
+The preamble is the first 16 bytes of the file:
+
+\begin{table*}[h*)]
+    \begin{tabular}{r|rrrrrrrrrrrrrrrr|l}
+        \hline
+        \multirow{2}{*}{\textbf{offset}}& \multicolumn{16}{c|}{\textbf{Hexadecimal}} & \multirow{2}{*}{\textbf{Text}} \\
+        &  \textbf{0}&\textbf{1}&\textbf{2}&\textbf{3}&
+        \textbf{4}&\textbf{5}&\textbf{6}&\textbf{7}&
+        \textbf{8}&\textbf{9}&\textbf{A}&\textbf{B}&
+        \textbf{C}&\textbf{D}&\textbf{E}&\textbf{F}& \\
+        \hline
+        0000 &
+        % PIWEATHERDB
+        \cellcolor{yellow}50 & \cellcolor{yellow}49 & \cellcolor{yellow}57 & \cellcolor{yellow}54 &
+        \cellcolor{yellow}48 & \cellcolor{yellow}52 & \cellcolor{yellow}44 & \multicolumn{1}{r|}{\cellcolor{yellow}42} &
+        %
+        \cellcolor{blue!25}30 & \multicolumn{1}{r|}{\cellcolor{blue!25}00} &
+        %
+        \cellcolor{red!25}01 & \multicolumn{1}{r|}{\cellcolor{red!25}00} &
+        %
+        \cellcolor{green!25}01 & \multicolumn{1}{r|}{\cellcolor{green!25}00} &
+        \cellcolor{grey!10}18 & \cellcolor{grey!10}00 &
+        \texttt{PIWTHRDB0.......}\\
+        \hline
+    \end{tabular}
+\end{table*}
+
+\begin{table}[h!)]
+\begin{tabular}{r l l l l}
+\multicolumn{2}{c}{\textbf{offset}} & \textbf{Type} & \textbf{Contents} & \textbf{In example}\\
+\hline
+00 & 07 & string & \multicolumn{2}{l}{Always ``PIWTHRDB'' which identifies this as a database file} \\
+08 & 09 & uint16 & The offset to the start of the main body & 0x0030 \\
+0A & 0B & uint16 & The header version & 0x0001 \\
+0C & 0D & uint16 & The record version & 0x0001\\
+0E & 0F & uint16 & Reserved & \\
+\hline
+\end{tabular}
+\end{table}
+
+The reserved field was originally the record length,
+\subsectionpaged{Header}
+\label{subsec:database:header}
+
+The header is a variable length block starting from offset 0x0010.
+The header block is always padded out with nulls to a multiple of 16\sidenote{this also makes debugging easier as you can use hexdump on the db file}
+bytes so that the data block always starts at an even boundary.
+
+Its content is defined by the header version in the preamble.
+Currently, the only version defined is 0x0001.
+
+\subsubsection{Header version 0x0001}
+\label{subsubsec:database:header:0001}
+
+For version 1 the only value stored in the header is the metric name of the data this file is storing.
+\begin{table}[ht]
+    \begin{tabular}{r l l l}
+        \multicolumn{2}{c}{\textbf{file offset}} & \textbf{Type} & \textbf{Contents} \\
+        \hline
+        10 & 11 & uint16 & The length of the metric name \\
+        12 & n & string & The metric name \\
+        \hline
+    \end{tabular}
+\end{table}
+
+From the earlier example, we have the following for the header:
+\begin{table*}[h*)]
+    \begin{tabular}{r|rrrrrrrrrrrrrrrr|l}
+        \hline
+        \multirow{2}{*}{\textbf{offset}}& \multicolumn{16}{c|}{\textbf{Hexadecimal}} & \multirow{2}{*}{\textbf{Text}} \\
+        &  \textbf{0}&\textbf{1}&\textbf{2}&\textbf{3}&
+        \textbf{4}&\textbf{5}&\textbf{6}&\textbf{7}&
+        \textbf{8}&\textbf{9}&\textbf{A}&\textbf{B}&
+        \textbf{C}&\textbf{D}&\textbf{E}&\textbf{F}& \\
+        \hline
+        0010 & \cellcolor{green!25}0f & \multicolumn{1}{r|}{\cellcolor{green!25}00} &
+        \cellcolor{yellow}68 & \cellcolor{yellow}6f & \cellcolor{yellow}6d & \cellcolor{yellow}65 &
+        \cellcolor{yellow}2e & \cellcolor{yellow}67 & \cellcolor{yellow}65 & \cellcolor{yellow}69 &
+        \cellcolor{yellow}67 & \cellcolor{yellow}65 & \cellcolor{yellow}72 & \cellcolor{yellow}2e & \cellcolor{yellow}63 & \cellcolor{yellow}70 &
+        \texttt{..home.geiger.cp}\\
+        \cline{2-17}
+        0020 &
+        \multicolumn{1}{r|}{\cellcolor{yellow}6d} &
+        00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & 00 & \texttt{m...............}\\
+        \hline
+    \end{tabular}
+\end{table*}
+
+Here the metric name is 15 bytes long (0x0f) and is set to \Metric{home.geiger.cpm}.
+Bytes 0x21\dots0x2f are padding so are unused.
+
+\subsectionpaged{Body}
+\label{subsec:database:body}
+
+The body contains the actual recorded data.
+It starts from the offset set in the preamble.
+
+Each record is of fixed length and the record format is defined by the record version in the preamble.
+Currently, the only version defined is 0x0001.
+
+\subsubsection{Record version 0x0001}
+\label{subsubsec:database:record:0001}
+
+For version 1 we store the three critical portions of any reading: the time, the value and the unit of the value.
+\begin{table}[ht]
+    \begin{tabular}{r l l l}
+        \toprule
+        \multicolumn{2}{c}{\textbf{file offset}} & \textbf{Type} & \textbf{Contents} \\
+        \midrule
+        10 & 11 & uint16 & The length of the metric name \\
+        12 & n & string & The metric name \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table*}[h*)]
+    \begin{tabular}{r|rrrrrrrrrrrrrrrr|l}
+        \hline
+        \multirow{2}{*}{\textbf{offset}}& \multicolumn{16}{c|}{\textbf{Hexadecimal}} & \multirow{2}{*}{\textbf{Text}} \\
+        &  \textbf{0}&\textbf{1}&\textbf{2}&\textbf{3}&
+        \textbf{4}&\textbf{5}&\textbf{6}&\textbf{7}&
+        \textbf{8}&\textbf{9}&\textbf{A}&\textbf{B}&
+        \textbf{C}&\textbf{D}&\textbf{E}&\textbf{F}& \\
+        \hline
+        0030 &
+        % r1 time
+        \cellcolor{yellow}80 & \cellcolor{yellow}2a & \cellcolor{yellow}b1 & \cellcolor{yellow}67 &
+        \cellcolor{yellow}00 & \cellcolor{yellow}00 & \cellcolor{yellow}00 & \cellcolor{yellow}00 &
+        % r1 val
+        \cellcolor{green!25}00 & \cellcolor{green!25}00 & \cellcolor{green!25}00 & \cellcolor{green!25}00 &
+        \cellcolor{green!25}00 & \cellcolor{green!25}00 & \cellcolor{green!25}31 & \cellcolor{green!25}40 &
+        \texttt{.*.g..........1@}\\
+        \cline{10-17}
+        0040 &
+        % r1 unit
+        \cellcolor{red!25}23 & \cellcolor{red!25}11 & \cellcolor{red!25}c0 & \cellcolor{red!25}53 &
+        \cellcolor{red!25}c6 & \cellcolor{red!25}0b & \cellcolor{red!25}b2 & \multicolumn{1}{r|}{\cellcolor{red!25}05} &
+        81 & 2a & b1 & 67 & 00 & 00 & 00 & 00 & \texttt{#..S.....*.g....}\\
+        \cline{2-9}
+    \end{tabular}
+\end{table*}
