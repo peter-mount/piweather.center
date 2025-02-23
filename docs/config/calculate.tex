@@ -56,25 +56,26 @@ passing the metrics \Metric{ecowitt.temp} and \Metric{ecowitt.humidity}.
 \label{subsec:config:calculate:nometric}
 Calculations don't always require a source metric.
 Some are based on the stations location and/or the time of day for their results.
-\marginnote[-0.3cm]{Calculating the Sun's location is better performed by \Statement{ephemeris} in \vref{config:ephemeris}}
-In this example we calculate the Sun's altitude at the weather station for the time of day.
+In this example we calculate the Sun's altitude at the weather station for the time of day:
 
-\begin{lstlisting}[language=Go,caption={Example calculation},escapechar=|]
-calculate( "local.solarAltitude"       |\label{line:calculate:nometric:target}|
+\begin{lstlisting}[language=Go,caption={Example calculation with no metrics},escapechar=|]
+calculate( "local.solarAltitude"     |\label{line:calculate:nometric:target}|
     every "minute"                   |\label{line:calculate:nometric:every}|
     as solarAltitude() unit "degree" |\label{line:calculate:nometric:as}|
 )
 \end{lstlisting}
 
-As before, line \ref{line:calculate:simple:target} declares we are calculating the metric \Metric{local.solarAltitude}.
-Line \ref{line:calculate:simple:as} causes the calculation to be performed once every minute,
-whilst line \ref{line:calculate:simple:as} uses the \GoFunction{solarAltitude} function for the calculation.
+As before, line \ref{line:calculate:nometric:target} declares we are calculating the metric \Metric{local.solarAltitude}.
+
+\marginnote{Calculating the Sun's location is better performed by \Statement{ephemeris} in \vref{config:ephemeris}}
+Line \ref{line:calculate:nometric:every} causes the calculation to be performed once every minute,
+whilst line \ref{line:calculate:nometric:as} uses the \GoFunction{solarAltitude} function for the calculation.
 This function uses no metrics but does use the stations location and the current time.
 
 \subsubsectionfit{Example aggregation}
 Aggregations like min, max \etc can be used as a function just like in \vref{subsec:config:calculate:simple}.
 
-\marginnote{This example can be simplified with \Statement{calculate for} in \vref{config:calculateFor}}
+\marginnote{This example can be simplified with \Statement{calculate from} in \vref{config:calculateFrom}}
 The following calculation will automatically record the maximum value of a metric for the current day:
 
 \begin{lstlisting}[language=Go,caption={Example aggregation calculation},escapechar=|]
