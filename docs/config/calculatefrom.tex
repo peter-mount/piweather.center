@@ -51,7 +51,7 @@ Line \ref{line:calculatefrom:example:aggregators} declares which aggregators to 
 
 Line \ref{line:calculatefrom:example:reset} indicates we want the metrics to be reset once every day at midnight.
 
-The result of this is that two new metrics are generated using \Metric{ws90.humidity} as the source.
+The result of this is that three new metrics are generated using \Metric{ws90.humidity} as the source.
 As we are using \Statement{avg}, \Statement{min} and \Statement{max} here then this will create the metrics
 \Metric{ws90.humidity.avg}, \Metric{ws90.humidity.min} and \Metric{ws90.humidity.max} respectively.
 
